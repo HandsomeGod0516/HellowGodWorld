@@ -1,0 +1,163 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:36+0800\n"
+"PO-Revision-Date: 2026-03-05 23:55+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../env_modules.rst:2
+msgid "环境模块"
+msgstr "Environment Modules"
+
+#: ../../env_modules.rst:4
+msgid "本部分介绍如何创建和使用环境模块。"
+msgstr "This section covers how to create and work with environment modules."
+
+#: ../../env_modules.rst:7
+msgid "创建自定义模块"
+msgstr "Creating Custom Modules"
+
+#: ../../env_modules.rst:10
+msgid "继承 EnvBase"
+msgstr "Inherit from EnvBase"
+
+#: ../../env_modules.rst:12
+msgid "要创建自定义环境模块，请继承 ``EnvBase`` 并实现必需的方法："
+msgstr "To create a custom environment module, inherit from ``EnvBase`` and implement the required methods:"
+
+#: ../../env_modules.rst:15
+msgid "需要实现的方法"
+msgstr "Required Methods to Implement"
+
+#: ../../env_modules.rst:17
+msgid "创建自定义环境模块时，必须实现："
+msgstr "When creating a custom environment module, you must implement:"
+
+#: ../../env_modules.rst:19
+msgid "**async def step(self, tick: int, t: datetime) -> None**"
+msgstr "**async def step(self, tick: int, t: datetime) -> None**"
+
+#: ../../env_modules.rst:29
+msgid "执行一个模拟步骤。在 AgentSociety 模拟期间自动调用。 使用此方法更新时间相关的状态。"
+msgstr "Execute one simulation step. This is called automatically during AgentSociety simulations. Use this to update time-dependent state."
+
+#: ../../env_modules.rst:32
+msgid "参数:"
+msgstr "Parameters:"
+
+#: ../../env_modules.rst:33
+msgid "tick: 此步骤的持续时间（秒） t: 此步骤后的当前模拟日期时间"
+msgstr "tick: Duration of this step in seconds t: Current simulation datetime after this step"
+
+#: ../../env_modules.rst:36
+msgid "**使用 @tool 装饰的工具**"
+msgstr "**Tools decorated with @tool**"
+
+#: ../../env_modules.rst:38
+msgid "使用 ``@tool`` 装饰器将方法公开为智能体的可调用函数。"
+msgstr "Use the ``@tool`` decorator to expose methods as callable functions for agents."
+
+#: ../../env_modules.rst:65
+msgid "参考实现"
+msgstr "Reference Implementation"
+
+#: ../../env_modules.rst:67
+msgid "有关完整的参考实现，请参阅："
+msgstr "For complete reference implementations, see:"
+
+#: ../../env_modules.rst:69
+msgid "``SimpleSocialSpace`` - 社交互动模块"
+msgstr "``SimpleSocialSpace`` - Social interaction module"
+
+#: ../../env_modules.rst:70
+msgid "``PublicGoodsGame`` - 公共物品博弈模块"
+msgstr "``PublicGoodsGame`` - Public goods game module"
+
+#: ../../env_modules.rst:71
+msgid "``PrisonersDilemma`` - 囚徒困境模块"
+msgstr "``PrisonersDilemma`` - Prisoner's dilemma module"
+
+#: ../../env_modules.rst:74
+msgid "@tool 装饰器"
+msgstr "The @tool Decorator"
+
+#: ../../env_modules.rst:76
+msgid "``@tool`` 装饰器将方法标记为可被智能体调用："
+msgstr "The ``@tool`` decorator marks methods as callable by agents:"
+
+#: ../../env_modules.rst:87
+msgid "参数："
+msgstr "Parameters:"
+
+#: ../../env_modules.rst:89
+msgid "**readonly** (bool): 工具是否修改环境 * ``True`` = 只读，可用于查询 * ``False`` = 修改状态，可用于干预"
+msgstr "**readonly** (bool): Whether the tool modifies the environment * ``True`` = read-only, can be used in queries * ``False`` = modifies state, can be used in interventions"
+
+#: ../../env_modules.rst:93
+msgid "**kind** (str): 工具的类型 * ``\"observe\"``: 单参数观察（需要 readonly=True） * ``\"statistics\"``: 聚合查询（无参数，需要 readonly=True） * ``None`` 或省略: 常规工具（任何签名，任何 readonly 值）"
+msgstr "**kind** (str): The type of tool * ``\"observe\"``: Single-parameter observations (requires readonly=True) * ``\"statistics\"``: Aggregate queries (no parameters, requires readonly=True) * ``None`` or omitted: Regular tool (any signature, any readonly value)"
+
+#: ../../env_modules.rst:99
+msgid "工具类型"
+msgstr "Tool Types"
+
+#: ../../env_modules.rst:101
+msgid "**observe**: 单参数观察（需要 readonly=True）"
+msgstr "**observe**: Single-parameter observations (readonly=True required)"
+
+#: ../../env_modules.rst:102
+msgid "**statistics**: 聚合查询（无参数，需要 readonly=True）"
+msgstr "**statistics**: Aggregate queries (no parameters, readonly=True required)"
+
+#: ../../env_modules.rst:103
+msgid "**regular**: 任何其他工具（可以是只读或读写）"
+msgstr "**regular**: Any other tool (can be readonly or read-write)"
+
+#: ../../env_modules.rst:105
+msgid "有关工具类型的更多详情，请参阅 :doc:`concepts`。"
+msgstr "See :doc:`concepts` for more details on tool types."
+
+#: ../../env_modules.rst:108
+msgid "注册模块"
+msgstr "Registering Modules"
+
+#: ../../env_modules.rst:121
+msgid "完整示例"
+msgstr "Complete Example"
+
+#: ../../env_modules.rst:179
+msgid "示例"
+msgstr "Examples"
+
+#: ../../env_modules.rst:181
+msgid "请参阅 :mod:`agentsociety2.contrib.env` 包中的示例模块："
+msgstr "See the :mod:`agentsociety2.contrib.env` package for example modules:"
+
+#: ../../env_modules.rst:183
+msgid ":mod:`~agentsociety2.contrib.env.SimpleSocialSpace`"
+msgstr ":mod:`~agentsociety2.contrib.env.SimpleSocialSpace`"
+
+#: ../../env_modules.rst:184
+msgid ":mod:`~agentsociety2.contrib.env.PublicGoodsGame`"
+msgstr ":mod:`~agentsociety2.contrib.env.PublicGoodsGame`"
+
+#: ../../env_modules.rst:185
+msgid ":mod:`~agentsociety2.contrib.env.PrisonersDilemma`"
+msgstr ":mod:`~agentsociety2.contrib.env.PrisonersDilemma`"
+
+#: ../../env_modules.rst:186
+msgid ":mod:`~agentsociety2.contrib.env.TrustGame`"
+msgstr ":mod:`~agentsociety2.contrib.env.TrustGame`"

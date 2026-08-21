@@ -1,0 +1,153 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:36+0800\n"
+"PO-Revision-Date: 2026-03-05 23:50+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../installation.rst:2
+msgid "安装"
+msgstr "Installation"
+
+#: ../../installation.rst:5
+msgid "系统要求"
+msgstr "Requirements"
+
+#: ../../installation.rst:7
+msgid "AgentSociety 2 需要 Python 3.11 或更高版本。"
+msgstr "AgentSociety 2 requires Python 3.11 or later."
+
+#: ../../installation.rst:10
+msgid "从 PyPI 安装"
+msgstr "Install from PyPI"
+
+#: ../../installation.rst:12
+msgid "最简单的安装 AgentSociety 2 的方法是使用 pip："
+msgstr "The easiest way to install AgentSociety 2 is using pip:"
+
+#: ../../installation.rst:18
+msgid "这将安装核心包。如果要安装开发依赖："
+msgstr "This will install the core package. If you want to install with development dependencies:"
+
+#: ../../installation.rst:24
+msgid "对于文档依赖："
+msgstr "For documentation dependencies:"
+
+#: ../../installation.rst:30
+msgid "安装所有内容："
+msgstr "Install everything:"
+
+#: ../../installation.rst:37
+msgid "从源码安装"
+msgstr "Install from Source"
+
+#: ../../installation.rst:39
+msgid "要从最新的源代码安装："
+msgstr "To install from the latest source code:"
+
+#: ../../installation.rst:48
+msgid "验证安装"
+msgstr "Verify Installation"
+
+#: ../../installation.rst:50
+msgid "要验证您的安装，运行："
+msgstr "To verify your installation, run:"
+
+#: ../../installation.rst:57
+msgid "您应该能看到版本号被打印出来。"
+msgstr "You should see the version number printed."
+
+#: ../../installation.rst:60
+msgid "配置"
+msgstr "Configuration"
+
+#: ../../installation.rst:62
+msgid "AgentSociety 2 需要 LLM API 凭证。设置以下环境变量："
+msgstr "AgentSociety 2 requires LLM API credentials. Set the following environment variables:"
+
+#: ../../installation.rst:64
+msgid "**必需配置**"
+msgstr "**Required Configuration**"
+
+#: ../../installation.rst:73
+msgid "**可选配置**"
+msgstr "**Optional Configuration**"
+
+#: ../../installation.rst:75
+msgid "对于专门的任务，您可以配置单独的 LLM 实例。如果未设置这些选项， 它们将回退到默认 LLM 配置："
+msgstr "For specialized tasks, you can configure separate LLM instances. If these are not set, they will fall back to the default LLM configuration:"
+
+#: ../../installation.rst:99
+msgid "**数据目录**"
+msgstr "**Data Directory**"
+
+#: ../../installation.rst:107
+msgid "**使用 .env 文件**"
+msgstr "**Using a .env File**"
+
+#: ../../installation.rst:109
+msgid "您也可以在项目目录中创建 ``.env`` 文件："
+msgstr "You can also create a ``.env`` file in your project directory:"
+
+#: ../../installation.rst:126
+msgid "支持的 LLM 提供商"
+msgstr "Supported LLM Providers"
+
+#: ../../installation.rst:128
+msgid "AgentSociety 2 使用 `litellm`_，支持许多 LLM 提供商："
+msgstr "AgentSociety 2 uses `litellm`_ which supports many LLM providers:"
+
+#: ../../installation.rst:130
+msgid "OpenAI (GPT-4, GPT-3.5)"
+msgstr "OpenAI (GPT-4, GPT-3.5)"
+
+#: ../../installation.rst:131
+msgid "Anthropic (Claude)"
+msgstr "Anthropic (Claude)"
+
+#: ../../installation.rst:132
+msgid "Azure OpenAI"
+msgstr "Azure OpenAI"
+
+#: ../../installation.rst:133
+msgid "Google (Gemini)"
+msgstr "Google (Gemini)"
+
+#: ../../installation.rst:134
+msgid "Cohere"
+msgstr "Cohere"
+
+#: ../../installation.rst:135
+msgid "以及更多..."
+msgstr "And many more..."
+
+#: ../../installation.rst:137
+msgid "查看 `litellm 文档`_ 获取完整列表。"
+msgstr "See the `litellm documentation`_ for a complete list."
+
+#: ../../installation.rst:125
+msgid "**遥测设置**"
+msgstr "**Telemetry Settings**"
+
+#: ../../installation.rst:127
+msgid "AgentSociety 2 会自动禁用所有遥测服务以防止外部连接："
+msgstr "AgentSociety 2 automatically disables all telemetry services to prevent external connections:"
+
+#: ../../installation.rst:140
+msgid "这些设置禁用了 mem0 和 ChromaDB 的遥测功能，防止连接到 Posthog/Facebook 等外部服务。"
+msgstr ""
+"These settings disable telemetry for mem0 and ChromaDB, preventing connections to "
+"external services like Posthog/Facebook."

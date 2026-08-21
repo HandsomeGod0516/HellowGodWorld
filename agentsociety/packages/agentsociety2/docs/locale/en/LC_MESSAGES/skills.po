@@ -1,0 +1,114 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-20 00:00+0800\n"
+"PO-Revision-Date: 2026-03-20 00:00+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../skills.rst:2
+msgid "研究技能"
+msgstr "Research Skills"
+
+#: ../../skills.rst:4
+msgid "AgentSociety 2 包含一组 LLM 原生的研究技能，用于自动化科学研究工作流。"
+msgstr "AgentSociety 2 includes a set of LLM-native research skills for automating scientific research workflows."
+
+#: ../../skills.rst:7
+msgid "概述"
+msgstr "Overview"
+
+#: ../../skills.rst:9
+msgid "研究技能模块提供以下功能："
+msgstr "The research skills module provides the following capabilities:"
+
+#: ../../skills.rst:11
+msgid "**文献检索**: 搜索和管理学术论文"
+msgstr "**Literature Search**: Search and manage academic papers"
+
+#: ../../skills.rst:12
+msgid "**假设生成**: 从研究问题生成可测试的假设"
+msgstr "**Hypothesis Generation**: Generate testable hypotheses from research questions"
+
+#: ../../skills.rst:13
+msgid "**实验设计**: 设计完整的实验配置"
+msgstr "**Experiment Design**: Design complete experiment configurations"
+
+#: ../../skills.rst:14
+msgid "**网络研究**: 使用 Miro 进行网络搜索和总结"
+msgstr "**Web Research**: Use Miro for web search and summarization"
+
+#: ../../skills.rst:15
+msgid "**论文撰写**: 使用 EasyPaper 生成学术论文"
+msgstr "**Paper Writing**: Generate academic papers with EasyPaper"
+
+#: ../../skills.rst:16
+msgid "**数据分析**: 分析实验数据并生成报告"
+msgstr "**Data Analysis**: Analyze experiment data and generate reports"
+
+#: ../../skills.rst:17
+msgid "**智能体处理**: 智能体选择、生成和过滤"
+msgstr "**Agent Processing**: Agent selection, generation, and filtering"
+
+#: ../../skills.rst:20
+msgid "可用技能"
+msgstr "Available Skills"
+
+#: ../../skills.rst:23
+msgid "文献技能 (literature)"
+msgstr "Literature Skill"
+
+#: ../../skills.rst:35
+msgid "实验技能 (experiment)"
+msgstr "Experiment Skill"
+
+#: ../../skills.rst:47
+msgid "假设技能 (hypothesis)"
+msgstr "Hypothesis Skill"
+
+#: ../../skills.rst:58
+msgid "网络研究技能 (web_research)"
+msgstr "Web Research Skill"
+
+#: ../../skills.rst:69
+msgid "论文技能 (paper)"
+msgstr "Paper Skill"
+
+#: ../../skills.rst:80
+msgid "分析技能 (analysis)"
+msgstr "Analysis Skill"
+
+#: ../../skills.rst:91
+msgid "智能体技能 (agent)"
+msgstr "Agent Skill"
+
+#: ../../skills.rst:102
+msgid "完整工作流示例"
+msgstr "Complete Workflow Example"
+
+#: ../../skills.rst:147
+msgid "配置"
+msgstr "Configuration"
+
+#: ../../skills.rst:164
+msgid "最佳实践"
+msgstr "Best Practices"
+
+#: ../../skills.rst:180
+msgid "扩展研究技能"
+msgstr "Extending Research Skills"
+
+#: ../../skills.rst:213
+msgid "参考"
+msgstr "References"

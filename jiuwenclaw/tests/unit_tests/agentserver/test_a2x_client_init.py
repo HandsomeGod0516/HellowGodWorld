@@ -1,0 +1,381 @@
+from __future__ import annotations
+
+import importlib
+import sys
+from types import ModuleType, SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from jiuwenclaw.server.runtime.agent_adapter.interface_deep import JiuWenClawDeepAdapter
+from jiuwenclaw.server.runtime.agent_adapter import interface_deep as interface_module
+from jiuwenclaw.agents.harness.team.a2x.a2x_registry_runtime import (
+    clear_blank_registration_cache_for_tests,
+    reserve_blank_teammate_agent,
+    resolve_a2x_config,
+    restore_teammate_blank_agent_on_destroy,
+    register_teammate_blank_agent_at_startup,
+)
+from jiuwenclaw.agents.harness.team.a2x.client.errors import NotOwnedError
+
+
+class _FakeAsyncA2XRegistryClient:
+    instances: list["_FakeAsyncA2XRegistryClient"] = []
+
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        timeout: float,
+        api_key: str | None,
+        ownership_file,
+    ) -> None:
+        self.base_url = base_url
+        self.timeout = timeout
+        self.api_key = api_key
+        self.ownership_file = ownership_file
+        self.blank_registrations: list[dict[str, object]] = []
+        self.card_replacements: list[dict[str, object]] = []
+        self.reservations: list[dict[str, object]] = []
+        self.released_reservations: list[str] = []
+        self.closed = False
+        self.__class__.instances.append(self)
+
+    async def register_blank_agent(
+        self,
+        dataset: str,
+        endpoint: str,
+        service_id: str | None = None,
+        persistent: bool = True,
+    ):
+        self.blank_registrations.append(
+            {
+                "dataset": dataset,
+                "endpoint": endpoint,
+                "service_id": service_id,
+                "persistent": persistent,
+            }
+        )
+        return SimpleNamespace(service_id="blank-service-id")
+
+    async def replace_agent_card(
+        self,
+        dataset: str,
+        service_id: str,
+        agent_card: dict[str, object],
+        release_lease: bool = True,
+    ):
+        self.card_replacements.append(
+            {
+                "dataset": dataset,
+                "service_id": service_id,
+                "agent_card": agent_card,
+                "release_lease": release_lease,
+            }
+        )
+        return SimpleNamespace(service_id=service_id)
+
+    async def reserve_blank_agents(
+        self,
+        dataset: str,
+        n: int = 1,
+        ttl_seconds: int = 30,
+        holder_id: str | None = None,
+        extra_filters: dict[str, object] | None = None,
+    ):
+        self.reservations.append(
+            {
+                "dataset": dataset,
+                "n": n,
+                "ttl_seconds": ttl_seconds,
+                "holder_id": holder_id,
+                "extra_filters": extra_filters,
+            }
+        )
+        return SimpleNamespace(
+            holder_id="holder-1",
+            agents=[
+                {
+                    "id": "blank-service-id",
+                    "endpoint": "tcp://127.0.0.1:28610",
+                    "status": "online",
+                }
+            ],
+        )
+
+    async def release_reservation(self, reservation) -> list[str]:
+        self.released_reservations.append(reservation.holder_id)
+        return ["blank-service-id"]
+
+    async def aclose(self) -> None:
+        self.closed = True
+
+
+class _FailingAsyncA2XRegistryClient:
+    def __init__(self, **_: object) -> None:
+        raise RuntimeError("boom")
+
+
+class _NotOwnedOnceAsyncA2XRegistryClient(_FakeAsyncA2XRegistryClient):
+    async def replace_agent_card(
+        self,
+        dataset: str,
+        service_id: str,
+        agent_card: dict[str, object],
+        release_lease: bool = True,
+    ):
+        if not self.blank_registrations and not self.card_replacements:
+            raise NotOwnedError(dataset, service_id)
+        return await super().replace_agent_card(dataset, service_id, agent_card, release_lease)
+
+
+def _make_config(role: str, *, dataset: str = "", endpoint: str = "") -> dict:
+    return {
+        "react": {
+            "agent_name": "main_agent",
+            "workspace_dir": "/tmp/test-workspace",
+            "enable_task_loop": True,
+            "max_iterations": 3,
+            "a2x_registry": {
+                "base_url": "http://127.0.0.1:8000",
+                "timeout": 30.0,
+                "api_key": "",
+                "ownership_file": False,
+                "role": role,
+                "dataset": dataset,
+                "endpoint": endpoint,
+            },
+        },
+        "team": {
+            "runtime": {
+                "mode": "distributed",
+                "role": "leader" if role == "teamleader" else role,
+            },
+        },
+        "permissions": {"enabled": True},
+    }
+
+
+def test_teammate_a2x_endpoint_defaults_to_bootstrap_addr() -> None:
+    config = _make_config("teammate", dataset="team_pool")
+    config["team"] = {
+        "transport": {
+            "params": {
+                "bootstrap_direct_addr": "tcp://0.0.0.0:28610",
+            }
+        }
+    }
+
+    resolved = resolve_a2x_config(config)
+
+    assert resolved["endpoint"] == "tcp://127.0.0.1:28610"
+
+
+@pytest.mark.asyncio
+async def test_create_instance_registers_blank_agent_for_teammate(monkeypatch: pytest.MonkeyPatch) -> None:
+    clear_blank_registration_cache_for_tests()
+    _FakeAsyncA2XRegistryClient.instances.clear()
+    fake_module = ModuleType("jiuwenclaw.agents.harness.team.a2x.client")
+    fake_module.AsyncA2XRegistryClient = _FakeAsyncA2XRegistryClient
+
+    adapter = JiuWenClawDeepAdapter()
+    config_base = _make_config(
+        "teammate",
+        dataset="team_dataset",
+        endpoint="http://agent.example/ws",
+    )
+
+    monkeypatch.setitem(sys.modules, "jiuwenclaw.agents.harness.team.a2x.client", fake_module)
+    monkeypatch.setattr(interface_module, "get_config", lambda: config_base)
+
+    with (
+        patch.object(interface_module.JiuWenClawDeepAdapter, "set_checkpoint", AsyncMock()),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_refresh_multimodal_configs", return_value=None),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_create_model", return_value=object()),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_get_tool_cards", AsyncMock(return_value=[])),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_build_agent_rails", return_value=[]),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_create_sys_operation", return_value=MagicMock()),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_build_configured_subagents",
+                     return_value=(None, False)),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "load_user_rails", AsyncMock()),
+        patch.object(interface_module, "init_permission_engine", return_value=None),
+        patch.object(interface_module, "create_deep_agent", return_value=MagicMock(name="deep_agent")),
+    ):
+        await adapter.create_instance()
+
+    assert len(_FakeAsyncA2XRegistryClient.instances) == 1
+    assert _FakeAsyncA2XRegistryClient.instances[0].blank_registrations == [
+        {
+            "dataset": "team_dataset",
+            "endpoint": "http://agent.example/ws",
+            "service_id": None,
+            "persistent": True,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_startup_registers_blank_agent_without_deepagent(monkeypatch: pytest.MonkeyPatch) -> None:
+    clear_blank_registration_cache_for_tests()
+    _FakeAsyncA2XRegistryClient.instances.clear()
+    fake_module = ModuleType("jiuwenclaw.agents.harness.team.a2x.client")
+    fake_module.AsyncA2XRegistryClient = _FakeAsyncA2XRegistryClient
+    monkeypatch.setitem(sys.modules, "jiuwenclaw.agents.harness.team.a2x.client", fake_module)
+
+    registered = await register_teammate_blank_agent_at_startup(
+        _make_config(
+            "teammate",
+            dataset="team_pool",
+            endpoint="tcp://127.0.0.1:28610",
+        ),
+        source="test-startup",
+    )
+
+    assert registered is True
+    assert len(_FakeAsyncA2XRegistryClient.instances) == 1
+    assert _FakeAsyncA2XRegistryClient.instances[0].closed is True
+    assert _FakeAsyncA2XRegistryClient.instances[0].blank_registrations == [
+        {
+            "dataset": "team_pool",
+            "endpoint": "tcp://127.0.0.1:28610",
+            "service_id": None,
+            "persistent": True,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_teammate_destroy_restore_replaces_agent_card(monkeypatch: pytest.MonkeyPatch) -> None:
+    clear_blank_registration_cache_for_tests()
+    _FakeAsyncA2XRegistryClient.instances.clear()
+    fake_module = ModuleType("jiuwenclaw.agents.harness.team.a2x.client")
+    fake_module.AsyncA2XRegistryClient = _FakeAsyncA2XRegistryClient
+    a2x_internal = importlib.import_module("jiuwenclaw.agents.harness.team.a2x.client._internal")
+    setattr(fake_module, "_internal", a2x_internal)
+    monkeypatch.setitem(sys.modules, "jiuwenclaw.agents.harness.team.a2x.client", fake_module)
+
+    restored = await restore_teammate_blank_agent_on_destroy(
+        _make_config(
+            "teammate",
+            dataset="team_pool",
+            endpoint="tcp://127.0.0.1:28610",
+        ),
+        service_id="blank-service-id",
+        source="test-destroy",
+    )
+
+    assert restored is True
+    assert len(_FakeAsyncA2XRegistryClient.instances) == 1
+    assert _FakeAsyncA2XRegistryClient.instances[0].closed is True
+    assert _FakeAsyncA2XRegistryClient.instances[0].blank_registrations == []
+    assert _FakeAsyncA2XRegistryClient.instances[0].card_replacements == [
+        {
+            "dataset": "team_pool",
+            "service_id": "blank-service-id",
+            "agent_card": {
+                "name": "_BlankAgent_tcp://127.0.0.1:28610",
+                "description": "__BLANK__",
+                "endpoint": "tcp://127.0.0.1:28610",
+                "status": "online",
+            },
+            "release_lease": True,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_teammate_destroy_restore_recovers_missing_ownership(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_blank_registration_cache_for_tests()
+    _NotOwnedOnceAsyncA2XRegistryClient.instances.clear()
+    fake_module = ModuleType("jiuwenclaw.agents.harness.team.a2x.client")
+    fake_module.AsyncA2XRegistryClient = _NotOwnedOnceAsyncA2XRegistryClient
+    a2x_internal = importlib.import_module("jiuwenclaw.agents.harness.team.a2x.client._internal")
+    setattr(fake_module, "_internal", a2x_internal)
+    monkeypatch.setitem(sys.modules, "jiuwenclaw.agents.harness.team.a2x.client", fake_module)
+
+    restored = await restore_teammate_blank_agent_on_destroy(
+        _make_config(
+            "teammate",
+            dataset="team_pool",
+            endpoint="tcp://127.0.0.1:28610",
+        ),
+        service_id="blank-service-id",
+        source="test-destroy",
+    )
+
+    assert restored is True
+    client = _NotOwnedOnceAsyncA2XRegistryClient.instances[0]
+    assert client.blank_registrations == [
+        {
+            "dataset": "team_pool",
+            "endpoint": "tcp://127.0.0.1:28610",
+            "service_id": "blank-service-id",
+            "persistent": True,
+        }
+    ]
+    assert client.card_replacements[0]["service_id"] == "blank-service-id"
+    assert client.card_replacements[0]["release_lease"] is True
+
+
+@pytest.mark.asyncio
+async def test_leader_reserves_blank_teammate_from_registry(monkeypatch: pytest.MonkeyPatch) -> None:
+    clear_blank_registration_cache_for_tests()
+    _FakeAsyncA2XRegistryClient.instances.clear()
+    fake_module = ModuleType("jiuwenclaw.agents.harness.team.a2x.client")
+    fake_module.AsyncA2XRegistryClient = _FakeAsyncA2XRegistryClient
+    monkeypatch.setitem(sys.modules, "jiuwenclaw.agents.harness.team.a2x.client", fake_module)
+
+    reserved = await reserve_blank_teammate_agent(
+        _make_config("teamleader", dataset="team_pool"),
+        source="test-leader",
+    )
+
+    assert reserved is not None
+    assert reserved.service_id == "blank-service-id"
+    assert reserved.endpoint == "tcp://127.0.0.1:28610"
+    assert _FakeAsyncA2XRegistryClient.instances[0].reservations == [
+        {
+            "dataset": "team_pool",
+            "n": 1,
+            "ttl_seconds": 30,
+            "holder_id": None,
+            "extra_filters": None,
+        }
+    ]
+    await reserved.release()
+    await reserved.close()
+    assert _FakeAsyncA2XRegistryClient.instances[0].released_reservations == ["holder-1"]
+    assert _FakeAsyncA2XRegistryClient.instances[0].closed is True
+
+
+@pytest.mark.asyncio
+async def test_create_instance_continues_when_a2x_client_init_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_module = ModuleType("jiuwenclaw.agents.harness.team.a2x.client")
+    fake_module.AsyncA2XRegistryClient = _FailingAsyncA2XRegistryClient
+
+    adapter = JiuWenClawDeepAdapter()
+    config_base = _make_config("teamleader")
+
+    monkeypatch.setitem(sys.modules, "jiuwenclaw.agents.harness.team.a2x.client", fake_module)
+    monkeypatch.setattr(interface_module, "get_config", lambda: config_base)
+
+    created_instance = MagicMock(name="deep_agent")
+
+    with (
+        patch.object(interface_module.JiuWenClawDeepAdapter, "set_checkpoint", AsyncMock()),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_refresh_multimodal_configs", return_value=None),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_create_model", return_value=object()),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_get_tool_cards", AsyncMock(return_value=[])),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_build_agent_rails", return_value=[]),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_create_sys_operation", return_value=MagicMock()),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "_build_configured_subagents",
+                     return_value=(None, False)),
+        patch.object(interface_module.JiuWenClawDeepAdapter, "load_user_rails", AsyncMock()),
+        patch.object(interface_module, "init_permission_engine", return_value=None),
+        patch.object(interface_module, "create_deep_agent", return_value=created_instance) as create_agent_mock,
+    ):
+        await adapter.create_instance()
+
+    create_agent_mock.assert_called_once()

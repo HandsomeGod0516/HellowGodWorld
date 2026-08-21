@@ -1,0 +1,159 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:54+0800\n"
+"PO-Revision-Date: 2026-03-06 00:15+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../concepts.rst:2
+msgid "核心概念"
+msgstr "Core Concepts"
+
+#: ../../concepts.rst:4
+msgid "本部分解释 AgentSociety 2 的核心概念。"
+msgstr "This section explains the core concepts of AgentSociety 2."
+
+#: ../../concepts.rst:7
+msgid "架构概述"
+msgstr "Architecture Overview"
+
+#: ../../concepts.rst:9
+msgid "AgentSociety 2 围绕三个主要组件构建："
+msgstr "AgentSociety 2 is built around three main components:"
+
+#: ../../concepts.rst:11
+msgid "**智能体 (Agents)**: 使用 LLM 与环境交互的自主实体"
+msgstr "**Agents**: Autonomous entities that use LLMs to interact with environments"
+
+#: ../../concepts.rst:12
+msgid "**环境模块 (Environment Modules)**: 定义模拟规则的可组合组件"
+msgstr "**Environment Modules**: Composable components that define simulation rules"
+
+#: ../../concepts.rst:13
+msgid "**AgentSociety**: 管理智能体和环境的协调器"
+msgstr "**AgentSociety**: Coordinator that manages agents and environments"
+
+#: ../../concepts.rst:32
+msgid "智能体-环境接口"
+msgstr "Agent-Environment Interface"
+
+#: ../../concepts.rst:34
+msgid "智能体通过两个主要方法与环境交互："
+msgstr "Agents interact with environments through two main methods:"
+
+#: ../../concepts.rst:36
+msgid "**ask()**: 查询或观察环境状态"
+msgstr "**ask()**: Query or observe environment state"
+
+#: ../../concepts.rst:37
+msgid "**intervene()**: 修改环境状态"
+msgstr "**intervene()**: Modify environment state"
+
+#: ../../concepts.rst:39
+msgid "这个统一接口允许智能体与任何环境模块自然通信。"
+msgstr "This unified interface allows agents to communicate naturally with any environment module."
+
+#: ../../concepts.rst:42
+msgid "@tool 装饰器"
+msgstr "The @tool Decorator"
+
+#: ../../concepts.rst:44
+msgid "环境模块通过 ``@tool`` 装饰器公开其功能："
+msgstr "Environment modules expose their functionality through the ``@tool`` decorator:"
+
+#: ../../concepts.rst:62
+msgid "**参数：**"
+msgstr "**Parameters:**"
+
+#: ../../concepts.rst:64
+msgid "``readonly`` (bool): 函数是否修改状态 * ``True`` = 只读观察 * ``False`` = 修改环境"
+msgstr "``readonly`` (bool): Whether the function modifies state * ``True`` = read-only, can be used in queries * ``False`` = modifies state, can be used in interventions"
+
+#: ../../concepts.rst:68
+msgid "``kind`` (str): 用于优化的函数类别 * ``\"observe\"``: 单参数观察 * ``\"statistics\"``: 聚合查询（无参数） * ``None``: 常规工具"
+msgstr "``kind`` (str): The type of tool * ``\"observe\"``: Single-parameter observations (requires readonly=True) * ``\"statistics\"``: Aggregate queries (no parameters, requires readonly=True) * ``None`` or omitted: Regular tool (any signature, any readonly value)"
+
+#: ../../concepts.rst:74
+msgid "CodeGenRouter"
+msgstr "CodeGenRouter"
+
+#: ../../concepts.rst:76
+msgid "CodeGenRouter 通过以下方式将智能体连接到环境模块："
+msgstr "CodeGenRouter connects agents to environment modules by:"
+
+#: ../../concepts.rst:78
+msgid "从环境模块中提取工具签名"
+msgstr "Extracting tool signatures from environment modules"
+
+#: ../../concepts.rst:79
+msgid "根据智能体输入生成调用适当工具的代码"
+msgstr "Generating code to call appropriate tools based on agent input"
+
+#: ../../concepts.rst:80
+msgid "在沙盒环境中安全执行代码"
+msgstr "Safely executing code in a sandboxed environment"
+
+#: ../../concepts.rst:81
+msgid "将结果返回给智能体"
+msgstr "Returning results to the agent"
+
+#: ../../concepts.rst:83
+msgid "这种方法允许智能体与任何环境模块组合交互，而无需更改代码。"
+msgstr "This approach allows agents to interact with any combination of environment modules without code changes."
+
+#: ../../concepts.rst:86
+msgid "工具类别"
+msgstr "Tool Categories"
+
+#: ../../concepts.rst:88
+msgid "**观察工具** (``readonly=True``, ``kind=\"observe\"``)"
+msgstr "**Observation Tools** (``readonly=True``, ``kind=\"observe\"``)"
+
+#: ../../concepts.rst:90
+msgid "具有单个 ``agent_id`` 参数的智能体特定观察："
+msgstr "Agent-specific observations with a single ``agent_id`` parameter:"
+
+#: ../../concepts.rst:99
+msgid "**统计工具** (``readonly=True``, ``kind=\"statistics\"``)"
+msgstr "**Statistics Tools** (``readonly=True``, ``kind=\"statistics\"``)"
+
+#: ../../concepts.rst:101
+msgid "没有参数的聚合查询（除了 ``self``）："
+msgstr "Aggregate queries with no parameters (except ``self``):"
+
+#: ../../concepts.rst:111
+msgid "**常规工具**"
+msgstr "**Regular Tools**"
+
+#: ../../concepts.rst:113
+msgid "具有任何签名的通用工具："
+msgstr "General-purpose tools with any signature:"
+
+#: ../../concepts.rst:124
+msgid "完整系统架构"
+msgstr "Full System Architecture"
+
+#: ../../concepts.rst:156
+msgid "环境工具注册流程"
+msgstr "Environment Tool Registration Flow"
+
+#: ../../concepts.rst:200
+msgid "工具类别层次结构"
+msgstr "Tool Category Hierarchy"
+
+#: ../../concepts.rst:233
+msgid "智能体-环境交互流程"
+msgstr "Agent-Environment Interaction Flow"

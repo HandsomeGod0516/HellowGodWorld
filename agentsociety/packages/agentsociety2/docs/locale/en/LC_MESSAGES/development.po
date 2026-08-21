@@ -1,0 +1,131 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:36+0800\n"
+"PO-Revision-Date: 2026-03-06 00:15+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../development.rst:2
+msgid "开发指南"
+msgstr "Development Guide"
+
+#: ../../development.rst:4
+msgid "本指南面向 AgentSociety 2 的贡献者。"
+msgstr "This guide is for contributors to AgentSociety 2."
+
+#: ../../development.rst:7
+msgid "设置开发环境"
+msgstr "Setting Up Development Environment"
+
+#: ../../development.rst:9
+msgid "Fork 并克隆仓库："
+msgstr "Fork and clone the repository:"
+
+#: ../../development.rst:16
+msgid "以开发模式安装："
+msgstr "Install in development mode:"
+
+#: ../../development.rst:26
+msgid "安装 pre-commit hooks："
+msgstr "Install pre-commit hooks:"
+
+#: ../../development.rst:34
+msgid "运行测试"
+msgstr "Running Tests"
+
+#: ../../development.rst:41
+msgid "使用覆盖率："
+msgstr "With coverage:"
+
+#: ../../development.rst:48
+msgid "代码风格"
+msgstr "Code Style"
+
+#: ../../development.rst:50
+msgid "AgentSociety 2 使用 `ruff`_ 进行检查和格式化："
+msgstr "AgentSociety 2 uses `ruff`_ for linting and formatting:"
+
+#: ../../development.rst:60
+msgid "我们还使用 `mypy`_ 进行类型检查："
+msgstr "We also use `mypy`_ for type checking:"
+
+#: ../../development.rst:70
+msgid "项目结构"
+msgstr "Project Structure"
+
+#: ../../development.rst:89
+msgid "贡献"
+msgstr "Contributing"
+
+#: ../../development.rst:91
+msgid "请参阅 :doc:`contributing` 了解贡献指南。"
+msgstr "Please see :doc:`contributing` for contribution guidelines."
+
+#: ../../development.rst:94
+msgid "构建文档"
+msgstr "Build Documentation"
+
+#: ../../development.rst:101
+msgid "构建的文档将位于 ``_build/html/``。"
+msgstr "Built documentation will be in ``_build/html/``."
+
+#: ../../development.rst:103
+msgid "要在编辑时进行实时预览："
+msgstr "For live preview while editing:"
+
+#: ../../development.rst:110
+msgid "发布流程"
+msgstr "Release Process"
+
+#: ../../development.rst:112
+msgid "更新 ``pyproject.toml`` 中的版本"
+msgstr "Update version in ``pyproject.toml``"
+
+#: ../../development.rst:113
+msgid "更新 ``CHANGELOG.md``"
+msgstr "Update ``CHANGELOG.md``"
+
+#: ../../development.rst:114
+msgid "提交更改"
+msgstr "Commit changes"
+
+#: ../../development.rst:115
+msgid "创建标签：``git tag agentsociety2-vX.Y.Z``"
+msgstr "Create tag: ``git tag agentsociety2-vX.Y.Z``"
+
+#: ../../development.rst:116
+msgid "推送：``git push --tags``"
+msgstr "Push: ``git push --tags``"
+
+#: ../../development.rst:117
+msgid "GitHub Actions 将构建并发布到 PyPI"
+msgstr "GitHub Actions will build and publish to PyPI"
+
+#: ../../development.rst:70
+msgid "研究技能模块"
+msgstr "Research Skills Module"
+
+#: ../../development.rst:80
+msgid "设计器模块"
+msgstr "Designer Module"
+
+#: ../../development.rst:88
+msgid "后端 API"
+msgstr "Backend API"
+
+#: ../../development.rst:96
+msgid "日志系统"
+msgstr "Logging System"

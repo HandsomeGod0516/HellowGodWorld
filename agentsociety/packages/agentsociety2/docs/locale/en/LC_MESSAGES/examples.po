@@ -1,0 +1,203 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:36+0800\n"
+"PO-Revision-Date: 2026-03-06 00:15+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../examples.rst:2
+msgid "示例"
+msgstr "Examples"
+
+#: ../../examples.rst:4
+msgid "本部分包含演示 AgentSociety 2 功能的示例代码。"
+msgstr "This section contains example code demonstrating AgentSociety 2's capabilities."
+
+#: ../../examples.rst:7
+msgid "运行示例"
+msgstr "Running Examples"
+
+#: ../../examples.rst:9
+msgid "所有示例都位于 ``packages/agentsociety2/examples/`` 目录中。"
+msgstr "All examples are located in the ``packages/agentsociety2/examples/`` directory."
+
+#: ../../examples.rst:11
+msgid "**前提条件：**"
+msgstr "**Prerequisites:**"
+
+#: ../../examples.rst:13
+msgid "安装 AgentSociety 2: ``pip install agentsociety2``"
+msgstr "Install AgentSociety 2: ``pip install agentsociety2``"
+
+#: ../../examples.rst:14
+msgid "配置 LLM API 凭证（参见 :doc:`installation`）"
+msgstr "Configure LLM API credentials (see :doc:`installation`)"
+
+#: ../../examples.rst:15
+msgid "导航到示例目录"
+msgstr "Navigate to the examples directory"
+
+#: ../../examples.rst:23
+msgid "基本示例"
+msgstr "Basic Examples"
+
+#: ../../examples.rst:25
+msgid "这些示例演示 AgentSociety 2 的基本概念："
+msgstr "These examples demonstrate basic AgentSociety 2 concepts:"
+
+#: ../../examples.rst:27
+msgid "**Hello Agent** (``basics/01_hello_agent.py``)"
+msgstr "**Hello Agent** (``basics/01_hello_agent.py``)"
+
+#: ../../examples.rst:29
+msgid "一个最小示例，展示："
+msgstr "A minimal example showing:"
+
+#: ../../examples.rst:31
+msgid "创建具有个性配置文件的单个智能体"
+msgstr "Creating a single agent with personality profile"
+
+#: ../../examples.rst:32
+msgid "设置 SimpleSocialSpace 环境"
+msgstr "Setting up a SimpleSocialSpace environment"
+
+#: ../../examples.rst:33
+msgid "使用 AgentSociety 协调智能体-环境交互"
+msgstr "Using AgentSociety to coordinate agent-environment interactions"
+
+#: ../../examples.rst:56
+msgid "**自定义环境模块** (``basics/02_custom_env_module.py``)"
+msgstr "**Custom Environment Module** (``basics/02_custom_env_module.py``)"
+
+#: ../../examples.rst:58
+msgid "演示创建自定义环境模块："
+msgstr "Demonstrates creating custom environment modules:"
+
+#: ../../examples.rst:60
+msgid "使用 @tool 装饰器定义自定义环境"
+msgstr "Using @tool decorator to define custom environment"
+
+#: ../../examples.rst:61
+msgid "实现 step() 和工具方法，并按需提供 ``kind=\"observe\"`` 的只读工具"
+msgstr "Implement step() and tool methods, and provide readonly ``kind=\"observe\"`` tools when needed"
+
+#: ../../examples.rst:62
+msgid "向 CodeGenRouter 注册模块"
+msgstr "Registering module with CodeGenRouter"
+
+#: ../../examples.rst:64
+msgid "**回放系统** (``basics/03_replay_system.py``)"
+msgstr "**Replay System** (``basics/03_replay_system.py``)"
+
+#: ../../examples.rst:66
+msgid "展示全面的数据跟踪："
+msgstr "Shows comprehensive data tracking:"
+
+#: ../../examples.rst:68
+msgid "设置 ReplayWriter 用于自动数据捕获"
+msgstr "Setting up ReplayWriter for automatic data capture"
+
+#: ../../examples.rst:69
+msgid "记录智能体配置文件、对话和状态"
+msgstr "Recording agent profiles, dialogues, and states"
+
+#: ../../examples.rst:70
+msgid "读回记录的数据进行分析"
+msgstr "Reading back recorded data for analysis"
+
+#: ../../examples.rst:73
+msgid "博弈论示例"
+msgstr "Game Theory Examples"
+
+#: ../../examples.rst:75
+msgid "**囚徒困境** (``games/01_prisoners_dilemma.py``)"
+msgstr "**Prisoner's Dilemma** (``games/01_prisoners_dilemma.py``)"
+
+#: ../../examples.rst:77
+msgid "一个经典的博弈论场景："
+msgstr "A classic game theory scenario:"
+
+#: ../../examples.rst:79
+msgid "两个具有不同个性的智能体"
+msgstr "Two agents with different personalities"
+
+#: ../../examples.rst:80
+msgid "具有收益的顺序决策"
+msgstr "Sequential decision-making with payoffs"
+
+#: ../../examples.rst:81
+msgid "对结果的反思"
+msgstr "Reflection on outcomes"
+
+#: ../../examples.rst:83
+msgid "**公共物品博弈** (``games/02_public_goods.py``)"
+msgstr "**Public Goods Game** (``games/02_public_goods.py``)"
+
+#: ../../examples.rst:85
+msgid "多轮集体行动实验："
+msgstr "Multi-round collective action experiment:"
+
+#: ../../examples.rst:87
+msgid "四个具有不同个性特征的智能体"
+msgstr "Four agents with different personality traits"
+
+#: ../../examples.rst:88
+msgid "多轮贡献决策"
+msgstr "Multi-round contribution decisions"
+
+#: ../../examples.rst:89
+msgid "小组结果计算"
+msgstr "Group outcome calculation"
+
+#: ../../examples.rst:92
+msgid "高级示例"
+msgstr "Advanced Examples"
+
+#: ../../examples.rst:94
+msgid "**自定义智能体** (``advanced/01_custom_agent.py``)"
+msgstr "**Custom Agent** (``advanced/01_custom_agent.py``)"
+
+#: ../../examples.rst:96
+msgid "使用自定义智能体类型扩展 AgentSociety 2："
+msgstr "Extend AgentSociety 2 with custom agent types:"
+
+#: ../../examples.rst:98
+msgid "实现必需的抽象方法（ask、step、dump、load）"
+msgstr "Implement required abstract methods (ask, step, dump, load)"
+
+#: ../../examples.rst:99
+msgid "为研究需求创建专门的智能体"
+msgstr "Create specialized agents for research needs"
+
+#: ../../examples.rst:101
+msgid "**多路由器比较** (``advanced/02_multi_router.py``)"
+msgstr "**Multi-Router Comparison** (``advanced/02_multi_router.py``)"
+
+#: ../../examples.rst:103
+msgid "比较不同的推理策略："
+msgstr "Compare different reasoning strategies:"
+
+#: ../../examples.rst:105
+msgid "ReActRouter: 迭代推理和行动"
+msgstr "ReActRouter: Iterative reasoning and action"
+
+#: ../../examples.rst:106
+msgid "PlanExecuteRouter: 计划优先执行"
+msgstr "PlanExecuteRouter: Plan-first execution"
+
+#: ../../examples.rst:107
+msgid "CodeGenRouter: 生成代码执行（推荐）"
+msgstr "CodeGenRouter: Generate code to execute (recommended)"

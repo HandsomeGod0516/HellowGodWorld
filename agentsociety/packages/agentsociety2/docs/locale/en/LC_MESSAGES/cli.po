@@ -1,0 +1,146 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-20 00:00+0800\n"
+"PO-Revision-Date: 2026-03-20 00:00+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../cli.rst:2
+msgid "命令行界面"
+msgstr "Command Line Interface"
+
+#: ../../cli.rst:4
+msgid "AgentSociety 2 提供了一个强大的命令行界面（CLI）用于运行实验。"
+msgstr "AgentSociety 2 provides a powerful command line interface (CLI) for running experiments."
+
+#: ../../cli.rst:7
+msgid "概述"
+msgstr "Overview"
+
+#: ../../cli.rst:9
+msgid "CLI 是运行 AgentSociety 2 实验的主要方式。它提供："
+msgstr "The CLI is the primary way to run AgentSociety 2 experiments. It provides:"
+
+#: ../../cli.rst:11
+msgid "实验配置加载和验证"
+msgstr "Experiment configuration loading and validation"
+
+#: ../../cli.rst:12
+msgid "步骤化执行跟踪"
+msgstr "Step-by-step execution tracking"
+
+#: ../../cli.rst:13
+msgid "进度持久化（pid.json）"
+msgstr "Progress persistence (pid.json)"
+
+#: ../../cli.rst:14
+msgid "灵活的日志配置"
+msgstr "Flexible logging configuration"
+
+#: ../../cli.rst:15
+msgid "后台运行支持"
+msgstr "Background execution support"
+
+#: ../../cli.rst:18
+msgid "基本用法"
+msgstr "Basic Usage"
+
+#: ../../cli.rst:21
+msgid "python -m agentsociety2.society.cli [OPTIONS]"
+msgstr "python -m agentsociety2.society.cli [OPTIONS]"
+
+#: ../../cli.rst:26
+msgid "必需参数"
+msgstr "Required Arguments"
+
+#: ../../cli.rst:44
+msgid "可选参数"
+msgstr "Optional Arguments"
+
+#: ../../cli.rst:73
+msgid "运行实验"
+msgstr "Running Experiments"
+
+#: ../../cli.rst:76
+msgid "前台运行（调试模式）"
+msgstr "Foreground Execution (Debug Mode)"
+
+#: ../../cli.rst:95
+msgid "后台运行（生产模式）"
+msgstr "Background Execution (Production Mode)"
+
+#: ../../cli.rst:98
+msgid "**重要**: 后台运行时必须指定 ``--log-file`` 以捕获日志。"
+msgstr "**Important**: When running in background, you must specify ``--log-file`` to capture logs."
+
+#: ../../cli.rst:117
+msgid "检查实验状态"
+msgstr "Checking Experiment Status"
+
+#: ../../cli.rst:131
+msgid "停止实验"
+msgstr "Stopping Experiments"
+
+#: ../../cli.rst:143
+msgid "配置文件"
+msgstr "Configuration Files"
+
+#: ../../cli.rst:146
+msgid "init_config.json"
+msgstr "init_config.json"
+
+#: ../../cli.rst:168
+msgid "steps.yaml"
+msgstr "steps.yaml"
+
+#: ../../cli.rst:193
+msgid "步骤类型"
+msgstr "Step Types"
+
+#: ../../cli.rst:216
+msgid "输出文件"
+msgstr "Output Files"
+
+#: ../../cli.rst:219
+msgid "运行实验后，``run-dir`` 目录将包含："
+msgstr "After running an experiment, the ``run-dir`` directory will contain:"
+
+#: ../../cli.rst:238
+msgid "pid.json 格式"
+msgstr "pid.json Format"
+
+#: ../../cli.rst:258
+msgid "遥测配置"
+msgstr "Telemetry Configuration"
+
+#: ../../cli.rst:260
+msgid "AgentSociety 2 自动禁用所有遥测服务以防止外部连接："
+msgstr "AgentSociety 2 automatically disables all telemetry services to prevent external connections:"
+
+#: ../../cli.rst:268
+msgid "这些设置在 CLI 启动时强制执行，无需手动配置。"
+msgstr "These settings are enforced when CLI starts, no manual configuration needed."
+
+#: ../../cli.rst:271
+msgid "日志级别"
+msgstr "Log Levels"
+
+#: ../../cli.rst:285
+msgid "示例：完整工作流"
+msgstr "Example: Complete Workflow"
+
+#: ../../cli.rst:332
+msgid "参考文献"
+msgstr "References"

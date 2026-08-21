@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-tests:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: agentsociety
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: agentsociety/uv.lock
+
+      - name: Run backend tests
+        run: uv run pytest -q packages/agentsociety2/tests
+
+  frontend-build:
+    name: Control room build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: agentsociety/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix agentsociety/frontend
+
+      - name: Test direct and path-proxy serving
+        run: npm run test:proxy --prefix agentsociety/frontend
+
+      - name: Build frontend
+        run: npm run build --prefix agentsociety/frontend

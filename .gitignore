@@ -1,0 +1,40 @@
+.DS_Store
+.cursor/
+/.env
+/.env.*
+!/.env.example
+.god/
+.live/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+test-results/
+promos/
+
+# Runtime data
+*.log
+*.db
+*.sqlite
+*.sqlite3
+.superpowers/
+logs/
+agentsociety_data/
+agentsociety/agentsociety_data/
+agentsociety/logs/
+jiuwenclaw/logs/
+**/.DS_Store
+
+# Local Superpowers planning/spec artifacts are development process notes, not product docs.
+docs/superpowers/

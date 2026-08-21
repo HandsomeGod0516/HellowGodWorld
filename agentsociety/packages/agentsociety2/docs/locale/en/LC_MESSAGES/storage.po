@@ -1,0 +1,170 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:36+0800\n"
+"PO-Revision-Date: 2026-03-05 23:55+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../storage.rst:2
+msgid "存储和回放系统"
+msgstr "Storage and Replay System"
+
+#: ../../storage.rst:4
+msgid "ReplayWriter 系统提供智能体-环境交互的跟踪，用于实验分析。"
+msgstr "The ReplayWriter system provides tracking of agent-environment interactions for experiment analysis."
+
+#: ../../storage.rst:7
+msgid "概述"
+msgstr "Overview"
+
+#: ../../storage.rst:9
+msgid "AgentSociety 2 包含一个基于 SQLite 的存储系统，用于捕获："
+msgstr "AgentSociety 2 includes a SQLite-based storage system for capturing:"
+
+#: ../../storage.rst:11
+msgid "**智能体配置文件**: 静态特征和个性特征"
+msgstr "**Agent Profiles**: Static characteristics and personality traits"
+
+#: ../../storage.rst:12
+msgid "**智能体状态**: 模拟期间更新的动态状态"
+msgstr "**Agent Status**: Dynamic state updated during simulation"
+
+#: ../../storage.rst:14
+msgid "**自定义表**: 特定于模块的数据"
+msgstr "**Custom Tables**: Module-specific data"
+
+#: ../../storage.rst:17
+msgid "基本使用"
+msgstr "Basic Usage"
+
+#: ../../storage.rst:19
+msgid "**启用回放跟踪：**"
+msgstr "**Enable Replay Tracking:**"
+
+#: ../../storage.rst:57
+msgid "**读取数据：**"
+msgstr "**Read Data:**"
+
+#: ../../storage.rst:77
+msgid "框架表"
+msgstr "Framework Tables"
+
+#: ../../storage.rst:80
+msgid "AgentProfile"
+msgstr "AgentProfile"
+
+#: ../../storage.rst:82
+msgid "存储静态智能体特征："
+msgstr "Stores static agent characteristics:"
+
+#: ../../storage.rst:84
+#: ../../storage.rst:94
+#: ../../storage.rst:106
+msgid "**字段：**"
+msgstr "**Fields:**"
+
+#: ../../storage.rst:86
+#: ../../storage.rst:96
+msgid "``agent_id`` (int): 唯一的智能体标识符"
+msgstr "``agent_id`` (int): Unique agent identifier"
+
+#: ../../storage.rst:87
+msgid "``profile`` (dict): JSON 编码的配置文件数据（姓名、个性等）"
+msgstr "``profile`` (dict): JSON-encoded profile data (name, personality, etc.)"
+
+#: ../../storage.rst:90
+msgid "AgentStatus"
+msgstr "AgentStatus"
+
+#: ../../storage.rst:92
+msgid "存储动态智能体状态："
+msgstr "Stores dynamic agent state:"
+
+#: ../../storage.rst:97
+msgid "``status`` (str): 当前状态（``\"active\"``、``\"inactive\"`` 等）"
+msgstr "``status`` (str): Current status (``\"active\"``, ``\"inactive\"``, etc.)"
+
+#: ../../storage.rst:98
+msgid "``current_activity`` (str): 当前活动的文本描述"
+msgstr "``current_activity`` (str): Text description of current activity"
+
+#: ../../storage.rst:99
+msgid "``step_count`` (int): 已完成的模拟步数"
+msgstr "``step_count`` (int): Number of simulation steps completed"
+
+#: ../../storage.rst:108
+msgid "``agent_id`` (int): 生成此对话的智能体"
+msgstr "``agent_id`` (int): Agent that generated this dialog"
+
+#: ../../storage.rst:109
+msgid "``question`` (str): 对智能体或 LLM 的输入/问题"
+msgstr "``question`` (str): Input/question to the agent or LLM"
+
+#: ../../storage.rst:110
+msgid "``answer`` (str): 响应"
+msgstr "``answer`` (str): Response"
+
+#: ../../storage.rst:111
+msgid "``dialog_type`` (int): 对话类型 * ``0``: 反思（智能体的内部推理） * ``1``: 干预（环境修改）"
+msgstr "``dialog_type`` (int): Dialog type * ``0``: Reflection (agent's internal reasoning) * ``1``: Intervention (environment modification)"
+
+#: ../../storage.rst:114
+msgid "``step`` (int): 发生此事件的模拟步骤"
+msgstr "``step`` (int): Simulation step when this event occurred"
+
+#: ../../storage.rst:115
+msgid "``timestamp`` (str): ISO 格式的时间戳"
+msgstr "``timestamp`` (str): Timestamp in ISO format"
+
+#: ../../storage.rst:118
+msgid "自定义表"
+msgstr "Custom Tables"
+
+#: ../../storage.rst:120
+msgid "环境模块可以注册自定义表："
+msgstr "Environment modules can register custom tables:"
+
+#: ../../storage.rst:122
+msgid "**注册自定义表：**"
+msgstr "**Register Custom Tables:**"
+
+#: ../../storage.rst:140
+msgid "**写入自定义表：**"
+msgstr "**Write to Custom Tables:**"
+
+#: ../../storage.rst:153
+msgid "**从自定义表读取：**"
+msgstr "**Read from Custom Tables:**"
+
+#: ../../storage.rst:165
+msgid "数据导出"
+msgstr "Data Export"
+
+#: ../../storage.rst:167
+msgid "**导出到 Pandas：**"
+msgstr "**Export to Pandas:**"
+
+#: ../../storage.rst:181
+msgid "**导出到 CSV：**"
+msgstr "**Export to CSV:**"
+
+#: ../../storage.rst:201
+msgid "存储架构"
+msgstr "Storage Architecture"
+
+#: ../../storage.rst:254
+msgid "数据写入流程"
+msgstr "Data Write Flow"

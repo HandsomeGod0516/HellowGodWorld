@@ -1,0 +1,135 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:36+0800\n"
+"PO-Revision-Date: 2026-03-05 23:50+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../quickstart.rst:2
+msgid "快速入门"
+msgstr "Quick Start"
+
+#: ../../quickstart.rst:4
+msgid "本指南将帮助您快速上手 AgentSociety 2。"
+msgstr "This guide will help you get started with AgentSociety 2."
+
+#: ../../quickstart.rst:7
+msgid "您的第一个智能体"
+msgstr "Your First Agent"
+
+#: ../../quickstart.rst:9
+msgid "让我们使用 **AgentSociety** 创建一个简单的智能体并与它交互："
+msgstr "Let's use **AgentSociety** to create a simple agent and interact with it:"
+
+#: ../../quickstart.rst:60
+msgid "运行此代码将产生类似以下输出："
+msgstr "Running this code will produce output similar to:"
+
+#: ../../quickstart.rst:68
+msgid "创建自定义环境"
+msgstr "Creating Custom Environments"
+
+#: ../../quickstart.rst:70
+msgid "环境模块允许智能体与特定功能进行交互："
+msgstr "Environment modules allow agents to interact with specific functionality:"
+
+#: ../../quickstart.rst:108
+msgid "运行实验"
+msgstr "Running Experiments"
+
+#: ../../quickstart.rst:110
+msgid "下面是一个使用 AgentSociety 的多智能体完整实验示例："
+msgstr "Here's a complete example of a multi-agent experiment using AgentSociety:"
+
+#: ../../quickstart.rst:167
+msgid "下一步"
+msgstr "Next Steps"
+
+#: ../../quickstart.rst:169
+msgid "既然您已经掌握了基础知识，可以继续探索："
+msgstr "Now that you have the basics, you can continue exploring:"
+
+#: ../../quickstart.rst:171
+msgid ":doc:`agents` - 详细了解智能体"
+msgstr ":doc:`agents` - Learn more about agents"
+
+#: ../../quickstart.rst:172
+msgid ":doc:`env_modules` - 创建自定义环境模块"
+msgstr ":doc:`env_modules` - Create custom environment modules"
+
+#: ../../quickstart.rst:173
+msgid ":doc:`concepts` - 理解核心概念"
+msgstr ":doc:`concepts` - Understand core concepts"
+
+#: ../../quickstart.rst:174
+msgid ":doc:`storage` - 了解回放系统"
+msgstr ":doc:`storage` - Learn about the replay system"
+
+#: ../../quickstart.rst:175
+msgid ":doc:`examples` - 查看更多示例"
+msgstr ":doc:`examples` - See more examples"
+
+#: ../../quickstart.rst:178
+msgid "常见模式"
+msgstr "Common Patterns"
+
+#: ../../quickstart.rst:181
+msgid "只读查询"
+msgstr "Read-only Queries"
+
+#: ../../quickstart.rst:183
+msgid "对于不修改状态的查询，使用 ``society.ask()``："
+msgstr "For queries that don't modify state, use ``society.ask()``:"
+
+#: ../../quickstart.rst:191
+msgid "进行修改"
+msgstr "Making Modifications"
+
+#: ../../quickstart.rst:193
+msgid "对于修改环境的操作，使用 ``society.intervene()``："
+msgstr "For operations that modify the environment, use ``society.intervene()``:"
+
+#: ../../quickstart.rst:201
+msgid "查询特定智能体"
+msgstr "Querying Specific Agents"
+
+#: ../../quickstart.rst:203
+msgid "向特定智能体提问："
+msgstr "Ask a specific agent:"
+
+#: ../../quickstart.rst:108
+msgid "使用 CLI 运行实验"
+msgstr "Running Experiments with CLI"
+
+#: ../../quickstart.rst:110
+msgid "**前台运行（调试）:**"
+msgstr "**Foreground Execution (Debug):**"
+
+#: ../../quickstart.rst:128
+msgid "**后台运行（生产）:**"
+msgstr "**Background Execution (Production):**"
+
+#: ../../quickstart.rst:137
+msgid "**重要**: 后台运行时必须指定 ``--log-file`` 参数。"
+msgstr "**Important**: When running in background, you must specify the ``--log-file`` parameter."
+
+#: ../../quickstart.rst:139
+msgid "更多详情请参见 :doc:`cli`。"
+msgstr "See :doc:`cli` for more details."
+
+#: ../../quickstart.rst:142
+msgid "运行实验（代码方式）"
+msgstr "Running Experiments (Code)"

@@ -1,0 +1,377 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:36+0800\n"
+"PO-Revision-Date: 2026-03-06 00:10+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../custom_modules.rst:2
+msgid "自定义模块"
+msgstr "Custom Modules"
+
+#: ../../custom_modules.rst:4
+msgid "AgentSociety 2 支持创建和注册自定义智能体和环境模块， 允许您使用自己的模拟组件扩展平台。"
+msgstr "AgentSociety 2 supports creating and registering custom agent and environment modules, allowing you to extend the platform with your own simulation components."
+
+#: ../../custom_modules.rst:8
+msgid "概述"
+msgstr "Overview"
+
+#: ../../custom_modules.rst:10
+msgid "自定义模块系统允许您："
+msgstr "The custom module system allows you to:"
+
+#: ../../custom_modules.rst:12
+msgid "创建具有专门行为的自定义智能体类"
+msgstr "Create custom agent classes with specialized behaviors"
+
+#: ../../custom_modules.rst:13
+msgid "创建具有特定领域工具的自定义环境模块"
+msgstr "Create custom environment modules with domain-specific tools"
+
+#: ../../custom_modules.rst:14
+msgid "通过 API 自动发现和注册模块"
+msgstr "Automatically discover and register modules through API"
+
+#: ../../custom_modules.rst:15
+msgid "使用自动生成的测试脚本测试自定义模块"
+msgstr "Test custom modules with auto-generated test scripts"
+
+#: ../../custom_modules.rst:16
+msgid "与现有 AgentSociety 框架无缝集成"
+msgstr "Seamlessly integrate with existing AgentSociety framework"
+
+#: ../../custom_modules.rst:19
+msgid "目录结构"
+msgstr "Directory Structure"
+
+#: ../../custom_modules.rst:21
+msgid "自定义模块放置在工作区内的 ``custom/`` 目录中::"
+msgstr "Custom modules are placed in the ``custom/`` directory within your workspace::"
+
+#: ../../custom_modules.rst:34
+msgid "创建自定义智能体"
+msgstr "Create Custom Agents"
+
+#: ../../custom_modules.rst:36
+msgid "所有自定义智能体必须继承 ``AgentBase`` 并实现必需的方法："
+msgstr "All custom agents must inherit from ``AgentBase`` and implement the required methods:"
+
+#: ../../custom_modules.rst:74
+msgid "必需方法"
+msgstr "Required Methods"
+
+#: ../../custom_modules.rst:79
+#: ../../custom_modules.rst:185
+msgid "Method"
+msgstr "Method"
+
+#: ../../custom_modules.rst:80
+#: ../../custom_modules.rst:139
+#: ../../custom_modules.rst:186
+msgid "Description"
+msgstr "Description"
+
+#: ../../custom_modules.rst:81
+msgid "``mcp_description()``"
+msgstr "``mcp_description()``"
+
+#: ../../custom_modules.rst:82
+msgid "返回模块描述（类方法）"
+msgstr "Returns module description (class method)"
+
+#: ../../custom_modules.rst:83
+msgid "``ask()``"
+msgstr "``ask()``"
+
+#: ../../custom_modules.rst:84
+msgid "回答环境的问题"
+msgstr "Answer questions from the environment"
+
+#: ../../custom_modules.rst:85
+msgid "``step()``"
+msgstr "``step()``"
+
+#: ../../custom_modules.rst:86
+msgid "执行一个模拟步骤"
+msgstr "Execute one simulation step"
+
+#: ../../custom_modules.rst:87
+msgid "``dump()``"
+msgstr "``dump()``"
+
+#: ../../custom_modules.rst:88
+msgid "序列化智能体状态"
+msgstr "Serialize agent state"
+
+#: ../../custom_modules.rst:89
+msgid "``load()``"
+msgstr "``load()``"
+
+#: ../../custom_modules.rst:90
+msgid "从字典加载智能体状态"
+msgstr "Load agent state from dictionary"
+
+#: ../../custom_modules.rst:93
+msgid "创建自定义环境"
+msgstr "Create Custom Environments"
+
+#: ../../custom_modules.rst:95
+msgid "自定义环境必须继承 ``EnvBase`` 并使用 ``@tool`` 装饰器注册方法："
+msgstr "Custom environments must inherit from ``EnvBase`` and use the ``@tool`` decorator to register methods:"
+
+#: ../../custom_modules.rst:131
+msgid "@tool 装饰器"
+msgstr "@tool Decorator"
+
+#: ../../custom_modules.rst:133
+msgid "``@tool`` 装饰器将方法注册为智能体可访问的工具："
+msgstr "The ``@tool`` decorator registers methods as tools accessible to agents:"
+
+#: ../../custom_modules.rst:138
+msgid "Parameter"
+msgstr "Parameter"
+
+#: ../../custom_modules.rst:140
+msgid "``readonly=True``"
+msgstr "``readonly=True``"
+
+#: ../../custom_modules.rst:141
+msgid "工具不修改环境状态"
+msgstr "Tool does not modify environment state"
+
+#: ../../custom_modules.rst:142
+msgid "``readonly=False``"
+msgstr "``readonly=False``"
+
+#: ../../custom_modules.rst:143
+msgid "工具可以修改环境状态"
+msgstr "Tool can modify environment state"
+
+#: ../../custom_modules.rst:144
+msgid "``kind=\"observe\"``"
+msgstr "``kind=\"observe\"``"
+
+#: ../../custom_modules.rst:145
+msgid "观察工具（单个 agent_id 参数，readonly=True）"
+msgstr "Observation tool (single agent_id parameter, readonly=True)"
+
+#: ../../custom_modules.rst:146
+msgid "``kind=\"statistics\"``"
+msgstr "``kind=\"statistics\"``"
+
+#: ../../custom_modules.rst:147
+msgid "统计工具（无参数，readonly=True）"
+msgstr "Statistics tool (no parameters, readonly=True)"
+
+#: ../../custom_modules.rst:148
+msgid "``kind=None``"
+msgstr "``kind=None``"
+
+#: ../../custom_modules.rst:149
+msgid "常规工具（任何参数，可以是 readonly=False）"
+msgstr "Regular tool (any parameters, can be readonly=False)"
+
+#: ../../custom_modules.rst:152
+msgid "注册自定义模块"
+msgstr "Registering Custom Modules"
+
+#: ../../custom_modules.rst:154
+msgid "创建自定义模块后，使用 API 注册它们："
+msgstr "After creating custom modules, register them using the API:"
+
+#: ../../custom_modules.rst:156
+msgid "**扫描并注册**"
+msgstr "**Scan and Register**"
+
+#: ../../custom_modules.rst:164
+msgid "**列出已注册的模块**"
+msgstr "**List Registered Modules**"
+
+#: ../../custom_modules.rst:170
+msgid "**测试自定义模块**"
+msgstr "**Test Custom Modules**"
+
+#: ../../custom_modules.rst:179
+msgid "API 端点"
+msgstr "API Endpoints"
+
+#: ../../custom_modules.rst:184
+msgid "Endpoint"
+msgstr "Endpoint"
+
+#: ../../custom_modules.rst:187
+msgid "``/api/v1/custom/scan``"
+msgstr "``/api/v1/custom/scan``"
+
+#: ../../custom_modules.rst:188
+#: ../../custom_modules.rst:191
+#: ../../custom_modules.rst:194
+msgid "POST"
+msgstr "POST"
+
+#: ../../custom_modules.rst:189
+msgid "扫描并注册自定义模块"
+msgstr "Scan and register custom modules"
+
+#: ../../custom_modules.rst:190
+msgid "``/api/v1/custom/test``"
+msgstr "``/api/v1/custom/test``"
+
+#: ../../custom_modules.rst:192
+msgid "测试自定义模块"
+msgstr "Test custom modules"
+
+#: ../../custom_modules.rst:193
+msgid "``/api/v1/custom/clean``"
+msgstr "``/api/v1/custom/clean``"
+
+#: ../../custom_modules.rst:195
+msgid "清理自定义模块配置"
+msgstr "Clean custom module configuration"
+
+#: ../../custom_modules.rst:196
+msgid "``/api/v1/custom/list``"
+msgstr "``/api/v1/custom/list``"
+
+#: ../../custom_modules.rst:197
+#: ../../custom_modules.rst:200
+msgid "GET"
+msgstr "GET"
+
+#: ../../custom_modules.rst:198
+msgid "列出已注册的自定义模块"
+msgstr "List registered custom modules"
+
+#: ../../custom_modules.rst:199
+msgid "``/api/v1/custom/status``"
+msgstr "``/api/v1/custom/status``"
+
+#: ../../custom_modules.rst:201
+msgid "获取模块状态概述"
+msgstr "Get module status overview"
+
+#: ../../custom_modules.rst:204
+msgid "示例"
+msgstr "Examples"
+
+#: ../../custom_modules.rst:206
+msgid "示例智能体和环境可在 ``custom/`` 目录中找到："
+msgstr "Example agents and environments can be found in the ``custom/`` directory:"
+
+#: ../../custom_modules.rst:208
+msgid "``custom/agents/examples/simple_agent.py`` - 基本智能体示例"
+msgstr "``custom/agents/examples/simple_agent.py`` - Basic agent example"
+
+#: ../../custom_modules.rst:209
+msgid "``custom/agents/examples/advanced_agent.py`` - 具有记忆和情绪的智能体"
+msgstr "``custom/agents/examples/advanced_agent.py`` - Agent with memory and emotions"
+
+#: ../../custom_modules.rst:210
+msgid "``custom/envs/examples/simple_env.py`` - 计数器环境"
+msgstr "``custom/envs/examples/simple_env.py`` - Counter environment"
+
+#: ../../custom_modules.rst:211
+msgid "``custom/envs/examples/advanced_env.py`` - 资源管理环境"
+msgstr "``custom/envs/examples/advanced_env.py`` - Resource management environment"
+
+#: ../../custom_modules.rst:213
+msgid "这些示例演示了创建自定义模块的最佳实践。"
+msgstr "These examples demonstrate best practices for creating custom modules."
+
+#: ../../custom_modules.rst:216
+msgid "配置"
+msgstr "Configuration"
+
+#: ../../custom_modules.rst:218
+msgid "设置 ``WORKSPACE_PATH`` 环境变量以指向您的工作区："
+msgstr "Set the ``WORKSPACE_PATH`` environment variable to point to your workspace:"
+
+#: ../../custom_modules.rst:224
+msgid "或添加到您的 ``.env`` 文件："
+msgstr "Or add to your ``.env`` file:"
+
+#: ../../custom_modules.rst:230
+msgid "此设置告诉系统在哪里找到 ``custom/`` 目录。"
+msgstr "This setting tells the system where to find the ``custom/`` directory."
+
+#: ../../custom_modules.rst:233
+msgid "最佳实践"
+msgstr "Best Practices"
+
+#: ../../custom_modules.rst:235
+msgid "**命名约定**"
+msgstr "**Naming Conventions**"
+
+#: ../../custom_modules.rst:237
+msgid "智能体类名应以 ``Agent`` 结尾"
+msgstr "Agent class names should end with ``Agent``"
+
+#: ../../custom_modules.rst:238
+msgid "环境类名应以 ``Env`` 结尾"
+msgstr "Environment class names should end with ``Env``"
+
+#: ../../custom_modules.rst:239
+msgid "文件名应使用小写字母和下划线：``my_agent.py``"
+msgstr "File names should use lowercase letters and underscores: ``my_agent.py``"
+
+#: ../../custom_modules.rst:241
+msgid "**错误处理**"
+msgstr "**Error Handling**"
+
+#: ../../custom_modules.rst:243
+msgid "始终将 LLM 调用包装在 try-except 块中"
+msgstr "Always wrap LLM calls in try-except blocks"
+
+#: ../../custom_modules.rst:244
+msgid "返回有意义的错误消息"
+msgstr "Return meaningful error messages"
+
+#: ../../custom_modules.rst:245
+msgid "记录重要的状态更改"
+msgstr "Log important state changes"
+
+#: ../../custom_modules.rst:247
+msgid "**状态管理**"
+msgstr "**State Management**"
+
+#: ../../custom_modules.rst:249
+msgid "使用 ``dump()`` 和 ``load()`` 进行状态持久化"
+msgstr "Use ``dump()`` and ``load()`` for state persistence"
+
+#: ../../custom_modules.rst:250
+msgid "在回放中记录重要的状态更改"
+msgstr "Record important state changes in replay"
+
+#: ../../custom_modules.rst:251
+msgid "保持状态可序列化（JSON 兼容）"
+msgstr "Keep state serializable (JSON compatible)"
+
+#: ../../custom_modules.rst:253
+msgid "**工具设计**"
+msgstr "**Tool Design**"
+
+#: ../../custom_modules.rst:255
+msgid "对只读观察使用 ``kind=\"observe\"``"
+msgstr "Use ``kind=\"observe\"`` for read-only observations"
+
+#: ../../custom_modules.rst:256
+msgid "对聚合数据使用 ``kind=\"statistics\"``"
+msgstr "Use ``kind=\"statistics\"`` for aggregated data"
+
+#: ../../custom_modules.rst:257
+msgid "对操作使用 ``kind=None`` 和 ``readonly=False``"
+msgstr "Use ``kind=None`` and ``readonly=False`` for operations"

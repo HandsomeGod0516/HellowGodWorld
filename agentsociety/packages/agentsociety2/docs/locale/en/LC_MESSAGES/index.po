@@ -1,0 +1,152 @@
+# English translations for AgentSociety 2 package.
+# Copyright (C) 2026, FIBLAB
+# This file is distributed under the same license as the AgentSociety 2 package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AgentSociety 2 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-05 23:36+0800\n"
+"PO-Revision-Date: 2026-03-05 23:50+0800\n"
+"Last-Translator: AgentSociety Team\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../index.rst:67
+msgid "入门指南:"
+msgstr "Getting Started:"
+
+#: ../../index.rst:76
+msgid "用户指南:"
+msgstr "User Guide:"
+
+#: ../../index.rst:85
+msgid "开发者指南:"
+msgstr "Developer Guide:"
+
+#: ../../index.rst:92
+msgid "参考:"
+msgstr "Reference:"
+
+#: ../../index.rst:2
+msgid "AgentSociety 2"
+msgstr "AgentSociety 2"
+
+#: ../../index.rst:4
+msgid ""
+"**AgentSociety 2** 是一个现代化的、LLM 原生的智能体模拟平台，专为社会科学研究和实验设计。它提供了一个灵活的框架，用于在模拟环境中创建和管理智能智能体。"
+msgstr ""
+"**AgentSociety 2** is a modern, LLM-native agent simulation platform designed for "
+"social science research and experimental design. It provides a flexible framework "
+"for creating and managing intelligent agents in simulated environments."
+
+#: ../../index.rst:6
+msgid "PyPI Version"
+msgstr "PyPI Version"
+
+#: ../../index.rst:10
+msgid "Python Versions"
+msgstr "Python Versions"
+
+#: ../../index.rst:14
+msgid "License"
+msgstr "License"
+
+#: ../../index.rst:19
+msgid "核心特性"
+msgstr "Key Features"
+
+#: ../../index.rst:21
+msgid "**LLM 驱动的智能体**: 创建具有个性、记忆和推理能力的智能智能体，由大语言模型驱动。"
+msgstr ""
+"**LLM-Powered Agents**: Create intelligent agents with personalities, memories, and "
+"reasoning capabilities, powered by large language models."
+
+#: ../../index.rst:23
+msgid "**灵活的环境模块**: 使用可组合的工具和状态管理构建自定义模拟环境。"
+msgstr ""
+"**Flexible Environment Modules**: Build custom simulation environments with "
+"composable tools and state management."
+
+#: ../../index.rst:25
+msgid "**异步优先设计**: 高性能异步架构，实现高效的多智能体模拟。"
+msgstr ""
+"**Async-First Design**: High-performance asynchronous architecture for efficient "
+"multi-agent simulations."
+
+#: ../../index.rst:27
+msgid "**回放与分析**: 基于 SQLite 的内置存储，用于实验跟踪和分析。"
+msgstr ""
+"**Replay and Analysis**: Built-in SQLite-based storage for experiment tracking "
+"and analysis."
+
+#: ../../index.rst:29
+msgid "**研究技能**: 内置文献检索、假设生成、实验设计、论文撰写等 LLM 原生工作流。"
+msgstr ""
+"**Research Skills**: Built-in LLM-native workflows for literature search, hypothesis "
+"generation, experiment design, and paper writing."
+
+#: ../../index.rst:31
+msgid "**REST API**: 基于 FastAPI 的独立后端服务，支持外部集成。"
+msgstr ""
+"**REST API**: Independent FastAPI-based backend service for external integrations."
+
+#: ../../index.rst:33
+msgid "**CLI 工具**: 强大的命令行界面，支持实验运行和进度跟踪。"
+msgstr ""
+"**CLI Tool**: Powerful command-line interface for experiment execution and progress tracking."
+
+#: ../../index.rst:35
+msgid "**可扩展**: 轻松扩展自定义智能体、环境和工具。"
+msgstr ""
+"**Extensible**: Easily extend with custom agents, environments, and tools."
+
+#: ../../index.rst:32
+msgid "安装"
+msgstr "Installation"
+
+#: ../../index.rst:38
+msgid "详细安装说明请参见 :doc:`installation`。"
+msgstr "See :doc:`installation` for detailed installation instructions."
+
+#: ../../index.rst:41
+msgid "快速开始"
+msgstr "Quick Start"
+
+#: ../../index.rst:62
+msgid "更多示例请参见 :doc:`quickstart`。"
+msgstr "See :doc:`quickstart` for more examples."
+
+#: ../../index.rst:65
+msgid "文档"
+msgstr "Documentation"
+
+#: ../../index.rst:99
+msgid "链接"
+msgstr "Links"
+
+#: ../../index.rst:101
+msgid "**GitHub**: https://github.com/tsinghua-fib-lab/AgentSociety"
+msgstr "**GitHub**: https://github.com/tsinghua-fib-lab/AgentSociety"
+
+#: ../../index.rst:102
+msgid "**PyPI**: https://pypi.org/project/agentsociety2/"
+msgstr "**PyPI**: https://pypi.org/project/agentsociety2/"
+
+#: ../../index.rst:103
+msgid "**Issues**: https://github.com/tsinghua-fib-lab/AgentSociety/issues"
+msgstr "**Issues**: https://github.com/tsinghua-fib-lab/AgentSociety/issues"
+
+#: ../../index.rst:106
+msgid "搜索"
+msgstr "Search"
+
+#: ../../index.rst:108
+msgid ":ref:`search`"
+msgstr ":ref:`search`"
