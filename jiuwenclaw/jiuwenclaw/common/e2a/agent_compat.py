@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""AgentServer：E2AEnvelope → 现有 AgentRequest（第一阶段）；不得与 normalize_failed 兜底同时使用。"""
+"""AgentServer：E2AEnvelope → 現有 AgentRequest（第一階段）；不得與 normalize_failed 兜底同時使用。"""
 
 from __future__ import annotations
 
@@ -28,9 +28,9 @@ def _e2a_timestamp_to_float(ts: str | None) -> float:
 
 def e2a_to_agent_request(env: E2AEnvelope) -> AgentRequest:
     """
-    将规范化成功的 E2A 转为 AgentRequest。
+    將規範化成功的 E2A 轉為 AgentRequest。
 
-    若 envelope 含 Gateway 兜底标记，须由调用方先分支处理 legacy，勿调用本函数。
+    若 envelope 含 Gateway 兜底標記，須由呼叫方先分支處理 legacy，勿呼叫本函式。
     """
     ctx = dict(env.channel_context or {})
     internal = ctx.pop(E2A_INTERNAL_CONTEXT_KEY, None)

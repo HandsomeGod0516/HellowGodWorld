@@ -484,7 +484,7 @@ async def test_handle_team_slash_command_requires_explicit_evolve_intent(monkeyp
     )
 
     assert result == {
-        "output": "请补充演进意图：`/evolve <skill_name> <user_query>`",
+        "output": "請補充演進意圖：`/evolve <skill_name> <user_query>`",
         "result_type": "error",
     }
 
@@ -532,7 +532,7 @@ async def test_handle_team_slash_command_submits_explicit_evolve_request(monkeyp
     assert recorded_calls == [("demo-skill", "improve review flow")]
     assert watcher_calls == [("web", "sess-team-evolve")]
     assert result == {
-        "output": "Skill 'demo-skill' 演进请求已提交，请等待审批。",
+        "output": "Skill 'demo-skill' 演進請求已提交，請等待審批。",
         "result_type": "answer",
     }
 
@@ -573,6 +573,6 @@ async def test_handle_team_slash_command_simplify_reports_noop(monkeypatch):
 
     assert recorded_calls == [("demo-skill", None)]
     assert result == {
-        "output": "Skill 'demo-skill' 经验库状态良好，无需整理。",
+        "output": "Skill 'demo-skill' 經驗庫狀態良好，無需整理。",
         "result_type": "answer",
     }

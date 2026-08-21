@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# 自动获取项目根目录
+# 自動獲取專案根目錄
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 
-# 设置环境变量
+# 設定環境變數
 export PYTHONPATH="$ROOT"
 export PYTHONIOENCODING=utf-8
 
-# 进入项目目录
+# 進入專案目錄
 cd "$ROOT"
 
-# 启动程序（Linux/Mac 虚拟环境路径不同）
+# 啟動程式（Linux/Mac 虛擬環境路徑不同）
 "$ROOT/.venv/bin/python" -m jiuwenclaw.channel.acp_channel "$@"

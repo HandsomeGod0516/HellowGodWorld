@@ -21,7 +21,7 @@
   ],
   "status": "curating_library",
   "emotion": "focused",
-  "speech": "我找几本现在真正派得上用场的资料。",
+  "speech": "我找幾本現在真正派得上用場的資料。",
   "memory_template": "Used library.curate: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

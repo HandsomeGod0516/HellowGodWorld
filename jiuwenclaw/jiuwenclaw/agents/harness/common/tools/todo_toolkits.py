@@ -44,15 +44,15 @@ class TodoToolkit:
     # Markdown line format: - [ ] 1. task | status  or  - [x] 1. task | status | result
     # parts[0]=task, parts[1]=status, parts[2]=result (optional)
     PARTS_MIN_COUNT_WITH_RESULT = 3  # 至少 3 段才有 result
-    PARTS_INDEX_RESULT = 2  # result 在 split("|") 后的索引
+    PARTS_INDEX_RESULT = 2  # result 在 split("|") 後的索引
 
-    # 按 session_id 分组的文件锁，防止并发任务对同一 todo.md 进行 read-modify-write 时丢失更新
+    # 按 session_id 分組的檔案鎖，防止併發任務對同一 todo.md 進行 read-modify-write 時丟失更新
     _session_locks: ClassVar[Dict[str, threading.Lock]] = {}
     _meta_lock: ClassVar[threading.Lock] = threading.Lock()
 
     @classmethod
     def _get_session_lock(cls, session_id: str) -> threading.Lock:
-        """获取指定 session 的文件操作锁（线程安全）."""
+        """獲取指定 session 的檔案操作鎖（執行緒安全）."""
         with cls._meta_lock:
             if session_id not in cls._session_locks:
                 cls._session_locks[session_id] = threading.Lock()
@@ -182,7 +182,7 @@ class TodoToolkit:
         with self._get_session_lock(self.session_id):
             todo_tasks = self._load_tasks()
             if not self._todo_path.exists():
-                # 锁内直接创建，避免释放锁后被其他线程抢先
+                # 鎖內直接建立，避免釋放鎖後被其他執行緒搶先
                 new_tasks = [
                     TodoTask(idx=i + 1, tasks=t, status=TaskStatus.WAITING, result="")
                     for i, t in enumerate(tasks)

@@ -294,11 +294,11 @@ async def _run_ui_flow_impl(
     beta = f"{case_prefix}-beta"
     prompt = "\n".join(
         [
-            "这是一个 Todo UI smoke test。",
-            "请严格按顺序执行下面 3 步：",
-            f'1. 只使用 todo 工具，创建两个待办，任务名必须完全等于 "{alpha}" 和 "{beta}"。',
-            f'2. 创建后，必须使用 `todo_modify` 把 "{alpha}" 标记为已完成，保留 "{beta}" 为待处理。',
-            "3. 不要调用 bash、code、browser、cron 等其他工具，最后只回复一句 `todo smoke done`。",
+            "這是一個 Todo UI smoke test。",
+            "請嚴格按順序執行下面 3 步：",
+            f'1. 只使用 todo 工具，建立兩個待辦，任務名必須完全等於 "{alpha}" 和 "{beta}"。',
+            f'2. 建立後，必須使用 `todo_modify` 把 "{alpha}" 標記為已完成，保留 "{beta}" 為待處理。',
+            "3. 不要呼叫 bash、code、browser、cron 等其他工具，最後只回復一句 `todo smoke done`。",
         ]
     )
     await page.locator('[data-testid="chat-input"]').fill(prompt)
@@ -410,7 +410,7 @@ async def async_main() -> int:
     exit_code = 0
 
     try:
-        await _wait_for_log(backend_log, "WebChannel 已启动", timeout=90)
+        await _wait_for_log(backend_log, "WebChannel 已啟動", timeout=90)
         ui_proc = _start_process(
             [
                 args.runtime_python,

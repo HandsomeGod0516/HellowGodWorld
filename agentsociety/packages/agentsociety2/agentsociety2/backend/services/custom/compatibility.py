@@ -13,13 +13,13 @@ from agentsociety2.backend.services.custom.models import (
 from agentsociety2.env.base import EnvBase
 
 ENV_COMPATIBILITY_RULES = [
-    "最终自定义环境模块必须落在 custom/envs/*.py。",
-    "类定义必须在目标文件内，不能只做 re-export。",
-    "环境类必须继承 EnvBase，注册 key 保持 class_name。",
-    "至少提供一个合法 @tool 方法。",
-    "必须实现 step()，并且默认支持无参实例化 cls()。",
-    "mcp_description() 必须可调用且返回非空描述。",
-    "若模块需要观察能力，应通过 readonly 的 kind='observe' 工具提供。",
+    "最終自定義環境模組必須落在 custom/envs/*.py。",
+    "類定義必須在目標檔案內，不能只做 re-export。",
+    "環境類必須繼承 EnvBase，註冊 key 保持 class_name。",
+    "至少提供一個合法 @tool 方法。",
+    "必須實現 step()，並且預設支援無參例項化 cls()。",
+    "mcp_description() 必須可呼叫且返回非空描述。",
+    "若模組需要觀察能力，應透過 readonly 的 kind='observe' 工具提供。",
 ]
 
 
@@ -95,7 +95,7 @@ def build_env_scan_diagnostic(
             CompatibilityIssue(
                 code="missing_tools",
                 check="registered_tools",
-                message=f"{cls.__name__} 没有注册任何 @tool 方法",
+                message=f"{cls.__name__} 沒有註冊任何 @tool 方法",
             )
         )
 
@@ -105,8 +105,8 @@ def build_env_scan_diagnostic(
                 code="non_default_constructor",
                 check="default_constructor",
                 message=(
-                    f"{cls.__name__} 不能直接通过 cls() 实例化，"
-                    f"缺少默认值的参数: {required_params}"
+                    f"{cls.__name__} 不能直接透過 cls() 例項化，"
+                    f"缺少預設值的引數: {required_params}"
                 ),
                 details={"required_parameters": required_params},
             )
@@ -119,7 +119,7 @@ def build_env_scan_diagnostic(
                 CompatibilityIssue(
                     code="empty_mcp_description",
                     check="mcp_description",
-                    message=f"{cls.__name__} 的 mcp_description() 为空",
+                    message=f"{cls.__name__} 的 mcp_description() 為空",
                 )
             )
     except Exception as exc:
@@ -127,7 +127,7 @@ def build_env_scan_diagnostic(
             CompatibilityIssue(
                 code="mcp_description_error",
                 check="mcp_description",
-                message=f"{cls.__name__} 的 mcp_description() 调用失败: {exc}",
+                message=f"{cls.__name__} 的 mcp_description() 呼叫失敗: {exc}",
             )
         )
 
@@ -171,7 +171,7 @@ def build_import_error_diagnostic(
             CompatibilityIssue(
                 code="import_error",
                 check="import",
-                message=f"{file_path.name} 导入失败: {error}",
+                message=f"{file_path.name} 匯入失敗: {error}",
             )
         ],
         metadata={},

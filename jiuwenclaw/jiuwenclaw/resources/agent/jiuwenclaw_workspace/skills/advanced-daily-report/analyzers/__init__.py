@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-进阶版日报生成器 - 分析模块
+進階版日報生成器 - 分析模組
 
 包含：
 - WorkAnalyzer: 工作分析引擎
-- EfficiencyMetrics: 效率指标
-- TrendComparison: 趋势对比
-- AnalysisResult: 分析结果
-- AIAnalyzer: AI 智能分析器
-- AIAnalysisResult: AI 分析结果
-- WorkPatternResult: 工作模式分析结果
+- EfficiencyMetrics: 效率指標
+- TrendComparison: 趨勢對比
+- AnalysisResult: 分析結果
+- AIAnalyzer: AI 智慧分析器
+- AIAnalysisResult: AI 分析結果
+- WorkPatternResult: 工作模式分析結果
 """
 
 from .work_analyzer import (

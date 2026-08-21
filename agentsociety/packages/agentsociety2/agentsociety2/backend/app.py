@@ -3,13 +3,13 @@
 """
 FastAPI backend service for GOD.
 
-关联文件：
-- @packages/agentsociety2/agentsociety2/backend/run.py - 服务启动脚本
-- @extension/src/services/backendManager.ts - VSCode插件后端进程管理
-- @extension/src/apiClient.ts - VSCode插件API客户端
+關聯檔案：
+- @packages/agentsociety2/agentsociety2/backend/run.py - 服務啟動指令碼
+- @extension/src/services/backendManager.ts - VSCode外掛後端程序管理
+- @extension/src/apiClient.ts - VSCode外掛API客戶端
 
-路由注册：
-- @packages/agentsociety2/agentsociety2/backend/routers/town.py - /api/v1/town（即时小镇）
+路由註冊：
+- @packages/agentsociety2/agentsociety2/backend/routers/town.py - /api/v1/town（即時小鎮）
 - @packages/agentsociety2/agentsociety2/backend/routers/prefill_params.py - /api/v1/prefill-params
 - @packages/agentsociety2/agentsociety2/backend/routers/custom.py - /api/v1/custom
 - @packages/agentsociety2/agentsociety2/backend/routers/modules.py - /api/v1/modules
@@ -36,36 +36,36 @@ from agentsociety2.backend.routers import (
     town,
 )
 
-# 加载环境变量
+# 載入環境變數
 _project_root = Path(__file__).resolve().parents[2]
 load_dotenv(_project_root / ".env")
 
 
-# 配置标准 logging
+# 配置標準 logging
 def _setup_logging():
-    """配置后端服务日志。
+    """配置後端服務日誌。
 
-    读取环境变量 ``BACKEND_LOG_LEVEL``，并初始化 root logger 与相关模块 logger。
+    讀取環境變數 ``BACKEND_LOG_LEVEL``，並初始化 root logger 與相關模組 logger。
     """
     log_level = os.getenv("BACKEND_LOG_LEVEL", "info")
-    # 将 uvicorn 的 "trace" 映射到 Python logging 的 "DEBUG"
+    # 將 uvicorn 的 "trace" 對映到 Python logging 的 "DEBUG"
     python_log_level = "DEBUG" if log_level.lower() == "trace" else log_level.upper()
     level = getattr(logging, python_log_level, logging.INFO)
 
-    # 配置根 logger（如果还没有配置过）
+    # 配置根 logger（如果還沒有配置過）
     root_logger = logging.getLogger()
     if not root_logger.handlers:
         logging.basicConfig(
             level=level,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
-            force=True,  # Python 3.8+ 支持，强制重新配置
+            force=True,  # Python 3.8+ 支援，強制重新配置
         )
     else:
-        # 如果已经配置过，只更新日志等级
+        # 如果已經配置過，只更新日誌等級
         root_logger.setLevel(level)
 
-    # 设置 agentsociety2 相关模块的日志等级
+    # 設定 agentsociety2 相關模組的日誌等級
     agentsociety_logger = logging.getLogger("agentsociety2")
     agentsociety_logger.setLevel(level)
 
@@ -106,22 +106,22 @@ def _cors_allow_origins() -> list[str]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """FastAPI 应用生命周期管理（启动/关闭钩子）。"""
-    # 启动时执行
-    logger.info("GOD Backend Service 启动中...")
-    logger.info(f"项目根目录: {_project_root}")
+    """FastAPI 應用生命週期管理（啟動/關閉鉤子）。"""
+    # 啟動時執行
+    logger.info("GOD Backend Service 啟動中...")
+    logger.info(f"專案根目錄: {_project_root}")
 
-    # 即时小镇的世界循环随后端一起常驻运行。
+    # 即時小鎮的世界迴圈隨後端一起常駐執行。
     await town.bootstrap_world()
 
     yield
 
-    # 关闭时执行
+    # 關閉時執行
     await town.shutdown_world()
-    logger.info("GOD Backend Service 关闭中...")
+    logger.info("GOD Backend Service 關閉中...")
 
 
-# 创建FastAPI应用
+# 建立FastAPI應用
 app = FastAPI(
     title=APP_TITLE,
     description=APP_DESCRIPTION,
@@ -129,7 +129,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# 配置 CORS：credentials 不能安全地配合 "*"，发布默认只开放本地控制台。
+# 配置 CORS：credentials 不能安全地配合 "*"，釋出預設只開放本地控制檯。
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_allow_origins(),
@@ -138,7 +138,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
 
-# 注册路由（仅保留必要的API）
+# 註冊路由（僅保留必要的API）
 app.include_router(prefill_params.router)
 app.include_router(custom.router)
 app.include_router(modules.router)
@@ -148,7 +148,7 @@ app.include_router(town.router)
 
 @app.get("/")
 async def root():
-    """:returns: 后端服务基本信息与 endpoints 列表。"""
+    """:returns: 後端服務基本資訊與 endpoints 列表。"""
     return {
         "service": APP_TITLE,
         "version": APP_VERSION,
@@ -165,19 +165,19 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """:returns: 健康状态。"""
+    """:returns: 健康狀態。"""
     return {"status": "healthy"}
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """全局异常处理器。
+    """全域性異常處理器。
 
-    :param request: FastAPI 请求对象（用于扩展日志上下文）。
-    :param exc: 未捕获异常。
-    :returns: 标准化的 500 JSON 响应。
+    :param request: FastAPI 請求物件（用於擴充套件日誌上下文）。
+    :param exc: 未捕獲異常。
+    :returns: 標準化的 500 JSON 響應。
     """
-    logger.error(f"未处理的异常: {exc}", exc_info=True)
+    logger.error(f"未處理的異常: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={
@@ -192,36 +192,36 @@ if __name__ == "__main__":
     import uvicorn
     import argparse
 
-    # 解析命令行参数
+    # 解析命令列引數
     parser = argparse.ArgumentParser(
-        description="启动 GOD Backend API 服务"
+        description="啟動 GOD Backend API 服務"
     )
     parser.add_argument(
         "--log-level",
         type=str,
         default=None,
         choices=["critical", "error", "warning", "info", "debug", "trace"],
-        help="设置日志等级 (critical, error, warning, info, debug, trace)",
+        help="設定日誌等級 (critical, error, warning, info, debug, trace)",
     )
     args = parser.parse_args()
 
-    # 从环境变量读取配置，命令行参数优先
+    # 從環境變數讀取配置，命令列引數優先
     host = os.getenv("BACKEND_HOST", "0.0.0.0")
     port = int(os.getenv("BACKEND_PORT", "8001"))
     log_level = args.log_level or os.getenv("BACKEND_LOG_LEVEL", "info")
 
-    # 如果命令行参数设置了日志等级，更新环境变量并重新配置日志
+    # 如果命令列引數設定了日誌等級，更新環境變數並重新配置日誌
     if args.log_level:
         os.environ["BACKEND_LOG_LEVEL"] = args.log_level
         _setup_logging()
 
-    logger.info(f"启动服务器: http://{host}:{port}")
-    logger.info(f"日志等级: {log_level}")
+    logger.info(f"啟動伺服器: http://{host}:{port}")
+    logger.info(f"日誌等級: {log_level}")
     uvicorn.run(
         "agentsociety2.backend.app:app",
         host=host,
         port=port,
-        reload=False,  # 生产环境设为False
+        reload=False,  # 生產環境設為False
         log_level=log_level,
         ws="wsproto",
     )

@@ -21,7 +21,7 @@
   ],
   "status": "remote_comms",
   "emotion": "warm",
-  "speech": "我先远程确认对方情况，再决定下一步。",
+  "speech": "我先遠端確認對方情況，再決定下一步。",
   "memory_template": "Used remote.communicate: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

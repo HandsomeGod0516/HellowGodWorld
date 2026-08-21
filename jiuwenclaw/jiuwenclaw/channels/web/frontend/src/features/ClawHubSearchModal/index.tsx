@@ -1,6 +1,6 @@
 /**
- * ClawHub 在线搜索弹窗
- * 从 ClawHub 检索并安装技能
+ * ClawHub 線上搜尋彈窗
+ * 從 ClawHub 檢索並安裝技能
  */
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,7 +19,7 @@ type ClawHubSkillItem = {
 interface ClawHubSearchModalProps {
   open: boolean;
   sessionId: string;
-  /** 当前已安装技能名（用于判断是否已安装） */
+  /** 當前已安裝技能名（用於判斷是否已安裝） */
   installedSkillNames?: ReadonlySet<string>;
   onClose: () => void;
   onInstalled?: (skillName: string) => void | Promise<void>;
@@ -42,7 +42,7 @@ export function ClawHubSearchModal({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [installingSlug, setInstallingSlug] = useState<string | null>(null);
-  // 本地跟踪已安装的skill slug
+  // 本地跟蹤已安裝的skill slug
   const [installedSlugs, setInstalledSlugs] = useState<Set<string>>(new Set());
 
   const withSession = useCallback(
@@ -68,12 +68,12 @@ export function ClawHubSearchModal({
         setToken(data.token || "");
         const hasToken = data.has_token || false;
         setHasToken(hasToken);
-        // 如果没有 token，显示配置弹窗；否则不显示
+        // 如果沒有 token，顯示配置彈窗；否則不顯示
         setShowTokenConfig(!hasToken);
       }
     } catch (error) {
       console.error("Failed to fetch token:", error);
-      // 获取失败时，默认显示token配置
+      // 獲取失敗時，預設顯示token配置
       setShowTokenConfig(true);
     }
   }, [withSession]);
@@ -81,7 +81,7 @@ export function ClawHubSearchModal({
   useEffect(() => {
     if (open) {
       fetchToken();
-      // 重置本地已安装状态（从父组件传入的数据重新开始）
+      // 重置本地已安裝狀態（從父元件傳入的資料重新開始）
       setInstalledSlugs(new Set());
     }
   }, [open, fetchToken]);
@@ -143,7 +143,7 @@ export function ClawHubSearchModal({
         setHasToken(true);
         setShowTokenConfig(false);
         showMessage("success", t("skills.clawhub.messages.tokenSaved"));
-        // 保存后自动开始搜索
+        // 儲存後自動開始搜尋
         if (query.trim()) {
           await handleSearch();
         }
@@ -179,10 +179,10 @@ export function ClawHubSearchModal({
         throw new Error(message);
       }
       const skillName = data.skill?.name || slug;
-      // 更新本地已安装状态
+      // 更新本地已安裝狀態
       setInstalledSlugs(prev => new Set([...prev, slug]));
       showMessage("success", t("skills.clawhub.messages.installed", { name: skillName }));
-      // 通知父组件刷新技能列表
+      // 通知父元件重新整理技能列表
       await onInstalled?.(skillName);
     } catch (err) {
       console.error(err);
@@ -253,7 +253,7 @@ export function ClawHubSearchModal({
     );
   }
 
-  // 主搜索弹窗
+  // 主搜尋彈窗
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
@@ -346,7 +346,7 @@ export function ClawHubSearchModal({
                   <div className="text-xs text-text-muted">{t("skills.clawhub.noResults")}</div>
                 ) : (
                   results.map((item) => {
-                    // 使用本地状态判断是否已安装（刚安装的会立即更新）
+                    // 使用本地狀態判斷是否已安裝（剛安裝的會立即更新）
                     const isInstalled = installedSlugs.has(item.slug) || (installedSkillNames?.has(item.slug) ?? false);
                     const isInstalling = installingSlug === item.slug;
                     return (

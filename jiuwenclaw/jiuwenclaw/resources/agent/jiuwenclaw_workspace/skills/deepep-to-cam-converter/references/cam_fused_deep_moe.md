@@ -1,28 +1,28 @@
-# CAM fused moe算子
-## 使用场景
-提供在A3环境上运行的用于MoE Decode阶段的通算大融合算子，通过融合[Dispatch + FFN(GMM1 + Swiglu + GMM2) + Combine]实现高效的模型推理和专家选择，在如下约束下可使用
-1. 用于Moe Decode阶段，需要严格满足[Dispatch + FFN(GMM1 + Swiglu + GMM2) + Combine]的范式，其中FFN即专家部分，GMM1是使用分组矩阵乘法进行升维，GMM2是使用分组矩阵乘法降维，激活函数必须为Swiglu。
-2. 当前接口只支持A3环境调用。
-3. 当前接口不支持并发调用。极端情况下在单次forward中连续调用相同算子会产生未定义行为，这种场景需要在算子执行间添加torch.npu.synchronize()避免潜在的异步时序问题。
-4. 当前接口图模式只支持AclGraph模式。
-5. 不支持外置共享专家（即有的卡只放置共享专家）。
-6. 参数范围要求：
- - 单个设备上在一次前向传播中处理的样本数量为BS，取值范围[0, 256]
- - 单个token的长度为token_length，取值范围[1024， 7168]且(token_length % 256) == 0
- - GMM1的权重矩阵为gmm1_weight，隐藏层的维度为gmm1_hiden_size，取值范围[1024， 6144]且(gmm1_hiden_size % 256) == 0
- - 共享专家MM1的权重矩阵为share_gmm1_weight，隐藏层维度为share_mm1_hidden_size，取值范围[1024， 6144]且(gmm1_hiden_size % 256) == 0
- - Moe会选择概率最高的K个专家，将token通过dispatch算子分发给对应的专家并通过combine算子收回，当前这套算子需要保证这个top_k取值范围为[0, 12]且应保证小于等于专家数
- - 所有卡的最大token总数为global_bs ≥ 0 且保证（global_bs % ep_rank_size） == 0
- - 需要满足: 路由专家卡需满足local_expert_num ≤ (aivnum / 2)，其中aivnum为硬件aiv核心数
- - 需要满足: gmm1_weight, gmm1_weight_scale, gmm2_weight, gmm2_weight_scale四个入参的模式必须统一，不能一部分耦合模式一部分分离模式
- - 需要满足: HCCL_BUFFERSIZE环境变量配置应不小于[(ep_rank_size * max_batch_size * moe_expert_num_per_rank * total_length * sizeof(x) * 2) / 1024 / 1024]向上取整
- - 需要满足: 若要进行内置共享专家计算，则共享专家所需的share_gmm1_weight、share_gmm1_weight_scale、share_gmm2_weight、share_gmm2_weight_scale需同时存在
-- 需要满足: 若要进行smooth quant，需传入expert_smooth_scales，若同时进行内置共享专家计算则share_smooth_scales也必须存在
+# CAM fused moe運算元
+## 使用場景
+提供在A3環境上執行的用於MoE Decode階段的通算大融合運算元，透過融合[Dispatch + FFN(GMM1 + Swiglu + GMM2) + Combine]實現高效的模型推理和專家選擇，在如下約束下可使用
+1. 用於Moe Decode階段，需要嚴格滿足[Dispatch + FFN(GMM1 + Swiglu + GMM2) + Combine]的正規化，其中FFN即專家部分，GMM1是使用分組矩陣乘法進行升維，GMM2是使用分組矩陣乘法降維，啟用函式必須為Swiglu。
+2. 當前介面只支援A3環境呼叫。
+3. 當前介面不支援併發呼叫。極端情況下在單次forward中連續呼叫相同運算元會產生未定義行為，這種場景需要在運算元執行間新增torch.npu.synchronize()避免潛在的非同步時序問題。
+4. 當前介面圖模式只支援AclGraph模式。
+5. 不支援外接共享專家（即有的卡只放置共享專家）。
+6. 引數範圍要求：
+ - 單個裝置上在一次前向傳播中處理的樣本數量為BS，取值範圍[0, 256]
+ - 單個token的長度為token_length，取值範圍[1024， 7168]且(token_length % 256) == 0
+ - GMM1的權重矩陣為gmm1_weight，隱藏層的維度為gmm1_hiden_size，取值範圍[1024， 6144]且(gmm1_hiden_size % 256) == 0
+ - 共享專家MM1的權重矩陣為share_gmm1_weight，隱藏層維度為share_mm1_hidden_size，取值範圍[1024， 6144]且(gmm1_hiden_size % 256) == 0
+ - Moe會選擇機率最高的K個專家，將token透過dispatch運算元分發給對應的專家並透過combine運算元收回，當前這套運算元需要保證這個top_k取值範圍為[0, 12]且應保證小於等於專家數
+ - 所有卡的最大token總數為global_bs ≥ 0 且保證（global_bs % ep_rank_size） == 0
+ - 需要滿足: 路由專家卡需滿足local_expert_num ≤ (aivnum / 2)，其中aivnum為硬體aiv核心數
+ - 需要滿足: gmm1_weight, gmm1_weight_scale, gmm2_weight, gmm2_weight_scale四個入參的模式必須統一，不能一部分耦合模式一部分分離模式
+ - 需要滿足: HCCL_BUFFERSIZE環境變數配置應不小於[(ep_rank_size * max_batch_size * moe_expert_num_per_rank * total_length * sizeof(x) * 2) / 1024 / 1024]向上取整
+ - 需要滿足: 若要進行內建共享專家計算，則共享專家所需的share_gmm1_weight、share_gmm1_weight_scale、share_gmm2_weight、share_gmm2_weight_scale需同時存在
+- 需要滿足: 若要進行smooth quant，需傳入expert_smooth_scales，若同時進行內建共享專家計算則share_smooth_scales也必須存在
 
-## 接口说明文档
-当前提供算子已提供torch扩展包，需要import umdk_cam_op_lib，调用时使用torch.ops.umdk_cam_op_lib.xxx进行调用
+## 介面說明文件
+當前提供運算元已提供torch擴充套件包，需要import umdk_cam_op_lib，呼叫時使用torch.ops.umdk_cam_op_lib.xxx進行呼叫
 ### 2.1 fused_deep_moe ▶
-#### 2.1.1 接口原型 
+#### 2.1.1 介面原型 
 ```python
 fused_deep_moe(
     Tensor x, 
@@ -47,60 +47,60 @@ fused_deep_moe(
     int global_bs) 
 -> output: Tensor[]
 ```
-#### 2.1.2 接口描述 
-用于MoE Decode阶段的通算大融合算子，通过融合[Dispatch + FFN(GMM1 + Swiglu + GMM2) + Combine]实现高效的模型推理和专家选择，（可选）同时支持内置共享专家计算，适用于分布式推理场景。
-#### 2.1.3 入参 
-| **📌参数** | **🔧类型** | **✅是否必选** | **📋取值说明** | **📝描述** |
+#### 2.1.2 介面描述 
+用於MoE Decode階段的通算大融合運算元，透過融合[Dispatch + FFN(GMM1 + Swiglu + GMM2) + Combine]實現高效的模型推理和專家選擇，（可選）同時支援內建共享專家計算，適用於分散式推理場景。
+#### 2.1.3 入參 
+| **📌引數** | **🔧型別** | **✅是否必選** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|--------------|----------|
-|x|Tensor|必选|形状:(batch_size, token_length), 支持bf16, float16类型|本卡dispatch阶段待处理的token|
-|expert_ids|Tensor|必选|形状:(batch_size, topk)， 数据类型为int32, 取值范围[-1, num_experts)，-1用于占位使用，一个token不允许重复发给同一个专家|每个token的目标专家ID信息|
-|gmm1_weight|Tensor[]|必选|耦合模式下，只有一个Tensor, 形状:(localExpertNum, token_length, gmm1_hidden_size); 分离模式下，包含localExpertNum个Tensor, 每个Tensor形状：（token_length, gmm1_hidden_size），数据类型为int8|GMM1的权重矩阵列表，支持耦合模式和分离模式|
-|gmm1_weight_scale|Tensor[]|必选|耦合模式下，只有一个Tensor, 形状:(localExpertNum, gmm1_hidden_size); 分离模式下，包含localExpertNum个Tensor, 每个Tensor形状：（gmm1_hidden_size），数据类型为float32或与x数据类型一致|GMM1的权重矩阵量化时使用的缩放系数列表，支持耦合模式和分离模式|
-|gmm2_weight|Tensor[]|必选|耦合模式下，只有一个Tensor, 形状:(localExpertNum, gmm1_hidden_size/2, token_length); 分离模式下，包含localExpertNum个Tensor, 每个Tensor形状：（gmm1_hidden_size/2, token_length），数据类型为int8|GMM2的权重矩阵列表，支持耦合模式和分离模式|
-|gmm2_weight_scale|Tensor[]|必选|耦合模式下，只有一个Tensor, 形状:(localExpertNum, token_length); 分离模式下，包含localExpertNum个Tensor, 每个Tensor形状：（token_length），数据类型为float32或与x数据类型一致|GMM2的权重矩阵量化时使用的缩放系数列表，支持耦合模式和分离模式|
-|expert_scales|Tensor|必选|形状：(batch_size, topk), 数据类型为float32|每个专家的权重，combine阶段使用|
-|share_gmm1_weight|Tensor|可选|形状：（token_length, share_mm1_hidden_size），数据类型为int8|共享专家MM1的权重矩阵|
-|share_gmm1_weight_scale|Tensor|可选|形状：（share_mm1_hidden_size），数据类型为与gmm1_weight_scale一致|共享专家MM1的权重矩阵量化时使用的缩放系数|
-|share_gmm2_weight|Tensor|可选|形状：（share_mm1_hidden_size/2, token_length），数据类型为int8|共享专家MM2的权重矩阵|
-|share_gmm2_weight_scale|Tensor|可选|形状：（token_length），数据类型为与gmm2_weight_scale一致|共享专家MM2的权重矩阵量化时使用的缩放系数|
-|expert_smooth_scales|Tensor|可选|形状：(moe_expert_num，token_length)，数据类型为float32|各个路由专家的smooth quant平滑因子|
-|share_smooth_scales|Tensor|可选|形状：(token_length)，数据类型为float32|共享专家的smooth quant平滑因子|
-|x_active_mask|Tensor|可选|形状： (batch_size)，数据类型bool，取值范围[true, false]，true值一定要在false之前|dispatch分发token时的mask，true代表正常分发该token，false代表不分发|
-|group_ep|str|必选|字符串长度范围：(0, 128), 且需要保证是有效的通信域名称|HCCL通信域名称|
-|ep_rank_size|int|必选|需要满足：(ep_rank_size * MoeExpertNumPerRank) ≤ 512且ep_rank_size > 0|EP通信域大小|
-|ep_rank_id|int|必选|[0, ep_rank_size)|本卡在通信域中的rankID|
-|moe_expert_num|int|必选|需要满足：moe_expert_num % ep_rank_size == 0|MOE专家数量|
-|quant_mode|int|必选|预留入参，当前只支持传0|量化模式|
-|global_bs|int|必选|若所有卡的token数量一致，可以传入0或者batch_size * ep_rank_size; 若所有卡的token数量不一致，需要传入max_batch_size * ep_rank_size|所有卡的最大token总数|
+|x|Tensor|必選|形狀:(batch_size, token_length), 支援bf16, float16型別|本卡dispatch階段待處理的token|
+|expert_ids|Tensor|必選|形狀:(batch_size, topk)， 資料型別為int32, 取值範圍[-1, num_experts)，-1用於佔位使用，一個token不允許重複發給同一個專家|每個token的目標專家ID資訊|
+|gmm1_weight|Tensor[]|必選|耦合模式下，只有一個Tensor, 形狀:(localExpertNum, token_length, gmm1_hidden_size); 分離模式下，包含localExpertNum個Tensor, 每個Tensor形狀：（token_length, gmm1_hidden_size），資料型別為int8|GMM1的權重矩陣列表，支援耦合模式和分離模式|
+|gmm1_weight_scale|Tensor[]|必選|耦合模式下，只有一個Tensor, 形狀:(localExpertNum, gmm1_hidden_size); 分離模式下，包含localExpertNum個Tensor, 每個Tensor形狀：（gmm1_hidden_size），資料型別為float32或與x資料型別一致|GMM1的權重矩陣量化時使用的縮放係數列表，支援耦合模式和分離模式|
+|gmm2_weight|Tensor[]|必選|耦合模式下，只有一個Tensor, 形狀:(localExpertNum, gmm1_hidden_size/2, token_length); 分離模式下，包含localExpertNum個Tensor, 每個Tensor形狀：（gmm1_hidden_size/2, token_length），資料型別為int8|GMM2的權重矩陣列表，支援耦合模式和分離模式|
+|gmm2_weight_scale|Tensor[]|必選|耦合模式下，只有一個Tensor, 形狀:(localExpertNum, token_length); 分離模式下，包含localExpertNum個Tensor, 每個Tensor形狀：（token_length），資料型別為float32或與x資料型別一致|GMM2的權重矩陣量化時使用的縮放係數列表，支援耦合模式和分離模式|
+|expert_scales|Tensor|必選|形狀：(batch_size, topk), 資料型別為float32|每個專家的權重，combine階段使用|
+|share_gmm1_weight|Tensor|可選|形狀：（token_length, share_mm1_hidden_size），資料型別為int8|共享專家MM1的權重矩陣|
+|share_gmm1_weight_scale|Tensor|可選|形狀：（share_mm1_hidden_size），資料型別為與gmm1_weight_scale一致|共享專家MM1的權重矩陣量化時使用的縮放係數|
+|share_gmm2_weight|Tensor|可選|形狀：（share_mm1_hidden_size/2, token_length），資料型別為int8|共享專家MM2的權重矩陣|
+|share_gmm2_weight_scale|Tensor|可選|形狀：（token_length），資料型別為與gmm2_weight_scale一致|共享專家MM2的權重矩陣量化時使用的縮放係數|
+|expert_smooth_scales|Tensor|可選|形狀：(moe_expert_num，token_length)，資料型別為float32|各個路由專家的smooth quant平滑因子|
+|share_smooth_scales|Tensor|可選|形狀：(token_length)，資料型別為float32|共享專家的smooth quant平滑因子|
+|x_active_mask|Tensor|可選|形狀： (batch_size)，資料型別bool，取值範圍[true, false]，true值一定要在false之前|dispatch分發token時的mask，true代表正常分發該token，false代表不分發|
+|group_ep|str|必選|字串長度範圍：(0, 128), 且需要保證是有效的通訊域名稱|HCCL通訊域名稱|
+|ep_rank_size|int|必選|需要滿足：(ep_rank_size * MoeExpertNumPerRank) ≤ 512且ep_rank_size > 0|EP通訊域大小|
+|ep_rank_id|int|必選|[0, ep_rank_size)|本卡在通訊域中的rankID|
+|moe_expert_num|int|必選|需要滿足：moe_expert_num % ep_rank_size == 0|MOE專家數量|
+|quant_mode|int|必選|預留入參，當前只支援傳0|量化模式|
+|global_bs|int|必選|若所有卡的token數量一致，可以傳入0或者batch_size * ep_rank_size; 若所有卡的token數量不一致，需要傳入max_batch_size * ep_rank_size|所有卡的最大token總數|
 #### 2.1.4 返回值 
-函数返回值是一个Tensor列表，存放combine_x和expert_token_nums信息。
-| **📌参数** | **🔧类型** | **📋取值说明** | **📝描述** |
+函式返回值是一個Tensor列表，存放combine_x和expert_token_nums資訊。
+| **📌引數** | **🔧型別** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|----------|
-|combine_x|Tensor|形状：(batch_size, token_length)。数据类型与x一致|当前rank上token经各个专家处理后汇聚的结果|
-|share_output|Tensor|形状：(batch_size, token_length)。数据类型与x一致|内置共享专家处理后的结果，即使不进行共享专家计算，也会返回该值占位|
-|expert_token_nums|Tensor|形状：(local_expert_num)。数据类型为int64|本卡各个专家收到的token数量|
-#### 2.1.5 约束和注意事项 ⚠️
-1. 入参形状需严格满足上述入参描述中的形状定义。
-2. 当前接口只支持A3环境调用。
-3. 当前接口不支持并发调用。极端情况下在单次forward中连续调用相同算子会产生未定义行为，这种场景需要在算子执行间添加torch.npu.synchronize()避免潜在的异步时序问题。
-4. 当前接口图模式只支持AclGraph模式。
-5. 不支持外置共享专家（即有的卡只放置共享专家）。
-6. Batch_size小于16时非目标场景，其性能相对于小算子拼接可能劣化，建议性能对比后决策使用。
-7. 除满足上述形状约束外，其他参数取值要求：
- - 需要满足：BS取值范围[0, 256]
- - 需要满足: token_length取值范围[1024， 7168]且(token_length % 256) == 0
- - 需要满足: gmm1_hiden_size取值范围[1024， 6144]且(gmm1_hiden_size % 256) == 0
- - 需要满足: share_mm1_hidden_size取值范围[1024， 6144]且(gmm1_hiden_size % 256) == 0
- - 需要满足: topk取值范围[0, 12]且应保证小于等于专家数
- - 需要满足：global_bs ≥ 0 且保证（global_bs % ep_rank_size） == 0
- - 需要满足: 路由专家卡需满足local_expert_num ≤ (aivnum / 2)，其中aivnum为硬件aiv核心数
- - 需要满足: gmm1_weight, gmm1_weight_scale, gmm2_weight, gmm2_weight_scale四个入参的模式必须统一，不能一部分耦合模式一部分分离模式
- - 需要满足: HCCL_BUFFERSIZE环境变量配置应不小于[(ep_rank_size * max_batch_size * moe_expert_num_per_rank * total_length * sizeof(x) * 2) / 1024 / 1024]向上取整
- - 需要满足: 若要进行内置共享专家计算，则共享专家所需的share_gmm1_weight、share_gmm1_weight_scale、share_gmm2_weight、share_gmm2_weight_scale需同时存在
-- 需要满足: 若要进行smooth quant，需传入expert_smooth_scales，若同时进行内置共享专家计算则share_smooth_scales也必须存在
+|combine_x|Tensor|形狀：(batch_size, token_length)。資料型別與x一致|當前rank上token經各個專家處理後匯聚的結果|
+|share_output|Tensor|形狀：(batch_size, token_length)。資料型別與x一致|內建共享專家處理後的結果，即使不進行共享專家計算，也會返回該值佔位|
+|expert_token_nums|Tensor|形狀：(local_expert_num)。資料型別為int64|本卡各個專家收到的token數量|
+#### 2.1.5 約束和注意事項 ⚠️
+1. 入參形狀需嚴格滿足上述入參描述中的形狀定義。
+2. 當前介面只支援A3環境呼叫。
+3. 當前介面不支援併發呼叫。極端情況下在單次forward中連續呼叫相同運算元會產生未定義行為，這種場景需要在運算元執行間新增torch.npu.synchronize()避免潛在的非同步時序問題。
+4. 當前介面圖模式只支援AclGraph模式。
+5. 不支援外接共享專家（即有的卡只放置共享專家）。
+6. Batch_size小於16時非目標場景，其效能相對於小運算元拼接可能劣化，建議效能對比後決策使用。
+7. 除滿足上述形狀約束外，其他引數取值要求：
+ - 需要滿足：BS取值範圍[0, 256]
+ - 需要滿足: token_length取值範圍[1024， 7168]且(token_length % 256) == 0
+ - 需要滿足: gmm1_hiden_size取值範圍[1024， 6144]且(gmm1_hiden_size % 256) == 0
+ - 需要滿足: share_mm1_hidden_size取值範圍[1024， 6144]且(gmm1_hiden_size % 256) == 0
+ - 需要滿足: topk取值範圍[0, 12]且應保證小於等於專家數
+ - 需要滿足：global_bs ≥ 0 且保證（global_bs % ep_rank_size） == 0
+ - 需要滿足: 路由專家卡需滿足local_expert_num ≤ (aivnum / 2)，其中aivnum為硬體aiv核心數
+ - 需要滿足: gmm1_weight, gmm1_weight_scale, gmm2_weight, gmm2_weight_scale四個入參的模式必須統一，不能一部分耦合模式一部分分離模式
+ - 需要滿足: HCCL_BUFFERSIZE環境變數配置應不小於[(ep_rank_size * max_batch_size * moe_expert_num_per_rank * total_length * sizeof(x) * 2) / 1024 / 1024]向上取整
+ - 需要滿足: 若要進行內建共享專家計算，則共享專家所需的share_gmm1_weight、share_gmm1_weight_scale、share_gmm2_weight、share_gmm2_weight_scale需同時存在
+- 需要滿足: 若要進行smooth quant，需傳入expert_smooth_scales，若同時進行內建共享專家計算則share_smooth_scales也必須存在
 
-### 示例1：[Dispatch + FFN(GMM1 + Swiglu + GMM2) + Combine]替换为fused deep moe算子
-替换前：
+### 示例1：[Dispatch + FFN(GMM1 + Swiglu + GMM2) + Combine]替換為fused deep moe運算元
+替換前：
 ```python
 import torch
 import numpy as np
@@ -436,7 +436,7 @@ def test_base_test():
 
     torch.cuda.synchronize()
     
-    # 构造输入数据
+    # 構造輸入資料
     dynamicBS = False
     with_share = False
     with_smooth = False
@@ -490,7 +490,7 @@ if __name__ == "__main__":
     test_base_test()
 ```
 
-替换后：
+替換後：
 ```python
 import torch
 import torch_npu
@@ -747,7 +747,7 @@ def test_base_test():
     with_mc2_mask = case["with_mc2_mask"]
     test_bfloat16 = True
 
-    # 构造通信域
+    # 構造通訊域
     torch.npu.set_device(rank)
     device = torch.device(f"npu:{rank}")
     dist.init_process_group(
@@ -766,7 +766,7 @@ def test_base_test():
         torch.device("npu")).get_hccl_comm_name(rank)
     torch_npu.npu.synchronize()
     
-    # 构造输入数据
+    # 構造輸入資料
     dynamicBS = False
     with_share = False
     with_smooth = False

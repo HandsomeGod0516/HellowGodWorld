@@ -1,38 +1,38 @@
-"""Prompt构建模块。
+"""Prompt構建模組。
 
-提供模块化的系统提示词构建功能，支持静态段/动态段分离以实现缓存优化。
+提供模組化的系統提示詞構建功能，支援靜態段/動態段分離以實現快取最佳化。
 
-模块结构
+模組結構
 ========
 
-- :class:`PromptBuilder`: 模块化Prompt构建器
+- :class:`PromptBuilder`: 模組化Prompt構建器
 - :class:`PromptSection`: Prompt片段
-- :class:`ToolTableBuilder`: 工具表 Markdown（与 PersonAgent 共用）
-- :class:`PromptCacheManager`: 静态段跨次复用（分段 system prompt）
+- :class:`ToolTableBuilder`: 工具表 Markdown（與 PersonAgent 共用）
+- :class:`PromptCacheManager`: 靜態段跨次複用（分段 system prompt）
 
-设计理念
+設計理念
 ========
 
-PromptBuilder采用链式API，各部分可独立配置：
+PromptBuilder採用鏈式API，各部分可獨立配置：
 
-1. 按优先级组织各部分
-2. 支持动态注入上下文
-3. 静态段/动态段分离，优化 Token 缓存
-4. 清晰的职责分离
+1. 按優先順序組織各部分
+2. 支援動態注入上下文
+3. 靜態段/動態段分離，最佳化 Token 快取
+4. 清晰的職責分離
 
-缓存策略
+快取策略
 ========
 
-静态段（可长期缓存）：
-- 工具协议说明
-- 执行规则
-- 工具表定义
-- 技能目录（不变部分）
+靜態段（可長期快取）：
+- 工具協議說明
+- 執行規則
+- 工具表定義
+- 技能目錄（不變部分）
 
-动态段（每次重建）：
-- 时间上下文
+動態段（每次重建）：
+- 時間上下文
 - Workspace 快照
-- Agent 状态
+- Agent 狀態
 
 示例
 ====
@@ -46,13 +46,13 @@ PromptBuilder采用链式API，各部分可独立配置：
     builder.add_tool_protocol()
     prompt = builder.build()
 
-分段构建（静态段由 :class:`PromptCacheManager` 跨次复用）::
+分段構建（靜態段由 :class:`PromptCacheManager` 跨次複用）::
 
     manager = PromptCacheManager()
     builder = PromptBuilder()
-    # ... add 静态段 ...
+    # ... add 靜態段 ...
     static_text, _ = manager.get_or_build_static(builder, base="")
-    # ... add 动态段 ...
+    # ... add 動態段 ...
     dynamic_text = builder.build_dynamic()
 """
 
@@ -68,10 +68,10 @@ from typing import Any, ClassVar, Optional
 class PromptSection:
     """Prompt片段。
 
-    :ivar title: 片段标题。
-    :ivar content: 片段内容。
-    :ivar priority: 优先级（越高越靠前）。
-    :ivar is_static: 是否为静态段（可缓存）。
+    :ivar title: 片段標題。
+    :ivar content: 片段內容。
+    :ivar priority: 優先順序（越高越靠前）。
+    :ivar is_static: 是否為靜態段（可快取）。
     """
 
     title: str
@@ -82,7 +82,7 @@ class PromptSection:
     def render(self) -> str:
         """渲染片段。
 
-        :return: 渲染后的字符串，空内容返回空字符串。
+        :return: 渲染後的字串，空內容返回空字串。
         """
         if not self.content:
             return ""
@@ -90,10 +90,10 @@ class PromptSection:
 
 
 class PromptBuilder:
-    """模块化Prompt构建器。
+    """模組化Prompt構建器。
 
-    提供链式API构建系统提示词，各部分按优先级排序。
-    支持静态段/动态段分离，优化 Token 缓存。
+    提供鏈式API構建系統提示詞，各部分按優先順序排序。
+    支援靜態段/動態段分離，最佳化 Token 快取。
 
     :ivar _sections: Prompt 片段列表。
 
@@ -106,28 +106,28 @@ class PromptBuilder:
     """
 
     def __init__(self):
-        """初始化构建器。"""
+        """初始化構建器。"""
         self._sections: list[PromptSection] = []
 
     def add_section(
         self, title: str, content: str, priority: int = 0, is_static: bool = False
     ) -> "PromptBuilder":
-        """添加Prompt片段。
+        """新增Prompt片段。
 
-        :param title: 片段标题。
-        :param content: 片段内容。
-        :param priority: 优先级。
-        :param is_static: 是否为静态段（可缓存）。
-        :return: self，支持链式调用。
+        :param title: 片段標題。
+        :param content: 片段內容。
+        :param priority: 優先順序。
+        :param is_static: 是否為靜態段（可快取）。
+        :return: self，支援鏈式呼叫。
         """
         if content:
             self._sections.append(PromptSection(title, content, priority, is_static))
         return self
 
     def _compute_static_cache_key(self) -> str:
-        """计算静态段缓存键。
+        """計算靜態段快取鍵。
 
-        :return: 基于静态段内容的哈希键。
+        :return: 基於靜態段內容的雜湊鍵。
         """
         static_sections = [s for s in self._sections if s.is_static]
         content = "|".join(
@@ -137,11 +137,11 @@ class PromptBuilder:
         return hashlib.md5(content.encode()).hexdigest()[:16]
 
     def add_identity(self, agent_id: int, name: str, profile: Any) -> "PromptBuilder":
-        """添加Agent身份信息（动态段）。
+        """新增Agent身份資訊（動態段）。
 
         :param agent_id: Agent ID。
-        :param name: Agent名称。
-        :param profile: Agent画像。
+        :param name: Agent名稱。
+        :param profile: Agent畫像。
         :return: self。
         """
         identity = {"id": agent_id, "name": name, "profile": profile}
@@ -151,9 +151,9 @@ class PromptBuilder:
         )
 
     def add_world_description(self, description: str) -> "PromptBuilder":
-        """添加世界描述（静态段，通常不变）。
+        """新增世界描述（靜態段，通常不變）。
 
-        :param description: 世界描述文本。
+        :param description: 世界描述文字。
         :return: self。
         """
         if not description:
@@ -164,9 +164,9 @@ class PromptBuilder:
         )
 
     def add_workspace_structure(self, structure: str) -> "PromptBuilder":
-        """添加工作区结构说明（静态段）。
+        """新增工作區結構說明（靜態段）。
 
-        :param structure: 结构说明文本。
+        :param structure: 結構說明文字。
         :return: self。
         """
         if not structure:
@@ -178,10 +178,10 @@ class PromptBuilder:
     def add_context(
         self, context: dict[str, Any], max_chars: int = 2000
     ) -> "PromptBuilder":
-        """添加Agent上下文（动态段）。
+        """新增Agent上下文（動態段）。
 
         :param context: 上下文字典。
-        :param max_chars: 最大字符数。
+        :param max_chars: 最大字元數。
         :return: self。
         """
         if not context:
@@ -205,9 +205,9 @@ class PromptBuilder:
         )
 
     def add_workspace_summary(self, summary: str) -> "PromptBuilder":
-        """添加工作区摘要（动态段）。
+        """新增工作區摘要（動態段）。
 
-        :param summary: 摘要文本。
+        :param summary: 摘要文字。
         :return: self。
         """
         if not summary:
@@ -217,9 +217,9 @@ class PromptBuilder:
         )
 
     def add_recovery_context(self, context: str) -> "PromptBuilder":
-        """添加会话恢复上下文（动态段）。
+        """新增會話恢復上下文（動態段）。
 
-        :param context: 恢复上下文。
+        :param context: 恢復上下文。
         :return: self。
         """
         if not context:
@@ -229,9 +229,9 @@ class PromptBuilder:
         )
 
     def add_state_snapshot(self, state: dict[str, Any]) -> "PromptBuilder":
-        """添加预加载状态快照（动态段）。
+        """新增預載入狀態快照（動態段）。
 
-        :param state: 状态字典。
+        :param state: 狀態字典。
         :return: self。
         """
         if not state:
@@ -246,7 +246,7 @@ class PromptBuilder:
         )
 
     def add_tool_protocol(self) -> "PromptBuilder":
-        """添加工具协议说明（静态段，可缓存）。
+        """新增工具協議說明（靜態段，可快取）。
 
         :return: self。
         """
@@ -268,9 +268,9 @@ Use `activate_skill` to load full SKILL.md, then follow it.
         return self.add_section("Tool Protocol", content, priority=55, is_static=True)
 
     def add_tools(self, tool_table: str) -> "PromptBuilder":
-        """添加工具表（静态段）。
+        """新增工具表（靜態段）。
 
-        :param tool_table: 工具表文本。
+        :param tool_table: 工具表文字。
         :return: self。
         """
         if not tool_table:
@@ -278,9 +278,9 @@ Use `activate_skill` to load full SKILL.md, then follow it.
         return self.add_section("Tools", tool_table, priority=50, is_static=True)
 
     def add_skill_catalog(self, catalog: dict[str, Any]) -> "PromptBuilder":
-        """添加技能目录（半静态，技能列表不变时缓存有效）。
+        """新增技能目錄（半靜態，技能列表不變時快取有效）。
 
-        :param catalog: 技能目录字典。
+        :param catalog: 技能目錄字典。
         :return: self。
         """
         if not catalog:
@@ -294,9 +294,9 @@ Use `activate_skill` to load full SKILL.md, then follow it.
         )
 
     def add_activated_skills(self, skills: set[str]) -> "PromptBuilder":
-        """添加已激活技能列表（动态段）。
+        """新增已啟用技能列表（動態段）。
 
-        :param skills: 技能名称集合。
+        :param skills: 技能名稱集合。
         :return: self。
         """
         if not skills:
@@ -310,9 +310,9 @@ Use `activate_skill` to load full SKILL.md, then follow it.
         )
 
     def add_constraints(self, constraints: Optional[str]) -> "PromptBuilder":
-        """添加环境约束（动态段）。
+        """新增環境約束（動態段）。
 
-        :param constraints: 约束说明。
+        :param constraints: 約束說明。
         :return: self。
         """
         if not constraints:
@@ -322,10 +322,10 @@ Use `activate_skill` to load full SKILL.md, then follow it.
         )
 
     def build(self, base: str = "") -> str:
-        """构建完整Prompt。
+        """構建完整Prompt。
 
-        :param base: 基础提示词（可选）。
-        :return: 完整的系统提示词。
+        :param base: 基礎提示詞（可選）。
+        :return: 完整的系統提示詞。
         """
         sorted_sections = sorted(self._sections, key=lambda s: -s.priority)
         parts = [base] if base else []
@@ -336,12 +336,12 @@ Use `activate_skill` to load full SKILL.md, then follow it.
         return "\n".join(parts)
 
     def build_static(self, base: str = "") -> str:
-        """构建静态段（可缓存部分）。
+        """構建靜態段（可快取部分）。
 
-        跨请求复用请配合 :class:`PromptCacheManager`；本方法在单次 builder 上无状态缓存。
+        跨請求複用請配合 :class:`PromptCacheManager`；本方法在單次 builder 上無狀態快取。
 
-        :param base: 基础提示词（可选）。
-        :return: 静态段文本。
+        :param base: 基礎提示詞（可選）。
+        :return: 靜態段文字。
         """
         static_sections = [s for s in self._sections if s.is_static]
         sorted_sections = sorted(static_sections, key=lambda s: -s.priority)
@@ -353,12 +353,12 @@ Use `activate_skill` to load full SKILL.md, then follow it.
         return "\n".join(parts)
 
     def build_dynamic(self, base: str = "") -> str:
-        """构建动态段（每次重建部分）。
+        """構建動態段（每次重建部分）。
 
-        动态段包含时间上下文、Workspace 快照、Agent 状态等变化内容。
+        動態段包含時間上下文、Workspace 快照、Agent 狀態等變化內容。
 
-        :param base: 基础提示词（可选，通常为空）。
-        :return: 动态段文本。
+        :param base: 基礎提示詞（可選，通常為空）。
+        :return: 動態段文字。
         """
         dynamic_sections = [s for s in self._sections if not s.is_static]
         sorted_sections = sorted(dynamic_sections, key=lambda s: -s.priority)
@@ -379,23 +379,23 @@ Use `activate_skill` to load full SKILL.md, then follow it.
 
 
 class PromptCacheManager:
-    """Prompt 缓存管理器。
+    """Prompt 快取管理器。
 
-    管理 Agent 的 Prompt 缓存生命周期，追踪缓存命中率和 Token 节省。
+    管理 Agent 的 Prompt 快取生命週期，追蹤快取命中率和 Token 節省。
 
-    :ivar cache_hits: 缓存命中次数。
-    :ivar cache_misses: 缓存未命中次数。
-    :ivar tokens_saved: 节省的 Token 数（估算）。
+    :ivar cache_hits: 快取命中次數。
+    :ivar cache_misses: 快取未命中次數。
+    :ivar tokens_saved: 節省的 Token 數（估算）。
 
     Example:
 
         >>> manager = PromptCacheManager()
         >>> static_prompt = manager.get_or_build_static(builder)
-        >>> # 使用 static_prompt + cache_control 调用 LLM
+        >>> # 使用 static_prompt + cache_control 呼叫 LLM
     """
 
     def __init__(self):
-        """初始化缓存管理器。"""
+        """初始化快取管理器。"""
         self._cached_static: Optional[str] = None
         self._cache_key: Optional[str] = None
         self.cache_hits: int = 0
@@ -405,21 +405,21 @@ class PromptCacheManager:
     def get_or_build_static(
         self, builder: PromptBuilder, base: str = ""
     ) -> tuple[str, bool]:
-        """获取或构建静态段。
+        """獲取或構建靜態段。
 
-        :param builder: PromptBuilder 实例。
-        :param base: 基础提示词。
-        :return: (静态段文本, 是否命中缓存) 元组。
+        :param builder: PromptBuilder 例項。
+        :param base: 基礎提示詞。
+        :return: (靜態段文字, 是否命中快取) 元組。
         """
         new_key = builder._compute_static_cache_key()
 
         if self._cached_static is not None and self._cache_key == new_key:
             self.cache_hits += 1
-            # 估算节省的 Token（粗略：字符数 / 4）
+            # 估算節省的 Token（粗略：字元數 / 4）
             self.tokens_saved += len(self._cached_static) // 4
             return self._cached_static, True
 
-        # 缓存未命中，构建并缓存
+        # 快取未命中，構建並快取
         self.cache_misses += 1
         static_prompt = builder.build_static(base)
         self._cached_static = static_prompt
@@ -427,14 +427,14 @@ class PromptCacheManager:
         return static_prompt, False
 
     def invalidate(self) -> None:
-        """失效缓存。"""
+        """失效快取。"""
         self._cached_static = None
         self._cache_key = None
 
     def stats(self) -> dict:
-        """获取缓存统计。
+        """獲取快取統計。
 
-        :return: 统计数据字典。
+        :return: 統計資料字典。
         """
         total = self.cache_hits + self.cache_misses
         hit_rate = self.cache_hits / total if total > 0 else 0.0
@@ -447,7 +447,7 @@ class PromptCacheManager:
 
 
 class ToolTableBuilder:
-    """PersonAgent 工具表的单一数据源（完整版 + 精简版 Markdown）。"""
+    """PersonAgent 工具表的單一資料來源（完整版 + 精簡版 Markdown）。"""
 
     TOOLS: ClassVar[tuple[tuple[str, str, str], ...]] = (
         (
@@ -497,7 +497,7 @@ class ToolTableBuilder:
 
     @classmethod
     def render(cls) -> str:
-        """完整工具表（含参数列）。"""
+        """完整工具表（含引數列）。"""
         lines = ["| Tool | Arguments | Purpose |", "|------|-----------|----------|"]
         for name, args, purpose in cls.TOOLS:
             lines.append(f"| {name} | {args} | {purpose} |")
@@ -505,7 +505,7 @@ class ToolTableBuilder:
 
     @classmethod
     def render_minimal(cls) -> str:
-        """精简工具表（省 token）。"""
+        """精簡工具表（省 token）。"""
         lines = ["| Tool | Purpose |", "|------|---------|"]
         for name, purpose in cls.TOOLS_MINIMAL:
             lines.append(f"| {name} | {purpose} |")

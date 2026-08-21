@@ -25,7 +25,7 @@ from openjiuwen.core.foundation.prompt import PromptTemplate
 WORKFLOW_CHAT_HISTORY = "workflow_chat_history"
 _ROLE = "role"
 _CONTENT = "content"
-ROLE_MAP = {"user": "用户", "assistant": "助手", "system": "系统"}
+ROLE_MAP = {"user": "使用者", "assistant": "助手", "system": "系統"}
 _SPAN = "span"
 _WORKFLOW_DATA = "workflow_data"
 _ID = "id"

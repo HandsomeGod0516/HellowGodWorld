@@ -1,4 +1,4 @@
-"""数据层：SQLite 读取（`DataReader`）、实验目录上下文（`ContextLoader`）。"""
+"""資料層：SQLite 讀取（`DataReader`）、實驗目錄上下文（`ContextLoader`）。"""
 
 import sqlite3
 from dataclasses import dataclass, field
@@ -23,12 +23,12 @@ logger = get_logger()
 
 
 def _quote_identifier(name: str) -> str:
-    """安全引用 SQLite 标识符（表名、列名）。"""
+    """安全引用 SQLite 識別符號（表名、列名）。"""
     return '"' + str(name).replace('"', '""') + '"'
 
 
 def _sanitize_id(raw: str) -> str:
-    """仅保留安全字符，防止路径穿越。"""
+    """僅保留安全字元，防止路徑穿越。"""
     s = (raw or "").strip()
     import re
     s = re.sub(r"[^a-zA-Z0-9_-]", "", s)
@@ -36,12 +36,12 @@ def _sanitize_id(raw: str) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# 数据结构
+# 資料結構
 # ─────────────────────────────────────────────────────────────────────────
 
 @dataclass
 class DatabaseSchema:
-    """数据库 Schema 信息"""
+    """資料庫 Schema 資訊"""
     tables: List[str]
     columns: Dict[str, List[Dict[str, Any]]]  # table_name -> [{name, type, ...}]
     row_counts: Dict[str, int]
@@ -50,7 +50,7 @@ class DatabaseSchema:
 
 @dataclass
 class DataStats:
-    """数据统计摘要"""
+    """資料統計摘要"""
     numeric_stats: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     categorical_stats: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     sample_data: Dict[str, List[Dict]] = field(default_factory=dict)
@@ -59,7 +59,7 @@ class DataStats:
 
 @dataclass
 class DataSummary:
-    """完整数据摘要"""
+    """完整資料摘要"""
     db_path: Optional[str] = None
     schema: Optional[DatabaseSchema] = None
     stats: Optional[DataStats] = None
@@ -94,18 +94,18 @@ class DataSummary:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# DataReader: 数据库读取和理解
+# DataReader: 資料庫讀取和理解
 # ─────────────────────────────────────────────────────────────────────────
 
 class DataReader:
-    """数据库读取和理解"""
+    """資料庫讀取和理解"""
 
     def __init__(self, db_path: Path):
         self.db_path = Path(db_path)
         self.logger = logger
 
     def read_schema(self) -> DatabaseSchema:
-        """读取数据库 Schema"""
+        """讀取資料庫 Schema"""
         if not self.db_path.exists():
             return DatabaseSchema(tables=[], columns={}, row_counts={})
 
@@ -147,14 +147,14 @@ class DataReader:
         tables: Optional[List[str]] = None,
         limit: int = 5,
     ) -> Dict[str, List[Dict]]:
-        """读取样本数据"""
+        """讀取樣本資料"""
         if not self.db_path.exists():
             return {}
 
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
 
-        # 获取要读取的表
+        # 獲取要讀取的表
         if tables is None:
             tables = self.read_schema().tables
 
@@ -175,7 +175,7 @@ class DataReader:
         return result
 
     def compute_stats(self, schema: DatabaseSchema) -> DataStats:
-        """计算统计摘要"""
+        """計算統計摘要"""
         if not self.db_path.exists():
             return DataStats()
 
@@ -198,7 +198,7 @@ class DataReader:
         )
 
     def read_full_summary(self) -> DataSummary:
-        """读取完整数据摘要"""
+        """讀取完整資料摘要"""
         schema = self.read_schema()
         stats = self.compute_stats(schema)
 
@@ -217,7 +217,7 @@ class DataReader:
         conn,
         schema: DatabaseSchema,
     ) -> Dict[str, Dict[str, Any]]:
-        """计算数值列统计"""
+        """計算數值列統計"""
         cursor = conn.cursor()
         result = {}
 
@@ -259,7 +259,7 @@ class DataReader:
         conn,
         schema: DatabaseSchema,
     ) -> Dict[str, Dict[str, Any]]:
-        """计算分类列统计"""
+        """計算分類列統計"""
         cursor = conn.cursor()
         result = {}
 
@@ -308,7 +308,7 @@ class DataReader:
         categorical_stats: Dict,
         sample_data: Optional[Dict[str, List[Dict]]] = None,
     ) -> str:
-        """格式化快速统计为 Markdown"""
+        """格式化快速統計為 Markdown"""
         sample_data = sample_data or {}
         lines = ["## Data Overview\n"]
         lines.append(f"- **Database**: {self.db_path}")
@@ -370,11 +370,11 @@ class DataReader:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# ContextLoader: 实验上下文加载
+# ContextLoader: 實驗上下文載入
 # ─────────────────────────────────────────────────────────────────────────
 
 class ContextLoader:
-    """实验上下文加载"""
+    """實驗上下文載入"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -385,7 +385,7 @@ class ContextLoader:
         hypothesis_id: str,
         experiment_id: str,
     ) -> ExperimentContext:
-        """加载完整实验上下文"""
+        """載入完整實驗上下文"""
         hid = _sanitize_id(hypothesis_id)
         eid = _sanitize_id(experiment_id)
 
@@ -415,7 +415,7 @@ class ContextLoader:
         hypothesis_base: Path,
         experiment_path: Path,
     ) -> ExperimentDesign:
-        """加载实验设计"""
+        """載入實驗設計"""
         design_data = {
             "hypothesis": "Hypothesis not specified",
             "objectives": [],
@@ -426,7 +426,7 @@ class ContextLoader:
             "experiment_markdown": None,
         }
 
-        # 加载 HYPOTHESIS.md
+        # 載入 HYPOTHESIS.md
         hyp_path = hypothesis_base / FILE_HYPOTHESIS_MD
         if hyp_path.exists():
             content = hyp_path.read_text(encoding="utf-8")
@@ -437,7 +437,7 @@ class ContextLoader:
                     design_data["hypothesis"] = s[:500]
                     break
 
-        # 加载 EXPERIMENT.md
+        # 載入 EXPERIMENT.md
         exp_path = experiment_path / FILE_EXPERIMENT_MD
         if exp_path.exists():
             design_data["experiment_markdown"] = exp_path.read_text(encoding="utf-8")
@@ -445,7 +445,7 @@ class ContextLoader:
         return ExperimentDesign(**design_data)
 
     def _load_duration(self, run_path: Path) -> Optional[float]:
-        """从 pid.json 读取运行时长"""
+        """從 pid.json 讀取執行時長"""
         import json_repair
 
         pid_file = run_path / FILE_PID
@@ -468,7 +468,7 @@ class ContextLoader:
         self,
         run_path: Path,
     ) -> Tuple[ExperimentStatus, float, List[str]]:
-        """分析实验状态"""
+        """分析實驗狀態"""
         import json_repair
 
         db_path = run_path / FILE_SQLITE
@@ -480,7 +480,7 @@ class ContextLoader:
         if not db_path.exists():
             return ExperimentStatus.FAILED, 0.0, ["Database file not found"]
 
-        # 从 pid.json 读取状态
+        # 從 pid.json 讀取狀態
         if pid_file.exists():
             try:
                 data = json_repair.loads(pid_file.read_text(encoding="utf-8"))
@@ -492,7 +492,7 @@ class ContextLoader:
             except Exception as e:
                 errors.append(f"Failed to read pid.json: {e}")
 
-        # 从 run 目录收集运行时错误
+        # 從 run 目錄收集執行時錯誤
         runtime_errors = self._collect_runtime_failures(run_path)
         errors.extend(runtime_errors)
         if runtime_errors and status == ExperimentStatus.SUCCESSFUL:
@@ -501,12 +501,12 @@ class ContextLoader:
         return status, completion, errors
 
     def _collect_runtime_failures(self, run_path: Path) -> List[str]:
-        """收集运行时失败信号"""
+        """收集執行時失敗訊號"""
         import re
 
         failures: List[str] = []
 
-        # 检查 artifacts 目录
+        # 檢查 artifacts 目錄
         artifacts_dir = run_path / DIR_ARTIFACTS
         if artifacts_dir.exists():
             for md_path in artifacts_dir.glob("*.md"):
@@ -518,7 +518,7 @@ class ContextLoader:
                 except OSError:
                     continue
 
-        # 检查 output.log
+        # 檢查 output.log
         log_path = run_path / "output.log"
         if log_path.exists():
             try:

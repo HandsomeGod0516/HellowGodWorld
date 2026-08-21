@@ -1,26 +1,26 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Xiaoyi Handset Tools - 小艺手机端设备工具.
+"""Xiaoyi Handset Tools - 小藝手機端裝置工具.
 
-该目录包含需要连接小艺手机端设备才能使用的工具。
-这些工具通过 WebSocket 与手机端通信，调用设备原生能力。
+該目錄包含需要連線小藝手機端裝置才能使用的工具。
+這些工具透過 WebSocket 與手機端通訊，呼叫裝置原生能力。
 
-工具分类：
+工具分類：
 - 定位: get_user_location
-- 备忘录: create_note, search_notes, modify_note
-- 日历: create_calendar_event, search_calendar_event
-- 联系人: search_contact
-- 相册: search_photo_gallery, upload_photo
-- 文件: search_file, upload_file, send_file_to_user
-- 电话: call_phone
-- 短信/消息: send_message, search_message
-- 闹钟: create_alarm, search_alarms, modify_alarm, delete_alarm
+- 備忘錄: create_note, search_notes, modify_note
+- 日曆: create_calendar_event, search_calendar_event
+- 聯絡人: search_contact
+- 相簿: search_photo_gallery, upload_photo
+- 檔案: search_file, upload_file, send_file_to_user
+- 電話: call_phone
+- 簡訊/訊息: send_message, search_message
+- 鬧鐘: create_alarm, search_alarms, modify_alarm, delete_alarm
 - 收藏: query_collection, add_collection, delete_collection
-- 保存: save_media_to_gallery, save_file_to_file_manager
-- 推送记录: view_push_result
-- GUI 自动化: xiaoyi_gui_agent
-- 图像理解: image_reading
-- 时间戳转换: convert_timestamp_to_utc8_time
+- 儲存: save_media_to_gallery, save_file_to_file_manager
+- 推送記錄: view_push_result
+- GUI 自動化: xiaoyi_gui_agent
+- 影象理解: image_reading
+- 時間戳轉換: convert_timestamp_to_utc8_time
 """
 
 from .location_tool import get_user_location

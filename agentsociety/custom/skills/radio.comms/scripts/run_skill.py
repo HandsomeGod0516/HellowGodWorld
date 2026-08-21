@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'supply_store']
 TARGET_INTERACTIONS = ['public_announcement', 'coordinate_group']
 STATUS = 'radio_comms'
 EMOTION = 'clear'
-SPEECH = '我用最短的信息说明位置、需求和下一步。'
+SPEECH = '我用最短的資訊說明位置、需求和下一步。'
 MEMORY_TEMPLATE = 'Used radio.comms: {summary} at {location_id}.'
 
 

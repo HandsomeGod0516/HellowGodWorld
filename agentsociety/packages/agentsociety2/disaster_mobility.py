@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 
-# 先加载环境变量，再强制关闭 mem0 telemetry，避免导入 PersonAgent 时触发埋点线程。
+# 先載入環境變數，再強制關閉 mem0 telemetry，避免匯入 PersonAgent 時觸發埋點執行緒。
 load_dotenv()
 os.environ["MEM0_TELEMETRY"] = "False"
 
@@ -29,67 +29,67 @@ async def main_disaster_mobility(
     map_path: str | None = None,
 ):
     """
-    灾害对出行影响实验（11天，每小时一步）
+    災害對出行影響實驗（11天，每小時一步）
 
-    实验设置：
-    - Day 1: 正常日常移动
-    - Day 3（当日一早）: 广播突发山火
-    - Day 4-Day 9: 每天广播“山火还在持续”
-    - Day 10（当日一早）: 广播山火已被扑灭
+    實驗設定：
+    - Day 1: 正常日常移動
+    - Day 3（當日一早）: 廣播突發山火
+    - Day 4-Day 9: 每天廣播“山火還在持續”
+    - Day 10（當日一早）: 廣播山火已被撲滅
 
-    统计量：
-    - 每天所有agent的出行量总和（move_to完成次数）
+    統計量：
+    - 每天所有agent的出行量總和（move_to完成次數）
     """
     logger.info("\n" + "=" * 80)
-    logger.info("【灾害对出行影响实验】")
+    logger.info("【災害對出行影響實驗】")
     logger.info("=" * 80)
 
-    # 时间设置：每小时一步，共11天
+    # 時間設定：每小時一步，共11天
     start_time = datetime.now().replace(year=2026, month=2, day=9, hour=0, minute=0, second=0, microsecond=0)
-    time_step_seconds = 60 * 60  # 1小时
+    time_step_seconds = 60 * 60  # 1小時
     total_days = 11
     steps_per_day = 24
     total_steps = total_days * steps_per_day
 
-    # ==================== 加载 Profiles ====================
-    logger.info("\n【步骤1/4】加载 agent_profiles_ca_paradise.json...")
+    # ==================== 載入 Profiles ====================
+    logger.info("\n【步驟1/4】載入 agent_profiles_ca_paradise.json...")
     if profiles_path is None:
         profiles_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "../../..", "agent_profiles_ca_paradise.json")
         )
     if not os.path.exists(profiles_path):
-        logger.error(f"  ❌ agent profiles 文件不存在: {profiles_path}")
+        logger.error(f"  ❌ agent profiles 檔案不存在: {profiles_path}")
         return
 
     with open(profiles_path, "r", encoding="utf-8") as f:
         profiles = json.load(f)
 
-    logger.info(f"  ✓ 加载了 {len(profiles)} 个 agent profiles")
+    logger.info(f"  ✓ 載入了 {len(profiles)} 個 agent profiles")
 
     if num_agents > len(profiles):
         logger.warning(
-            f"  ⚠ 请求的 agent 数量 ({num_agents}) 超过 profiles 数量 ({len(profiles)})，使用全部 {len(profiles)} 个"
+            f"  ⚠ 請求的 agent 數量 ({num_agents}) 超過 profiles 數量 ({len(profiles)})，使用全部 {len(profiles)} 個"
         )
         num_agents = len(profiles)
 
     profiles_to_use = profiles[profile_start_idx : profile_start_idx + num_agents]
 
-    # ==================== 初始化环境 ====================
-    logger.info("\n【步骤2/4】初始化环境...")
+    # ==================== 初始化環境 ====================
+    logger.info("\n【步驟2/4】初始化環境...")
     import tempfile
 
     chroma_base_dir = tempfile.mkdtemp(prefix="chroma_memories_")
-    logger.info(f"  ✓ 创建临时chroma目录: {chroma_base_dir}")
+    logger.info(f"  ✓ 建立臨時chroma目錄: {chroma_base_dir}")
 
-    # ==================== 创建 Agents ====================
-    logger.info(f"\n【步骤3/4】创建 {num_agents} 个 Agents...")
+    # ==================== 建立 Agents ====================
+    logger.info(f"\n【步驟3/4】建立 {num_agents} 個 Agents...")
     agent_args = []
     mobility_persons = []
     date_time_str = datetime.now().strftime("%Y%m%d%H%M%S")
 
     for idx, profile in enumerate(profiles_to_use, start=1):
         agent_str_id = profile.get("agent_id", f"agent_{idx:04d}")
-        agent_id = idx  # 使用连续整数ID，方便MobilitySpace处理
+        agent_id = idx  # 使用連續整數ID，方便MobilitySpace處理
 
         agent_chroma_path = os.path.join(
             chroma_base_dir, f"agent_{agent_id}_{date_time_str}"
@@ -130,7 +130,7 @@ async def main_disaster_mobility(
             }
         )
 
-    # ==================== 创建环境与路由 ====================
+    # ==================== 建立環境與路由 ====================
     home_dir = os.path.join(os.path.expanduser("~"), "agentsociety_data")
     if map_path is None:
         map_path = os.path.join(home_dir, "map_us_ca_paradise.pb")
@@ -158,30 +158,30 @@ async def main_disaster_mobility(
     )
     await society.init()
 
-    # 广播内容设置
+    # 廣播內容設定
     await global_info_env.set("今天一切正常")
 
-    # ==================== 运行仿真并统计出行量 ====================
+    # ==================== 執行模擬並統計出行量 ====================
     daily_move_counts = [0 for _ in range(total_days)]
 
     for step_idx in range(total_steps):
-        # Day 3 当日一早广播“突发山火”
+        # Day 3 當日一早廣播“突發山火”
         if step_idx == 2 * steps_per_day:
-            await global_info_env.set("紧急广播：极端寒潮袭击我市，请广大民众注意适当减少非必要出行")
-        # Day 4 到 Day 9 每天开始时广播“山火还在持续”
+            await global_info_env.set("緊急廣播：極端寒潮襲擊我市，請廣大民眾注意適當減少非必要出行")
+        # Day 4 到 Day 9 每天開始時廣播“山火還在持續”
         elif step_idx % steps_per_day == 0 and 3 * steps_per_day <= step_idx < 9 * steps_per_day:
-            await global_info_env.set("广播：寒潮仍在持续，请广大民众注意适当减少非必要出行")
-        # Day 10 当日一早广播灾害结束
+            await global_info_env.set("廣播：寒潮仍在持續，請廣大民眾注意適當減少非必要出行")
+        # Day 10 當日一早廣播災害結束
         elif step_idx == 9 * steps_per_day:
-            await global_info_env.set("广播：寒潮已经结束，可恢复正常秩序")
+            await global_info_env.set("廣播：寒潮已經結束，可恢復正常秩序")
 
-        # 手动执行一步（复制 AgentSociety.step 的逻辑）
+        # 手動執行一步（複製 AgentSociety.step 的邏輯）
         society._t += timedelta(seconds=time_step_seconds)
         society._env_router.sync_simulation_clock(society._t)
         tasks = [agent.step(time_step_seconds, society._t) for agent in society._agents]
         await asyncio.gather(*tasks)
 
-        # 在环境 step 前记录当前移动中的人
+        # 在環境 step 前記錄當前移動中的人
         moving_before_env = {
             pid for pid, person in mobility_env._persons.items() if person.status == "moving"
         }
@@ -189,7 +189,7 @@ async def main_disaster_mobility(
         await society._env_router.step(time_step_seconds, society._t)
         society._step_count += 1
 
-        # 统计本步完成的出行（move_to完成）
+        # 統計本步完成的出行（move_to完成）
         completed_moves = 0
         for pid in moving_before_env:
             person = mobility_env._persons.get(pid)
@@ -201,10 +201,10 @@ async def main_disaster_mobility(
 
         if (step_idx + 1) % steps_per_day == 0:
             logger.info(
-                f"  ✓ Day {day_index + 1} 出行量总和: {daily_move_counts[day_index]}"
+                f"  ✓ Day {day_index + 1} 出行量總和: {daily_move_counts[day_index]}"
             )
 
-    # ==================== 保存统计结果 ====================
+    # ==================== 儲存統計結果 ====================
     output_dir = "benchmark_results"
     os.makedirs(output_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -226,7 +226,7 @@ async def main_disaster_mobility(
     }
     with open(result_file, "w", encoding="utf-8") as f:
         json.dump(save_data, f, indent=2, ensure_ascii=False)
-    logger.info(f"  ✓ 统计结果已保存到: {result_file}")
+    logger.info(f"  ✓ 統計結果已儲存到: {result_file}")
 
     await society.close()
 

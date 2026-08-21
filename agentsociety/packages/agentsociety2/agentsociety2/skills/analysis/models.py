@@ -1,5 +1,5 @@
 """
-标准化实验分析数据模型与统一配置。
+標準化實驗分析資料模型與統一配置。
 """
 
 from dataclasses import dataclass, field
@@ -14,12 +14,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 DIR_HYPOTHESIS_PREFIX = "hypothesis_"
 DIR_EXPERIMENT_PREFIX = "experiment_"
 DIR_RUN = "run"
-DIR_ARTIFACTS = "artifacts"  # run/artifacts: 实验执行产物
+DIR_ARTIFACTS = "artifacts"  # run/artifacts: 實驗執行產物
 DIR_PRESENTATION = "presentation"
 DIR_SYNTHESIS = "synthesis"
-DIR_DATA = "data"  # presentation 下 data: 分析子智能体写入的分析数据
-DIR_CHARTS = "charts"  # presentation 下 charts: AnalysisAgent 写图目录
-DIR_REPORT_ASSETS = "assets"  # presentation 下 assets: 报告嵌入资源（复制自 charts + run/artifacts），包括图表、报告、分析数据等
+DIR_DATA = "data"  # presentation 下 data: 分析子智慧體寫入的分析資料
+DIR_CHARTS = "charts"  # presentation 下 charts: AnalysisAgent 寫圖目錄
+DIR_REPORT_ASSETS = "assets"  # presentation 下 assets: 報告嵌入資源（複製自 charts + run/artifacts），包括圖表、報告、分析資料等
 FILE_SQLITE = "sqlite.db"
 FILE_PID = "pid.json"
 FILE_HYPOTHESIS_MD = "HYPOTHESIS.md"
@@ -47,7 +47,7 @@ SUPPORTED_ASSET_FORMATS = SUPPORTED_IMAGE_FORMATS | {".pdf"}
 
 
 class ExperimentPaths(BaseModel):
-    """单实验在 workspace 下的约定路径（只读，由 utils.experiment_paths 构建）。"""
+    """單實驗在 workspace 下的約定路徑（只讀，由 utils.experiment_paths 構建）。"""
 
     hypothesis_base: Path = Field(..., description="hypothesis_<id> directory")
     experiment_path: Path = Field(..., description="experiment_<id> directory")
@@ -61,14 +61,14 @@ class ExperimentPaths(BaseModel):
 
 class PresentationPaths(BaseModel):
     """
-    单实验分析产物的输出路径（presentation 下，由 utils.presentation_paths 构建）。
+    單實驗分析產物的輸出路徑（presentation 下，由 utils.presentation_paths 構建）。
 
-    生成产物布局：
+    生成產物佈局：
     - output_dir/
       - report.md, report.html, README.md
       - data/analysis_summary.json
-    - charts/  （AnalysisAgent 写图目录，再被复制到 assets）
-      - assets/  （报告引用的图片，DIR_REPORT_ASSETS）
+    - charts/  （AnalysisAgent 寫圖目錄，再被複制到 assets）
+      - assets/  （報告引用的圖片，DIR_REPORT_ASSETS）
     """
 
     output_dir: Path = Field(
@@ -89,7 +89,7 @@ class PresentationPaths(BaseModel):
 
 
 class ExperimentStatus(str, Enum):
-    """实验执行的状态"""
+    """實驗執行的狀態"""
 
     SUCCESSFUL = "successful"
     PARTIAL_SUCCESS = "partial_success"
@@ -99,7 +99,7 @@ class ExperimentStatus(str, Enum):
 
 
 class ExperimentDesign(BaseModel):
-    """实验设计"""
+    """實驗設計"""
 
     hypothesis: str = Field(..., description="Primary hypothesis being tested")
     objectives: List[str] = Field(
@@ -122,7 +122,7 @@ class ExperimentDesign(BaseModel):
 
 
 class ExperimentContext(BaseModel):
-    """完整实验状态"""
+    """完整實驗狀態"""
 
     experiment_id: str = Field(..., description="Experiment identifier")
     hypothesis_id: str = Field(..., description="Hypothesis identifier")
@@ -141,7 +141,7 @@ class ExperimentContext(BaseModel):
 
 
 class AnalysisResult(BaseModel):
-    """实验分析结果"""
+    """實驗分析結果"""
 
     experiment_id: str = Field(..., description="Experiment identifier")
     hypothesis_id: str = Field(..., description="Hypothesis identifier")
@@ -161,14 +161,14 @@ class AnalysisResult(BaseModel):
 
 
 class ReportContent(BaseModel):
-    """报告内容（支持中英双语）"""
+    """報告內容（支援中英雙語）"""
 
     title: str = Field(..., description="Report title")
     subtitle: str = Field(default="", description="Report subtitle")
     format_preference: str = Field(
         default="markdown", description="Preferred format: markdown, html, or both"
     )
-    # 双语字段
+    # 雙語欄位
     full_content_markdown_zh: Optional[str] = Field(
         default=None, description="Chinese markdown report content"
     )
@@ -184,19 +184,19 @@ class ReportContent(BaseModel):
 
     @property
     def full_content_markdown(self) -> Optional[str]:
-        """中文优先，否则英文。"""
+        """中文優先，否則英文。"""
         return self.full_content_markdown_zh or self.full_content_markdown_en
 
     @property
     def full_content_html(self) -> Optional[str]:
-        """中文优先，否则英文。"""
+        """中文優先，否則英文。"""
         return self.full_content_html_zh or self.full_content_html_en
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class ReportAsset(BaseModel):
-    """报告所需要的其他资源"""
+    """報告所需要的其他資源"""
 
     asset_id: str = Field(..., description="Asset identifier")
     asset_type: str = Field(..., description="Asset type")
@@ -217,7 +217,7 @@ class ReportAsset(BaseModel):
 
 @dataclass
 class ContextSummary:
-    """工具迭代时压缩后的上下文（供策略调整 prompt）。"""
+    """工具迭代時壓縮後的上下文（供策略調整 prompt）。"""
 
     key_findings: List[str] = field(default_factory=list)
     failed_attempts: List[str] = field(default_factory=list)
@@ -227,7 +227,7 @@ class ContextSummary:
 
 
 class AnalysisJudgment(BaseModel):
-    """洞察阶段 LLM 裁判输出。"""
+    """洞察階段 LLM 裁判輸出。"""
 
     success: bool
     reason: str
@@ -236,7 +236,7 @@ class AnalysisJudgment(BaseModel):
 
 
 class StrategyJudgment(BaseModel):
-    """分析策略阶段裁判输出。"""
+    """分析策略階段裁判輸出。"""
 
     success: bool
     reason: str
@@ -245,7 +245,7 @@ class StrategyJudgment(BaseModel):
 
 
 class VisualizationJudgment(BaseModel):
-    """可视化计划阶段裁判输出。"""
+    """視覺化計劃階段裁判輸出。"""
 
     success: bool
     reason: str
@@ -254,7 +254,7 @@ class VisualizationJudgment(BaseModel):
 
 
 class AnalysisConfig(BaseModel):
-    """分析子智能体统一配置，各组件均从此读取。"""
+    """分析子智慧體統一配置，各元件均從此讀取。"""
 
     workspace_path: str = Field(..., description="Workspace path")
     max_analysis_retries: int = Field(
@@ -336,14 +336,14 @@ class AnalysisConfig(BaseModel):
             "advanced_analysis",
         ],
         description=(
-            "instruction_md 条目的 name（不含 frontmatter 注入正文）。"
-            "标记 required 的片段（如 xml_contract）始终注入，无需出现在此列表。"
+            "instruction_md 條目的 name（不含 frontmatter 注入正文）。"
+            "標記 required 的片段（如 xml_contract）始終注入，無需出現在此列表。"
         ),
     )
     analysis_skill_strict_selection: bool = Field(
         default=True,
         description=(
-            "True：只注入 required + 本列表中的条目。False：未指定列表时注入全部 instruction_md。"
+            "True：只注入 required + 本列表中的條目。False：未指定列表時注入全部 instruction_md。"
         ),
     )
 
@@ -362,7 +362,7 @@ class AnalysisConfig(BaseModel):
 
 
 class HypothesisSummary(BaseModel):
-    """跨多个实验的分析结果"""
+    """跨多個實驗的分析結果"""
 
     hypothesis_id: str = Field(..., description="Hypothesis identifier")
     hypothesis_text: str = Field(..., description="Hypothesis text")
@@ -386,7 +386,7 @@ class HypothesisSummary(BaseModel):
 
 
 class ExperimentSynthesis(BaseModel):
-    """多假设/多实验的综合结果。"""
+    """多假設/多實驗的綜合結果。"""
 
     synthesis_id: str = Field(..., description="Synthesis identifier")
     workspace_path: str = Field(..., description="Workspace path")

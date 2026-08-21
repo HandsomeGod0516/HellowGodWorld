@@ -1,7 +1,7 @@
 """
-技能结构验证脚本
+技能結構驗證指令碼
 
-验证 openJariwen-DeepSearch 技能是否符合 OpenClaw/Claude Code 技能标准
+驗證 openJariwen-DeepSearch 技能是否符合 OpenClaw/Claude Code 技能標準
 """
 import logging
 import sys
@@ -12,19 +12,19 @@ logger = logging.getLogger(__name__)
 
 def check_skill_structure(skill_root: Path) -> bool:
     """
-    检查技能结构
+    檢查技能結構
 
     Args:
-        skill_root: 技能根目录
+        skill_root: 技能根目錄
 
     Returns:
-        所有检查是否通过
+        所有檢查是否透過
     """
     logger.info("Checking skill directory: %s\n", skill_root)
 
     all_passed = True
 
-    # 检查必需文件
+    # 檢查必需檔案
     required_files = [
         "SKILL.md",
         "README.md",
@@ -43,7 +43,7 @@ def check_skill_structure(skill_root: Path) -> bool:
             logger.error("  [MISSING] %s", file_path)
             all_passed = False
 
-    # 检查 SKILL.md 格式
+    # 檢查 SKILL.md 格式
     logger.info("\nChecking SKILL.md format:")
     skill_md = skill_root / "SKILL.md"
     if skill_md.exists():
@@ -67,27 +67,27 @@ def check_skill_structure(skill_root: Path) -> bool:
         logger.error("  [MISSING] SKILL.md")
         all_passed = False
 
-    # 检查脚本中的路径硬编码
+    # 檢查指令碼中的路徑硬編碼
     logger.info("\nChecking for hardcoded paths in scripts:")
     main_py = skill_root / "scripts" / "main.py"
     if main_py.exists():
         content = main_py.read_text(encoding="utf-8")
 
-        # 检查是否使用了 SKILL_ROOT
+        # 檢查是否使用了 SKILL_ROOT
         if "SKILL_ROOT" in content:
             logger.info("  [OK] main.py uses SKILL_ROOT")
         else:
             logger.error("  [FAIL] main.py does not use SKILL_ROOT")
             all_passed = False
 
-        # 检查是否有硬编码的相对路径
+        # 檢查是否有硬編碼的相對路徑
         if '"./output/logs"' in content or '"./output/results"' in content:
             logger.error("  [FAIL] main.py has hardcoded paths")
             all_passed = False
         else:
             logger.info("  [OK] main.py has no hardcoded paths")
 
-    # 检查 agent_entry.py
+    # 檢查 agent_entry.py
     logger.info("\nChecking agent_entry.py:")
     agent_entry = skill_root / "scripts" / "agent_entry.py"
     if agent_entry.exists():
@@ -108,7 +108,7 @@ def check_skill_structure(skill_root: Path) -> bool:
         logger.error("  [MISSING] agent_entry.py")
         all_passed = False
 
-    # 检查 pyproject.toml
+    # 檢查 pyproject.toml
     logger.info("\nChecking pyproject.toml:")
     pyproject = skill_root / "pyproject.toml"
     if pyproject.exists():
@@ -137,15 +137,15 @@ def check_skill_structure(skill_root: Path) -> bool:
 
 
 def main():
-    """主函数"""
-    # 配置日志输出到控制台
+    """主函式"""
+    # 配置日誌輸出到控制檯
     logging.basicConfig(
         level=logging.INFO,
         format='%(message)s',
         handlers=[logging.StreamHandler()]
     )
 
-    # 获取技能根目录
+    # 獲取技能根目錄
     script_path = Path(__file__).resolve()
     skill_root = script_path.parent.parent
 
@@ -154,7 +154,7 @@ def main():
     logger.info("=" * 80)
     logger.info("")
 
-    # 检查技能结构
+    # 檢查技能結構
     all_passed = check_skill_structure(skill_root)
 
     logger.info("")

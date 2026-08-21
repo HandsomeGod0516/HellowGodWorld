@@ -19,7 +19,7 @@ const SUPPORTED_FILE_EXTENSIONS = new Set([
   "sql", "graphql", "gql",
   "tf", "hcl", "dockerfile",
   "proto", "thrift", "asm", "lua", "rb", "php", "dart",
-  // 资源管理器拖入常见类型（原白名单过窄会导致解析到路径却仍不生成 @mention）
+  // 資源管理器拖入常見型別（原白名單過窄會導致解析到路徑卻仍不生成 @mention）
   "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "csv", "odt", "rtf", "epub",
   "zip", "gz", "tgz", "bz2", "7z", "rar",
 ]);

@@ -21,7 +21,7 @@
   ],
   "status": "following_up",
   "emotion": "careful",
-  "speech": "我会把长期需要跟进的事项记清楚。",
+  "speech": "我會把長期需要跟進的事項記清楚。",
   "memory_template": "Used chronic.followup: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

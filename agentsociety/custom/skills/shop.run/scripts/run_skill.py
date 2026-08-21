@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['supply_store', 'market']
 TARGET_INTERACTIONS = ['customer_service', 'work_shop_shift']
 STATUS = 'shop_working'
 EMOTION = 'attentive'
-SPEECH = '我先把顾客和货架都照看好。'
+SPEECH = '我先把顧客和貨架都照看好。'
 MEMORY_TEMPLATE = 'Used shop.run: {summary} at {location_id}.'
 
 

@@ -22,18 +22,18 @@ export const DEMO_USER_TOKEN = "DEMO_USER_TOKEN";
 
 let casdoorSdk: Sdk | undefined;
 
-/** 获取全局的 Casdoor SDK，如果还没有初始化，就用 `config` 新建一个。*/
+/** 獲取全域性的 Casdoor SDK，如果還沒有初始化，就用 `config` 新建一個。*/
 export function getCasdoorSdk(config: SdkConfig) {
     return (casdoorSdk ??= new Sdk(config));
 }
 
-/** 获取全局的 access token。未登录时返回 `null`。*/
+/** 獲取全域性的 access token。未登入時返回 `null`。*/
 export function getAccessToken() {
     const token = localStorage.getItem("access_token");
     if (token === DEMO_USER_TOKEN) {
         return token;
     }
-    // 检查 token 是否过期
+    // 檢查 token 是否過期
     if (token) {
         const decoded = jwtDecode<AccessTokenPayload>(token);
         if (decoded.exp < Date.now() / 1000) {
@@ -46,53 +46,53 @@ export function getAccessToken() {
 
 export interface AccessTokenPayload extends JwtPayload {
     /**
-     * Token 的发布者。见 [JWT 标准][1]。
+     * Token 的釋出者。見 [JWT 標準][1]。
      *
      * [1]: https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
      */
     iss: string;
     /**
-     * Token 的主题。见 [JWT 标准][1]。
+     * Token 的主題。見 [JWT 標準][1]。
      *
      * [1]: https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
      */
     sub: string;
     /**
-     * Token 的目标应用 ID。见 [JWT 标准][1]。
+     * Token 的目標應用 ID。見 [JWT 標準][1]。
      *
      * [1]: https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
      */
     aud: string[];
     /**
-     * 使用 Token 的应用 ID。见 [JWT 标准][1]。
+     * 使用 Token 的應用 ID。見 [JWT 標準][1]。
      *
      * [1]: https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
      */
     azp: string;
     /**
-     * Token 的唯一标识符。见 [JWT 标准][1]。
+     * Token 的唯一識別符號。見 [JWT 標準][1]。
      *
      * [1]: https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
      */
     jti: string;
-    /** Token 的过期时间（Unix 时间戳）。*/
+    /** Token 的過期時間（Unix 時間戳）。*/
     exp: number;
-    /** Token 的生效时间（Unix 时间戳）。*/
+    /** Token 的生效時間（Unix 時間戳）。*/
     nbf: number;
-    /** Token 的签发时间（Unix 时间戳）。*/
+    /** Token 的簽發時間（Unix 時間戳）。*/
     iat: number;
 
-    /** 用户的登录名。*/
+    /** 使用者的登入名。*/
     name: string;
-    /** 用户的 UUID。*/
+    /** 使用者的 UUID。*/
     id: string;
-    /** 用户的显示名。*/
+    /** 使用者的顯示名。*/
     displayName: string;
-    /** 用户的头像 URL。*/
+    /** 使用者的頭像 URL。*/
     avatar: string;
-    /** 用户的邮件地址。*/
+    /** 使用者的郵件地址。*/
     email: string;
-    /** 用户的手机号。*/
+    /** 使用者的手機號。*/
     phone: string;
 
     owner: "fiblab";
@@ -100,8 +100,8 @@ export interface AccessTokenPayload extends JwtPayload {
     scope: "profile";
 }
 
-/** 获取全局的 access token 并解码。解码得到的 payload 中也有一些用户信息，
- * 可以在一定程度上代替通过 API 获取用户信息。未登录时返回 `null`。*/
+/** 獲取全域性的 access token 並解碼。解碼得到的 payload 中也有一些使用者資訊，
+ * 可以在一定程度上代替透過 API 獲取使用者資訊。未登入時返回 `null`。*/
 export function getDecodedAccessToken() {
     const token = getAccessToken();
     if (token === null) return;
@@ -110,46 +110,46 @@ export function getDecodedAccessToken() {
 
 export interface UserInfo {
     /**
-     * Token 的发布者。见 [JWT 标准][1]。
+     * Token 的釋出者。見 [JWT 標準][1]。
      *
      * [1]: https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
      */
     iss: string;
     /**
-     * Token 的主题。见 [JWT 标准][1]。
+     * Token 的主題。見 [JWT 標準][1]。
      *
      * [1]: https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
      */
     sub: string;
     /**
-     * Token 的目标应用 ID。见 [JWT 标准][1]。
+     * Token 的目標應用 ID。見 [JWT 標準][1]。
      *
      * [1]: https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
      */
     aud: string;
-    /** 用户的全名（显示名）。*/
+    /** 使用者的全名（顯示名）。*/
     name: string;
-    /** 短用户名（登录名）。*/
+    /** 短使用者名稱（登入名）。*/
     prefered_username: string;
-    /** 用户的邮件地址。*/
+    /** 使用者的郵件地址。*/
     email?: string;
-    /** 用户的邮件地址是否已确认。*/
+    /** 使用者的郵件地址是否已確認。*/
     email_verified?: boolean;
-    /** 用户的手机号。*/
+    /** 使用者的手機號。*/
     phone?: string;
-    /** 用户的头像 URL。*/
+    /** 使用者的頭像 URL。*/
     picture: string;
-    /** 用户的地址。*/
+    /** 使用者的地址。*/
     address?: string;
-    /** 用户所属的用户组。*/
+    /** 使用者所屬的使用者組。*/
     groups: string[];
-    /** 用户的角色。*/
+    /** 使用者的角色。*/
     roles: string[];
 }
 
 const AuthContext = createContext<UserInfo | undefined>(undefined);
 
-/** 获取用户信息。必须在开启了 `onlineCheck` 的 {@linkcode AuthProvider} 内部使用，否则返回 `undefined`。*/
+/** 獲取使用者資訊。必須在開啟了 `onlineCheck` 的 {@linkcode AuthProvider} 內部使用，否則返回 `undefined`。*/
 export function useUserInfo() {
     return useContext(AuthContext);
 }
@@ -158,31 +158,31 @@ export interface AuthProviderProps {
     /**
      * Casdoor SDK 的配置。
      *
-     * **注意**：初始化的 SDK 将保存为全局变量，因此一个项目内不可有多个不同的 SDK 配置。
-     * 通过 {@linkcode getCasdoorSdk} 可以获取到全局的 SDK。
+     * **注意**：初始化的 SDK 將儲存為全域性變數，因此一個專案內不可有多個不同的 SDK 配置。
+     * 透過 {@linkcode getCasdoorSdk} 可以獲取到全域性的 SDK。
      */
     sdkConfig: SdkConfig;
     /**
-     * 是否联网检查用户登录状态有效性。如果检查，那么在内部还可以使用 {@linkcode useUserInfo} 访问到用户信息。
+     * 是否聯網檢查使用者登入狀態有效性。如果檢查，那麼在內部還可以使用 {@linkcode useUserInfo} 訪問到使用者資訊。
      * @default false
      */
     onlineCheck?: boolean;
     /**
-     * 如果开启了 `onlineCheck`，在检查过程中时向用户显示的加载界面。
+     * 如果開啟了 `onlineCheck`，在檢查過程中時向使用者顯示的載入介面。
      * @default "Logging in……"
      */
     loading?: ReactNode;
-    /** 用户登录后显示的内容。*/
+    /** 使用者登入後顯示的內容。*/
     children: ReactNode;
     /**
-     * 是否立即跳转到登录页面。
+     * 是否立即跳轉到登入頁面。
      * @default true
      */
     gotoLoginImmediately?: boolean;
 }
 
 /**
- * 确保只有已登录的用户可以访问到内部的内容，未登录的用户将被重定向到登录界面。
+ * 確保只有已登入的使用者可以訪問到內部的內容，未登入的使用者將被重定向到登入介面。
  */
 export function AuthProvider(props: AuthProviderProps): ReactNode {
     const sdk = getCasdoorSdk(props.sdkConfig);
@@ -197,7 +197,7 @@ export function AuthProvider(props: AuthProviderProps): ReactNode {
             } else {
                 if (props.onlineCheck) {
                     sdk.getUserInfo(token).then((_resp) => {
-                        // sdk 的类型声明有误
+                        // sdk 的型別宣告有誤
                         const resp = _resp as unknown as UserInfo | { status: "error" };
                         if ("status" in resp) {
                             location.href = sdk.getSigninUrl();
@@ -232,35 +232,35 @@ export interface AuthCallbackProps {
     /**
      * Casdoor SDK 的配置。
      *
-     * **注意**：初始化的 SDK 将保存为全局变量，因此一个项目内不可有多个不同的 SDK 配置。
-     * 通过 {@linkcode getCasdoorSdk} 可以获取到全局的 SDK。
+     * **注意**：初始化的 SDK 將儲存為全域性變數，因此一個專案內不可有多個不同的 SDK 配置。
+     * 透過 {@linkcode getCasdoorSdk} 可以獲取到全域性的 SDK。
      */
     sdkConfig: SdkConfig;
-    /** 登录的 API 源点，末尾不带 `/`。*/
+    /** 登入的 API 源點，末尾不帶 `/`。*/
     signinOrigin: string;
     /**
-     * 登陆的 API 路径。
+     * 登陸的 API 路徑。
      * @default "/api/signin"
      */
     signinPath?: string;
     /**
-     * 跳转时的回调。可以使用 React Router 的跳转函数。
+     * 跳轉時的回撥。可以使用 React Router 的跳轉函式。
      * @default () => { location.href = "/"; }
      */
     onRedirect?: () => void;
     /**
-     * 发生错误时显示的内容。
+     * 發生錯誤時顯示的內容。
      * @default (err) => err.toString()
      */
     error?: (err: unknown) => ReactNode;
     /**
-     * 跳转前显示的内容。
+     * 跳轉前顯示的內容。
      * @default "Skipping login……"
      */
     children?: ReactNode;
 }
 
-/** 登录的回调页面。*/
+/** 登入的回撥頁面。*/
 export function AuthCallback(props: AuthCallbackProps): ReactNode {
     const [error, setError] = useState<unknown>();
     useEffect(
@@ -268,7 +268,7 @@ export function AuthCallback(props: AuthCallbackProps): ReactNode {
             getCasdoorSdk(props.sdkConfig)
                 .signin(props.signinOrigin, props.signinPath)
                 .then((_resp) => {
-                    // sdk 的类型声明有误
+                    // sdk 的型別宣告有誤
                     const resp = _resp as unknown as { token?: string };
                     if (!resp.token) {
                         throw new Error(

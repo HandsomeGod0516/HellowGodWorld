@@ -21,7 +21,7 @@
   ],
   "status": "matching_people",
   "emotion": "warm",
-  "speech": "我想把合适的人介绍到一起聊聊。",
+  "speech": "我想把合適的人介紹到一起聊聊。",
   "memory_template": "Used social.matchmake: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

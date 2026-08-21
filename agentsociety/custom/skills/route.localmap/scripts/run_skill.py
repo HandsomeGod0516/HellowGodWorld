@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'market', 'supply_store']
 TARGET_INTERACTIONS = ['take_walk', 'deliver_order', 'inspect_supplies']
 STATUS = 'routing'
 EMOTION = 'alert'
-SPEECH = '我按本地路线选一个最顺的走法。'
+SPEECH = '我按本地路線選一個最順的走法。'
 MEMORY_TEMPLATE = 'Used route.localmap: {summary} at {location_id}.'
 
 

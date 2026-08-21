@@ -1,5 +1,5 @@
 """
-SASRec (Self-Attentive Sequential Recommendation) 算法模块
+SASRec (Self-Attentive Sequential Recommendation) 演算法模組
 """
 
 from .sasrec_config import SASRecConfig

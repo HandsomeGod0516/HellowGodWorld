@@ -10,11 +10,11 @@ from typing import Any
 def parse_stream_chunk(chunk: Any, *, _has_streamed_content: bool = False) -> dict[str, Any] | None:
     """Parse agent output chunk to frontend-consumable payload dict.
 
-    统一处理所有 SDK 输出格式，包括：
+    統一處理所有 SDK 輸出格式，包括：
     - OutputSchema (type + payload)
     - AgentResponseChunk (request_id + payload)
-    - dict (各种格式)
-    - 其他对象
+    - dict (各種格式)
+    - 其他物件
 
     Args:
         chunk: Output chunk from agent runner
@@ -90,7 +90,7 @@ def _parse_dict_chunk(chunk: dict[str, Any], _has_streamed_content: bool) -> dic
 
 
 def _serialize_chunk_recursive(obj: Any) -> Any:
-    """递归序列化对象中的 datetime 对象为字符串."""
+    """遞迴序列化物件中的 datetime 物件為字串."""
     if isinstance(obj, dict):
         return {k: _serialize_chunk_recursive(v) for k, v in obj.items()}
     if isinstance(obj, list):
@@ -122,7 +122,7 @@ def _parse_typed_chunk(chunk: Any, _has_streamed_content: bool) -> dict[str, Any
         if inner_val == "task_failed":
             error = next(
                 (item.text for item in payload.data if hasattr(item, "text")),
-                "任务执行失败",
+                "任務執行失敗",
             )
             return {"event_type": "chat.error", "error": error}
 
@@ -161,7 +161,7 @@ def _parse_typed_chunk(chunk: Any, _has_streamed_content: bool) -> dict[str, Any
             if payload.get("result_type") == "error":
                 return {
                     "event_type": "chat.error",
-                    "error": payload.get("output", "未知错误"),
+                    "error": payload.get("output", "未知錯誤"),
                 }
             output = payload.get("output", {})
             content = (
@@ -297,13 +297,13 @@ def _parse_event_typed_chunk(chunk: Any) -> dict[str, Any]:
 
     result = {"event_type": getattr(chunk, "event_type", "unknown")}
     
-    # 优先使用 Pydantic 的 model_dump/dict 方法
+    # 優先使用 Pydantic 的 model_dump/dict 方法
     if hasattr(chunk, "model_dump"):
-        # Pydantic v2 - mode='json' 会将 datetime 转换为 ISO 格式字符串
+        # Pydantic v2 - mode='json' 會將 datetime 轉換為 ISO 格式字串
         try:
             data = chunk.model_dump(mode="json")
         except Exception:
-            # 如果 mode='json' 失败，回退到默认模式并手动序列化
+            # 如果 mode='json' 失敗，回退到預設模式並手動序列化
             data = chunk.model_dump()
             data = {k: _serialize_value(v) for k, v in data.items()}
         result.update({k: v for k, v in data.items() if k != "event_type"})
@@ -317,7 +317,7 @@ def _parse_event_typed_chunk(chunk: Any) -> dict[str, Any]:
 
 
 def _serialize_value(value: Any) -> Any:
-    """将 datetime 等不可 JSON 序列化的对象转换为 JSON 友好格式."""
+    """將 datetime 等不可 JSON 序列化的物件轉換為 JSON 友好格式."""
     from datetime import datetime, date
     if isinstance(value, datetime):
         return value.isoformat()

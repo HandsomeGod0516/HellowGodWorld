@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'cafe', 'home']
 TARGET_INTERACTIONS = ['rest_on_bench', 'chat_over_coffee', 'relax_at_home']
 STATUS = 'calming'
 EMOTION = 'calm'
-SPEECH = '我先让气氛慢下来，大家才好做决定。'
+SPEECH = '我先讓氣氛慢下來，大家才好做決定。'
 MEMORY_TEMPLATE = 'Used emotion.calm: {summary} at {location_id}.'
 
 

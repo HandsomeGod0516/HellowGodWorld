@@ -98,7 +98,7 @@ def test_jiuwenclaw_agent_init_without_run_dir_does_not_create_workspace(tmp_pat
 
         agent._send_jiuwenclaw_request = fail_direct_request
         result = await agent.step(60, datetime(2026, 5, 26, tzinfo=timezone.utc))
-        assert result == "技能步骤已完成。"
+        assert result == "技能步驟已完成。"
         assert not (tmp_path / "agents").exists()
 
     anyio.run(run_case)

@@ -39,7 +39,7 @@ _config_file = _workspace_dir / "config" / "config.yaml"
 _new_workspace = _workspace_dir / "agent" / "jiuwenclaw_workspace"
 _old_workspace = _workspace_dir / "agent" / "workspace"
 
-# 始终清理 Team 旧版本遗留文件（幂等操作，在 prepare_workspace 之前执行）
+# 始終清理 Team 舊版本遺留檔案（冪等操作，在 prepare_workspace 之前執行）
 cleanup_team_files(_workspace_dir)
 
 # Initialize if config doesn't exist, or if legacy workspace exists but new doesn't (migration)

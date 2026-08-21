@@ -1,7 +1,7 @@
 /**
- * App 主组件
+ * App 主元件
  *
- * 应用主布局，整合所有组件
+ * 應用主佈局，整合所有元件
  */
 
 import { useState, useCallback, useEffect, useRef, Component, ReactNode } from 'react';
@@ -42,7 +42,7 @@ import './App.css';
 
 type MainNavKey = 'chat' | 'skills' | 'agents' | 'sessions' | 'heartbeat' | 'cron' | 'channels' | 'extensions' | 'configpanel' | 'logspanel' | 'browserpanel' | 'updatepanel';
 
-// 错误边界组件
+// 錯誤邊界元件
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
@@ -98,14 +98,14 @@ function ErrorFallback({ error }: { error: Error | null }) {
   );
 }
 
-// 语言切换组件（与 config.yaml preferred_language 同步）
+// 語言切換元件（與 config.yaml preferred_language 同步）
 function LanguageSwitcher() {
   const { i18n } = useTranslation();
   const isZh = i18n.language.startsWith('zh');
   const handleChange = (lang: 'zh' | 'en') => {
     i18n.changeLanguage(lang);
     void webRequest('locale.set_conf', { preferred_language: lang }).catch(() => {
-      // 写回 config 失败时静默忽略，本地切换仍生效
+      // 寫回 config 失敗時靜默忽略，本地切換仍生效
     });
   };
   return (
@@ -128,7 +128,7 @@ function LanguageSwitcher() {
   );
 }
 
-// 主题切换组件
+// 主題切換元件
 function ThemeToggle() {
   const { t } = useTranslation();
   const [theme, setTheme] = useState(() => {
@@ -193,7 +193,7 @@ function ThemeToggle() {
   );
 }
 
-// 会话 ID 持久化（使用 sessionStorage：同标签页刷新保留，多标签页隔离）
+// 會話 ID 持久化（使用 sessionStorage：同標籤頁重新整理保留，多標籤頁隔離）
 const SESSION_STORAGE_KEY = 'openjiuwen_current_session';
 
 function generateSessionId(): string {
@@ -224,7 +224,7 @@ function storeSessionId(sessionId: string | null) {
 
 function AppContent() {
   const { t } = useTranslation();
-  // 优先使用存储的会话 ID，避免每次刷新创建新会话
+  // 優先使用儲存的會話 ID，避免每次重新整理建立新會話
   const [sessionId, setSessionId] = useState<string>(() => {
     const stored = getStoredSessionId();
     return stored || 'new';
@@ -244,7 +244,7 @@ function AppContent() {
   const [hasVisitedSkills, setHasVisitedSkills] = useState(false);
   const [hasVisitedChannels, setHasVisitedChannels] = useState(false);
   const startupUpdateCheckRef = useRef(false);
-  /** 从 SkillNet 等入口跳转配置页时，首次展开对应配置分组（如第三方服务） */
+  /** 從 SkillNet 等入口跳轉配置頁時，首次展開對應配置分組（如第三方服務） */
   const [configInitialExpandGroup, setConfigInitialExpandGroup] = useState<string | null>(null);
   useEffect(() => {
     if (activeNav !== 'configpanel') {
@@ -268,18 +268,18 @@ function AppContent() {
   const newSessionToastTimerRef = useRef<number | null>(null);
   const heartbeatToastTimerRef = useRef<number | null>(null);
   const lastHeartbeatToastKeyRef = useRef<string | null>(null);
-  /** 自「恢复会话」加载 history 后的分页元数据；用于聊天区顶部加载更早消息 */
+  /** 自「恢復會話」載入 history 後的分頁後設資料；用於聊天區頂部載入更早訊息 */
   const [historyPagerMeta, setHistoryPagerMeta] = useState<{
     loadedPages: number;
     totalPages: number;
   } | null>(null);
   const [historyLoadingMore, setHistoryLoadingMore] = useState(false);
-  /** 仅用于强制重跑「首屏 history」effect：从会话列表恢复时若 sessionId 未变，也要重新拉 history 并恢复 historyPagerMeta */
+  /** 僅用於強制重跑「首屏 history」effect：從會話列表恢復時若 sessionId 未變，也要重新拉 history 並恢復 historyPagerMeta */
   const [historyBootstrapKey, setHistoryBootstrapKey] = useState(0);
   const sessionIdRef = useRef(sessionId);
   const historyRestoreHandleRef = useRef<HistoryRestoreHandle | null>(null);
   const historyPageHandleRef = useRef<HistoryRestoreHandle | null>(null);
-  /** 为 true 表示刚从「会话列表」恢复；history 为空时在 useEffect 的 onEmpty 中提示一次 */
+  /** 為 true 表示剛從「會話列表」恢復；history 為空時在 useEffect 的 onEmpty 中提示一次 */
   const historyRestoreFromPanelHintRef = useRef(false);
 
   const disposeInFlightHistoryHandles = useCallback(() => {
@@ -310,7 +310,7 @@ function AppContent() {
   } = useChatStore();
   const { clearTodos } = useTodoStore();
 
-  // WebSocket 连接 - provider 由后端配置决定 - provider 由后端配置决定，前端默认不在 URL query 传递
+  // WebSocket 連線 - provider 由後端配置決定 - provider 由後端配置決定，前端預設不在 URL query 傳遞
   const {
     isConnected,
     request,
@@ -326,8 +326,8 @@ function AppContent() {
     onConnect: (payload) => {
       const currentStored = getStoredSessionId();
       if (payload.session_id) {
-        // 仅在尚无有效 session 时采纳后端分配的 session_id；
-        // 重连时保持已有会话，防止被覆盖
+        // 僅在尚無有效 session 時採納後端分配的 session_id；
+        // 重連時保持已有會話，防止被覆蓋
         if (!currentStored) {
           console.log('Adopting backend session:', payload.session_id);
           setSessionId(payload.session_id);
@@ -336,7 +336,7 @@ function AppContent() {
           console.log('Keeping existing session:', currentStored);
         }
       } else if (!currentStored) {
-        // 后端未提供 session_id 且本地也无有效 session：兜底生成
+        // 後端未提供 session_id 且本地也無有效 session：兜底生成
         const fallbackSid = generateSessionId();
         console.log('Generated fallback session:', fallbackSid);
         setSessionId(fallbackSid);
@@ -351,14 +351,14 @@ function AppContent() {
     },
   });
 
-  // 获取会话列表
+  // 獲取會話列表
   const fetchSessions = useCallback(async () => {
     try {
       const payload = await request<{ sessions?: unknown[] }>('session.list', {
         limit: 20,
       });
       if (payload?.sessions && Array.isArray(payload.sessions)) {
-        // 兼容新格式(对象数组)和旧格式(字符串数组)
+        // 相容新格式(物件陣列)和舊格式(字串陣列)
         const normalized = payload.sessions.map((item) => {
           if (typeof item === 'string') {
             return { session_id: item } as Parameters<typeof setSessions>[0][number];
@@ -375,7 +375,7 @@ function AppContent() {
     }
   }, [request, setSessions]);
 
-  // 获取服务端配置（通过 WS 方法）
+  // 獲取服務端配置（透過 WS 方法）
   const fetchConfig = useCallback(async () => {
     try {
       const config = await request<Record<string, unknown>>('config.get');
@@ -386,7 +386,7 @@ function AppContent() {
       setServerConfig(null);
       setConfigError(t('app.configError'));
     }
-    // 同步获取多模型列表
+    // 同步獲取多模型列表
     try {
       const resp = await request<{ models: ModelEntry[]; active_model: string }>('models.list');
       if (resp?.models) {
@@ -504,7 +504,7 @@ function AppContent() {
       'config.set',
       payload as unknown as Record<string, string>
     );
-    // 更新前端配置缓存
+    // 更新前端配置快取
     const updates: Record<string, string> = {};
     Object.entries(payload.agents).forEach(([name, agent], idx) => {
       updates[`agent_name_${idx}`] = name;
@@ -523,7 +523,7 @@ function AppContent() {
       updates[`team_leader_persona_${idx}`] = team.leader.persona;
       updates[`team_leader_agent_key_${idx}`] = team.leader.agent_key;
       updates[`team_teammate_agent_key_${idx}`] = team.teammate.agent_key;
-      // 保存 predefined_members
+      // 儲存 predefined_members
       if (team.predefined_members && team.predefined_members.length > 0) {
         updates[`team_predefined_members_${idx}`] = JSON.stringify(team.predefined_members);
       } else {
@@ -610,7 +610,7 @@ function AppContent() {
     })();
   }, [fetchConfig, fetchSessions, initialDataLoaded, isConnected]);
 
-  // 聊天处理完成后刷新会话列表，以便拾取自动生成的标题等元数据更新
+  // 聊天處理完成後重新整理會話列表，以便拾取自動生成的標題等後設資料更新
   const prevProcessingRef = useRef(false);
   useEffect(() => {
     if (prevProcessingRef.current && !isProcessing) {
@@ -619,7 +619,7 @@ function AppContent() {
     prevProcessingRef.current = isProcessing;
   }, [isProcessing, fetchSessions]);
 
-  // 连接成功后从 config.yaml 同步 preferred_language 到前端显示
+  // 連線成功後從 config.yaml 同步 preferred_language 到前端顯示
   useEffect(() => {
     if (!isConnected) return;
     void webRequest<{ preferred_language?: string }>('locale.get_conf')
@@ -632,19 +632,19 @@ function AppContent() {
       .catch(() => {});
   }, [isConnected]);
 
-  // 当会话 ID 变化或页面加载时，自动加载历史会话
+  // 當會話 ID 變化或頁面載入時，自動載入歷史會話
   useEffect(() => {
     if (!isConnected || !sessionId || sessionId === 'new') return;
     
-    // 仅处理以 sess_ 开头的会话 ID
+    // 僅處理以 sess_ 開頭的會話 ID
     if (!sessionId.startsWith('sess_')) return;
     
-    // 清理之前的历史加载句柄
+    // 清理之前的歷史載入控制代碼
     disposeInFlightHistoryHandles();
     setHistoryPagerMeta(null);
     setHistoryLoadingMore(false);
     
-    // 开始历史会话加载
+    // 開始歷史會話載入
     const restoreHandle = beginHistoryRestore({
       sessionId: sessionId,
       onReady: (messages, totalPages) => {
@@ -721,7 +721,7 @@ function AppContent() {
     });
     historyRestoreHandleRef.current = restoreHandle;
 
-    // 调用历史会话接口
+    // 呼叫歷史會話介面
     void (async () => {
       try {
         await request(HISTORY_GET_METHOD, {
@@ -732,10 +732,10 @@ function AppContent() {
         historyRestoreFromPanelHintRef.current = false;
         restoreHandle.dispose();
         historyRestoreHandleRef.current = null;
-        // 发生错误时，设置 historyPagerMeta 为 null，显示欢迎信息
+        // 發生錯誤時，設定 historyPagerMeta 為 null，顯示歡迎資訊
         setHistoryPagerMeta(null);
         console.error('Failed to load history:', error);
-        // 忽略 "invalid page_idx or session history not found" 错误，因为这是新会话的正常情况
+        // 忽略 "invalid page_idx or session history not found" 錯誤，因為這是新會話的正常情況
         const errorMessage = error instanceof Error ? error.message : String(error);
         if (sessionIdRef.current === sessionId && !errorMessage.includes('invalid page_idx or session history not found')) {
           clearMessages();
@@ -762,18 +762,18 @@ function AppContent() {
     disposeInFlightHistoryHandles,
   ]);
 
-  // 新建会话：立即生成可用的 session_id，避免停留在 'new' 导致无法发送消息
+  // 新建會話：立即生成可用的 session_id，避免停留在 'new' 導致無法傳送訊息
   const handleNewSession = useCallback(async () => {
     if (mode === 'team' && sessionId) {
       cancel(sessionId);
     }
-    // 切换模式/新建会话时直接设置状态，避免闪现
+    // 切換模式/新建會話時直接設定狀態，避免閃現
     useChatStore.getState().setSwitchingMode(true);
     useChatStore.getState().setInterruptResult(null);
     useChatStore.getState().setProcessing(false);
     useChatStore.getState().setThinking(false);
     useChatStore.getState().setPaused(false);
-    // 集群模式下新建会话时清空成员列表和事件列表
+    // 叢集模式下新建會話時清空成員列表和事件列表
     if (mode === 'team') {
       useSessionStore.getState().setTeamMembers([]);
       useSessionStore.getState().setTeamTaskEvents([]);
@@ -798,7 +798,7 @@ function AppContent() {
       setSessionId(createdSid);
       setCurrentSession(null);
       storeSessionId(createdSid);
-      // 保持当前模式
+      // 保持當前模式
       if (switchMode) {
         try {
           await switchMode(createdSid, mode);
@@ -817,7 +817,7 @@ function AppContent() {
       setNewSessionToastVisible(false);
       newSessionToastTimerRef.current = null;
     }, 2000);
-    // 延迟重置切换模式状态
+    // 延遲重置切換模式狀態
     setTimeout(() => {
       useChatStore.getState().setSwitchingMode(false);
     }, 300);
@@ -838,15 +838,15 @@ function AppContent() {
     switchMode,
   ]);
 
-  // 切换模式
+  // 切換模式
   const handleSwitchMode = useCallback((mode: AgentMode) => {
     if (!sessionId || sessionId === 'new') return;
-    // 切换模式时直接设置状态，避免闪现
+    // 切換模式時直接設定狀態，避免閃現
     useChatStore.getState().setSwitchingMode(true);
     useChatStore.getState().setProcessing(false);
     useChatStore.getState().setThinking(false);
     useChatStore.getState().setPaused(false);
-    // 切换到集群模式时清空成员列表和事件列表
+    // 切換到叢集模式時清空成員列表和事件列表
     if (mode === 'team') {
       useSessionStore.getState().setTeamMembers([]);
       useSessionStore.getState().setTeamTaskEvents([]);
@@ -996,10 +996,10 @@ function AppContent() {
       setCurrentSession(null);
       storeSessionId(targetSessionId);
       setActiveNav('chat');
-      // 历史加载只由下方 useEffect 发起一次。若 sessionId 与当前相同，须 bump key 才会重跑 effect，
-      // 否则 historyPagerMeta 会停在 null，无法向上滚动加载更早分页。
+      // 歷史載入只由下方 useEffect 發起一次。若 sessionId 與當前相同，須 bump key 才會重跑 effect，
+      // 否則 historyPagerMeta 會停在 null，無法向上滾動載入更早分頁。
       setHistoryBootstrapKey((k) => k + 1);
-      // 勿在此处再 beginHistoryRestore + history.get：会与 effect 并发双份 history.get，消息重复。
+      // 勿在此處再 beginHistoryRestore + history.get：會與 effect 併發雙份 history.get，訊息重複。
     },
     [
       clearMessages,
@@ -1043,7 +1043,7 @@ function AppContent() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* 连接状态 */}
+          {/* 連線狀態 */}
           <div className="pill">
             <span className={`statusDot ${isConnected ? 'ok' : ''}`} />
             <span className="mono text-sm">
@@ -1051,10 +1051,10 @@ function AppContent() {
             </span>
           </div>
 
-          {/* 语言切换 */}
+          {/* 語言切換 */}
           <LanguageSwitcher />
 
-          {/* 主题切换 */}
+          {/* 主題切換 */}
           <ThemeToggle />
         </div>
       </header>
@@ -1107,7 +1107,7 @@ function AppContent() {
                   />
                 </div>
 
-                {/* Status Bar - 只在非集群模式下显示 */}
+                {/* Status Bar - 只在非叢集模式下顯示 */}
                 {mode !== 'team' && (
                   <StatusBar
                     onPause={handlePause}
@@ -1201,7 +1201,7 @@ function AppContent() {
         )}
       </main>
 
-      {/* 连接状态提示 */}
+      {/* 連線狀態提示 */}
       {!isConnected && (
         <div className="app-toast-wrapper app-toast-wrapper--top">
           <div className="app-connection-toast animate-rise">
@@ -1210,7 +1210,7 @@ function AppContent() {
         </div>
       )}
 
-      {/* 新建会话提示 */}
+      {/* 新建會話提示 */}
       {newSessionToastVisible && (
         <div className="app-toast-wrapper app-toast-wrapper--top-center">
           <div className="app-session-toast animate-rise">
@@ -1219,7 +1219,7 @@ function AppContent() {
         </div>
       )}
 
-      {/* 全局心跳消息提示 */}
+      {/* 全域性心跳訊息提示 */}
       {heartbeatToastVisible && (
         <div className="app-toast-wrapper app-toast-wrapper--top">
           <div className="app-heartbeat-toast animate-rise">
@@ -1260,7 +1260,7 @@ function AppContent() {
         </div>
       )}
 
-      {/* 配置保存后重启状态弹窗 */}
+      {/* 配置儲存後重啟狀態彈窗 */}
       {restartModalOpen && (
         <div className="app-restart-modal">
           <div className="app-restart-modal__backdrop" />

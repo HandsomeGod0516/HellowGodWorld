@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['market', 'cafe']
 TARGET_INTERACTIONS = ['buy_food', 'eat_light_meal']
 STATUS = 'advising_ingredients'
 EMOTION = 'helpful'
-SPEECH = '我会按现在能买到的东西推荐搭配。'
+SPEECH = '我會按現在能買到的東西推薦搭配。'
 MEMORY_TEMPLATE = 'Used ingredient.advise: {summary} at {location_id}.'
 
 

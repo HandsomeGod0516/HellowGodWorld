@@ -570,7 +570,7 @@ class TestInitPromptStructuredAskUser:
         assert "questions" in content
         assert "ask_user" in content
         # Must NOT contain the old conditional language
-        assert "若 `ask_user` 支持" not in content
+        assert "若 `ask_user` 支援" not in content
 
     def test_en_prompt_contains_apply_update_skip_options(self):
         """EN prompt must mention 'Apply update' / 'Skip' as concrete options."""
@@ -579,10 +579,10 @@ class TestInitPromptStructuredAskUser:
         assert "Skip (keep current)" in content
 
     def test_zh_prompt_contains_apply_update_skip_options(self):
-        """ZH prompt must mention '应用更新' / '跳过' as concrete options."""
+        """ZH prompt must mention '應用更新' / '跳過' as concrete options."""
         content = self._read_prompts_ts()
-        assert "应用更新" in content
-        assert "跳过" in content
+        assert "應用更新" in content
+        assert "跳過" in content
 
     def test_en_step3_has_questions_usage_example(self):
         """EN Step 3 must include ask_user questions usage example."""

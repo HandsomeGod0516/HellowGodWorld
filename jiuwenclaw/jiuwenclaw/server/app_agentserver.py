@@ -60,7 +60,7 @@ reset_free_search_runtime_flags()
 
 
 async def _run(host: str, port: int) -> None:
-    # --- 删除 .agent_teams 目录（在 team 模块导入之前） ---
+    # --- 刪除 .agent_teams 目錄（在 team 模組匯入之前） ---
     agent_teams_dir = get_user_workspace_dir() / ".agent_teams"
     if agent_teams_dir.exists():
         import shutil
@@ -90,7 +90,7 @@ async def _run(host: str, port: int) -> None:
             cleared_tables,
         )
 
-    # ---------- 扩展系统初始化 ----------
+    # ---------- 擴充套件系統初始化 ----------
     callback_framework = Runner.callback_framework
     extension_registry = ExtensionRegistry.create_instance(
         callback_framework=callback_framework,
@@ -101,7 +101,7 @@ async def _run(host: str, port: int) -> None:
         registry=extension_registry,
     )
     await extension_manager.load_all_extensions()
-    logger.info("[AgentServer] 扩展加载完成，共 %d 个", len(extension_manager.list_extensions()))
+    logger.info("[AgentServer] 擴充套件載入完成，共 %d 個", len(extension_manager.list_extensions()))
 
     server = AgentWebSocketServer.get_instance(
         host=host,

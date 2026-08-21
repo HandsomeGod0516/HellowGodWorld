@@ -70,10 +70,10 @@ class CronController:
         base = datetime.now(tz=tz)
         _ = _cron_next_push_dt(cron_expr, base)
 
-    _DESCRIPTION_TIME_KEYWORDS = ("每天", "每周", "每月", "上午", "下午", "早上", "晚上", "凌晨")
+    _DESCRIPTION_TIME_KEYWORDS = ("每天", "每週", "每月", "上午", "下午", "早上", "晚上", "凌晨")
 
     def _normalize_targets(self, raw: Any) -> str:
-        """将 targets 规范为 CronTargetChannel 枚举值。"""
+        """將 targets 規範為 CronTargetChannel 列舉值。"""
         raw_s = str(raw or "").strip()
         if self._target_channel is None and not raw_s:
             raise ValueError("targets is required when target_channel is not set")
@@ -85,7 +85,7 @@ class CronController:
 
     @classmethod
     def _normalize_description(cls, description: str, name: str) -> str:
-        """若 description 含时间/频率用语且 name 为纯任务，则只保留任务内容（用 name）。"""
+        """若 description 含時間/頻率用語且 name 為純任務，則只保留任務內容（用 name）。"""
         description = (description or "").strip()
         name = (name or "").strip()
         if not name:
@@ -400,7 +400,7 @@ class CronController:
                                 "targets": {
                                     "type": "string",
                                     "enum": [e.value for e in CronTargetChannel],
-                                    "description": "推送频道：web/feishu/whatsapp",
+                                    "description": "推送頻道：web/feishu/whatsapp",
                                 },
                             },
                         },

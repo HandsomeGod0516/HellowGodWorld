@@ -21,7 +21,7 @@
   ],
   "status": "advising_ingredients",
   "emotion": "helpful",
-  "speech": "我会按现在能买到的东西推荐搭配。",
+  "speech": "我會按現在能買到的東西推薦搭配。",
   "memory_template": "Used ingredient.advise: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

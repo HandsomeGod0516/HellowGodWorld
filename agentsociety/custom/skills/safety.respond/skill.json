@@ -24,7 +24,7 @@
   ],
   "status": "alert",
   "emotion": "focused",
-  "speech": "请大家确认安全，必要时前往安全地点，并同步身边需要帮助的人。",
+  "speech": "請大家確認安全，必要時前往安全地點，並同步身邊需要幫助的人。",
   "memory_template": "Safety response recorded: {content}",
   "failure_strategy": "set_state",
   "strategy": "safety_response",

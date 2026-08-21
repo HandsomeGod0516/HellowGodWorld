@@ -2,7 +2,7 @@ import { normalizeFinalContent } from "./final-content.js";
 import type { EventFrame } from "./protocol.js";
 import type { HistoryItem, InfoMeta, JsonValue, MediaItem, ToolCallDisplay } from "./types.js";
 
-/** 合并同一次流式请求内多条 assistant 片段的正文；若末条为完整 `chat.final` 且等于前文拼接则去重。 */
+/** 合併同一次流式請求內多條 assistant 片段的正文；若末條為完整 `chat.final` 且等於前文拼接則去重。 */
 export function mergeAssistantFragmentContents(parts: string[]): string {
   const p = parts.map((x) => String(x ?? ""));
   if (p.length === 0) {
@@ -20,10 +20,10 @@ export function mergeAssistantFragmentContents(parts: string[]): string {
 }
 
 /**
- * 按 `at` 时间升序对同一 turn 的 assistant 片段排序，同毫秒时间戳时保持相对稳定性。
- * AgentServer 为了分页优先返回最新页，`_handle_history_get_stream` 会把整条历史 `list(reversed(raw))`
- * 再流式下发；CLI 侧每条 `history.message` 单独转成 assistant 条目，若不按时间重排，
- * 合并得到的就是「final + 倒序 delta」这种乱序正文。
+ * 按 `at` 時間升序對同一 turn 的 assistant 片段排序，同毫秒時間戳時保持相對穩定性。
+ * AgentServer 為了分頁優先返回最新頁，`_handle_history_get_stream` 會把整條歷史 `list(reversed(raw))`
+ * 再流式下發；CLI 側每條 `history.message` 單獨轉成 assistant 條目，若不按時間重排，
+ * 合併得到的就是「final + 倒序 delta」這種亂序正文。
  */
 function sortAssistantGroupByTime(
   group: Extract<HistoryItem, { kind: "assistant" }>[],
@@ -51,7 +51,7 @@ function sameAssistantTurn(
   if (ar && br) {
     return ar === br;
   }
-  // history.json 中 id 常为 `{request_id}:assistant`，流式多段共用同一 id
+  // history.json 中 id 常為 `{request_id}:assistant`，流式多段共用同一 id
   if (a.id && a.id === b.id) {
     return true;
   }
@@ -59,13 +59,13 @@ function sameAssistantTurn(
 }
 
 /**
- * 将流式恢复产生的多条 `kind: assistant`、同一次模型请求（requestId 或同源 id）的连续条目合并为一条。
- * 覆盖网关 history.get：本地 ack 无 `payload.messages`、正文仅靠 `history.message` 事件注入的路径。
+ * 將流式恢復產生的多條 `kind: assistant`、同一次模型請求（requestId 或同源 id）的連續條目合併為一條。
+ * 覆蓋閘道器 history.get：本地 ack 無 `payload.messages`、正文僅靠 `history.message` 事件注入的路徑。
  *
- * 策略（优先级从高到低）：
- *   1. 组内存在 `chat.final` 片段：直接采用最晚一条 final 的正文（权威完整答复，天然避免与 delta 拼接时的重复）。
- *   2. 全部为 delta：按 `at` 时间升序拼接，修复 AgentServer 分页导致的倒序问题。
- *   3. 无 eventType 元数据（老链路兜底）：退化到 `mergeAssistantFragmentContents` 原逻辑。
+ * 策略（優先順序從高到低）：
+ *   1. 組記憶體在 `chat.final` 片段：直接採用最晚一條 final 的正文（權威完整答覆，天然避免與 delta 拼接時的重複）。
+ *   2. 全部為 delta：按 `at` 時間升序拼接，修復 AgentServer 分頁導致的倒序問題。
+ *   3. 無 eventType 後設資料（老鏈路兜底）：退化到 `mergeAssistantFragmentContents` 原邏輯。
  */
 export function coalesceAssistantHistoryEntries(entries: HistoryItem[]): HistoryItem[] {
   const out: HistoryItem[] = [];
@@ -216,8 +216,8 @@ function isReasoningStreamRecord(rec: Record<string, unknown>): boolean {
 }
 
 /**
- * AgentServer 在流式输出时为每个 `chat.delta` 追加一条 history 记录；恢复会话时若逐条渲染，
- * 会把正文拆成「一字/一词一行」。此处合并同一次请求内的 delta，并在已有 `chat.final` 时丢弃冗余 delta。
+ * AgentServer 在流式輸出時為每個 `chat.delta` 追加一條 history 記錄；恢復會話時若逐條渲染，
+ * 會把正文拆成「一字/一詞一行」。此處合併同一次請求內的 delta，並在已有 `chat.final` 時丟棄冗餘 delta。
  */
 export function mergeHistoryMessagesForRestore(messages: unknown[]): Record<string, unknown>[] {
   const list: Record<string, unknown>[] = [];
@@ -513,7 +513,7 @@ export function createSessionResultToolDisplay(
   const result = asString(payload.result) ?? "";
   const status = payload.status === "error" ? "error" : "completed";
   const callId = `session-${sessionId || "unknown"}-${typeof payload.index === "number" ? payload.index : Date.now()}`;
-  const fullResult = description ? `描述: ${description}\n\n结果: ${result}` : result;
+  const fullResult = description ? `描述: ${description}\n\n結果: ${result}` : result;
 
   return {
     callId,
@@ -527,11 +527,11 @@ export function createSessionResultToolDisplay(
       total: typeof payload.total === "number" ? payload.total : undefined,
       is_parallel: payload.is_parallel === true,
     },
-    description: description || "会话完成",
-    formattedArgs: `会话任务：【${description || "未知任务"}】`,
+    description: description || "會話完成",
+    formattedArgs: `會話任務：【${description || "未知任務"}】`,
     status,
     result: fullResult,
-    summary: status === "error" ? "失败" : "完成",
+    summary: status === "error" ? "失敗" : "完成",
     isError: status === "error",
   };
 }
@@ -661,8 +661,8 @@ export function parseHistoryFrame(frame: EventFrame): HistoryItem | null {
     content,
     requestId: pickFirstString(record, ["request_id"]) ?? asString(payload.request_id),
     at,
-    // 供 `coalesceAssistantHistoryEntries` 在同一 requestId 的片段中优先选用 final，
-    // 防止 AgentServer 分页倒序导致 delta 追加在 final 之后出现「镜像」叠加。
+    // 供 `coalesceAssistantHistoryEntries` 在同一 requestId 的片段中優先選用 final，
+    // 防止 AgentServer 分頁倒序導致 delta 追加在 final 之後出現「映象」疊加。
     eventType,
   };
 }

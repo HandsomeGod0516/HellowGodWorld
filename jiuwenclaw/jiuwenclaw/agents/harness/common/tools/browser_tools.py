@@ -227,7 +227,7 @@ def _build_browser_runtime_subprocess_env() -> dict[str, str]:
     api_base = (os.getenv("API_BASE") or "").strip()
     model_provider = (os.getenv("MODEL_PROVIDER") or "").strip().lower()
 
-    # 把本项目的 API_* 透传给浏览器运行时
+    # 把本專案的 API_* 透傳給瀏覽器執行時
     if api_key and not env.get("OPENROUTER_API_KEY") and "openrouter.ai" in api_base:
         env["OPENROUTER_API_KEY"] = api_key
     if api_base and not env.get("OPENROUTER_BASE_URL") and "openrouter.ai" in api_base:

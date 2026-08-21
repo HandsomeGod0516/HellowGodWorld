@@ -1,5 +1,5 @@
 /**
- * WebSocket 消息类型
+ * WebSocket 訊息型別
  */
 
 export type WebConnectionState =
@@ -80,12 +80,12 @@ export interface ErrorPayload {
 }
 
 /**
- * 中断意图类型
+ * 中斷意圖型別
  */
 export type InterruptIntent = 'pause' | 'cancel' | 'supplement' | 'resume';
 
 /**
- * 中断结果 Payload
+ * 中斷結果 Payload
  */
 export interface InterruptResultPayload {
   intent: InterruptIntent;
@@ -97,12 +97,12 @@ export interface InterruptResultPayload {
 }
 
 /**
- * 子任务状态类型
+ * 子任務狀態型別
  */
 export type SubtaskStatus = 'starting' | 'tool_call' | 'tool_result' | 'completed' | 'error';
 
 /**
- * 子任务更新 Payload
+ * 子任務更新 Payload
  */
 export interface SubtaskUpdatePayload {
   task_id: string;
@@ -117,7 +117,7 @@ export interface SubtaskUpdatePayload {
 }
 
 /**
- * 问题选项
+ * 問題選項
  */
 export interface QuestionOption {
   label: string;
@@ -125,7 +125,7 @@ export interface QuestionOption {
 }
 
 /**
- * 问题定义
+ * 問題定義
  */
 export interface Question {
   question: string;
@@ -135,16 +135,16 @@ export interface Question {
 }
 
 /**
- * 用户问题请求 Payload（服务端 -> 客户端）
+ * 使用者問題請求 Payload（服務端 -> 客戶端）
  */
 export interface AskUserQuestionPayload {
   request_id: string;
   questions: Question[];
-  source?: string; // 来源标识，用于区分自进化确认和工具权限确认
+  source?: string; // 來源標識，用於區分自進化確認和工具許可權確認
 }
 
 /**
- * 用户回答
+ * 使用者回答
  */
 export interface UserAnswer {
   selected_options: string[];
@@ -152,7 +152,7 @@ export interface UserAnswer {
 }
 
 /**
- * 用户回答 Payload（客户端 -> 服务端）
+ * 使用者回答 Payload（客戶端 -> 服務端）
  */
 export interface UserAnswerPayload {
   request_id: string;

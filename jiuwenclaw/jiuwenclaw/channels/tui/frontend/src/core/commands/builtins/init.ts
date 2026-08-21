@@ -25,20 +25,20 @@ function getScopeOptions(lang: "zh" | "en"): ScopeOption[] {
     return [
       {
         key: "project",
-        label: "团队共享 (JIUWENCLAW.md)",
+        label: "團隊共享 (JIUWENCLAW.md)",
         description:
-          "签入版本库，供团队共用 —— 架构说明、编码规范、常用命令、CI 约定等。",
+          "簽入版本庫，供團隊共用 —— 架構說明、編碼規範、常用命令、CI 約定等。",
       },
       {
         key: "personal",
-        label: "个人私有 (JIUWENCLAW.local.md)",
+        label: "個人私有 (JIUWENCLAW.local.md)",
         description:
-          "只属于你自己，加入 .gitignore —— 个人偏好、沙箱地址、私有凭据、工作习惯。",
+          "只屬於你自己，加入 .gitignore —— 個人偏好、沙箱地址、私有憑據、工作習慣。",
       },
       {
         key: "both",
-        label: "都要 (团队 + 个人)",
-        description: "同时写两份文件。",
+        label: "都要 (團隊 + 個人)",
+        description: "同時寫兩份檔案。",
       },
     ];
   }
@@ -84,7 +84,7 @@ export function createInitCommand(): SlashCommand {
           addError(
             ctx.sessionId,
             language === "zh"
-              ? "/init 需要在 coding 模式下运行。请先执行 /mode code 或 /code 切到 coding 模式再重试。"
+              ? "/init 需要在 coding 模式下執行。請先執行 /mode code 或 /code 切到 coding 模式再重試。"
               : "/init requires coding mode. Run /mode code or /code first, then try again.",
           ),
         );
@@ -98,7 +98,7 @@ export function createInitCommand(): SlashCommand {
           addInfo(
             ctx.sessionId,
             language === "zh"
-              ? "已自动切换到 code.normal 以便 /init 能写文件。"
+              ? "已自動切換到 code.normal 以便 /init 能寫檔案。"
               : "Switched to code.normal for /init (needs write permission).",
             "i",
           ),
@@ -106,7 +106,7 @@ export function createInitCommand(): SlashCommand {
       }
 
       // ---- Guard 3: workspace root ----
-      // ctx.getWorkspaceDir() 现在优先返回 trustedDirs[0]，fallback process.cwd()
+      // ctx.getWorkspaceDir() 現在優先返回 trustedDirs[0]，fallback process.cwd()
       const rootDir =
         ctx.getWorkspaceDir() ||
         (typeof process !== "undefined" ? process.cwd() : "");
@@ -115,7 +115,7 @@ export function createInitCommand(): SlashCommand {
           addError(
             ctx.sessionId,
             language === "zh"
-              ? "无法识别工作目录，请先用 /workspace set <path> 指定。"
+              ? "無法識別工作目錄，請先用 /workspace set <path> 指定。"
               : "Cannot resolve workspace directory. Use /workspace set <path> first.",
           ),
         );
@@ -136,10 +136,10 @@ export function createInitCommand(): SlashCommand {
         const [answer] = await ctx.askQuestions(
           [
             {
-              header: language === "zh" ? "范围" : "Scope",
+              header: language === "zh" ? "範圍" : "Scope",
               question:
                 language === "zh"
-                  ? "要设置哪些 JIUWENCLAW 文件？"
+                  ? "要設定哪些 JIUWENCLAW 檔案？"
                   : "Which JIUWENCLAW files would you like to set up?",
               options: scopeOptions.map((o) => ({
                 label: o.label,
@@ -155,7 +155,7 @@ export function createInitCommand(): SlashCommand {
             addInfo(
               ctx.sessionId,
               language === "zh"
-                ? "/init 已取消：未识别到范围选择。"
+                ? "/init 已取消：未識別到範圍選擇。"
                 : "/init cancelled: no scope selection received.",
               "i",
             ),
@@ -205,7 +205,7 @@ export function createInitCommand(): SlashCommand {
           addInfo(
             ctx.sessionId,
             language === "zh"
-              ? "当前离线，/init 请求未发送；网络恢复后请重试。"
+              ? "當前離線，/init 請求未傳送；網路恢復後請重試。"
               : "Offline; /init message not sent. Please retry after reconnecting.",
             "p",
           ),
@@ -217,7 +217,7 @@ export function createInitCommand(): SlashCommand {
         addInfo(
           ctx.sessionId,
           language === "zh"
-            ? `正在启动项目初始化（scope=${scopeKey}）…`
+            ? `正在啟動專案初始化（scope=${scopeKey}）…`
             : `Starting project initialization (scope=${scopeKey})…`,
           "i",
         ),

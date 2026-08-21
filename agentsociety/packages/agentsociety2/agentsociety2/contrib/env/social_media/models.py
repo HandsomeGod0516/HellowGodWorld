@@ -32,7 +32,7 @@ class SocialMediaPerson(BaseModel):
 
 class Post(BaseModel):
     """
-    贴文模型(原创、转发或评论)
+    貼文模型(原創、轉發或評論)
     """
 
     model_config = ConfigDict(use_enum_values=True)
@@ -48,8 +48,8 @@ class Post(BaseModel):
     comments_count: int = Field(0, ge=0, description="Number of comments")
     view_count: int = Field(0, ge=0, description="Number of views")
     liked_by: List[int] = Field(default_factory=list, description="User IDs who liked this post")
-    tags: List[str] = Field(default_factory=list, description="话题标签列表，最多10个")
-    topic_category: Optional[str] = Field(None, description="主要话题分类（politics/sports/tech等）")
+    tags: List[str] = Field(default_factory=list, description="話題標籤列表，最多10個")
+    topic_category: Optional[str] = Field(None, description="主要話題分類（politics/sports/tech等）")
 
     def __str__(self) -> str:
         return f"{self.post_type.capitalize()} Post (ID: {self.post_id}) by User {self.author_id}: {self.content[:50]}{'...' if len(self.content) > 50 else ''}, Likes: {self.likes_count}, Reposts: {self.reposts_count}, Comments: {self.comments_count}"
@@ -93,106 +93,106 @@ __all__ = [
 # ============ Response Models ============
 
 class CreatePostResponse(BaseModel):
-    """创建帖子的响应"""
-    post_id: int = Field(..., description="新创建的帖子ID")
+    """建立帖子的響應"""
+    post_id: int = Field(..., description="新建立的帖子ID")
     author_id: int = Field(..., description="作者ID")
-    content: str = Field(..., description="帖子内容")
-    tags: List[str] = Field(default_factory=list, description="话题标签")
-    created_at: str = Field(..., description="创建时间(ISO格式)")
-    post_type: str = Field("original", description="帖子类型")
+    content: str = Field(..., description="帖子內容")
+    tags: List[str] = Field(default_factory=list, description="話題標籤")
+    created_at: str = Field(..., description="建立時間(ISO格式)")
+    post_type: str = Field("original", description="帖子型別")
 
 
 class LikePostResponse(BaseModel):
-    """点赞帖子的响应"""
+    """點贊帖子的響應"""
     post_id: int = Field(..., description="帖子ID")
-    user_id: int = Field(..., description="点赞用户ID")
-    total_likes: int = Field(..., description="帖子当前总点赞数")
+    user_id: int = Field(..., description="點贊使用者ID")
+    total_likes: int = Field(..., description="帖子當前總點贊數")
 
 
 class UnlikePostResponse(BaseModel):
-    """取消点赞的响应"""
+    """取消點讚的響應"""
     post_id: int = Field(..., description="帖子ID")
-    user_id: int = Field(..., description="用户ID")
-    total_likes: int = Field(..., description="帖子当前总点赞数")
+    user_id: int = Field(..., description="使用者ID")
+    total_likes: int = Field(..., description="帖子當前總點贊數")
 
 
 class FollowUserResponse(BaseModel):
-    """关注用户的响应"""
-    follower_id: int = Field(..., description="关注者ID")
-    followee_id: int = Field(..., description="被关注者ID")
-    follower_following_count: int = Field(..., description="关注者的关注数")
-    followee_followers_count: int = Field(..., description="被关注者的粉丝数")
+    """關注使用者的響應"""
+    follower_id: int = Field(..., description="關注者ID")
+    followee_id: int = Field(..., description="被關注者ID")
+    follower_following_count: int = Field(..., description="關注者的關注數")
+    followee_followers_count: int = Field(..., description="被關注者的粉絲數")
 
 
 class UnfollowUserResponse(BaseModel):
-    """取消关注的响应"""
-    follower_id: int = Field(..., description="关注者ID")
-    followee_id: int = Field(..., description="被关注者ID")
-    follower_following_count: int = Field(..., description="关注者的关注数")
-    followee_followers_count: int = Field(..., description="被关注者的粉丝数")
+    """取消關注的響應"""
+    follower_id: int = Field(..., description="關注者ID")
+    followee_id: int = Field(..., description="被關注者ID")
+    follower_following_count: int = Field(..., description="關注者的關注數")
+    followee_followers_count: int = Field(..., description="被關注者的粉絲數")
 
 
 class ViewPostResponse(BaseModel):
-    """查看帖子的响应"""
+    """檢視帖子的響應"""
     post_id: int = Field(..., description="帖子ID")
     author_id: int = Field(..., description="作者ID")
-    content: str = Field(..., description="帖子内容")
-    post_type: str = Field(..., description="帖子类型")
-    likes_count: int = Field(..., description="点赞数")
-    comments_count: int = Field(..., description="评论数")
-    reposts_count: int = Field(..., description="转发数")
-    view_count: int = Field(..., description="浏览数")
-    created_at: str = Field(..., description="创建时间")
-    tags: List[str] = Field(default_factory=list, description="话题标签列表")
-    topic_category: Optional[str] = Field(None, description="主要话题分类")
+    content: str = Field(..., description="帖子內容")
+    post_type: str = Field(..., description="帖子型別")
+    likes_count: int = Field(..., description="點贊數")
+    comments_count: int = Field(..., description="評論數")
+    reposts_count: int = Field(..., description="轉發數")
+    view_count: int = Field(..., description="瀏覽數")
+    created_at: str = Field(..., description="建立時間")
+    tags: List[str] = Field(default_factory=list, description="話題標籤列表")
+    topic_category: Optional[str] = Field(None, description="主要話題分類")
 
 
 class CommentOnPostResponse(BaseModel):
-    """评论帖子的响应"""
-    comment_id: int = Field(..., description="评论ID")
+    """評論帖子的響應"""
+    comment_id: int = Field(..., description="評論ID")
     post_id: int = Field(..., description="帖子ID")
-    user_id: int = Field(..., description="评论者ID")
-    content: str = Field(..., description="评论内容")
-    total_comments: int = Field(..., description="帖子当前总评论数")
+    user_id: int = Field(..., description="評論者ID")
+    content: str = Field(..., description="評論內容")
+    total_comments: int = Field(..., description="帖子當前總評論數")
 
 
 class RepostResponse(BaseModel):
-    """转发帖子的响应"""
+    """轉發帖子的響應"""
     new_post_id: int = Field(..., description="新帖子ID")
     original_post_id: int = Field(..., description="原帖子ID")
-    user_id: int = Field(..., description="转发者ID")
-    comment: str = Field("", description="转发评论")
-    original_reposts_count: int = Field(..., description="原帖当前转发数")
+    user_id: int = Field(..., description="轉發者ID")
+    comment: str = Field("", description="轉發評論")
+    original_reposts_count: int = Field(..., description="原帖當前轉發數")
 
 
 class RefreshFeedResponse(BaseModel):
-    """刷新Feed的响应"""
-    user_id: int = Field(..., description="用户ID")
-    algorithm: str = Field(..., description="推荐算法")
-    posts: List[dict] = Field(default_factory=list, description="推荐帖子列表")
-    count: int = Field(..., description="返回的帖子数量")
+    """重新整理Feed的響應"""
+    user_id: int = Field(..., description="使用者ID")
+    algorithm: str = Field(..., description="推薦演算法")
+    posts: List[dict] = Field(default_factory=list, description="推薦帖子列表")
+    count: int = Field(..., description="返回的帖子數量")
 
 
 class SearchPostsResponse(BaseModel):
-    """搜索帖子的响应"""
-    keyword: str = Field(..., description="搜索关键词")
-    tags: List[str] = Field(default_factory=list, description="标签过滤")
+    """搜尋帖子的響應"""
+    keyword: str = Field(..., description="搜尋關鍵詞")
+    tags: List[str] = Field(default_factory=list, description="標籤過濾")
     sort_by: str = Field(..., description="排序方式")
     posts: List[dict] = Field(default_factory=list, description="匹配的帖子")
-    count: int = Field(..., description="返回的帖子数量")
-    total_matched: int = Field(..., description="总匹配数")
+    count: int = Field(..., description="返回的帖子數量")
+    total_matched: int = Field(..., description="總匹配數")
 
 
 class ObserveUserResponse(BaseModel):
-    """用户观察响应 - 用于 <observe> 指令"""
-    user_id: int = Field(..., description="用户ID")
-    username: str = Field(..., description="用户名")
-    followers_count: int = Field(0, description="粉丝数")
-    following_count: int = Field(0, description="关注数")
-    posts_count: int = Field(0, description="帖子数")
-    profile: dict = Field(default_factory=dict, description="用户档案摘要")
-    recent_interactions: List[dict] = Field(default_factory=list, description="最近收到的互动")
-    recent_activity: List[dict] = Field(default_factory=list, description="最近自己的动态")
-    social_updates: List[dict] = Field(default_factory=list, description="最近社交关系更新")
+    """使用者觀察響應 - 用於 <observe> 指令"""
+    user_id: int = Field(..., description="使用者ID")
+    username: str = Field(..., description="使用者名稱")
+    followers_count: int = Field(0, description="粉絲數")
+    following_count: int = Field(0, description="關注數")
+    posts_count: int = Field(0, description="帖子數")
+    profile: dict = Field(default_factory=dict, description="使用者檔案摘要")
+    recent_interactions: List[dict] = Field(default_factory=list, description="最近收到的互動")
+    recent_activity: List[dict] = Field(default_factory=list, description="最近自己的動態")
+    social_updates: List[dict] = Field(default_factory=list, description="最近社交關係更新")
     recent_feed: List[dict] = Field(default_factory=list, description="最近的 Feed 帖子")
-    available_actions: List[str] = Field(default_factory=list, description="可用的行为")
+    available_actions: List[str] = Field(default_factory=list, description="可用的行為")

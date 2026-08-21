@@ -26,11 +26,11 @@ SKILL_ID = "routine.daily"
 def choose_daily_plan(args: dict, observation: dict, spec: dict) -> dict:
     role_text = profile_text(args.get("profile"))
     hour = hour_from(args.get("time"))
-    if ("学生" in role_text or "student" in role_text) and 7.5 <= hour < 16.5:
+    if ("學生" in role_text or "student" in role_text) and 7.5 <= hour < 16.5:
         return {"summary": "school study routine", "locations": ["school", "library"], "interactions": ["attend_class", "study_after_class"], "status": "studying", "emotion": "focused"}
-    if any(word in role_text for word in ("老师", "教师", "teacher")) and 7.5 <= hour < 17.5:
+    if any(word in role_text for word in ("老師", "教師", "teacher")) and 7.5 <= hour < 17.5:
         return {"summary": "teaching routine", "locations": ["school", "library"], "interactions": ["teach_class", "prepare_lesson"], "status": "teaching", "emotion": "focused"}
-    if any(word in role_text for word in ("医生", "护士", "pharmacist", "doctor", "nurse")) and 8 <= hour < 18:
+    if any(word in role_text for word in ("醫生", "護士", "pharmacist", "doctor", "nurse")) and 8 <= hour < 18:
         return {"summary": "health care shift", "locations": ["pharmacy", "home"], "interactions": ["pharmacy_consultation", "blood_pressure_check"], "status": "caring", "emotion": "attentive"}
     if any(word in role_text for word in ("店", "商", "shop", "vendor", "market")) and 8 <= hour < 18:
         return {"summary": "market work routine", "locations": ["market", "supply_store"], "interactions": ["work_shop_shift", "customer_service"], "status": "working", "emotion": "focused"}

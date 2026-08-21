@@ -1,15 +1,15 @@
 """
 Recommendation Algorithms
 
-统一算法接口和实现:
-- RecommenderAlgorithm: 统一算法抽象基类
-- RatingMatrix: 统一评分数据格式
-- MFRecommender: MF (矩阵分解) 算法实现
-- SASRecRecommender: SASRec (序列推荐) 算法实现
-- NCFRecommender: NCF (神经协同过滤) 算法实现
-- DeepFMRecommender: DeepFM (深度因子分解机) 算法实现
-- DINRecommender: DIN (深度兴趣网络) 算法实现
-- LightGCNRecommender: LightGCN (轻量级图卷积网络) 算法实现
+統一演算法介面和實現:
+- RecommenderAlgorithm: 統一演算法抽象基類
+- RatingMatrix: 統一評分資料格式
+- MFRecommender: MF (矩陣分解) 演算法實現
+- SASRecRecommender: SASRec (序列推薦) 演算法實現
+- NCFRecommender: NCF (神經協同過濾) 演算法實現
+- DeepFMRecommender: DeepFM (深度因子分解機) 演算法實現
+- DINRecommender: DIN (深度興趣網路) 演算法實現
+- LightGCNRecommender: LightGCN (輕量級圖卷積網路) 演算法實現
 """
 
 from .core import RecommenderAlgorithm, RatingMatrix

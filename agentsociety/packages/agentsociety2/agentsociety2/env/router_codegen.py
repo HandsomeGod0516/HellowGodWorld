@@ -1,13 +1,13 @@
 """
 Code Generation Router Implementation
-通过代码生成的方式调用环境模块中的@tool标记的接口
+透過程式碼生成的方式呼叫環境模組中的@tool標記的介面
 
-架构说明:
-- AskContext: 一次ask调用所需的所有状态
-- 观察者模式: 流程结束后统一将 context 交给所有 observer 记录
-- 管道-过滤器: 整体流程通过 PipelineStage 串联
-- 责任链: Code 获取通过 CodeProvider 链实现 (PredefinedCode -> Cache -> LLM)
-- CodeStage: 单阶段完成代码获取 + 验证 + 执行
+架構說明:
+- AskContext: 一次ask呼叫所需的所有狀態
+- 觀察者模式: 流程結束後統一將 context 交給所有 observer 記錄
+- 管道-過濾器: 整體流程透過 PipelineStage 串聯
+- 責任鏈: Code 獲取透過 CodeProvider 鏈實現 (PredefinedCode -> Cache -> LLM)
+- CodeStage: 單階段完成程式碼獲取 + 驗證 + 執行
 """
 
 import ast
@@ -44,63 +44,63 @@ __all__ = ["CodeGenRouter", "AskContext"]
 
 @dataclass
 class CacheStats:
-    """缓存统计信息"""
-    request_count: int = 0  # 总请求次数
-    predefined_hit_count: int = 0  # 预定义指令命中次数（observe/statistics）
-    cache_hit_count: int = 0  # 缓存命中次数
-    cache_miss_count: int = 0  # 缓存未命中次数
-    total_input_tokens: int = 0  # 总输入token数
-    total_output_tokens: int = 0  # 总输出token数
-    code_execution_success_count: int = 0  # 代码执行成功次数
-    code_execution_failure_count: int = 0  # 代码执行失败次数
-    total_code_retry_count: int = 0  # 总代码重试次数
+    """快取統計資訊"""
+    request_count: int = 0  # 總請求次數
+    predefined_hit_count: int = 0  # 預定義指令命中次數（observe/statistics）
+    cache_hit_count: int = 0  # 快取命中次數
+    cache_miss_count: int = 0  # 快取未命中次數
+    total_input_tokens: int = 0  # 總輸入token數
+    total_output_tokens: int = 0  # 總輸出token數
+    code_execution_success_count: int = 0  # 程式碼執行成功次數
+    code_execution_failure_count: int = 0  # 程式碼執行失敗次數
+    total_code_retry_count: int = 0  # 總程式碼重試次數
 
     @property
     def cache_hit_rate(self) -> float:
-        """缓存命中率"""
+        """快取命中率"""
         total = self.cache_hit_count + self.cache_miss_count
         return self.cache_hit_count / total if total > 0 else 0.0
 
     @property
     def code_execution_success_rate(self) -> float:
-        """代码执行成功率"""
+        """程式碼執行成功率"""
         total = self.code_execution_success_count + self.code_execution_failure_count
         return self.code_execution_success_count / total if total > 0 else 0.0
 
     @property
     def avg_input_tokens(self) -> float:
-        """平均输入token数"""
+        """平均輸入token數"""
         return self.total_input_tokens / self.request_count if self.request_count > 0 else 0.0
 
     @property
     def avg_output_tokens(self) -> float:
-        """平均输出token数"""
+        """平均輸出token數"""
         return self.total_output_tokens / self.request_count if self.request_count > 0 else 0.0
 
     @property
     def avg_retry_count(self) -> float:
-        """平均代码重试次数"""
+        """平均程式碼重試次數"""
         return self.total_code_retry_count / self.request_count if self.request_count > 0 else 0.0
 
 
 @dataclass
 class CacheEntry:
-    """缓存条目"""
+    """快取條目"""
     instruction_template: str  # 模板指令
-    variable_keys: tuple[str, ...]  # 变量键的元组（用于子集检查）
-    variable_types: dict[str, str]  # 变量类型字典 {key: type_name}
-    code: str  # 生成的代码
-    embedding: Optional[np.ndarray] = None  # 指令的embedding（用于相似度计算）
-    env_class_type: str = ""  # 接入的env module classes指纹，仅一致时才能使用
-    entry_id: Optional[int] = None  # 数据库中的条目ID（持久化时使用）
-    success_count: int = 0  # 成功执行次数
-    failure_count: int = 0  # 失败执行次数
-    last_used: datetime = field(default_factory=datetime.now)  # 最后使用时间
-    created_at: datetime = field(default_factory=datetime.now)  # 创建时间
+    variable_keys: tuple[str, ...]  # 變數鍵的元組（用於子集檢查）
+    variable_types: dict[str, str]  # 變數型別字典 {key: type_name}
+    code: str  # 生成的程式碼
+    embedding: Optional[np.ndarray] = None  # 指令的embedding（用於相似度計算）
+    env_class_type: str = ""  # 接入的env module classes指紋，僅一致時才能使用
+    entry_id: Optional[int] = None  # 資料庫中的條目ID（持久化時使用）
+    success_count: int = 0  # 成功執行次數
+    failure_count: int = 0  # 失敗執行次數
+    last_used: datetime = field(default_factory=datetime.now)  # 最後使用時間
+    created_at: datetime = field(default_factory=datetime.now)  # 建立時間
 
     @property
     def total_usage(self) -> int:
-        """总使用次数"""
+        """總使用次數"""
         return self.success_count + self.failure_count
 
     @property
@@ -120,42 +120,42 @@ STATISTICS_INSTRUCTION = "Collect environment statistics by calling all availabl
 @dataclass
 class AskContext:
     """
-    一次ask调用所需的完整状态，在管道各阶段之间传递。
+    一次ask呼叫所需的完整狀態，在管道各階段之間傳遞。
     """
-    # === 输入 ===
+    # === 輸入 ===
     ctx: dict
     instruction: str
     readonly: bool
     template_mode: bool
 
-    # === 预处理后 ===
+    # === 預處理後 ===
     variables: dict = field(default_factory=dict)
     instruction_stripped: str = ""
     is_observe_or_statistics: bool = False
-    resolved_instruction: str = ""  # <observe>/<statistics> 解析后的实际指令
+    resolved_instruction: str = ""  # <observe>/<statistics> 解析後的實際指令
 
-    # === Code 获取 (责任链) ===
+    # === Code 獲取 (責任鏈) ===
     code: Optional[str] = None
     cache_entry: Optional["CacheEntry"] = None
     cache_miss_reason: Optional[str] = None
     code_source: Optional[str] = None  # "predefined" | "cache" | "llm" | "builtin"
 
-    # === LLM 重试状态 ===
+    # === LLM 重試狀態 ===
     retry_count: int = 0
     previous_code: Optional[str] = None
     previous_errors: List[str] = field(default_factory=list)
     dialog_history: List[AllMessageValues] = field(default_factory=list)
 
-    # === 执行结果 ===
+    # === 執行結果 ===
     execution_result: Optional[Dict[str, Any]] = None
-    execution_attempted: bool = False  # 是否尝试过执行代码（供 observer 统计）
-    success_data: Optional[Dict[str, Any]] = None  # 成功时的 {ctx, instruction, results, process_text, status, error, code}
+    execution_attempted: bool = False  # 是否嘗試過執行程式碼（供 observer 統計）
+    success_data: Optional[Dict[str, Any]] = None  # 成功時的 {ctx, instruction, results, process_text, status, error, code}
 
-    # === 输出 ===
+    # === 輸出 ===
     final_answer: str = ""
     results: dict = field(default_factory=dict)
-    early_return: Optional[Tuple[dict, str]] = None  # 非 None 表示提前返回，不再继续管道
-    token_usage_responses: List[Dict[str, int]] = field(default_factory=list)  # 每次 LLM 调用的 token 使用，供 observer 统计
+    early_return: Optional[Tuple[dict, str]] = None  # 非 None 表示提前返回，不再繼續管道
+    token_usage_responses: List[Dict[str, int]] = field(default_factory=list)  # 每次 LLM 呼叫的 token 使用，供 observer 統計
 
     def __post_init__(self):
         self.instruction_stripped = self.instruction.strip()
@@ -169,7 +169,7 @@ class AskContext:
 
 
 def _get_debug_info(description: str = "") -> str:
-    """获取当前文件、行号和阶段描述的调试信息"""
+    """獲取當前檔案、行號和階段描述的除錯資訊"""
     frame = inspect.currentframe()
     if frame and frame.f_back:
         caller_frame = frame.f_back
@@ -181,7 +181,7 @@ def _get_debug_info(description: str = "") -> str:
 
 async def clean_coroutines_from_results(results: dict) -> dict:
     """
-    递归检查 results 中的未 await 的 coroutine 并 await 获取其值。
+    遞迴檢查 results 中的未 await 的 coroutine 並 await 獲取其值。
     供 CodeStage 和 InstructionLogObserver 使用。
     """
     visited: set[int] = set()
@@ -219,9 +219,9 @@ async def clean_coroutines_from_results(results: dict) -> dict:
 
 def _get_env_class_type_key(env_modules: list) -> str:
     """
-    根据 env module classes 生成可读的标识字符串。
-    相同 env 配置（模块类型和名称）产生相同 key，用于缓存隔离。
-    返回 human-readable 的 JSON，便于直接查看缓存内容。
+    根據 env module classes 生成可讀的標識字串。
+    相同 env 配置（模組型別和名稱）產生相同 key，用於快取隔離。
+    返回 human-readable 的 JSON，便於直接檢視快取內容。
     """
     keys = []
     for m in env_modules:
@@ -256,7 +256,7 @@ def _build_deterministic_final_answer(router: "CodeGenRouter", success_data: Dic
 
     if status in {"fail", "error"} and reason:
         body = str(reason).strip()
-    elif process_text and process_text != "无输出":
+    elif process_text and process_text != "無輸出":
         body = process_text
     elif reason:
         body = str(reason).strip()
@@ -268,9 +268,9 @@ def _build_deterministic_final_answer(router: "CodeGenRouter", success_data: Dic
 
 class TemplateCacheDB:
     """
-    持久化模板缓存，支持跨运行共用。
-    使用 pickle 文件存储，FAISS 进行 embedding 相似度搜索。
-    缓存按 env_class_type 隔离，仅 env 类型一致时才能命中。
+    持久化模板快取，支援跨執行共用。
+    使用 pickle 檔案儲存，FAISS 進行 embedding 相似度搜尋。
+    快取按 env_class_type 隔離，僅 env 型別一致時才能命中。
     """
 
     def __init__(
@@ -285,7 +285,7 @@ class TemplateCacheDB:
         os.makedirs(os.path.dirname(cache_path), exist_ok=True)
 
     def _load_data(self) -> dict:
-        """从 pickle 文件加载数据。"""
+        """從 pickle 檔案載入資料。"""
         if not os.path.exists(self._cache_path):
             return {"next_id": 1, "by_env": {}}
         try:
@@ -296,13 +296,13 @@ class TemplateCacheDB:
             return {"next_id": 1, "by_env": {}}
 
     def _save_data(self, data: dict) -> None:
-        """保存数据到 pickle 文件。"""
+        """儲存資料到 pickle 檔案。"""
         with open(self._cache_path, "wb") as f:
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_entries(self, env_class_type: str) -> Tuple[List[CacheEntry], Optional["faiss.Index"], List[int]]:
         """
-        加载指定 env_class_type 的缓存条目并构建 FAISS 索引。
+        載入指定 env_class_type 的快取條目並構建 FAISS 索引。
         Returns:
             (entries, faiss_index, faiss_entry_indices)
         """
@@ -335,7 +335,7 @@ class TemplateCacheDB:
         env_class_type: str,
         entry: CacheEntry,
     ) -> int:
-        """新增缓存条目并持久化。Returns 新条目的 id。"""
+        """新增快取條目並持久化。Returns 新條目的 id。"""
         data = self._load_data()
         next_id = data.get("next_id", 1)
         by_env = data.setdefault("by_env", {})
@@ -358,7 +358,7 @@ class TemplateCacheDB:
         success: bool,
         code: str,
     ) -> None:
-        """更新已有条目的统计和代码。"""
+        """更新已有條目的統計和程式碼。"""
         data = self._load_data()
         lst = data.get("by_env", {}).get(env_class_type, [])
         for e in lst:
@@ -373,7 +373,7 @@ class TemplateCacheDB:
         self._save_data(data)
 
     def clear_env_cache(self, env_class_type: str) -> None:
-        """清空指定 env_class_type 的所有缓存条目。"""
+        """清空指定 env_class_type 的所有快取條目。"""
         data = self._load_data()
         data.setdefault("by_env", {}).pop(env_class_type, None)
         self._save_data(data)
@@ -383,7 +383,7 @@ class TemplateCacheDB:
         env_class_type: str,
         instruction_template: str,
     ) -> Optional[CacheEntry]:
-        """按 instruction_template 查找已有条目（用于更新而非新增）。"""
+        """按 instruction_template 查詢已有條目（用於更新而非新增）。"""
         data = self._load_data()
         lst = data.get("by_env", {}).get(env_class_type, [])
         for e in lst:
@@ -392,54 +392,54 @@ class TemplateCacheDB:
         return None
 
 
-# ==================== 观察者模式 ====================
-# 所有 observer 仅在流程结束时被调用一次，根据完整 context 记录必要内容
+# ==================== 觀察者模式 ====================
+# 所有 observer 僅在流程結束時被呼叫一次，根據完整 context 記錄必要內容
 
 
 class AskObserver(Protocol):
-    """Ask流程观察者协议：流程结束后接收最终 context"""
+    """Ask流程觀察者協議：流程結束後接收最終 context"""
 
     async def on_final(self, context: AskContext) -> None:
         ...
 
 
-# ==================== 责任链：Code 获取 ====================
+# ==================== 責任鏈：Code 獲取 ====================
 
 
 class CodeProvider(Protocol):
-    """Code 获取责任链节点协议，Predefined 最优先"""
+    """Code 獲取責任鏈節點協議，Predefined 最優先"""
 
     @property
     def name(self) -> str:
-        """提供者名称，用于 context.code_source"""
+        """提供者名稱，用於 context.code_source"""
         ...
 
     async def get_code(self, context: AskContext, router: "CodeGenRouter") -> Optional[str]:
-        """返回代码则链终止，返回 None 则传递至下一节点"""
+        """返回程式碼則鏈終止，返回 None 則傳遞至下一節點"""
         ...
 
 
-# ==================== 管道-过滤器 ====================
+# ==================== 管道-過濾器 ====================
 
 
 class PipelineStage(Protocol):
-    """管道阶段协议，接收 AskContext，返回可能被修改的 AskContext"""
+    """管道階段協議，接收 AskContext，返回可能被修改的 AskContext"""
 
     async def process(self, context: AskContext, router: "CodeGenRouter") -> AskContext:
         ...
 
 
-# --- 观察者具体实现：统一在 on_final 中根据 context 记录 ---
+# --- 觀察者具體實現：統一在 on_final 中根據 context 記錄 ---
 
 
 class InstructionLogObserver:
-    """记录 instruction 到 instruction_log"""
+    """記錄 instruction 到 instruction_log"""
 
     def __init__(self, router: "CodeGenRouter"):
         self._router = router
 
     async def on_final(self, context: AskContext) -> None:
-        # 执行阶段已清理 ctx；未执行时（如 early_return）需清理以便 pickle
+        # 執行階段已清理 ctx；未執行時（如 early_return）需清理以便 pickle
         ctx = context.ctx if context.execution_attempted else await clean_coroutines_from_results(context.ctx)
         log_entry = EnvRouterBenchmarkData(
             instruction=context.instruction,
@@ -456,7 +456,7 @@ class InstructionLogObserver:
 
 
 class CacheStatsObserver:
-    """根据最终 context 更新 CacheStats 统计"""
+    """根據最終 context 更新 CacheStats 統計"""
 
     def __init__(self, router: "CodeGenRouter"):
         self._router = router
@@ -482,7 +482,7 @@ class CacheStatsObserver:
 
 
 class CacheAddObserver:
-    """执行成功后根据条件写入缓存"""
+    """執行成功後根據條件寫入快取"""
 
     def __init__(self, router: "CodeGenRouter"):
         self._router = router
@@ -539,11 +539,11 @@ class CacheAddObserver:
             await self._add_to_cache(self._router, context.instruction, context.variables, sd["code"], success=True)
 
 
-# --- Code Provider 责任链具体实现 ---
+# --- Code Provider 責任鏈具體實現 ---
 
 
 class PredefinedCodeProvider:
-    """预定义代码提供者，优先级最高（<observe> / <statistics>）"""
+    """預定義程式碼提供者，優先順序最高（<observe> / <statistics>）"""
 
     @property
     def name(self) -> str:
@@ -558,7 +558,7 @@ class PredefinedCodeProvider:
 
 
 class CacheCodeProvider:
-    """模板缓存提供者，优先级第二"""
+    """模板快取提供者，優先順序第二"""
 
     @property
     def name(self) -> str:
@@ -645,7 +645,7 @@ class CacheCodeProvider:
 
 
 class LLMCodegenProvider:
-    """LLM 代码生成提供者，责任链最后一环，负责调用 LLM 生成代码"""
+    """LLM 程式碼生成提供者，責任鏈最後一環，負責呼叫 LLM 生成程式碼"""
 
     @property
     def name(self) -> str:
@@ -734,7 +734,7 @@ Please generate the corrected code:"""
                 token_usage = {"input_tokens": getattr(usage, "prompt_tokens", 0), "output_tokens": getattr(usage, "completion_tokens", 0)}
             return code, token_usage
         except Exception as e:
-            get_logger().error(f"{_get_debug_info('LLM代码生成失败')} - {e}")
+            get_logger().error(f"{_get_debug_info('LLM程式碼生成失敗')} - {e}")
             return "", None
 
     async def get_code(self, context: AskContext, router: "CodeGenRouter") -> Optional[str]:
@@ -751,11 +751,11 @@ Please generate the corrected code:"""
         return code.strip() if code else None
 
 
-# --- Pipeline 阶段具体实现 ---
+# --- Pipeline 階段具體實現 ---
 
 
 class InitStage:
-    """初始化：添加时间到 ctx，检查 env_modules"""
+    """初始化：新增時間到 ctx，檢查 env_modules"""
 
     async def process(self, context: AskContext, router: "CodeGenRouter") -> AskContext:
         router._add_current_time_to_ctx(context.ctx)
@@ -766,8 +766,8 @@ class InitStage:
 
 class CodeStage:
     """
-    代码获取（责任链）+ 验证 + 执行，含重试循环。
-    Predefined -> Cache -> LLM；验证或执行失败时通过 LLM 重试。
+    程式碼獲取（責任鏈）+ 驗證 + 執行，含重試迴圈。
+    Predefined -> Cache -> LLM；驗證或執行失敗時透過 LLM 重試。
     """
 
     @staticmethod
@@ -961,7 +961,7 @@ class CodeStage:
                 execution_result = {"success": False, "error": str(e), "results": {}, "print_outputs": [], "output": ""}
 
             context.execution_result = execution_result
-            # 代码执行后必须清理 ctx 和 results 中的 coroutine，以便序列化
+            # 程式碼執行後必須清理 ctx 和 results 中的 coroutine，以便序列化
             context.ctx = await clean_coroutines_from_results(context.ctx)
             if execution_result.get("results"):
                 execution_result["results"] = await clean_coroutines_from_results(execution_result["results"])
@@ -980,7 +980,7 @@ class CodeStage:
             results = execution_result.get("results", {})
             status = results.get("status", "unknown")
             error = execution_result.get("error", "")
-            process_text = "\n".join(print_outputs) if print_outputs else "无输出"
+            process_text = "\n".join(print_outputs) if print_outputs else "無輸出"
             if error:
                 process_text += f"\n\nError: {error}"
             process_text = f"```\n{process_text}\n```"
@@ -999,7 +999,7 @@ class CodeStage:
 
 
 class SummaryStage:
-    """生成最终答案"""
+    """生成最終答案"""
 
     async def process(self, context: AskContext, router: "CodeGenRouter") -> AskContext:
         if context.early_return:
@@ -1028,7 +1028,7 @@ class SummaryStage:
 
 
 class ObserveFinalStage:
-    """流程结束后统一将 context 交给所有 observer 记录"""
+    """流程結束後統一將 context 交給所有 observer 記錄"""
 
     async def process(self, context: AskContext, router: "CodeGenRouter") -> AskContext:
         await router._notify_observers_final(context)
@@ -1037,19 +1037,19 @@ class ObserveFinalStage:
 
 class CodeGenRouter(RouterBase):
     """
-    代码生成式Router：通过生成Python代码的方式调用环境模块中的@tool标记的接口。
+    程式碼生成式Router：透過生成Python程式碼的方式呼叫環境模組中的@tool標記的介面。
 
     工作流程：
-    1. 收集所有环境模块的工具信息
-    2. 使用类似 pyi 文件的 Python 代码格式向LLM提供环境模块描述和工具信息
-       （包含 pydantic BaseModel 定义和模块类定义）
-    3. LLM生成Python代码来调用工具
-    4. 使用AST解析检查代码安全性
-    5. 通过compile和exec执行代码，捕获打印输出
-    6. 根据执行结果和打印输出生成最终响应
+    1. 收集所有環境模組的工具資訊
+    2. 使用類似 pyi 檔案的 Python 程式碼格式向LLM提供環境模組描述和工具資訊
+       （包含 pydantic BaseModel 定義和模組類定義）
+    3. LLM生成Python程式碼來呼叫工具
+    4. 使用AST解析檢查程式碼安全性
+    5. 透過compile和exec執行程式碼，捕獲列印輸出
+    6. 根據執行結果和列印輸出生成最終響應
     """
 
-    # 允许的内置函数
+    # 允許的內建函式
     ALLOWED_BUILTINS = {
         "print",
         "len",
@@ -1080,18 +1080,18 @@ class CodeGenRouter(RouterBase):
         "dir",
     }
 
-    # 禁止的AST节点类型（黑名单）
+    # 禁止的AST節點型別（黑名單）
     FORBIDDEN_AST_NODES = {
-        ast.ClassDef,  # 禁止定义类
-        ast.Delete,  # 禁止del语句
+        ast.ClassDef,  # 禁止定義類
+        ast.Delete,  # 禁止del語句
         ast.Global,
-        ast.Nonlocal,  # 禁止全局/非局部变量声明
+        ast.Nonlocal,  # 禁止全域性/非區域性變數宣告
         ast.With,
-        ast.AsyncWith,  # 禁止with语句
+        ast.AsyncWith,  # 禁止with語句
         ast.Assert,  # 禁止assert
     }
 
-    # 允许导入的模块白名单
+    # 允許匯入的模組白名單
     ALLOWED_MODULES = {
         "collections",
         "itertools",
@@ -1108,10 +1108,10 @@ class CodeGenRouter(RouterBase):
         "math",
         "random",
         "numpy",
-        "np",  # numpy的别名
+        "np",  # numpy的別名
     }
 
-    # 危险模块列表
+    # 危險模組列表
     DANGEROUS_MODULES = {
         "os",
         "sys",
@@ -1143,10 +1143,10 @@ class CodeGenRouter(RouterBase):
         replay_writer: Optional["ReplayWriter"] = None,
         final_summary_enabled: bool = True,
         # Template cache configuration
-        template_cache_enabled: bool = True,  # 是否启用模板缓存
-        template_cache_similarity_threshold: float = 0.85,  # 缓存相似度阈值
-        template_cache_max_size: int = 1000,  # 单 env 类型最大缓存条目数
-        template_cache_dir: Optional[str] = None,  # 缓存数据库目录，None 则用 {Config.HOME_DIR}/codegen_router_cache
+        template_cache_enabled: bool = True,  # 是否啟用模板快取
+        template_cache_similarity_threshold: float = 0.85,  # 快取相似度閾值
+        template_cache_max_size: int = 1000,  # 單 env 型別最大快取條目數
+        template_cache_dir: Optional[str] = None,  # 快取資料庫目錄，None 則用 {Config.HOME_DIR}/codegen_router_cache
     ):
         super().__init__(
             env_modules=env_modules,
@@ -1198,71 +1198,71 @@ class CodeGenRouter(RouterBase):
 
         self._modules = {module.name: module for module in self.env_modules}
 
-        # Statistics 初始化代码由 LLM 在 init 中生成；observe 走内置 _run_builtin_observe
+        # Statistics 初始化程式碼由 LLM 在 init 中生成；observe 走內建 _run_builtin_observe
         self._statistics_code = ""
 
         # Flag to track if LLM code generation has been attempted
         self._llm_code_generated = False
 
-        # 记录所有agent的指令、context和生成的代码
+        # 記錄所有agent的指令、context和生成的程式碼
         self._instruction_log: List[EnvRouterBenchmarkData] = []
         self._instruction_log_lock: asyncio.Lock = asyncio.Lock()
 
-        # ==================== Template缓存相关 ====================
+        # ==================== Template快取相關 ====================
         self._final_summary_enabled = final_summary_enabled
         self._template_cache_enabled = template_cache_enabled
         self._template_cache_similarity_threshold = template_cache_similarity_threshold
         self._template_cache_max_size = template_cache_max_size
 
-        # Env class type 指纹，用于缓存隔离
+        # Env class type 指紋，用於快取隔離
         self._env_class_type_key = _get_env_class_type_key(env_modules)
 
-        # 持久化缓存（pickle 文件，跨运行共用）
+        # 持久化快取（pickle 檔案，跨執行共用）
         cache_dir = template_cache_dir or os.path.join(Config.HOME_DIR, "codegen_router_cache")
         cache_path = os.path.join(cache_dir, "cache.pkl")
-        self._cache_dir = cache_dir  # 与 cache 同目录，用于保存 cache_stats.jsonl
+        self._cache_dir = cache_dir  # 與 cache 同目錄，用於儲存 cache_stats.jsonl
         self._cache_db = TemplateCacheDB(
             cache_path=cache_path,
             embedding_dims=Config.EMBEDDING_DIMS,
             max_size_per_env=template_cache_max_size,
         )
-        # 每步统计：用于计算 delta 并写入 JSONL
+        # 每步統計：用於計算 delta 並寫入 JSONL
         self._cache_stats_jsonl_path = os.path.join(cache_dir, "cache_stats.jsonl")
         self._prev_step_stats: Optional[CacheStats] = None
         self._step_index: int = 0
-        self._run_id: Optional[str] = None  # 在 init() 时设置，用于区分不同次模拟
+        self._run_id: Optional[str] = None  # 在 init() 時設定，用於區分不同次模擬
 
-        # 当前 env 的缓存集（从 DB 加载，在 init() 时填充）
+        # 當前 env 的快取集（從 DB 載入，在 init() 時填充）
         self._cache_entries: List[CacheEntry] = []
         self._cache_faiss_index: Optional[faiss.Index] = None
         self._cache_faiss_entry_indices: List[int] = []
         self._template_cache_lock: asyncio.Lock = asyncio.Lock()
 
-        # 缓存统计信息
+        # 快取統計資訊
         self._cache_stats = CacheStats()
 
-        # Embedding缓存
+        # Embedding快取
         self._embedding_cache: Dict[str, np.ndarray] = {}
 
-        # Embedding模型配置（从Config获取）
+        # Embedding模型配置（從Config獲取）
         self._embedding_model = Config.EMBEDDING_MODEL
         self._embedding_api_key = Config.EMBEDDING_API_KEY
         self._embedding_api_base = Config.EMBEDDING_API_BASE
         self._embedding_dims = Config.EMBEDDING_DIMS
 
-        # 并发锁：仅代码执行需串行（会修改 env 状态），其余（缓存、codegen、generate_final_answer）可并行
+        # 併發鎖：僅程式碼執行需序列（會修改 env 狀態），其餘（快取、codegen、generate_final_answer）可並行
         self._execute_lock: asyncio.Lock = asyncio.Lock()
         self._cache_stats_lock: asyncio.Lock = asyncio.Lock()
         self._embedding_cache_lock: asyncio.Lock = asyncio.Lock()
 
-        # 观察者（缓存统计、instruction log、缓存写入）
+        # 觀察者（快取統計、instruction log、快取寫入）
         self._observers: List[AskObserver] = [
             InstructionLogObserver(self),
             CacheStatsObserver(self),
             CacheAddObserver(self),
         ]
 
-        # Code 获取责任链：Predefined -> Cache -> LLM（LLM 在 pipeline 中单独处理）
+        # Code 獲取責任鏈：Predefined -> Cache -> LLM（LLM 在 pipeline 中單獨處理）
         self._code_provider_chain: List[CodeProvider] = [
             PredefinedCodeProvider(),
             CacheCodeProvider(),
@@ -1288,7 +1288,7 @@ class CodeGenRouter(RouterBase):
 
     @staticmethod
     async def _call_single_observe_tool(module: Any, fn: Any, subject_id: Optional[int]) -> Any:
-        # tool 装饰器把真实方法包在 *args,**kwargs 里；对 wrapper 做 signature 会得到 param 名 "args"，误传成 observe(args=…)。
+        # tool 裝飾器把真實方法包在 *args,**kwargs 裡；對 wrapper 做 signature 會得到 param 名 "args"，誤傳成 observe(args=…)。
         impl = getattr(fn, "_original_func", fn)
         sig = inspect.signature(impl)
         params = list(sig.parameters.values())
@@ -1365,7 +1365,7 @@ class CodeGenRouter(RouterBase):
         }
 
     async def _notify_observers_final(self, context: AskContext) -> None:
-        """流程结束后，将最终 context 交给所有观察者记录"""
+        """流程結束後，將最終 context 交給所有觀察者記錄"""
         for obs in self._observers:
             await obs.on_final(context)
 
@@ -1373,23 +1373,23 @@ class CodeGenRouter(RouterBase):
         self, ctx: dict, instruction: str, readonly: bool = False, template_mode: bool = False
     ) -> Tuple[dict, str]:
         """
-        使用代码生成方式处理指令。通过管道-过滤器架构执行。
+        使用程式碼生成方式處理指令。透過管道-過濾器架構執行。
 
         Args:
-            ctx: 上下文字典（在template模式下，应包含'variables'键）
-            instruction: 指令字符串（在template模式下，为模板指令，包含{variable_name}占位符）
-            readonly: 是否只读模式
-            template_mode: 是否启用模板模式（启用后使用缓存机制）
+            ctx: 上下文字典（在template模式下，應包含'variables'鍵）
+            instruction: 指令字串（在template模式下，為模板指令，包含{variable_name}佔位符）
+            readonly: 是否只讀模式
+            template_mode: 是否啟用模板模式（啟用後使用快取機制）
 
         Returns:
-            (ctx, answer) 元组
+            (ctx, answer) 元組
         """
         context = AskContext(ctx=ctx, instruction=instruction, readonly=readonly, template_mode=template_mode)
         stages: List[PipelineStage] = [
             InitStage(),
-            CodeStage(),  # 代码获取 + 验证 + 执行
+            CodeStage(),  # 程式碼獲取 + 驗證 + 執行
             SummaryStage(),
-            ObserveFinalStage(),  # 无论是否 early_return，最后统一交给 observer 记录
+            ObserveFinalStage(),  # 無論是否 early_return，最後統一交給 observer 記錄
         ]
         for stage in stages:
             context = await stage.process(context, self)
@@ -1400,18 +1400,18 @@ class CodeGenRouter(RouterBase):
     async def init(self, start_datetime: datetime):
         """
         Initialize the router with the start datetime and generate code using LLM.
-        从本地缓存数据库加载当前 env 类型的缓存集，构建 FAISS 索引。
+        從本地快取資料庫載入當前 env 型別的快取集，構建 FAISS 索引。
         """
         await super().init(start_datetime)
 
-        # 在async上下文中初始化锁
+        # 在async上下文中初始化鎖
         get_logger().debug("Initialized instruction log lock")
 
-        # 从持久化 DB 加载当前 env_class_type 的缓存，用于 embedding 相似度检索
+        # 從持久化 DB 載入當前 env_class_type 的快取，用於 embedding 相似度檢索
         if self._template_cache_enabled:
             self._load_cache_from_db()
 
-        # 为本次模拟生成 run_id，便于在 JSONL 中区分不同次模拟
+        # 為本次模擬生成 run_id，便於在 JSONL 中區分不同次模擬
         self._run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Generate code using LLM if not already done
@@ -1429,11 +1429,11 @@ class CodeGenRouter(RouterBase):
     async def step(self, tick: int, t: datetime):
         """
         Run forward one step for all simulation modules, then output cache statistics.
-        每步结束后将本步的统计指标以 JSONL 形式追加写入缓存目录，便于分析缓存带来的性能提升。
+        每步結束後將本步的統計指標以 JSONL 形式追加寫入快取目錄，便於分析快取帶來的效能提升。
         """
         await super().step(tick, t)
 
-        # 快照当前累计统计，计算本步增量，写入 JSONL（追加模式，支持多次模拟聚合）
+        # 快照當前累計統計，計算本步增量，寫入 JSONL（追加模式，支援多次模擬聚合）
         async with self._cache_stats_lock:
             current = CacheStats(
                 request_count=self._cache_stats.request_count,
@@ -1469,7 +1469,7 @@ class CodeGenRouter(RouterBase):
             "predefined_hit_count": delta.predefined_hit_count,
             "cache_hit_count": delta.cache_hit_count,
             "cache_miss_count": delta.cache_miss_count,
-            "cached_entries_count": len(self._cache_entries),  # 当前已缓存数据条目标数
+            "cached_entries_count": len(self._cache_entries),  # 當前已快取資料條目標數
             "total_input_tokens": delta.total_input_tokens,
             "total_output_tokens": delta.total_output_tokens,
             "code_execution_success_rate": code_execution_success_rate,
@@ -1489,14 +1489,14 @@ class CodeGenRouter(RouterBase):
         """
         Dump router state to a serializable dict, including instruction logs and cache stats.
         """
-        # 调用父类的dump方法获取基础状态
+        # 呼叫父類的dump方法獲取基礎狀態
         base_dump = await super().dump()
 
-        # 添加指令日志
+        # 新增指令日誌
         async with self._instruction_log_lock:
             base_dump["instruction_log"] = self._instruction_log.copy()
 
-        # 添加缓存统计信息
+        # 新增快取統計資訊
         async with self._cache_stats_lock:
             base_dump["cache_stats"] = {
                 "request_count": self._cache_stats.request_count,
@@ -1516,10 +1516,10 @@ class CodeGenRouter(RouterBase):
         """
         Load router state from a dict produced by dump().
         """
-        # 调用父类的load方法恢复基础状态
+        # 呼叫父類的load方法恢復基礎狀態
         await super().load(dump_data)
 
-        # 恢复指令日志
+        # 恢復指令日誌
         try:
             instruction_log = dump_data.get("instruction_log", [])
             if isinstance(instruction_log, list):
@@ -1534,7 +1534,7 @@ class CodeGenRouter(RouterBase):
     async def _generate_initialization_code_with_retry(
         self, instruction: str, ctx: dict, kind: str,
     ) -> str:
-        """生成 observe/statistics 初始化代码，使用 LLMCodegenProvider 与 CodeStage。"""
+        """生成 observe/statistics 初始化程式碼，使用 LLMCodegenProvider 與 CodeStage。"""
         llm_provider = LLMCodegenProvider()
         code_stage = CodeStage()
         prompt = llm_provider._build_prompt(self, instruction, ctx, True, kind)
@@ -1544,7 +1544,7 @@ class CodeGenRouter(RouterBase):
         retry_count = 0
 
         while retry_count <= self.max_llm_call_retry:
-            # 构造临时 context 供 _call_llm 使用
+            # 構造臨時 context 供 _call_llm 使用
             tmp_ctx = AskContext(ctx=ctx, instruction=instruction, readonly=True, template_mode=False)
             tmp_ctx.dialog_history = dialog_history
             tmp_ctx.retry_count = retry_count
@@ -1604,28 +1604,28 @@ class CodeGenRouter(RouterBase):
 
     async def _generate_statistics_code(self) -> str:
         """
-        使用LLM生成统计代码，用于调用所有statistics类型的工具。
-        使用与其他普通文本相同的代码生成逻辑，失败时通过多轮对话让LLM修正。
+        使用LLM生成統計程式碼，用於呼叫所有statistics型別的工具。
+        使用與其他普通文字相同的程式碼生成邏輯，失敗時透過多輪對話讓LLM修正。
 
         Returns:
-            生成的Python代码字符串，如果生成失败则返回空字符串
+            生成的Python程式碼字串，如果生成失敗則返回空字串
         """
-        get_logger().debug(f"{_get_debug_info('开始生成statistics代码')}")
+        get_logger().debug(f"{_get_debug_info('開始生成statistics程式碼')}")
 
         if (True, "statistics") not in self._tools_pyi_dict:
             get_logger().debug(
-                f"{_get_debug_info('statistics工具不存在')} - 跳过代码生成"
+                f"{_get_debug_info('statistics工具不存在')} - 跳過程式碼生成"
             )
             return ""
 
         instruction = self.STATISTICS_INSTRUCTION
-        ctx = {}  # 测试执行用的最小上下文
+        ctx = {}  # 測試執行用的最小上下文
         return await self._generate_initialization_code_with_retry(
             instruction=instruction, ctx=ctx, kind="statistics"
         )
 
     def _load_cache_from_db(self) -> None:
-        """从本地缓存数据库加载当前 env_class_type 的缓存集，构建 FAISS 索引。"""
+        """從本地快取資料庫載入當前 env_class_type 的快取集，構建 FAISS 索引。"""
         entries, index, indices = self._cache_db.load_entries(self._env_class_type_key)
         self._cache_entries = entries
         self._cache_faiss_index = index
@@ -1637,20 +1637,20 @@ class CodeGenRouter(RouterBase):
 
     def get_cache_stats(self) -> CacheStats:
         """
-        获取缓存统计信息。
+        獲取快取統計資訊。
 
         Returns:
-            CacheStats对象，包含所有缓存统计信息
+            CacheStats物件，包含所有快取統計資訊
         """
-        # 同步方法无法用 async with，暂不加锁；step 中调用 get_cache_stats_summary 为最佳-effort
+        # 同步方法無法用 async with，暫不加鎖；step 中呼叫 get_cache_stats_summary 為最佳-effort
         return self._cache_stats
 
     def get_cache_stats_summary(self) -> str:
         """
-        获取缓存统计信息的摘要字符串。
+        獲取快取統計資訊的摘要字串。
 
         Returns:
-            格式化的统计信息字符串
+            格式化的統計資訊字串
         """
         stats = self._cache_stats
         return f"""Cache Statistics Summary:
@@ -1671,7 +1671,7 @@ class CodeGenRouter(RouterBase):
 - Cache Size: {len(self._cache_entries)} entries (env={self._env_class_type_key[:60] + ('...' if len(self._env_class_type_key) > 60 else '')})"""
 
     async def clear_cache(self) -> None:
-        """清空当前 env 的缓存（内存 + 持久化 DB）"""
+        """清空當前 env 的快取（記憶體 + 持久化 DB）"""
         async with self._template_cache_lock:
             self._cache_db.clear_env_cache(self._env_class_type_key)
             self._cache_entries = []

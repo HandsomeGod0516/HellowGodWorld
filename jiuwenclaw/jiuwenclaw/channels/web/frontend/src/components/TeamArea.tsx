@@ -1,7 +1,7 @@
 /**
- * TeamArea 组件
+ * TeamArea 元件
  *
- * 显示团队信息，包括团队名称、成员列表和成员状态
+ * 顯示團隊資訊，包括團隊名稱、成員列表和成員狀態
  */
 
 import { useTranslation } from 'react-i18next';
@@ -23,7 +23,7 @@ export function TeamArea({ members }: TeamAreaProps) {
   const { t } = useTranslation();
   const { todos } = useTodoStore();
 
-  // 获取每个成员正在执行的任务
+  // 獲取每個成員正在執行的任務
   const getMemberCurrentTask = (memberId: string) => {
     return todos.find(todo => todo.claimedBy === memberId && todo.status === 'in_progress');
   };

@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'library']
 TARGET_INTERACTIONS = ['work_from_home', 'quiet_work']
 STATUS = 'protecting_privacy'
 EMOTION = 'careful'
-SPEECH = '我先确认哪些信息不能随便说出去。'
+SPEECH = '我先確認哪些資訊不能隨便說出去。'
 MEMORY_TEMPLATE = 'Used privacy.protect: {summary} at {location_id}.'
 
 

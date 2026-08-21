@@ -23,7 +23,7 @@
   ],
   "status": "planning_patrol",
   "emotion": "alert",
-  "speech": "我先规划一条能覆盖重点地点的路线。",
+  "speech": "我先規劃一條能覆蓋重點地點的路線。",
   "memory_template": "Used patrol.plan: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

@@ -1,7 +1,7 @@
 /**
- * MessageItem 组件
+ * MessageItem 元件
  *
- * 单条消息显示，支持 TTS 朗读
+ * 單條訊息顯示，支援 TTS 朗讀
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
@@ -46,7 +46,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
     rate: 1.1,
   });
 
-  // 朗读消息
+  // 朗讀訊息
   const stopGeneratedAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -128,7 +128,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
     }
   }, [content]);
 
-  // 自动朗读新消息（仅助手消息，由父组件通过 autoSpeak 控制）
+  // 自動朗讀新訊息（僅助手訊息，由父元件透過 autoSpeak 控制）
   useEffect(() => {
     if (autoSpeak && role === 'assistant' && !isStreaming && !hasAutoSpoken && content) {
       handleSpeak();
@@ -136,7 +136,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
     }
   }, [autoSpeak, role, isStreaming, hasAutoSpoken, content, handleSpeak]);
 
-  // 工具调用/结果消息
+  // 工具呼叫/結果訊息
   if (role === 'tool') {
     return (
       <ToolCallDisplay
@@ -146,9 +146,9 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
     );
   }
 
-  // 系统消息
+  // 系統訊息
   if (role === 'system') {
- 	     // 检查是否为 chat.session_result 事件
+ 	     // 檢查是否為 chat.session_result 事件
  	     if (content && content.startsWith('chat.session_result:')) {
  	       console.log('chat.session_result event:', content);
  	       const [, jsonStr] = content.split('chat.session_result:');
@@ -170,7 +170,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
  	                   </svg>
  	                 </span>
  	                 <span className="font-mono text-sm font-medium text-text">
- 	                   会话任务：【{description || '未知任务'}】已完成
+ 	                   會話任務：【{description || '未知任務'}】已完成
  	                 </span>
  	                 <span className="text-text-muted text-sm">
  	                   {isExpanded ? '▼' : '▶'}
@@ -200,7 +200,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
  	           </div>
  	         );
  	       } catch (e) {
- 	         // 如果解析失败，显示原始内容
+ 	         // 如果解析失敗，顯示原始內容
  	         return (
  	           <div className="flex justify-center my-4 animate-fade-in">
  	             <div className="px-4 py-2 rounded-full bg-secondary border border-border text-text-muted text-sm">
@@ -211,7 +211,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
  	       }
  	     }
 	     
-	     // 检查是否为团队消息
+	     // 檢查是否為團隊訊息
 	     if (content && content.startsWith('team.event:')) {
 	       const [, jsonStr] = content.split('team.event:');
 	       try {
@@ -232,7 +232,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
 	             return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 	           };
 	           
-	           // team_leader 发给用户的消息（不是 p2p 也不是 broadcast）
+	           // team_leader 發給使用者的訊息（不是 p2p 也不是 broadcast）
 	           if (isTeamLeaderMessage) {
 	             return (
 	               <div className="flex justify-center my-2 animate-fade-in">
@@ -254,7 +254,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
 	             );
 	           }
 	           
-	           // p2p 和 broadcast 消息展示
+	           // p2p 和 broadcast 訊息展示
 	           return (
 	             <div className="flex justify-center my-2 animate-fade-in">
 	               <div className="max-w-[85%] w-full rounded-xl border border-border bg-secondary/50 p-3 shadow-sm">
@@ -295,7 +295,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
 	       }
 	     }
 	     
-	     // 检查是否为 team_leader 消息（通过 ID 判断）
+	     // 檢查是否為 team_leader 訊息（透過 ID 判斷）
 	     const isTeamLeaderMsg = id && id.startsWith('team-leader-');
 	     
 	     if (isTeamLeaderMsg) {
@@ -347,7 +347,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
     );
   }
 
-  // 用户/助手消息
+  // 使用者/助手訊息
   const isUser = role === 'user';
   const showTTS = Boolean(
     !isUser && !isStreaming && content && (ttsSupported || audioBase64)
@@ -438,7 +438,7 @@ export function MessageItem({ message, autoSpeak = false }: MessageItemProps) {
           </div>
         )}
 
-        {/* 时间戳和操作 */}
+        {/* 時間戳和操作 */}
         <div
           className={clsx(
             'flex items-center gap-3 text-sm mt-2 text-text-muted',

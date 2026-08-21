@@ -1,20 +1,20 @@
-"""智能体基类模块。
+"""智慧體基類模組。
 
-本模块提供智能体的抽象基类 :class:`AgentBase`，所有智能体实现都应继承此类。
+本模組提供智慧體的抽象基類 :class:`AgentBase`，所有智慧體實現都應繼承此類。
 
 核心功能：
 
-- **LLM 交互**: 通过 litellm Router 实现与各种 LLM 的统一交互
-- **环境交互**: 通过 :class:`~agentsociety2.env.RouterBase` 与仿真环境交互
-- **Token 统计**: 追踪 LLM 调用的 token 使用量
-- **Skill 状态管理**: 支持动态 skill 状态的注册与访问
+- **LLM 互動**: 透過 litellm Router 實現與各種 LLM 的統一互動
+- **環境互動**: 透過 :class:`~agentsociety2.env.RouterBase` 與模擬環境互動
+- **Token 統計**: 追蹤 LLM 呼叫的 token 使用量
+- **Skill 狀態管理**: 支援動態 skill 狀態的註冊與訪問
 
-子类必须实现的抽象方法：
+子類必須實現的抽象方法：
 
-- :meth:`ask` — 处理问题并返回响应
-- :meth:`step` — 执行一个模拟步骤
-- :meth:`dump` — 序列化智能体状态
-- :meth:`load` — 从字典恢复智能体状态
+- :meth:`ask` — 處理問題並返回響應
+- :meth:`step` — 執行一個模擬步驟
+- :meth:`dump` — 序列化智慧體狀態
+- :meth:`load` — 從字典恢復智慧體狀態
 
 Example::
 
@@ -55,7 +55,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 def _is_rate_limit_error(error: Exception) -> bool:
-    """判断是否为速率限制错误。"""
+    """判斷是否為速率限制錯誤。"""
     from litellm.exceptions import RateLimitError
     from litellm.types.router import RouterRateLimitError
 
@@ -70,19 +70,19 @@ __all__ = [
 
 @dataclass
 class LLMInteractionHistory:
-    """单次 LLM 交互记录。
+    """單次 LLM 互動記錄。
 
-    用于记录 Agent 与 LLM 之间的完整交互历史，包括请求消息、
-    响应内容、时间戳等信息。支持通过开关控制是否启用记录。
+    用於記錄 Agent 與 LLM 之間的完整互動歷史，包括請求訊息、
+    響應內容、時間戳等資訊。支援透過開關控制是否啟用記錄。
 
-    :ivar agent_id: 智能体 ID。
-    :ivar model_name: 调用的模型名称。
-    :ivar messages: 发送给 LLM 的消息列表。
-    :ivar response: LLM 的响应对象。
-    :ivar tick: 当前仿真步的时间尺度（秒）。
-    :ivar t: 当前仿真时间。
-    :ivar method_name: 调用 LLM 的方法名。
-    :ivar timestamp: 记录创建时间。
+    :ivar agent_id: 智慧體 ID。
+    :ivar model_name: 呼叫的模型名稱。
+    :ivar messages: 傳送給 LLM 的訊息列表。
+    :ivar response: LLM 的響應物件。
+    :ivar tick: 當前模擬步的時間尺度（秒）。
+    :ivar t: 當前模擬時間。
+    :ivar method_name: 呼叫 LLM 的方法名。
+    :ivar timestamp: 記錄建立時間。
     """
 
     agent_id: int
@@ -96,20 +96,20 @@ class LLMInteractionHistory:
 
 
 class AgentBase(ABC):
-    """智能体抽象基类。
+    """智慧體抽象基類。
 
-    所有智能体实现都应继承此类。提供基础功能：
+    所有智慧體實現都應繼承此類。提供基礎功能：
 
-    - LLM 交互（通过 litellm Router）
-    - 环境交互（通过 RouterBase）
-    - Token 使用统计
+    - LLM 互動（透過 litellm Router）
+    - 環境互動（透過 RouterBase）
+    - Token 使用統計
 
-    子类必须实现以下抽象方法：
+    子類必須實現以下抽象方法：
 
-    - :meth:`ask` — 处理问题并返回响应
-    - :meth:`step` — 执行一个模拟步骤
-    - :meth:`dump` — 序列化智能体状态
-    - :meth:`load` — 从字典恢复智能体状态
+    - :meth:`ask` — 處理問題並返回響應
+    - :meth:`step` — 執行一個模擬步驟
+    - :meth:`dump` — 序列化智慧體狀態
+    - :meth:`load` — 從字典恢復智慧體狀態
 
     Example:
         >>> class MyAgent(AgentBase):
@@ -129,11 +129,11 @@ class AgentBase(ABC):
         profile: Any,
         name: Optional[str] = None,
     ):
-        """初始化 Agent 实例。
+        """初始化 Agent 例項。
 
-        :param id: 智能体唯一标识符。
-        :param profile: 智能体画像对象（dict 或任意可解析类型）。子类应负责把 profile 解析为自身状态。
-        :param name: 可选显示名称；为空时按 ``profile["name"]`` 或 ``Agent_{id}`` 推导。
+        :param id: 智慧體唯一識別符號。
+        :param profile: 智慧體畫像物件（dict 或任意可解析型別）。子類應負責把 profile 解析為自身狀態。
+        :param name: 可選顯示名稱；為空時按 ``profile["name"]`` 或 ``Agent_{id}`` 推導。
         """
         self._id = id
         self._profile = profile
@@ -151,18 +151,18 @@ class AgentBase(ABC):
         self._llm_interaction_history: list[LLMInteractionHistory] = []
         self._token_usage_stats: dict[str, TokenUsageStats] = {}
 
-        # ── Skill 动态状态容器 ──
-        # skills 可以通过 set_skill_state/get_skill_state 管理自己的状态
+        # ── Skill 動態狀態容器 ──
+        # skills 可以透過 set_skill_state/get_skill_state 管理自己的狀態
         self._skill_states: dict[str, Any] = {}
 
     @classmethod
     def mcp_description(cls) -> str:
-        """返回用于 MCP 候选列表展示的描述文本（Markdown）。
+        """返回用於 MCP 候選列表展示的描述文字（Markdown）。
 
-        :returns: Markdown 文本，通常包含类简介、初始化参数说明与示例配置。
+        :returns: Markdown 文字，通常包含類簡介、初始化引數說明與示例配置。
 
         .. note::
-           该返回值的目标受众是“工具/模块发现界面”，因此采用 Markdown 而非 reST。
+           該返回值的目標受眾是“工具/模組發現介面”，因此採用 Markdown 而非 reST。
         """
         # Check if this is the base class being called directly
         if cls is AgentBase:
@@ -211,14 +211,14 @@ class AgentBase(ABC):
 
     @property
     def id(self) -> int:
-        """智能体唯一标识符。"""
+        """智慧體唯一識別符號。"""
         return self._id
 
     def env_codegen_ctx_overlay(self) -> dict[str, Any]:
-        """生成 CodeGenRouter.ask 的上下文覆盖。
+        """生成 CodeGenRouter.ask 的上下文覆蓋。
 
-        返回稳定的身份键（id, agent_id, person_id），由框架提供，
-        与具体 skill 无关。后合并时覆盖模型误传。
+        返回穩定的身份鍵（id, agent_id, person_id），由框架提供，
+        與具體 skill 無關。後合併時覆蓋模型誤傳。
 
         :returns: 包含 id, agent_id, person_id 的字典。
         """
@@ -227,7 +227,7 @@ class AgentBase(ABC):
 
     @property
     def logger(self) -> logging.Logger:
-        """智能体专属 logger 实例。"""
+        """智慧體專屬 logger 例項。"""
         return self._logger
 
     def _record_llm_interaction(
@@ -238,15 +238,15 @@ class AgentBase(ABC):
         t: datetime | None = None,
         method_name: str = "",
     ):
-        """记录 LLM 交互到历史列表（需启用）。
+        """記錄 LLM 互動到歷史列表（需啟用）。
 
-        :param messages: 发送给 LLM 的消息列表。
-        :param response: LLM 返回的响应对象。
-        :param tick: 当前仿真步的时间尺度（秒）。
-        :param t: 当前仿真时间。
-        :param method_name: 调用 LLM 的方法名称。
+        :param messages: 傳送給 LLM 的訊息列表。
+        :param response: LLM 返回的響應物件。
+        :param tick: 當前模擬步的時間尺度（秒）。
+        :param t: 當前模擬時間。
+        :param method_name: 呼叫 LLM 的方法名稱。
         """
-        # 从子类获取配置，默认禁用
+        # 從子類獲取配置，預設禁用
         enabled = getattr(self, "_llm_history_enabled", False)
         max_entries = getattr(self, "_llm_history_max_entries", 100)
 
@@ -272,9 +272,9 @@ class AgentBase(ABC):
             self._llm_interaction_history = self._llm_interaction_history[-max_entries:]
 
     def _record_token_usage(self, response: Any) -> None:
-        """记录 LLM 调用的 token 使用统计。
+        """記錄 LLM 呼叫的 token 使用統計。
 
-        :param response: LLM 响应对象，需包含 usage 信息。
+        :param response: LLM 響應物件，需包含 usage 資訊。
         """
         if not isinstance(response, ModelResponse):
             return
@@ -291,10 +291,10 @@ class AgentBase(ABC):
         self._log_token_usage_stats(model_name, stats)
 
     def _log_token_usage_stats(self, model_name: str, stats: TokenUsageStats) -> None:
-        """记录当前 token 使用统计到日志。
+        """記錄當前 token 使用統計到日誌。
 
-        :param model_name: 模型名称。
-        :param stats: Token 使用统计对象。
+        :param model_name: 模型名稱。
+        :param stats: Token 使用統計物件。
         """
         self._logger.info(
             "Agent %s token usage - model=%s calls=%s input=%s output=%s",
@@ -306,67 +306,67 @@ class AgentBase(ABC):
         )
 
     def get_llm_interaction_history(self) -> list[LLMInteractionHistory]:
-        """获取所有 LLM 交互历史记录的副本。
+        """獲取所有 LLM 互動歷史記錄的副本。
 
-        :returns: LLM 交互历史记录列表的浅拷贝。
+        :returns: LLM 互動歷史記錄列表的淺複製。
         """
         return self._llm_interaction_history.copy()
 
     def clear_llm_interaction_history(self):
-        """清除所有 LLM 交互历史记录。"""
+        """清除所有 LLM 互動歷史記錄。"""
         self._llm_interaction_history.clear()
 
     def get_token_usages(self) -> dict[str, TokenUsageStats]:
-        """获取 Token 使用统计的副本。
+        """獲取 Token 使用統計的副本。
 
-        :returns: 按模型名索引的 Token 使用统计字典。
+        :returns: 按模型名索引的 Token 使用統計字典。
         """
         return self._token_usage_stats.copy()
 
     def reset_token_usages(self):
-        """重置所有 Token 使用统计。"""
+        """重置所有 Token 使用統計。"""
         self._token_usage_stats.clear()
 
     # ==================== Skill State Management ====================
 
     def set_skill_state(self, skill_name: str, state: Any) -> None:
-        """设置某个 skill 的状态。
+        """設定某個 skill 的狀態。
 
-        由 skill 的 run() 函数调用，用于注册或更新自己的状态。
+        由 skill 的 run() 函式呼叫，用於註冊或更新自己的狀態。
 
-        :param skill_name: skill 名称。
-        :param state: 该 skill 的状态对象（可以是任意类型）。
+        :param skill_name: skill 名稱。
+        :param state: 該 skill 的狀態物件（可以是任意型別）。
 
         Example:
-            技能实现中（无论是 prompt-only 还是 subprocess），都可以通过 Agent 对象维护自己的状态::
+            技能實現中（無論是 prompt-only 還是 subprocess），都可以透過 Agent 物件維護自己的狀態::
 
                 if agent.get_skill_state("observation") is None:
                     agent.set_skill_state("observation", {"last_observation": None})
-                # 执行逻辑...
+                # 執行邏輯...
         """
         self._skill_states[skill_name] = state
 
     def get_skill_state(self, skill_name: str) -> Any:
-        """获取某个 skill 的状态。
+        """獲取某個 skill 的狀態。
 
-        :param skill_name: skill 名称。
-        :returns: 该 skill 的状态对象，如果不存在则返回 ``None``。
+        :param skill_name: skill 名稱。
+        :returns: 該 skill 的狀態物件，如果不存在則返回 ``None``。
         """
         return self._skill_states.get(skill_name)
 
     def has_skill_state(self, skill_name: str) -> bool:
-        """检查某个 skill 是否有状态。
+        """檢查某個 skill 是否有狀態。
 
-        :param skill_name: skill 名称。
-        :returns: 是否存在该 skill 的状态。
+        :param skill_name: skill 名稱。
+        :returns: 是否存在該 skill 的狀態。
         """
         return skill_name in self._skill_states
 
     def clear_skill_state(self, skill_name: str) -> bool:
-        """清除某个 skill 的状态。
+        """清除某個 skill 的狀態。
 
-        :param skill_name: skill 名称。
-        :returns: 是否成功清除（如果不存在则返回 ``False``）。
+        :param skill_name: skill 名稱。
+        :returns: 是否成功清除（如果不存在則返回 ``False``）。
         """
         if skill_name in self._skill_states:
             del self._skill_states[skill_name]
@@ -374,16 +374,16 @@ class AgentBase(ABC):
         return False
 
     def get_all_skill_states(self) -> dict[str, Any]:
-        """获取所有 skill 状态的副本。
+        """獲取所有 skill 狀態的副本。
 
-        :returns: 所有 skill 状态的字典副本。
+        :returns: 所有 skill 狀態的字典副本。
         """
         return self._skill_states.copy()
 
     def _build_external_question_context(self, t: datetime) -> dict[str, Any]:
-        """构造外部问答上下文。
+        """構造外部問答上下文。
 
-        子类可覆盖本方法，补充各自维护的内部状态和记忆。
+        子類可覆蓋本方法，補充各自維護的內部狀態和記憶。
         """
         return {
             "agent_id": self.id,
@@ -417,7 +417,7 @@ class AgentBase(ABC):
         response_type: str = "text",
         choices: list[str] | None = None,
     ) -> str:
-        """基于 agent 内部状态回答外部问题，不经过环境路由。"""
+        """基於 agent 內部狀態回答外部問題，不經過環境路由。"""
         context = self._build_external_question_context(t)
         context_json = json.dumps(context, ensure_ascii=False, default=str, indent=2)
         system_prompt = (
@@ -458,11 +458,11 @@ class AgentBase(ABC):
         messages: list[AllMessageValues],
         stream: bool = False,
     ):
-        """向 LLM 发送补全请求。
+        """向 LLM 傳送補全請求。
 
-        :param messages: 消息列表，包含角色和内容。
-        :param stream: 是否启用流式响应。默认 ``False``。
-        :returns: ``ModelResponse`` 或 ``CustomStreamWrapper``，取决于 ``stream`` 参数。
+        :param messages: 訊息列表，包含角色和內容。
+        :param stream: 是否啟用流式響應。預設 ``False``。
+        :returns: ``ModelResponse`` 或 ``CustomStreamWrapper``，取決於 ``stream`` 引數。
         """
         assert self._router is not None and self._model_name is not None, (
             "LLM is not initialized"
@@ -485,14 +485,14 @@ class AgentBase(ABC):
     async def acompletion_with_system_prompt(
         self, messages: list[AllMessageValues], tick: int, t: datetime
     ):
-        """向 LLM 发送带系统提示的补全请求。
+        """向 LLM 傳送帶系統提示的補全請求。
 
-        自动在消息前添加系统提示，包含智能体身份、仿真时间上下文等信息。
+        自動在訊息前新增系統提示，包含智慧體身份、模擬時間上下文等資訊。
 
-        :param messages: 消息列表，包含角色和内容。
-        :param tick: 当前仿真步的时间尺度（秒）。
-        :param t: 当前仿真时间。
-        :returns: LLM 响应对象。
+        :param messages: 訊息列表，包含角色和內容。
+        :param tick: 當前模擬步的時間尺度（秒）。
+        :param t: 當前模擬時間。
+        :returns: LLM 響應物件。
         """
         assert self._router is not None and self._model_name is not None, (
             "LLM is not initialized"
@@ -518,14 +518,14 @@ class AgentBase(ABC):
         return response
 
     def get_system_prompt(self, tick: int, t: datetime) -> str:
-        """获取智能体的系统提示词。
+        """獲取智慧體的系統提示詞。
 
-        生成的提示词将预置到 LLM 消息中，使 LLM 理解自身作为 AgentSociety
-        仿真环境中模拟真实人类行为的智能体角色。
+        生成的提示詞將預置到 LLM 訊息中，使 LLM 理解自身作為 AgentSociety
+        模擬環境中模擬真實人類行為的智慧體角色。
 
-        :param tick: 当前仿真步的时间尺度（秒）。范围从 60 秒（1分钟）到约一个月。
-        :param t: 当前仿真步结束后的时间。
-        :returns: 完整的系统提示词字符串，包含时间上下文、仿真环境说明和行为指南。
+        :param tick: 當前模擬步的時間尺度（秒）。範圍從 60 秒（1分鐘）到約一個月。
+        :param t: 當前模擬步結束後的時間。
+        :returns: 完整的系統提示詞字串，包含時間上下文、模擬環境說明和行為指南。
         """
         # Format time scale description
         if tick < 3600:  # Less than 1 hour
@@ -591,16 +591,16 @@ Remember: You are simulating a real person living in a simulated world. Your beh
     async def ask_env(
         self, ctx: dict, message: str, readonly: bool, template_mode: bool = False
     ):
-        """向环境路由器发送请求。
+        """向環境路由器傳送請求。
 
-        封装了与仿真环境的交互，支持模板模式和上下文变量替换。
+        封裝了與模擬環境的互動，支援模板模式和上下文變數替換。
 
-        :param ctx: 上下文字典，可包含 ``variables`` 键用于模板模式。
-        :param message: 请求消息。在模板模式下作为模板指令处理。
-        :param readonly: 是否只读模式。
-        :param template_mode: 是否启用模板模式。启用时，``message`` 中的
-            ``{variable_name}`` 变量将从 ``ctx['variables']`` 中替换。
-        :returns: 元组 ``(ctx, answer)``：更新后的上下文与环境响应。
+        :param ctx: 上下文字典，可包含 ``variables`` 鍵用於模板模式。
+        :param message: 請求訊息。在模板模式下作為模板指令處理。
+        :param readonly: 是否只讀模式。
+        :param template_mode: 是否啟用模板模式。啟用時，``message`` 中的
+            ``{variable_name}`` 變數將從 ``ctx['variables']`` 中替換。
+        :returns: 元組 ``(ctx, answer)``：更新後的上下文與環境響應。
         """
         assert self._env is not None, "Environment is not initialized"
         merged_ctx = {**ctx, **self.env_codegen_ctx_overlay()}
@@ -613,61 +613,61 @@ Remember: You are simulating a real person living in a simulated world. Your beh
         self,
         env: RouterBase,
     ):
-        """初始化智能体。
+        """初始化智慧體。
 
-        子类应在调用父类 init 后执行额外的初始化逻辑。
+        子類應在呼叫父類 init 後執行額外的初始化邏輯。
 
-        :param env: 环境路由器实例。
+        :param env: 環境路由器例項。
         """
         self._env = env
 
     @abstractmethod
     async def dump(self) -> dict:
-        """序列化智能体状态为字典。
+        """序列化智慧體狀態為字典。
 
-        :returns: 可序列化的字典，包含智能体完整状态。
+        :returns: 可序列化的字典，包含智慧體完整狀態。
         """
         raise NotImplementedError
 
     @abstractmethod
     async def load(self, dump_data: dict):
-        """从字典反序列化智能体状态。
+        """從字典反序列化智慧體狀態。
 
-        :param dump_data: 包含智能体状态的字典。
+        :param dump_data: 包含智慧體狀態的字典。
         """
         raise NotImplementedError
 
     @abstractmethod
     async def ask(self, message: str, readonly: bool = True) -> str:
-        """处理来自环境的问题。
+        """處理來自環境的問題。
 
-        :param message: 问题消息。
-        :param readonly: 是否只读模式。
-        :returns: 智能体的回答字符串。
+        :param message: 問題訊息。
+        :param readonly: 是否只讀模式。
+        :returns: 智慧體的回答字串。
         """
         raise NotImplementedError
 
     @abstractmethod
     async def step(self, tick: int, t: datetime) -> str:
-        """执行一个仿真步。
+        """執行一個模擬步。
 
-        :param tick: 当前仿真步的时间尺度（秒）。
-        :param t: 当前仿真时间。
-        :returns: 步执行结果的描述字符串。
+        :param tick: 當前模擬步的時間尺度（秒）。
+        :param t: 當前模擬時間。
+        :returns: 步執行結果的描述字串。
         """
         raise NotImplementedError
 
     async def close(self):
-        """关闭智能体并释放资源。
+        """關閉智慧體並釋放資源。
 
-        子类可重写此方法以执行额外的清理逻辑。
+        子類可重寫此方法以執行額外的清理邏輯。
         """
         ...
 
     def get_profile(self) -> Dict[str, Any]:
-        """获取智能体画像。
+        """獲取智慧體畫像。
 
-        :returns: 包含智能体画像数据的字典。子类可重写以返回结构化数据。
+        :returns: 包含智慧體畫像資料的字典。子類可重寫以返回結構化資料。
         """
         if isinstance(self._profile, dict):
             return self._profile
@@ -678,7 +678,7 @@ Remember: You are simulating a real person living in a simulated world. Your beh
 
     @property
     def name(self) -> str:
-        """智能体显示名称。"""
+        """智慧體顯示名稱。"""
         return self._name
 
     async def acompletion_with_pydantic_validation(
@@ -692,34 +692,34 @@ Remember: You are simulating a real person living in a simulated world. Your beh
         max_delay: float = 60.0,
         error_feedback_prompt: str | None = None,
     ) -> T:
-        """发送补全请求并验证响应是否符合 Pydantic 模型。
+        """傳送補全請求並驗證響應是否符合 Pydantic 模型。
 
-        支持多轮对话以向 LLM 提供错误反馈并进行修正。
+        支援多輪對話以向 LLM 提供錯誤反饋並進行修正。
 
-        该方法会先向 LLM 发送请求，再从响应中提取 JSON 片段（``extract_json``），
-        当整段内容本身就以 ``{`` 或 ``[`` 开头时回退使用全文，并统一交给
-        ``json_repair.loads`` 解析。随后会使用目标 Pydantic 模型进行验证；
-        如果验证失败，则立即把错误反馈给 LLM 并重试；如果遇到 429（速率限制）
-        错误，则改为使用二进制指数退避。最终返回验证通过的模型实例。
+        該方法會先向 LLM 傳送請求，再從響應中提取 JSON 片段（``extract_json``），
+        當整段內容本身就以 ``{`` 或 ``[`` 開頭時回退使用全文，並統一交給
+        ``json_repair.loads`` 解析。隨後會使用目標 Pydantic 模型進行驗證；
+        如果驗證失敗，則立即把錯誤反饋給 LLM 並重試；如果遇到 429（速率限制）
+        錯誤，則改為使用二進位制指數退避。最終返回驗證透過的模型例項。
 
-        :param model_type: 用于验证的 Pydantic 模型类型。
-        :param messages: 发送给 LLM 的消息列表。
-        :param tick: 当前仿真步的时间尺度（秒）。
-        :param t: 当前仿真时间。
-        :param max_retries: 最大重试次数（默认 10）。
-        :param base_delay: 429 错误发生时指数退避的基准延迟秒数（默认 1.0）。
-            仅用于 429 速率限制错误。其他错误立即重试。
-        :param max_delay: 指数退避的最大延迟秒数（默认 60.0）。
-        :param error_feedback_prompt: 可选的自定义错误反馈提示模板。
-            如为 None，将使用默认提示模板。模板应包含 ``{error_message}`` 占位符。
+        :param model_type: 用於驗證的 Pydantic 模型型別。
+        :param messages: 傳送給 LLM 的訊息列表。
+        :param tick: 當前模擬步的時間尺度（秒）。
+        :param t: 當前模擬時間。
+        :param max_retries: 最大重試次數（預設 10）。
+        :param base_delay: 429 錯誤發生時指數退避的基準延遲秒數（預設 1.0）。
+            僅用於 429 速率限制錯誤。其他錯誤立即重試。
+        :param max_delay: 指數退避的最大延遲秒數（預設 60.0）。
+        :param error_feedback_prompt: 可選的自定義錯誤反饋提示模板。
+            如為 None，將使用預設提示模板。模板應包含 ``{error_message}`` 佔位符。
 
-        :returns: 验证通过的 Pydantic 模型实例。
-        :raises ValueError: 响应无法解析，或在所有重试后仍验证失败。
+        :returns: 驗證透過的 Pydantic 模型例項。
+        :raises ValueError: 響應無法解析，或在所有重試後仍驗證失敗。
         :raises AssertionError: LLM 未初始化。
 
         .. note::
-           二进制指数退避仅在检测到 429（速率限制）错误时应用。
-           对于验证错误和其他非速率限制错误，函数立即重试以向 LLM 提供更快的反馈。
+           二進位制指數退避僅在檢測到 429（速率限制）錯誤時應用。
+           對於驗證錯誤和其他非速率限制錯誤，函式立即重試以向 LLM 提供更快的反饋。
         """
         assert self._router is not None and self._model_name is not None, (
             "LLM is not initialized"

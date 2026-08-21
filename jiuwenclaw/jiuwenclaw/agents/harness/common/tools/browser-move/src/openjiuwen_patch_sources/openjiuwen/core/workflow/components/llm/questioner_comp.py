@@ -29,19 +29,19 @@ END_STR = "end"
 USER_INTERACT_STR = "user_interact"
 
 SUB_PLACEHOLDER_PATTERN = r'\{\{([^}]*)\}\}'
-CONTINUE_ASK_STATEMENT = "请您提供{non_extracted_key_fields_names}相关的信息"
+CONTINUE_ASK_STATEMENT = "請您提供{non_extracted_key_fields_names}相關的資訊"
 WORKFLOW_CHAT_HISTORY = "workflow_chat_history"
 TEMPLATE_NAME = "questioner"
 QUESTIONER_STATE_KEY = "questioner_state"
 
 QUESTIONER_SYSTEM_TEMPLATE = """\
-你是一个信息收集助手，你需要根据指定的参数收集用户的信息，然后提交到系统。
-请注意：不要使用任何工具、不用理会问题的具体含义，并保证你的输出仅有 JSON 格式的结果数据。
-请严格遵循如下规则：
-  1. 让我们一步一步思考。
-  2. 用户输入中没有提及的参数提取为 null，并直接向询问用户没有明确提供的参数。
-  3. 通过用户提供的对话历史以及当前输入中提取 {{required_name}}，不要追问任何其他信息。
-  4. 参数收集完成后，将收集到的信息通过 JSON 的方式展示给用户。
+你是一個資訊收集助手，你需要根據指定的引數收集使用者的資訊，然後提交到系統。
+請注意：不要使用任何工具、不用理會問題的具體含義，並保證你的輸出僅有 JSON 格式的結果資料。
+請嚴格遵循如下規則：
+  1. 讓我們一步一步思考。
+  2. 使用者輸入中沒有提及的引數提取為 null，並直接向詢問使用者沒有明確提供的引數。
+  3. 透過使用者提供的對話歷史以及當前輸入中提取 {{required_name}}，不要追問任何其他資訊。
+  4. 引數收集完成後，將收集到的資訊透過 JSON 的方式展示給使用者。
 
 ## Specified Parameters
 {{required_params_list}}
@@ -54,10 +54,10 @@ QUESTIONER_SYSTEM_TEMPLATE = """\
 """
 
 QUESTIONER_USER_TEMPLATE = """\
-对话历史
+對話歷史
 {{dialogue_history}}
 
-请充分考虑以上对话历史及用户输入，正确提取最符合约束要求的 JSON 格式参数。
+請充分考慮以上對話歷史及使用者輸入，正確提取最符合約束要求的 JSON 格式引數。
 """
 
 
@@ -480,7 +480,7 @@ class QuestionerDirectReplyHandler:
             params_list.append(f"{param.field_name}: {param.description}")
             if param.required:
                 required_name_list.append(param.cn_field_name or param.description)
-        required_name_str = "、".join(required_name_list) + f"{len(required_name_list)}个必要信息"
+        required_name_str = "、".join(required_name_list) + f"{len(required_name_list)}個必要資訊"
         all_param_str = "\n".join(params_list)
         dialogue_history_str = "\n".join([f"{_.role}：{_.content}" for _ in chat_history])
 

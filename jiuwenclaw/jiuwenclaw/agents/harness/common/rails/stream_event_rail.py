@@ -355,7 +355,7 @@ class JiuClawStreamEventRail(DeepAgentRail):
             "gemini-2.5-pro": 1000000,
             "gemini-2.5-flash": 1000000,
 
-            # Meta Llama (开源)
+            # Meta Llama (開源)
             "llama-4-maverick": 1000000,
             "llama-4-scout": 10000000,
         }
@@ -559,7 +559,7 @@ class JiuClawStreamEventRail(DeepAgentRail):
                                 await context.add_messages(tool_message_cache[tool_call_id])
                             else:
                                 await context.add_messages(ToolMessage(
-                                        content=f"[工具执行被中断] 工具 {tool_name} 执行过程中被用户打断，没有执行结果。",
+                                        content=f"[工具執行被中斷] 工具 {tool_name} 執行過程中被使用者打斷，沒有執行結果。",
                                         tool_call_id=tool_call_id,
                                 ))
                         tool_id_cache = []
@@ -594,7 +594,7 @@ class JiuClawStreamEventRail(DeepAgentRail):
                             await context.add_messages(tool_message_cache[tool_call_id])
                         else:
                             await context.add_messages(ToolMessage(
-                                    content=f"[工具执行被中断] 工具 {tool_name} 执行过程中被用户打断，没有执行结果。",
+                                    content=f"[工具執行被中斷] 工具 {tool_name} 執行過程中被使用者打斷，沒有執行結果。",
                                     tool_call_id=tool_call_id,
                             ))
                     tool_id_cache = []
@@ -608,7 +608,7 @@ class JiuClawStreamEventRail(DeepAgentRail):
                         await context.add_messages(tool_message_cache[tool_call_id])
                     else:
                         await context.add_messages(ToolMessage(
-                                content=f"[工具执行被中断] 工具 {tool_name} 执行过程中被用户打断，没有执行结果。",
+                                content=f"[工具執行被中斷] 工具 {tool_name} 執行過程中被使用者打斷，沒有執行結果。",
                                 tool_call_id=tool_call_id,
                         ))
         except Exception as e:

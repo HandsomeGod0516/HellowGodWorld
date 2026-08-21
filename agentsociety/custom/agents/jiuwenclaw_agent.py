@@ -38,105 +38,105 @@ DEFAULT_COMMON_SKILLS = [
     "safety.respond",
 ]
 SKILL_CHINESE_LABELS = {
-    "care.basic": "基础关怀",
-    "chronic.followup": "健康随访",
-    "class.learn": "课堂学习",
-    "class.organize": "课堂组织",
-    "community.coordinate": "社区协调",
-    "community.observe": "社区观察",
-    "computer.basic": "基础电脑处理",
-    "computer.repair": "电脑维修",
-    "conflict.mediate": "矛盾调解",
-    "cooking.lightmeal": "简餐准备",
-    "crowd.guide": "人群引导",
-    "emotion.calm": "情绪安抚",
-    "first_aid.basic": "基础急救",
+    "care.basic": "基礎關懷",
+    "chronic.followup": "健康隨訪",
+    "class.learn": "課堂學習",
+    "class.organize": "課堂組織",
+    "community.coordinate": "社群協調",
+    "community.observe": "社群觀察",
+    "computer.basic": "基礎電腦處理",
+    "computer.repair": "電腦維修",
+    "conflict.mediate": "矛盾調解",
+    "cooking.lightmeal": "簡餐準備",
+    "crowd.guide": "人群引導",
+    "emotion.calm": "情緒安撫",
+    "first_aid.basic": "基礎急救",
     "garden.basic": "庭院照料",
-    "gossip.filter": "消息甄别",
-    "health.educate": "健康说明",
-    "history.localtelling": "本地故事讲述",
-    "info.research": "信息查证",
-    "ingredient.advise": "食材建议",
-    "inventory.count": "库存清点",
-    "ledger.basic": "账目记录",
-    "library.curate": "图书整理",
-    "listen.relay": "倾听转达",
-    "map.navigate": "地图导航",
-    "memory.record": "记忆记录",
-    "messaging.group": "群组通知",
-    "neighbor.greet": "邻里问候",
-    "neighbor.support": "邻里支持",
-    "notice.write": "公告撰写",
-    "patrol.plan": "巡查规划",
-    "peer.communicate": "同伴沟通",
-    "phone.photolog": "手机记录",
-    "price.negotiate": "价格协商",
-    "privacy.protect": "隐私保护",
-    "radio.comms": "无线电沟通",
-    "record.shortnote": "短笔记记录",
-    "remote.communicate": "远程沟通",
-    "repair.basic": "基础维修",
-    "roster.verify": "名单核对",
-    "route.localmap": "本地路线判断",
-    "route.recall": "路线回忆",
+    "gossip.filter": "訊息甄別",
+    "health.educate": "健康說明",
+    "history.localtelling": "本地故事講述",
+    "info.research": "資訊查證",
+    "ingredient.advise": "食材建議",
+    "inventory.count": "庫存清點",
+    "ledger.basic": "賬目記錄",
+    "library.curate": "圖書整理",
+    "listen.relay": "傾聽轉達",
+    "map.navigate": "地圖導航",
+    "memory.record": "記憶記錄",
+    "messaging.group": "群組通知",
+    "neighbor.greet": "鄰里問候",
+    "neighbor.support": "鄰里支援",
+    "notice.write": "公告撰寫",
+    "patrol.plan": "巡查規劃",
+    "peer.communicate": "同伴溝通",
+    "phone.photolog": "手機記錄",
+    "price.negotiate": "價格協商",
+    "privacy.protect": "隱私保護",
+    "radio.comms": "無線電溝通",
+    "record.shortnote": "短筆記記錄",
+    "remote.communicate": "遠端溝通",
+    "repair.basic": "基礎維修",
+    "roster.verify": "名單核對",
+    "route.localmap": "本地路線判斷",
+    "route.recall": "路線回憶",
     "routine.daily": "日常安排",
-    "safety.respond": "安全响应",
-    "script.automate": "脚本自动化",
-    "shop.run": "店铺经营",
-    "sketch.draw": "速写记录",
-    "social.matchmake": "牵线介绍",
-    "social.reply": "社交回复",
-    "stall.run": "摊位经营",
-    "story.localpast": "本地旧事讲述",
-    "tools.repair": "工具维修",
-    "vegetable.source": "蔬菜采购",
-    "writing.feedback": "写作反馈",
-    "writing.hand": "手写记录",
-    "youth.communicate": "青少年沟通",
+    "safety.respond": "安全響應",
+    "script.automate": "指令碼自動化",
+    "shop.run": "店鋪經營",
+    "sketch.draw": "速寫記錄",
+    "social.matchmake": "牽線介紹",
+    "social.reply": "社交回復",
+    "stall.run": "攤位經營",
+    "story.localpast": "本地舊事講述",
+    "tools.repair": "工具維修",
+    "vegetable.source": "蔬菜採購",
+    "writing.feedback": "寫作反饋",
+    "writing.hand": "手寫記錄",
+    "youth.communicate": "青少年溝通",
 }
 STATUS_LABELS = {
-    "active": "活跃",
+    "active": "活躍",
     "available": "可交流",
-    "calm": "平静",
-    "caring": "照护中",
-    "content": "满足",
-    "coordinating": "协调中",
+    "calm": "平靜",
+    "caring": "照護中",
+    "content": "滿足",
+    "coordinating": "協調中",
     "eating": "用餐中",
-    "focused": "专注",
-    "moving": "移动中",
-    "peaceful": "安稳",
-    "ready": "就绪",
+    "focused": "專注",
+    "moving": "移動中",
+    "peaceful": "安穩",
+    "ready": "就緒",
     "resting": "休息中",
     "socializing": "社交中",
-    "starting_day": "开始一天",
-    "studying": "学习中",
-    "teaching": "授课中",
-    "tired": "疲惫",
-    "warm": "温和",
-    "winding_down": "放松中",
+    "starting_day": "開始一天",
+    "studying": "學習中",
+    "teaching": "授課中",
+    "tired": "疲憊",
+    "warm": "溫和",
+    "winding_down": "放鬆中",
     "working": "工作中",
 }
 CHINESE_OUTPUT_POLICY = (
-    "语言硬性规则：除 JSON 键名、action_type 枚举、location_id、interaction_id、"
-    "skill_id、session_id、URL 等机器标识符外，所有会被人看到的自然语言都必须使用"
-    "简体中文。public_summary、environment_instruction、action_proposal.content、"
-    "action、status、emotion、reason、事件、通知、记忆内容和对话内容都不能出现英文句子或英文词组；"
-    "智能体姓名可以保留英文。"
+    "語言硬性規則：除 JSON 鍵名、action_type 列舉、location_id、interaction_id、"
+    "skill_id、session_id、URL 等機器識別符號外，所有會被人看到的自然語言都必須使用"
+    "簡體中文。public_summary、environment_instruction、action_proposal.content、"
+    "action、status、emotion、reason、事件、通知、記憶內容和對話內容都不能出現英文句子或英文片語；"
+    "智慧體姓名可以保留英文。"
 )
 SKILL_RESULT_SCHEMA_VERSION = "agent_skill_result.v1"
 URGENT_INTERVENTION_KEYWORDS = (
     "火山",
-    "爆发",
+    "爆發",
     "地震",
-    "火灾",
+    "火災",
     "洪水",
-    "海啸",
+    "海嘯",
     "爆炸",
-    "撤离",
+    "撤離",
     "疏散",
-    "紧急",
-    "危险",
-    "灾",
+    "緊急",
+    "危險",
+    "災",
     "evacuate",
     "emergency",
     "volcano",
@@ -379,7 +379,7 @@ Initialization example:
         if not self._experiment_context:
             return ""
         return (
-            "\n实验上下文：\n"
+            "\n實驗上下文：\n"
             f"{json.dumps(_json_safe(self._experiment_context), ensure_ascii=False)}\n"
             f"{CHINESE_OUTPUT_POLICY}\n"
         )
@@ -413,13 +413,13 @@ Initialization example:
             choices,
         )
         message = (
-            "这是给 AgentSociety 模拟智能体的外部提问。\n"
-            f"当前模拟时间：{t.isoformat()}\n"
-            f"输出要求：{requirement}\n"
+            "這是給 AgentSociety 模擬智慧體的外部提問。\n"
+            f"當前模擬時間：{t.isoformat()}\n"
+            f"輸出要求：{requirement}\n"
             f"{CHINESE_OUTPUT_POLICY}\n"
-            "请以该智能体第一人称回答。以当前模拟状态、近期实时提问、角色档案和九问会话上下文为准。"
-            "只读提问不得改变 AgentSociety 环境。\n\n"
-            f"问题：\n{prompt}"
+            "請以該智慧體第一人稱回答。以當前模擬狀態、近期實時提問、角色檔案和九問會話上下文為準。"
+            "只讀提問不得改變 AgentSociety 環境。\n\n"
+            f"問題：\n{prompt}"
         )
         return await self.ask(message, readonly=True)
 
@@ -444,21 +444,21 @@ Initialization example:
             ensure_ascii=False,
         )
         self._persist_runtime_state(tick=tick, t=t, status=status)
-        public_summary = str(result.get("public_summary") or "技能步骤已完成。")
+        public_summary = str(result.get("public_summary") or "技能步驟已完成。")
         environment_summary = result.get("environment_effects") or []
         if environment_summary:
             return (
                 f"{public_summary}\n\n"
-                f"环境结果：{json.dumps(environment_summary, ensure_ascii=False)}"
+                f"環境結果：{json.dumps(environment_summary, ensure_ascii=False)}"
             )
         return public_summary
 
     def queue_intervention(self, instruction: str) -> str:
         self._pending_interventions.append(str(instruction))
         return (
-            "已实时投递到该 agent 的 pending interventions；"
-            "下一次 step prompt 会包含这条干预并要求优先执行。"
-            "若识别为紧急公共事件，会先自动广播到小镇群组。"
+            "已實時投遞到該 agent 的 pending interventions；"
+            "下一次 step prompt 會包含這條幹預並要求優先執行。"
+            "若識別為緊急公共事件，會先自動廣播到小鎮群組。"
         )
 
     async def _observe_environment(self) -> Any:
@@ -471,12 +471,12 @@ Initialization example:
         try:
             _, observation = await self.ask_env(
                 {"variables": {}},
-                "请观察该智能体当前的环境状态。",
+                "請觀察該智慧體當前的環境狀態。",
                 readonly=True,
             )
             return observation
         except Exception as exc:
-            return f"无法观察环境：{exc}"
+            return f"無法觀察環境：{exc}"
 
     async def _run_skill_runtime(
         self,
@@ -559,7 +559,7 @@ Initialization example:
                 mounted_skill_ids=mounted,
                 observation=observation,
                 pending_interventions=pending_interventions,
-                reason=f"选择的技能无效或不可用：{selected_skill_id}",
+                reason=f"選擇的技能無效或不可用：{selected_skill_id}",
             )
             selected_skill_id = str(decision.get("selected_skill_id") or "").strip()
 
@@ -567,7 +567,7 @@ Initialization example:
         if not selected_skill_id:
             return {
                 "ok": False,
-                "public_summary": "该智能体没有挂载可执行技能。",
+                "public_summary": "該智慧體沒有掛載可執行技能。",
                 "mounted_skill_ids": mounted,
                 "last_skill_decision": dict(decision),
             }
@@ -622,7 +622,7 @@ Initialization example:
         public_summary = str(
             decision.get("public_summary")
             or skill_result.get("summary")
-            or f"{self.name} 执行了{self._skill_label(selected_skill_id)}。"
+            or f"{self.name} 執行了{self._skill_label(selected_skill_id)}。"
         )
         return {
             "ok": bool(raw_result.get("ok")) and not validation.get("errors"),
@@ -652,7 +652,7 @@ Initialization example:
                 mounted_skill_ids=[],
                 observation=observation,
                 pending_interventions=pending_interventions,
-                reason="没有可用的已挂载技能。",
+                reason="沒有可用的已掛載技能。",
             )
         prompt = self._build_skill_selection_prompt(
             tick=tick,
@@ -675,10 +675,10 @@ Initialization example:
                 mounted_skill_ids=mounted_skill_ids,
                 observation=observation,
                 pending_interventions=pending_interventions,
-                reason="九问返回的技能决策不是 JSON。",
+                reason="九問返回的技能決策不是 JSON。",
             )
         except Exception as exc:
-            self._last_response = f"九问技能选择失败：{exc}"
+            self._last_response = f"九問技能選擇失敗：{exc}"
             return self._fallback_skill_decision(
                 mounted_skill_ids=mounted_skill_ids,
                 observation=observation,
@@ -708,26 +708,26 @@ Initialization example:
             for item in catalog
         ]
         return (
-            "你正在为一个 AgentSociety 模拟智能体选择本步骤唯一要执行的技能。\n"
-            f"智能体编号：{self.id}\n"
-            f"智能体姓名：{self.name}\n"
-            f"角色档案：{json.dumps(_json_safe(self.get_profile()), ensure_ascii=False)}\n"
+            "你正在為一個 AgentSociety 模擬智慧體選擇本步驟唯一要執行的技能。\n"
+            f"智慧體編號：{self.id}\n"
+            f"智慧體姓名：{self.name}\n"
+            f"角色檔案：{json.dumps(_json_safe(self.get_profile()), ensure_ascii=False)}\n"
             f"{self._experiment_context_text()}"
-            f"模拟时间：{t.isoformat()}\n"
-            f"单步秒数：{tick}\n"
-            f"环境观察：\n{json.dumps(_json_safe(observation), ensure_ascii=False, indent=2)}\n"
-            f"待处理实时干预：{json.dumps(pending_interventions, ensure_ascii=False)}\n"
-            f"自动紧急处理结果：{broadcast_result}\n"
-            f"已挂载可执行技能目录：\n{json.dumps(compact_catalog, ensure_ascii=False, indent=2)}\n\n"
+            f"模擬時間：{t.isoformat()}\n"
+            f"單步秒數：{tick}\n"
+            f"環境觀察：\n{json.dumps(_json_safe(observation), ensure_ascii=False, indent=2)}\n"
+            f"待處理實時干預：{json.dumps(pending_interventions, ensure_ascii=False)}\n"
+            f"自動緊急處理結果：{broadcast_result}\n"
+            f"已掛載可執行技能目錄：\n{json.dumps(compact_catalog, ensure_ascii=False, indent=2)}\n\n"
             f"{CHINESE_OUTPUT_POLICY}\n"
-            "请从已挂载目录中选择一个技能。只返回一个 JSON 对象：\n"
+            "請從已掛載目錄中選擇一個技能。只返回一個 JSON 物件：\n"
             "{\n"
-            '  "selected_skill_id": "一个已挂载技能编号",\n'
-            '  "args": {"optional": "符合 args_schema 的技能参数"},\n'
-            '  "reason": "为什么这个技能适合当前状态",\n'
-            '  "public_summary": "用中文简短描述智能体想做什么"\n'
+            '  "selected_skill_id": "一個已掛載技能編號",\n'
+            '  "args": {"optional": "符合 args_schema 的技能引數"},\n'
+            '  "reason": "為什麼這個技能適合當前狀態",\n'
+            '  "public_summary": "用中文簡短描述智慧體想做什麼"\n'
             "}\n"
-            "不要返回 environment_instruction 或 action_proposal，选中的技能脚本会产生效果。"
+            "不要返回 environment_instruction 或 action_proposal，選中的技能指令碼會產生效果。"
         )
 
     def _fallback_skill_decision(
@@ -763,8 +763,8 @@ Initialization example:
         return {
             "selected_skill_id": selected,
             "args": {},
-            "reason": f"后备技能选择：{reason}",
-            "public_summary": f"{self.name} 本步执行{selected or '空技能'}。",
+            "reason": f"後備技能選擇：{reason}",
+            "public_summary": f"{self.name} 本步執行{selected or '空技能'}。",
             "fallback": True,
         }
 
@@ -781,8 +781,8 @@ Initialization example:
             result = {
                 "schema_version": SKILL_RESULT_SCHEMA_VERSION,
                 "skill_id": selected_skill_id,
-                "summary": f"{selected_skill_id} 没有返回有效的 JSON。",
-                "reason": str(raw_result.get("stderr") or raw_result.get("error_type") or "技能输出无效"),
+                "summary": f"{selected_skill_id} 沒有返回有效的 JSON。",
+                "reason": str(raw_result.get("stderr") or raw_result.get("error_type") or "技能輸出無效"),
                 "confidence": 0.0,
                 "world_effect": None,
                 "speech_effect": None,
@@ -824,25 +824,25 @@ Initialization example:
         label = self._skill_label(selected_skill_id)
         result = dict(skill_result)
         if self._contains_visible_english(result.get("summary")):
-            result["summary"] = f"执行{label}。"
+            result["summary"] = f"執行{label}。"
         if self._contains_visible_english(result.get("reason")):
-            result["reason"] = f"根据当前观察选择{label}。"
+            result["reason"] = f"根據當前觀察選擇{label}。"
 
         world = result.get("world_effect")
         if isinstance(world, dict):
             world = dict(world)
             if self._contains_visible_english(world.get("action")):
-                world["action"] = f"执行{label}"
+                world["action"] = f"執行{label}"
             if self._contains_visible_english(world.get("status")):
-                world["status"] = STATUS_LABELS.get(str(world.get("status")), "活跃")
+                world["status"] = STATUS_LABELS.get(str(world.get("status")), "活躍")
             if self._contains_visible_english(world.get("emotion")):
-                world["emotion"] = STATUS_LABELS.get(str(world.get("emotion")), "平静")
+                world["emotion"] = STATUS_LABELS.get(str(world.get("emotion")), "平靜")
             if self._contains_visible_english(world.get("reason")):
-                world["reason"] = f"执行{label}"
+                world["reason"] = f"執行{label}"
             params = world.get("params")
             if isinstance(params, dict) and self._contains_visible_english(params.get("message")):
                 params = dict(params)
-                params["message"] = f"执行{label}"
+                params["message"] = f"執行{label}"
                 world["params"] = params
             result["world_effect"] = world
 
@@ -850,7 +850,7 @@ Initialization example:
         if isinstance(speech, dict):
             speech = dict(speech)
             if self._contains_visible_english(speech.get("content")):
-                speech["content"] = "我会用中文同步当前处理。"
+                speech["content"] = "我會用中文同步當前處理。"
             result["speech_effect"] = speech
 
         memories = result.get("memory_effects")
@@ -862,7 +862,7 @@ Initialization example:
                     continue
                 localized = dict(memory)
                 if self._contains_visible_english(localized.get("content")):
-                    localized["content"] = f"记录了技能事件：{label}。"
+                    localized["content"] = f"記錄了技能事件：{label}。"
                 localized_memories.append(localized)
             result["memory_effects"] = localized_memories
         return result
@@ -1064,13 +1064,13 @@ Initialization example:
             proposal = {
                 "action_type": "set_action",
                 "agent_id": self.id,
-                "action": effect.get("action") or effect.get("reason") or "继续日常安排",
-                "status": effect.get("status") or "活跃",
-                "emotion": effect.get("emotion") or "平静",
+                "action": effect.get("action") or effect.get("reason") or "繼續日常安排",
+                "status": effect.get("status") or "活躍",
+                "emotion": effect.get("emotion") or "平靜",
                 "reason": effect.get("reason"),
             }
         else:
-            return {"ok": False, "error": f"不支持的世界效果：{effect_type}"}
+            return {"ok": False, "error": f"不支援的世界效果：{effect_type}"}
         raw = await self._apply_action_proposal(proposal)
         try:
             return json.loads(raw)
@@ -1115,7 +1115,7 @@ Initialization example:
                     "converted_from_group_message": True,
                 }
         else:
-            return {"ok": False, "error": f"不支持的发言效果：{effect_type}"}
+            return {"ok": False, "error": f"不支援的發言效果：{effect_type}"}
         raw = await self._apply_action_proposal(proposal)
         try:
             return json.loads(raw)
@@ -1280,17 +1280,17 @@ Initialization example:
                 if action_type == "set_action" and callable(getattr(social_env, "set_agent_action", None)):
                     result = await social_env.set_agent_action(
                         agent_id=agent_id,
-                        action=str(proposal.get("action") or proposal.get("reason") or "继续日常安排"),
-                        status=str(proposal.get("status") or "活跃"),
-                        emotion=str(proposal.get("emotion") or "平静"),
+                        action=str(proposal.get("action") or proposal.get("reason") or "繼續日常安排"),
+                        status=str(proposal.get("status") or "活躍"),
+                        emotion=str(proposal.get("emotion") or "平靜"),
                     )
                     return json.dumps(result, ensure_ascii=False)
         except Exception as exc:
-            return f"动作执行失败：{exc}"
+            return f"動作執行失敗：{exc}"
 
         instruction = str(proposal.get("environment_instruction") or "").strip()
         if not instruction:
-            instruction = f"请执行这个 AgentSociety 动作提案：{json.dumps(proposal, ensure_ascii=False)}"
+            instruction = f"請執行這個 AgentSociety 動作提案：{json.dumps(proposal, ensure_ascii=False)}"
         try:
             _, env_result = await self.ask_env(
                 {"variables": {}},
@@ -1299,7 +1299,7 @@ Initialization example:
             )
             return str(env_result)
         except Exception as exc:
-            return f"动作执行失败：{exc}"
+            return f"動作執行失敗：{exc}"
 
     async def _broadcast_urgent_interventions(self, instructions: list[str]) -> str:
         urgent_instructions = [
@@ -1311,9 +1311,9 @@ Initialization example:
             return ""
 
         content = (
-            "紧急通知："
+            "緊急通知："
             + "；".join(urgent_instructions)
-            + "。请所有人立即暂停当前安排，确认自身安全，并同步撤离、联络和物资需求。"
+            + "。請所有人立即暫停當前安排，確認自身安全，並同步撤離、聯絡和物資需求。"
         )
         env = self._find_social_environment()
         if env is not None and callable(getattr(env, "send_group_message", None)):
@@ -1323,21 +1323,21 @@ Initialization example:
                     group_id=1,
                     content=content,
                 )
-                return f"已向 1 号群发送紧急干预通知：{result}"
+                return f"已向 1 號群傳送緊急干預通知：{result}"
             except Exception as exc:
-                return f"步骤提示前发送紧急通知失败：{exc}"
+                return f"步驟提示前傳送緊急通知失敗：{exc}"
 
         try:
             _, env_result = await self.ask_env(
                 {"variables": {}},
                 (
-                    f"请让 {self.id} 号智能体向 1 号群发送这条紧急内容：{content}"
+                    f"請讓 {self.id} 號智慧體向 1 號群傳送這條緊急內容：{content}"
                 ),
                 readonly=False,
             )
-            return f"已通过环境路由发送紧急干预通知：{env_result}"
+            return f"已透過環境路由傳送緊急干預通知：{env_result}"
         except Exception as exc:
-            return f"步骤提示前发送紧急通知失败：{exc}"
+            return f"步驟提示前傳送緊急通知失敗：{exc}"
 
     def _is_urgent_intervention(self, instruction: str) -> bool:
         lowered = instruction.lower()
@@ -1568,19 +1568,19 @@ Initialization example:
 
     def _build_ask_prompt(self, message: str, readonly: bool) -> str:
         readonly_text = (
-            "这是只读提问，不要产生任何副作用。"
+            "這是隻讀提問，不要產生任何副作用。"
             if readonly
-            else "你可以推理行动，但只有 AgentSociety 可以改变模拟环境。"
+            else "你可以推理行動，但只有 AgentSociety 可以改變模擬環境。"
         )
         return (
-            "你正在扮演一个 AgentSociety 模拟智能体。\n"
-            f"智能体编号：{self.id}\n"
-            f"智能体姓名：{self.name}\n"
-            f"角色档案：{json.dumps(_json_safe(self.get_profile()), ensure_ascii=False)}\n"
+            "你正在扮演一個 AgentSociety 模擬智慧體。\n"
+            f"智慧體編號：{self.id}\n"
+            f"智慧體姓名：{self.name}\n"
+            f"角色檔案：{json.dumps(_json_safe(self.get_profile()), ensure_ascii=False)}\n"
             f"{self._experiment_context_text()}"
             f"{CHINESE_OUTPUT_POLICY}\n"
-            f"约束：{readonly_text}\n\n"
-            f"用户或环境问题：\n{message}"
+            f"約束：{readonly_text}\n\n"
+            f"使用者或環境問題：\n{message}"
         )
 
     def _build_step_prompt(
@@ -1599,48 +1599,48 @@ Initialization example:
                 for index, instruction in enumerate(pending_interventions, start=1)
             )
             intervention_text = (
-                "\n\n本步骤前收到的实时用户干预：\n"
+                "\n\n本步驟前收到的實時使用者干預：\n"
                 f"{lines}\n"
-                "除非客观上无法执行，否则本步骤必须吸收这些干预。"
-                "如果干预要求移动、更新状态、发送消息或改变行为，请把具体效果写入 environment_instruction。"
-                "如果是公共安全紧急情况，优先处理撤离、协作和沟通。\n"
+                "除非客觀上無法執行，否則本步驟必須吸收這些干預。"
+                "如果幹預要求移動、更新狀態、傳送訊息或改變行為，請把具體效果寫入 environment_instruction。"
+                "如果是公共安全緊急情況，優先處理撤離、協作和溝通。\n"
             )
         broadcast_text = (
-            f"\n\n自动紧急干预处理结果：\n{broadcast_result}\n"
+            f"\n\n自動緊急干預處理結果：\n{broadcast_result}\n"
             if broadcast_result
             else ""
         )
         skill_runtime_text = ""
         if skill_runtime_result:
             skill_runtime_text = (
-                "\n\nAgentSociety 可执行技能运行结果：\n"
+                "\n\nAgentSociety 可執行技能執行結果：\n"
                 f"{json.dumps(_json_safe(skill_runtime_result), ensure_ascii=False, indent=2)}\n"
-                "请把它视为已落地的可执行上下文。如果明显错误可以覆盖；如果认可，请保持 "
-                "environment_instruction 为空，AgentSociety 会直接执行提案。\n"
+                "請把它視為已落地的可執行上下文。如果明顯錯誤可以覆蓋；如果認可，請保持 "
+                "environment_instruction 為空，AgentSociety 會直接執行提案。\n"
             )
         return (
-            "你正在控制一个 AgentSociety 模拟智能体，只执行一个步骤。\n"
-            f"智能体编号：{self.id}\n"
-            f"智能体姓名：{self.name}\n"
-            f"角色档案：{json.dumps(_json_safe(self.get_profile()), ensure_ascii=False)}\n"
+            "你正在控制一個 AgentSociety 模擬智慧體，只執行一個步驟。\n"
+            f"智慧體編號：{self.id}\n"
+            f"智慧體姓名：{self.name}\n"
+            f"角色檔案：{json.dumps(_json_safe(self.get_profile()), ensure_ascii=False)}\n"
             f"{self._experiment_context_text()}"
             f"{CHINESE_OUTPUT_POLICY}\n"
-            f"模拟时间：{t.isoformat()}\n"
-            f"单步秒数：{tick}\n"
-            f"环境观察：\n{observation}"
+            f"模擬時間：{t.isoformat()}\n"
+            f"單步秒數：{tick}\n"
+            f"環境觀察：\n{observation}"
             f"{intervention_text}\n\n"
             f"{broadcast_text}"
             f"{skill_runtime_text}"
-            "如果观察中包含关于紧急情况的 recent_messages 或 latest_event，请把它当作实时信息并立即调整行动。\n\n"
-            "只返回一个 JSON 对象，结构如下：\n"
+            "如果觀察中包含關於緊急情況的 recent_messages 或 latest_event，請把它當作實時資訊並立即調整行動。\n\n"
+            "只返回一個 JSON 物件，結構如下：\n"
             "{\n"
-            '  "public_summary": "用中文简短描述本步骤",\n'
-            '  "environment_instruction": "给 AgentSociety 环境的中文自然语言动作，或空字符串",\n'
-            '  "action_proposal": {"action_type": "move|interact|direct_message|group_message|set_action", "location_id": "optional", "interaction_id": "optional", "receiver_id": "direct_message 必填", "content": "必须是中文", "public": "只有公共公告/安全广播/系统通知才可为 true"}\n'
+            '  "public_summary": "用中文簡短描述本步驟",\n'
+            '  "environment_instruction": "給 AgentSociety 環境的中文自然語言動作，或空字串",\n'
+            '  "action_proposal": {"action_type": "move|interact|direct_message|group_message|set_action", "location_id": "optional", "interaction_id": "optional", "receiver_id": "direct_message 必填", "content": "必須是中文", "public": "只有公共公告/安全廣播/系統通知才可為 true"}\n'
             "}\n"
-            "如果要使用上面的可执行技能提案，可以省略 action_proposal。\n"
-            "普通对话必须使用 direct_message，并且只能发给环境观察中的 nearby_agents。"
-            "group_message 只用于明确的公共公告、安全广播或系统通知；使用时必须设置 public=true。\n"
+            "如果要使用上面的可執行技能提案，可以省略 action_proposal。\n"
+            "普通對話必須使用 direct_message，並且只能發給環境觀察中的 nearby_agents。"
+            "group_message 只用於明確的公共公告、安全廣播或系統通知；使用時必須設定 public=true。\n"
             "不要用 Markdown 包裹 JSON。"
         )
 

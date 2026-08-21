@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'market', 'library']
 TARGET_INTERACTIONS = ['bird_watch', 'chat_with_regular', 'quiet_work']
 STATUS = 'photologging'
 EMOTION = 'observant'
-SPEECH = '我拍一张有用的记录，之后好回忆细节。'
+SPEECH = '我拍一張有用的記錄，之後好回憶細節。'
 MEMORY_TEMPLATE = 'Used phone.photolog: {summary} at {location_id}.'
 
 

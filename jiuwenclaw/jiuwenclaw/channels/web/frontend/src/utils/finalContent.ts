@@ -1,5 +1,5 @@
 /**
- * 将 chat.final 的 payload 规范为可展示的纯文本（与实时 WS 处理一致）。
+ * 將 chat.final 的 payload 規範為可展示的純文字（與實時 WS 處理一致）。
  */
 
 function decodeQuotedPythonLikeString(raw: string): string {
@@ -31,12 +31,12 @@ export function normalizeFinalContent(payload: Record<string, unknown>): string 
         return normalizeFinalDisplayText(parsed.output);
       }
     } catch {
-      // ignore: 继续尝试 Python dict 风格兼容解析
+      // ignore: 繼續嘗試 Python dict 風格相容解析
     }
   }
 
   if (!trimmed.includes('result_type') || !trimmed.includes('output')) {
-    // 处理嵌套在 delta 中的 chat.final 格式
+    // 處理巢狀在 delta 中的 chat.final 格式
     try {
       const parsed = JSON.parse(trimmed) as Record<string, unknown>;
       if (parsed.delta && typeof parsed.delta === 'object') {

@@ -84,7 +84,7 @@ export interface AppEventDelegate {
     at?: string,
   ): void;
   clearToolExecutionState(): void;
-  /** 用户中断：将 running 的工具标为已结束，避免 TUI 继续转圈 */
+  /** 使用者中斷：將 running 的工具標為已結束，避免 TUI 繼續轉圈 */
   markRunningToolsInterrupted(): void;
   /** 退出前 cancel({showNotice:false}) 置 true，抑制 interrupt_result UI 通知。 */
   getSuppressInterruptResult(): boolean;
@@ -92,9 +92,9 @@ export interface AppEventDelegate {
   pushHistoryEntry(entry: HistoryItem): void;
   scheduleHistoryFlush(): void;
   safeRestoreHistory(sessionId: string): void;
-  /** 报告 history.get 流返回的分页元数据（本页 page_idx / total_pages）。 */
+  /** 報告 history.get 流返回的分頁後設資料（本頁 page_idx / total_pages）。 */
   reportHistoryPageMeta(meta: { pageIdx?: number; totalPages?: number }): void;
-  /** 某一页 history.get 流已结束（收到 `status: done` 帧），由 app-state 决定是否继续拉下一页。 */
+  /** 某一頁 history.get 流已結束（收到 `status: done` 幀），由 app-state 決定是否繼續拉下一頁。 */
   notifyHistoryPageDone(pageIdx: number): void;
 }
 
@@ -108,14 +108,14 @@ function _handleSwitchModeToolResult(
   let subMode: string | null = null;
 
   if (typeof resultRaw === "object" && resultRaw !== null) {
-    // result 已经是解析后的对象
+    // result 已經是解析後的物件
     const data = (resultRaw as Record<string, unknown>).data;
     if (typeof data === "object" && data !== null) {
       const cm = (data as Record<string, unknown>).current_mode;
       if (typeof cm === "string") subMode = cm;
     }
   } else if (typeof resultRaw === "string") {
-    // 先尝试 JSON 解析
+    // 先嚐試 JSON 解析
     try {
       const parsed = JSON.parse(resultRaw);
       if (typeof parsed === "object" && parsed !== null) {
@@ -126,7 +126,7 @@ function _handleSwitchModeToolResult(
         }
       }
     } catch {
-      // JSON 解析失败，尝试从 Python str 表示中提取
+      // JSON 解析失敗，嘗試從 Python str 表示中提取
       // 格式如: "success=True data={'current_mode': 'normal', 'message': '...'} error=None"
       const match = resultRaw.match(/current_mode['"]\s*:\s*['"](\w+)['"]/);
       if (match) subMode = match[1];
@@ -768,8 +768,8 @@ export function handleIncomingFrame(delegate: AppEventDelegate, frame: EventFram
           typeof payload.message === "string" && payload.message.trim()
             ? payload.message
             : success
-              ? "当前会话任务已终止"
-              : "当前会话任务终止失败";
+              ? "當前會話任務已終止"
+              : "當前會話任務終止失敗";
         if (success) {
           delegate.setStreamingState(StreamingState.Interrupted);
           delegate.getActiveSubtasks().clear();
@@ -817,7 +817,7 @@ export function handleIncomingFrame(delegate: AppEventDelegate, frame: EventFram
     }
 
     case "history.message": {
-      // 先感知分页元数据（done 帧不会产生 entry，但必须让 app-state 感知）。
+      // 先感知分頁後設資料（done 幀不會產生 entry，但必須讓 app-state 感知）。
       const pageIdxRaw = payload.page_idx;
       const totalPagesRaw = payload.total_pages;
       delegate.reportHistoryPageMeta({

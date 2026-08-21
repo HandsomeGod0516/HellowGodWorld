@@ -1,9 +1,9 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Gateway 受控通道 slash 指令：单一解析与注册表（无 IO）.
+"""Gateway 受控通道 slash 指令：單一解析與登錄檔（無 IO）.
 
-与架构说明 docs/zh/SLASH_COMMAND_ARCHITECTURE.md 一致：此处仅 A 类通道控制与元数据登记，
-客户端专有命令（如 /resume）仅记录在 FIRST_BATCH_REGISTRY 中，不在 Gateway 内执行。
+與架構說明 docs/zh/SLASH_COMMAND_ARCHITECTURE.md 一致：此處僅 A 類通道控制與後設資料登記，
+客戶端專有命令（如 /resume）僅記錄在 FIRST_BATCH_REGISTRY 中，不在 Gateway 內執行。
 """
 
 from __future__ import annotations
@@ -13,12 +13,12 @@ from enum import Enum
 from typing import Any, Literal
 
 # ---------------------------------------------------------------------------
-# 合法控制消息全集（用于 IM 入站管线跳过 LLM 改写等，须与 Gateway 拦截语义一致）
+# 合法控制訊息全集（用於 IM 入站管線跳過 LLM 改寫等，須與 Gateway 攔截語義一致）
 # ---------------------------------------------------------------------------
 
 
 class GatewaySlashCommand(str, Enum):
-    """Gateway 当前支持解析的受控通道 slash 指令（A 类）。"""
+    """Gateway 當前支援解析的受控通道 slash 指令（A 類）。"""
 
     NEW_SESSION = "/new_session"
     MODE = "/mode"
@@ -28,7 +28,7 @@ class GatewaySlashCommand(str, Enum):
 
 
 class ModeSubcommand(str, Enum):
-    """`/mode` 支持的子命令。"""
+    """`/mode` 支援的子命令。"""
 
     AGENT = "agent"
     CODE = "code"
@@ -45,7 +45,7 @@ _VALID_MODE_LINES: frozenset[str] = frozenset(
 
 
 class SwitchSubcommand(str, Enum):
-    """`/switch` 支持的子命令。"""
+    """`/switch` 支援的子命令。"""
 
     PLAN = "plan"
     FAST = "fast"
@@ -67,7 +67,7 @@ CONTROL_MESSAGE_TEXTS: frozenset[str] = frozenset(
 
 
 class ParsedControlAction(str, Enum):
-    """parse_channel_control_text 的判定结果。"""
+    """parse_channel_control_text 的判定結果。"""
 
     NONE = "none"
     NEW_SESSION_OK = "new_session_ok"
@@ -81,23 +81,23 @@ class ParsedControlAction(str, Enum):
 
 @dataclass(frozen=True)
 class ParsedChannelControl:
-    """受控通道用户整行文本解析结果（与 message_handler 原语义一致）。"""
+    """受控通道使用者整行文字解析結果（與 message_handler 原語義一致）。"""
 
     action: ParsedControlAction
     mode_subcommand: str | None = None
-    """mode_ok 时为 agent|code|team|agent.plan|agent.fast|code.plan|code.normal 之一。"""
+    """mode_ok 時為 agent|code|team|agent.plan|agent.fast|code.plan|code.normal 之一。"""
     switch_subcommand: str | None = None
-    """switch_ok 时为 plan|fast|normal 之一。"""
+    """switch_ok 時為 plan|fast|normal 之一。"""
 
 
 def parse_channel_control_text(text: str) -> ParsedChannelControl:
-    """解析单条用户文本是否为 /new_session、/mode、/switch、/skills list 控制指令。
+    """解析單條使用者文字是否為 /new_session、/mode、/switch、/skills list 控制指令。
 
-    - 含换行则视为非控制（与原 _handle_channel_control 一致）。
-    - /new_session 仅整行精确匹配为合法；带后缀为非法但仍为控制指令。
-    - /mode 仅白名单整行合法；支持 agent|code|team 及四个直达模式值；其它以 /mode 开头且单行非法。
-    - /switch 仅白名单整行合法；其它以 /switch 开头且单行非法。
-    - /skills list 仅整行精确匹配（/skills 本身不再触发）。
+    - 含換行則視為非控制（與原 _handle_channel_control 一致）。
+    - /new_session 僅整行精確匹配為合法；帶字尾為非法但仍為控制指令。
+    - /mode 僅白名單整行合法；支援 agent|code|team 及四個直達模式值；其它以 /mode 開頭且單行非法。
+    - /switch 僅白名單整行合法；其它以 /switch 開頭且單行非法。
+    - /skills list 僅整行精確匹配（/skills 本身不再觸發）。
     """
     if not text:
         return ParsedChannelControl(ParsedControlAction.NONE)
@@ -127,9 +127,9 @@ def parse_channel_control_text(text: str) -> ParsedChannelControl:
 
 
 def is_control_like_for_im_batching(text: str) -> bool:
-    """飞书/企微等：控制类消息不走合并窗口（与历史行为一致并补全 mode 变体与 /skills list）。
+    """飛書/企微等：控制類訊息不走合併視窗（與歷史行為一致並補全 mode 變體與 /skills list）。
 
-    单条文本、且为已知控制句、或以 /mode / /switch / /new_session 为前缀（含非法变体）时返回 True。
+    單條文字、且為已知控制句、或以 /mode / /switch / /new_session 為字首（含非法變體）時返回 True。
     """
     if not text:
         return False
@@ -153,7 +153,7 @@ def is_control_like_for_im_batching(text: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# 第一批命令注册表（元数据；resume 等为 client scope）
+# 第一批命令登錄檔（後設資料；resume 等為 client scope）
 # ---------------------------------------------------------------------------
 
 SlashScope = Literal["gateway", "client"]
@@ -174,56 +174,56 @@ FIRST_BATCH_REGISTRY: tuple[SlashCommandEntry, ...] = (
         canonical_text=GatewaySlashCommand.NEW_SESSION.value,
         scope="gateway",
         req_method=None,
-        notes="受控通道重置 session_id；由 MessageHandler 拦截，不转发 Agent 对话。",
+        notes="受控通道重置 session_id；由 MessageHandler 攔截，不轉發 Agent 對話。",
     ),
     SlashCommandEntry(
         id="mode",
         canonical_text=f"{GatewaySlashCommand.MODE.value} agent|code|team|agent.plan|agent.fast|code.plan|code.normal",
         scope="gateway",
         req_method=None,
-        notes="受控通道切换模式：一级模式 agent/code/team（映射到默认子模式）或直达 agent.plan/agent.fast/code.plan/code.normal；写入 params.mode。",
+        notes="受控通道切換模式：一級模式 agent/code/team（對映到預設子模式）或直達 agent.plan/agent.fast/code.plan/code.normal；寫入 params.mode。",
     ),
     SlashCommandEntry(
         id="switch",
         canonical_text=f"{GatewaySlashCommand.SWITCH.value} plan|fast|normal",
         scope="gateway",
         req_method=None,
-        notes="受控通道切换二级模式：agent 下 plan/fast，code 下 plan/normal。",
+        notes="受控通道切換二級模式：agent 下 plan/fast，code 下 plan/normal。",
     ),
     SlashCommandEntry(
         id="skills",
         canonical_text=GatewaySlashCommand.SKILLS_LIST.value,
         scope="gateway",
         req_method="skills.list",
-        notes="受控通道整行 /skills list 时 Gateway 调 skills.list 并以通知回复；CLI 同路径见 builtins/skills.ts。",
+        notes="受控通道整行 /skills list 時 Gateway 調 skills.list 並以通知回覆；CLI 同路徑見 builtins/skills.ts。",
     ),
     SlashCommandEntry(
         id="resume",
         canonical_text="/resume",
         scope="client",
         req_method="command.resume",
-        notes="CLI 会话恢复；另用 session.list。IM 受控通道本阶段不解析，后续可扩展。",
+        notes="CLI 會話恢復；另用 session.list。IM 受控通道本階段不解析，後續可擴充套件。",
     ),
     SlashCommandEntry(
         id="workspace_dir",
         canonical_text="/workspace_dir [get|set <path>|clear]",
         scope="client",
         req_method=None,
-        notes="TUI 本地保存工作区路径；随 chat.send params.workspace_dir 发往 Gateway/AgentServer。",
+        notes="TUI 本地儲存工作區路徑；隨 chat.send params.workspace_dir 發往 Gateway/AgentServer。",
     ),
 )
 
 
 def format_skills_list_for_notice(payload: dict[str, Any] | None, *, max_items: int = 50) -> str:
-    """将 skills.list 响应 payload 格式化为适合 IM 的纯文本。"""
+    """將 skills.list 響應 payload 格式化為適合 IM 的純文字。"""
     if not payload or not isinstance(payload, dict):
-        return "暂无技能数据。"
+        return "暫無技能資料。"
     err = payload.get("error")
     if isinstance(err, str) and err.strip():
-        return f"获取技能列表失败：{err.strip()}"
+        return f"獲取技能列表失敗：{err.strip()}"
     skills = payload.get("skills")
     if not isinstance(skills, list) or not skills:
-        return "当前无可用技能。"
+        return "當前無可用技能。"
     lines: list[str] = ["【技能列表】"]
     for i, item in enumerate(skills[:max_items], 1):
         if isinstance(item, dict):
@@ -239,11 +239,11 @@ def format_skills_list_for_notice(payload: dict[str, Any] | None, *, max_items: 
         else:
             lines.append(f"{i}. {item}")
     if len(skills) > max_items:
-        lines.append(f"... 共 {len(skills)} 项，仅显示前 {max_items} 项。")
+        lines.append(f"... 共 {len(skills)} 項，僅顯示前 {max_items} 項。")
     return "\n".join(lines)
 
 
-# 供单测校验与外部只读引用（与 _VALID_MODE_LINES 相同）
+# 供單測校驗與外部只讀引用（與 _VALID_MODE_LINES 相同）
 VALID_MODE_LINES: frozenset[str] = _VALID_MODE_LINES
 VALID_MODE_SUBCOMMANDS: tuple[str, ...] = tuple(sub.value for sub in ModeSubcommand)
 VALID_SWITCH_LINES: frozenset[str] = _VALID_SWITCH_LINES

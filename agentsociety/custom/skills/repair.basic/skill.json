@@ -21,7 +21,7 @@
   ],
   "status": "repairing",
   "emotion": "focused",
-  "speech": "我先检查哪里坏了，再动手修。",
+  "speech": "我先檢查哪裡壞了，再動手修。",
   "memory_template": "Used repair.basic: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

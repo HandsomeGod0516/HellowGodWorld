@@ -1,20 +1,20 @@
-"""仿真社会辅助模块。
+"""模擬社會輔助模組。
 
-本模块提供 :class:`AgentSocietyHelper` 类，实现 Plan-and-Execute 模式的外部请求处理。
+本模組提供 :class:`AgentSocietyHelper` 類，實現 Plan-and-Execute 模式的外部請求處理。
 
 主要功能：
 
-- **问答处理**: 通过 :meth:`ask` 方法回答关于仿真的问题
-- **干预执行**: 通过 :meth:`intervene` 方法执行对仿真的干预
-- **动态重规划**: 当执行失败时自动调整计划
-- **工具调度**: 调度内置工具与环境路由器和智能体交互
+- **問答處理**: 透過 :meth:`ask` 方法回答關於模擬的問題
+- **干預執行**: 透過 :meth:`intervene` 方法執行對模擬的干預
+- **動態重規劃**: 當執行失敗時自動調整計劃
+- **工具排程**: 排程內建工具與環境路由器和智慧體互動
 
-内置工具：
+內建工具：
 
-- ``get_current_time`` — 获取当前仿真时间
-- ``filter_agents_by_profile`` — 按属性筛选智能体
-- ``ask_environment`` — 向环境路由器提问
-- ``ask_agents`` — 向特定智能体提问
+- ``get_current_time`` — 獲取當前模擬時間
+- ``filter_agents_by_profile`` — 按屬性篩選智慧體
+- ``ask_environment`` — 向環境路由器提問
+- ``ask_agents`` — 向特定智慧體提問
 
 Example::
 
@@ -22,11 +22,11 @@ Example::
 
     helper = AgentSocietyHelper(env_router=router, agents=[agent1, agent2])
 
-    # 问答模式
-    answer = await helper.ask("当前有多少智能体在线？")
+    # 問答模式
+    answer = await helper.ask("當前有多少智慧體線上？")
 
-    # 干预模式
-    result = await helper.intervene("让所有智能体移动到城市中心")
+    # 干預模式
+    result = await helper.intervene("讓所有智慧體移動到城市中心")
 """
 
 from __future__ import annotations

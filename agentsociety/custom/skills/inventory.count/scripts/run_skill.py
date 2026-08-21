@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['supply_store', 'market']
 TARGET_INTERACTIONS = ['inspect_supplies', 'restock_shelves']
 STATUS = 'counting_inventory'
 EMOTION = 'focused'
-SPEECH = '我先把库存数清楚，看看缺什么。'
+SPEECH = '我先把庫存數清楚，看看缺什麼。'
 MEMORY_TEMPLATE = 'Used inventory.count: {summary} at {location_id}.'
 
 

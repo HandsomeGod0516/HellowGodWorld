@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""SkillManager - 管理 skills 的加载、安装、卸载与 marketplace 操作."""
+"""SkillManager - 管理 skills 的載入、安裝、解除安裝與 marketplace 操作."""
 
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ _SKILLNET_PROXY_ENV_KEYS = (
 _SKILLNET_NO_PROXY_ENV_KEYS = ("NO_PROXY", "no_proxy")
 _FREE_SEARCH_DEFAULT_NO_PROXY = "127.0.0.1,.huawei.com,localhost,local,.local,10.155.97.247,.myhuaweicloud.com"
 
-# Team Skills Hub（仅 TEAM_SKILLS_HUB_* 环境变量）
+# Team Skills Hub（僅 TEAM_SKILLS_HUB_* 環境變數）
 _TEAM_SKILLS_HUB_MARKET_TIMEOUT: float = float(os.environ.get("TEAM_SKILLS_HUB_TIMEOUT", "60"))
 _TEAM_SKILLS_HUB_BASE_URL_DEFAULT = "https://teamskills.openjiuwen.com"
 _TEAM_SKILLS_HUB_DEFAULT_ALLOWED_DOWNLOAD_HOSTS: tuple[str, ...] = (
@@ -83,7 +83,7 @@ class _ImportLocalTLSAdapter(HTTPAdapter):
 
 
 # ---------------------------------------------------------------------------
-# 默认路径
+# 預設路徑
 # ---------------------------------------------------------------------------
 _EVOLUTION_FILENAME = "evolutions.json"
 
@@ -101,7 +101,7 @@ def _get_state_file() -> "Path":
 
 
 class SkillNetEmptyDownloadError(Exception):
-    """skillnet-ai ``download()`` returned None; 前端用 detail_key 做多语言。"""
+    """skillnet-ai ``download()`` returned None; 前端用 detail_key 做多語言。"""
 
     def __init__(self, *, github_context: str = "") -> None:
         self.github_context = (github_context or "").strip()
@@ -223,7 +223,7 @@ def _log_rejected_name(operation: str, label: str, value: Any, exc: ValueError) 
 
 
 def _safe_rmtree(path: Path) -> bool:
-    """安全地删除目录树，处理 Windows 上的 git 文件锁定问题."""
+    """安全地刪除目錄樹，處理 Windows 上的 git 檔案鎖定問題."""
     if not path.exists():
         return True
 
@@ -238,46 +238,46 @@ def _safe_rmtree(path: Path) -> bool:
             shutil.rmtree(path)
             return True
         except OSError as exc:
-            logger.debug("删除目录失败（尝试 %d/%d）: %s", attempt + 1, max_retries, exc)
+            logger.debug("刪除目錄失敗（嘗試 %d/%d）: %s", attempt + 1, max_retries, exc)
 
-            # 最后一次尝试失败，直接返回 False
+            # 最後一次嘗試失敗，直接返回 False
             if attempt == max_retries - 1:
-                logger.warning("删除目录失败（已重试 %d 次）: %s", max_retries, path)
+                logger.warning("刪除目錄失敗（已重試 %d 次）: %s", max_retries, path)
                 return False
 
-            # 检查是否是 Windows 上的权限问题
-            # 尝试修改文件权限
+            # 檢查是否是 Windows 上的許可權問題
+            # 嘗試修改檔案許可權
             if os.name == "nt":
                 try:
-                    # 尝试递归修改权限
+                    # 嘗試遞迴修改許可權
                     for root, dirs, files in os.walk(path):
                         for name in files + dirs:
                             filepath = Path(root) / name
                             try:
-                                # 移除只读属性
+                                # 移除只讀屬性
                                 if os.name == "nt":
                                     os.chmod(filepath, stat.S_IWRITE)
                                 elif os.name == "posix":
                                     os.chmod(filepath, 0o777)
-                                # 对目录，尝试删除其中的文件
+                                # 對目錄，嘗試刪除其中的檔案
                                 if filepath.is_dir():
                                     try:
                                         shutil.rmtree(filepath)
                                     except OSError:
-                                        pass  # 忽略子目录删除失败，外层会重试
+                                        pass  # 忽略子目錄刪除失敗，外層會重試
                                 elif filepath.is_file():
                                     try:
                                         os.unlink(filepath)
                                     except PermissionError:
-                                        pass  # 忽略文件删除失败
-                                # 小延迟
+                                        pass  # 忽略檔案刪除失敗
+                                # 小延遲
                                 time.sleep(0.01)
                             except OSError:
-                                pass  # 忽略权限修改失败
+                                pass  # 忽略許可權修改失敗
                 except Exception:
-                    pass  # 忽略其他异常
+                    pass  # 忽略其他異常
 
-            # 等待后重试
+            # 等待後重試
             time.sleep(retry_delay)
             retry_delay *= 2
 
@@ -285,11 +285,11 @@ def _safe_rmtree(path: Path) -> bool:
 
 
 class SkillManager:
-    """Skill 管理器，对应 skills.* 请求方法."""
+    """Skill 管理器，對應 skills.* 請求方法."""
 
     def __init__(self, workspace_dir: str | None = None) -> None:
-        # 若传入 workspace_dir（harness adapter 使用），优先通过 Workspace/WorkspaceNode
-        # 解析 skills 路径；否则使用全局默认路径（react adapter 或无参数时）。
+        # 若傳入 workspace_dir（harness adapter 使用），優先透過 Workspace/WorkspaceNode
+        # 解析 skills 路徑；否則使用全域性預設路徑（react adapter 或無引數時）。
         if workspace_dir is not None:
             try:
                 from openjiuwen.harness.workspace.workspace import Workspace, WorkspaceNode
@@ -311,27 +311,27 @@ class SkillManager:
             self._state_file = _get_state_file()
         self._skills_dir.mkdir(parents=True, exist_ok=True)
         self._state: dict[str, Any] = self._load_state()
-        # SkillNet 异步安装：install 立即返回 install_id，后台下载；完成后调用 hook 重载 Agent
+        # SkillNet 非同步安裝：install 立即返回 install_id，後臺下載；完成後呼叫 hook 過載 Agent
         self._skillnet_install_jobs: dict[str, dict[str, Any]] = {}
         self._skillnet_install_complete_hook: Callable[[], Awaitable[None]] | None = None
 
     def set_skillnet_install_complete_hook(self, hook: Callable[[], Awaitable[None]] | None) -> None:
-        """安装成功落盘后回调（通常为重载 Agent 实例）."""
+        """安裝成功落盤後回撥（通常為過載 Agent 例項）."""
         self._skillnet_install_complete_hook = hook
 
     # -----------------------------------------------------------------------
-    # 公开 handler
+    # 公開 handler
     # -----------------------------------------------------------------------
 
     async def handle_skills_list(self, params: dict) -> dict:
-        """返回所有可用 skill（本地 + marketplace 中未安装的）.
+        """返回所有可用 skill（本地 + marketplace 中未安裝的）.
 
         params:
-            refresh_marketplaces: bool (可选, 默认 False)
-                为 True 时，先对已配置 marketplace 执行 clone/pull，再扫描列表。
-            with_installed: bool (可选, 默认 False)
-                为 True 时，同一次响应中附带 plugins（与 skills.installed 一致），
-                避免网关串行处理两次 RPC 导致列表刷新超时或排队过久。
+            refresh_marketplaces: bool (可選, 預設 False)
+                為 True 時，先對已配置 marketplace 執行 clone/pull，再掃描列表。
+            with_installed: bool (可選, 預設 False)
+                為 True 時，同一次響應中附帶 plugins（與 skills.installed 一致），
+                避免閘道器序列處理兩次 RPC 導致列表重新整理超時或排隊過久。
         """
         refresh_marketplaces = bool(params.get("refresh_marketplaces", False))
         if refresh_marketplaces:
@@ -346,7 +346,7 @@ class SkillManager:
         return out
 
     async def handle_skills_installed(self, params: dict) -> dict:
-        """返回已安装的 marketplace 插件列表.
+        """返回已安裝的 marketplace 外掛列表.
 
         按前端期望格式返回：plugin_name, marketplace, spec, version, installed_at, git_commit, skills[]
         """
@@ -355,9 +355,9 @@ class SkillManager:
         for p in raw_plugins:
             name = p.get("name", "")
             marketplace = p.get("marketplace", "")
-            # 构造 spec (plugin_name@marketplace_name)
+            # 構造 spec (plugin_name@marketplace_name)
             spec = f"{name}@{marketplace}" if marketplace else name
-            # 转换字段名以符合前端期望
+            # 轉換欄位名以符合前端期望
             plugin = {
                 "plugin_name": name,
                 "marketplace": marketplace,
@@ -365,22 +365,22 @@ class SkillManager:
                 "version": p.get("version", ""),
                 "installed_at": p.get("installed_at", ""),
                 "git_commit": p.get("commit", ""),
-                # skills 数组：通常一个 plugin 包含同名 skill
+                # skills 陣列：通常一個 plugin 包含同名 skill
                 "skills": [name] if name else [],
             }
             plugins.append(plugin)
         return {"plugins": plugins}
 
     async def handle_skills_get(self, params: dict) -> dict:
-        """获取单个 skill 详情（name 必填）.
+        """獲取單個 skill 詳情（name 必填）.
 
-        返回字段转换：body -> content, path -> file_path
+        返回欄位轉換：body -> content, path -> file_path
         """
         name = params.get("name")
         if not name:
-            raise ValueError("缺少参数: name")
+            raise ValueError("缺少引數: name")
 
-        # 先在本地 skills 目录中查找
+        # 先在本地 skills 目錄中查詢
         for child in self._skills_dir.iterdir():
             if child.name.startswith("_") or not child.is_dir():
                 continue
@@ -389,7 +389,7 @@ class SkillManager:
                 continue
             meta = self._parse_skill_md(md)
             if meta and meta.get("name") == name:
-                # 字段转换以符合前端期望
+                # 欄位轉換以符合前端期望
                 meta["content"] = meta.pop("body", "")
                 meta["file_path"] = meta.pop("path", "")
                 meta["source"] = self._resolve_skill_source(meta.get("name", ""))
@@ -403,7 +403,7 @@ class SkillManager:
                 meta["has_evolutions"] = (child / _EVOLUTION_FILENAME).is_file()
                 return meta
 
-        # 再在 marketplace 目录中查找
+        # 再在 marketplace 目錄中查詢
         if self._marketplace_dir.exists():
             for repo_dir in self._marketplace_dir.iterdir():
                 if not repo_dir.is_dir():
@@ -416,7 +416,7 @@ class SkillManager:
                         continue
                     meta = self._parse_skill_md(md)
                     if meta and meta.get("name") == name:
-                        # 字段转换以符合前端期望
+                        # 欄位轉換以符合前端期望
                         meta["content"] = meta.pop("body", "")
                         meta["file_path"] = meta.pop("path", "")
                         marketplace_name = repo_dir.name
@@ -430,10 +430,10 @@ class SkillManager:
         raise ValueError(f"未找到 skill: {name}")
 
     async def handle_skills_evolution_status(self, params: dict) -> dict:
-        """检查某个 skill 是否存在 evolutions.json."""
+        """檢查某個 skill 是否存在 evolutions.json."""
         name = str(params.get("name") or "").strip()
         if not name:
-            raise ValueError("缺少参数: name")
+            raise ValueError("缺少引數: name")
         try:
             name = _safe_path_name(name, "skill")
         except ValueError as exc:
@@ -446,10 +446,10 @@ class SkillManager:
         }
 
     async def handle_skills_evolution_get(self, params: dict) -> dict:
-        """获取某个 skill 的 evolutions.json 内容（重点返回 entries）."""
+        """獲取某個 skill 的 evolutions.json 內容（重點返回 entries）."""
         name = str(params.get("name") or "").strip()
         if not name:
-            raise ValueError("缺少参数: name")
+            raise ValueError("缺少引數: name")
         try:
             name = _safe_path_name(name, "skill")
         except ValueError as exc:
@@ -478,12 +478,12 @@ class SkillManager:
                 **evo_file.to_dict(),
             }
         except Exception as exc:
-            logger.warning("读取 evolutions.json 失败: skill=%s error=%s", name, exc)
+            logger.warning("讀取 evolutions.json 失敗: skill=%s error=%s", name, exc)
             return {
                 "name": name,
                 "exists": True,
                 "valid": False,
-                "detail": "evolutions.json 格式错误或读取失败",
+                "detail": "evolutions.json 格式錯誤或讀取失敗",
                 "skill_id": name,
                 "version": "1.0.0",
                 "updated_at": "",
@@ -491,10 +491,10 @@ class SkillManager:
             }
 
     async def handle_skills_evolution_save(self, params: dict) -> dict:
-        """保存某个 skill 的 evolutions.json 条目列表."""
+        """儲存某個 skill 的 evolutions.json 條目列表."""
         name = str(params.get("name") or "").strip()
         if not name:
-            raise ValueError("缺少参数: name")
+            raise ValueError("缺少引數: name")
         try:
             name = _safe_path_name(name, "skill")
         except ValueError as exc:
@@ -506,18 +506,18 @@ class SkillManager:
 
         entries = params.get("entries")
         if not isinstance(entries, list):
-            raise ValueError("参数 entries 必须是数组")
+            raise ValueError("引數 entries 必須是陣列")
 
         normalized_entries: list[EvolutionEntry] = []
         for idx, item in enumerate(entries):
             if not isinstance(item, dict):
-                raise ValueError(f"entries[{idx}] 必须是对象")
+                raise ValueError(f"entries[{idx}] 必須是物件")
             entry_id = str(item.get("id") or "").strip()
             content = item.get("change", {}).get("content") if isinstance(item.get("change"), dict) else None
             if not entry_id:
-                raise ValueError(f"entries[{idx}].id 不能为空")
+                raise ValueError(f"entries[{idx}].id 不能為空")
             if not isinstance(content, str):
-                raise ValueError(f"entries[{idx}].change.content 必须是字符串")
+                raise ValueError(f"entries[{idx}].change.content 必須是字串")
             normalized_entries.append(EvolutionEntry.from_dict(item))
 
         evo_path = self._get_skill_evolution_path(name)
@@ -527,7 +527,7 @@ class SkillManager:
                 current = json.loads(evo_path.read_text(encoding="utf-8"))
                 evo_file = EvolutionFile.from_dict(current)
             except Exception as exc:
-                logger.warning("读取原 evolutions.json 失败，将以新内容覆盖: skill=%s error=%s", name, exc)
+                logger.warning("讀取原 evolutions.json 失敗，將以新內容覆蓋: skill=%s error=%s", name, exc)
 
         evo_file.entries = normalized_entries
         evo_file.updated_at = datetime.now(timezone.utc).isoformat()
@@ -554,7 +554,7 @@ class SkillManager:
         返回格式符合前端期望：name, url, install_location?, last_updated?
         """
         marketplaces = self._get_marketplaces()
-        # 为每个 marketplace 添加前端期望的可选字段
+        # 為每個 marketplace 新增前端期望的可選欄位
         result = []
         for m in marketplaces:
             item = {
@@ -568,21 +568,21 @@ class SkillManager:
         return {"marketplaces": result}
 
     async def handle_skills_install(self, params: dict) -> dict:
-        """安装 marketplace 中的 skill.
+        """安裝 marketplace 中的 skill.
 
         params:
             spec: "plugin_name@marketplace_name"
-            force: bool (可选, 默认 False)
+            force: bool (可選, 預設 False)
         """
         spec = params.get("spec", "")
         force = params.get("force", False)
 
         if "@" not in spec:
-            return {"success": False, "detail": "spec 格式应为 plugin@marketplace"}
+            return {"success": False, "detail": "spec 格式應為 plugin@marketplace"}
 
         plugin_name, marketplace_name = spec.rsplit("@", 1)
         if not plugin_name or not marketplace_name:
-            return {"success": False, "detail": "plugin 或 marketplace 名称为空"}
+            return {"success": False, "detail": "plugin 或 marketplace 名稱為空"}
         try:
             plugin_name = _safe_path_name(plugin_name, "plugin")
             marketplace_name = _safe_path_name(marketplace_name, "marketplace")
@@ -593,7 +593,7 @@ class SkillManager:
         if marketplace_name == "builtin":
             return await self.handle_skills_install_builtin({"name": plugin_name})
 
-        # 查找 marketplace 配置
+        # 查詢 marketplace 配置
         marketplace = None
         for m in self._get_marketplaces():
             if m.get("name") == marketplace_name:
@@ -606,29 +606,29 @@ class SkillManager:
         if not git_url:
             return {"success": False, "detail": f"marketplace {marketplace_name} 缺少 url"}
 
-        # 确保 marketplace 仓库已 clone
+        # 確保 marketplace 倉庫已 clone
         repo_dir = _safe_child_path(self._marketplace_dir, marketplace_name, "marketplace")
         if repo_dir.exists():
             await self._git_pull(repo_dir)
         else:
             commit = await self._git_clone(git_url, repo_dir)
             if commit is None:
-                return {"success": False, "detail": f"git clone 失败: {git_url}"}
+                return {"success": False, "detail": f"git clone 失敗: {git_url}"}
 
-        # 在仓库中查找 plugin 目录
+        # 在倉庫中查詢 plugin 目錄
         plugin_src = repo_dir / "skills" / plugin_name
 
-        # 兼容单skill模式
+        # 相容單skill模式
         if not plugin_src.exists() or not plugin_src.is_dir():
             plugin_src = repo_dir
         if not plugin_src.is_dir():
-            return {"success": False, "detail": f"在 marketplace 仓库中未找到 plugin: {plugin_name}"}
+            return {"success": False, "detail": f"在 marketplace 倉庫中未找到 plugin: {plugin_name}"}
 
         md = self._try_find_skill_file(plugin_src)
         if md is None:
             return {"success": False, "detail": f"plugin {plugin_name} 缺少 SKILL.md"}
 
-        # 复制到本地 skills 目录
+        # 複製到本地 skills 目錄
         dest = _safe_child_path(self._skills_dir, plugin_name, "skill")
         if dest.exists():
             if not force:
@@ -636,7 +636,7 @@ class SkillManager:
             _safe_rmtree(dest)
         shutil.copytree(plugin_src, dest)
 
-        # 解析元数据并记录（添加 installed_at 时间戳）
+        # 解析後設資料並記錄（新增 installed_at 時間戳）
         meta = self._parse_skill_md(self._try_find_skill_file(dest)) or {}
         commit_hash = await self._git_get_commit(repo_dir)
         self._add_installed_plugin(
@@ -654,14 +654,14 @@ class SkillManager:
         return {"success": True}
 
     async def handle_skills_install_builtin(self, params: dict) -> dict:
-        """安装内置技能.
+        """安裝內建技能.
 
         params:
-            name: skill 名称
+            name: skill 名稱
         """
         name = params.get("name", "")
         if not name:
-            return {"success": False, "detail": "缺少参数: name"}
+            return {"success": False, "detail": "缺少引數: name"}
         try:
             name = _safe_path_name(name, "skill")
         except ValueError as exc:
@@ -670,25 +670,25 @@ class SkillManager:
 
         builtin_dir = get_builtin_skills_dir()
         if not builtin_dir.exists():
-            return {"success": False, "detail": "内置技能目录不存在"}
+            return {"success": False, "detail": "內建技能目錄不存在"}
 
         src = _safe_child_path(builtin_dir, name, "skill")
         if not src.exists() or not src.is_dir():
-            return {"success": False, "detail": f"未找到内置技能: {name}"}
+            return {"success": False, "detail": f"未找到內建技能: {name}"}
 
-        # 检查是否已经安装
+        # 檢查是否已經安裝
         dest = _safe_child_path(self._skills_dir, name, "skill")
         if dest.exists() and dest.is_dir():
-            return {"success": False, "detail": f"技能 {name} 已经安装"}
+            return {"success": False, "detail": f"技能 {name} 已經安裝"}
 
-        # 复制技能到用户目录
+        # 複製技能到使用者目錄
         try:
             shutil.copytree(src, dest)
         except Exception as exc:
-            logger.error("安装内置技能失败: %s", exc)
-            return {"success": False, "detail": f"安装失败: {exc}"}
+            logger.error("安裝內建技能失敗: %s", exc)
+            return {"success": False, "detail": f"安裝失敗: {exc}"}
 
-        # 记录安装信息到状态文件
+        # 記錄安裝資訊到狀態檔案
         meta = self._parse_skill_md(self._try_find_skill_file(dest)) or {}
         self._add_installed_plugin(
             {
@@ -701,18 +701,18 @@ class SkillManager:
             }
         )
 
-        # 刷新索引
+        # 重新整理索引
         self._refresh_agent_data_indexes()
 
         return {"success": True}
 
     async def handle_skills_skillnet_search(self, params: dict) -> dict:
-        """在线搜索 SkillNet 技能."""
+        """線上搜尋 SkillNet 技能."""
         query = str(params.get("q", "")).strip()
         if not query:
-            return {"success": False, "detail": "缺少参数: q"}
+            return {"success": False, "detail": "缺少引數: q"}
 
-        # 尽量与 SkillNet API 对齐，便于前端透传。
+        # 儘量與 SkillNet API 對齊，便於前端透傳。
         search_kwargs: dict[str, Any] = {"q": query}
         if params.get("mode"):
             search_kwargs["mode"] = params.get("mode")
@@ -722,35 +722,35 @@ class SkillManager:
             try:
                 search_kwargs["limit"] = int(params.get("limit"))
             except Exception:
-                return {"success": False, "detail": "参数 limit 必须是整数"}
+                return {"success": False, "detail": "引數 limit 必須是整數"}
         if params.get("page") is not None:
             try:
                 search_kwargs["page"] = int(params.get("page"))
             except Exception:
-                return {"success": False, "detail": "参数 page 必须是整数"}
+                return {"success": False, "detail": "引數 page 必須是整數"}
         if params.get("min_stars") is not None:
             try:
                 search_kwargs["min_stars"] = int(params.get("min_stars"))
             except Exception:
-                return {"success": False, "detail": "参数 min_stars 必须是整数"}
+                return {"success": False, "detail": "引數 min_stars 必須是整數"}
         if params.get("sort_by"):
             search_kwargs["sort_by"] = params.get("sort_by")
         if params.get("threshold") is not None:
             try:
                 search_kwargs["threshold"] = float(params.get("threshold"))
             except Exception:
-                return {"success": False, "detail": "参数 threshold 必须是数字"}
+                return {"success": False, "detail": "引數 threshold 必須是數字"}
 
         try:
             raw_results = await asyncio.to_thread(self._skillnet_search_sync, search_kwargs)
         except Exception as exc:
-            logger.error("SkillNet 搜索失败: %s", exc)
+            logger.error("SkillNet 搜尋失敗: %s", exc)
             raw = str(exc).strip()
             if raw:
                 return {"success": False, "detail": raw}
             return {
                 "success": False,
-                "detail": "搜索失败，请稍后重试。",
+                "detail": "搜尋失敗，請稍後重試。",
                 "detail_key": "skills.skillNet.errors.searchFailedFallback",
             }
 
@@ -783,14 +783,14 @@ class SkillManager:
         }
 
     async def handle_skills_skillnet_install(self, params: dict) -> dict:
-        """从 SkillNet URL 异步安装：立即返回 install_id，不阻塞网关队列.
+        """從 SkillNet URL 非同步安裝：立即返回 install_id，不阻塞閘道器佇列.
 
-        前端应轮询 skills.skillnet.install_status 直至 status 为 done/failed。
+        前端應輪詢 skills.skillnet.install_status 直至 status 為 done/failed。
         """
         skill_url = str(params.get("url", "")).strip()
         force = bool(params.get("force", False))
         if not skill_url:
-            return {"success": False, "detail": "缺少参数: url"}
+            return {"success": False, "detail": "缺少引數: url"}
 
         mirror_url: str | None = None
         raw_mirror = params.get("mirror_url")
@@ -818,15 +818,15 @@ class SkillManager:
         }
 
     async def handle_skills_skillnet_install_status(self, params: dict) -> dict:
-        """查询 SkillNet 异步安装状态."""
+        """查詢 SkillNet 非同步安裝狀態."""
         install_id = str(params.get("install_id", "")).strip()
         if not install_id:
-            return {"success": False, "detail": "缺少参数: install_id"}
+            return {"success": False, "detail": "缺少引數: install_id"}
         job = self._skillnet_install_jobs.get(install_id)
         if job is None:
             return {
                 "success": False,
-                "detail": "安装会话已过期，请重新点击安装。",
+                "detail": "安裝會話已過期，請重新點選安裝。",
                 "detail_key": "skills.skillNet.errors.sessionExpired",
             }
 
@@ -837,7 +837,7 @@ class SkillManager:
             out: dict[str, Any] = {
                 "success": False,
                 "status": "failed",
-                "detail": job.get("detail", "安装失败"),
+                "detail": job.get("detail", "安裝失敗"),
             }
             if "detail_key" in job:
                 out["detail_key"] = job["detail_key"]
@@ -852,24 +852,24 @@ class SkillManager:
         }
 
     async def handle_skills_skillnet_evaluate(self, params: dict) -> dict:
-        """使用 skillnet-ai 的 evaluate，LLM 配置复用 react.model_client_config + model_name."""
+        """使用 skillnet-ai 的 evaluate，LLM 配置複用 react.model_client_config + model_name."""
         skill_url = str(params.get("url", "")).strip()
         if not skill_url:
-            return {"success": False, "detail": "缺少参数: url"}
+            return {"success": False, "detail": "缺少引數: url"}
 
         try:
             out = await asyncio.to_thread(SkillManager._skillnet_evaluate_sync, skill_url)
         except Exception as exc:
-            logger.error("SkillNet 评估失败: %s", exc)
+            logger.error("SkillNet 評估失敗: %s", exc)
             raw = str(exc).strip()
             return {
                 "success": False,
-                "detail": raw or "评估失败，请稍后重试。",
+                "detail": raw or "評估失敗，請稍後重試。",
                 "detail_key": "skills.skillNet.errors.evaluateFailedFallback",
             }
 
         if not out.get("ok"):
-            detail = str(out.get("detail", "")).strip() or "评估失败，请稍后重试。"
+            detail = str(out.get("detail", "")).strip() or "評估失敗，請稍後重試。"
             resp: dict[str, Any] = {"success": False, "detail": detail}
             if out.get("detail_key"):
                 resp["detail_key"] = out["detail_key"]
@@ -878,7 +878,7 @@ class SkillManager:
         return {"success": True, "evaluation": out.get("evaluation")}
 
     async def handle_skills_clawhub_get_token(self, params: dict) -> dict:
-        """获取 ClawHub CLI token（已掩码）."""
+        """獲取 ClawHub CLI token（已掩碼）."""
         token = self._get_clawhub_token()
         return {
             "success": True,
@@ -887,7 +887,7 @@ class SkillManager:
         }
 
     async def handle_skills_clawhub_set_token(self, params: dict) -> dict:
-        """设置 ClawHub CLI token."""
+        """設定 ClawHub CLI token."""
         token = str(params.get("token", "")).strip()
         self._set_clawhub_token(token)
         return {
@@ -896,21 +896,21 @@ class SkillManager:
         }
 
     async def handle_skills_clawhub_search(self, params: dict) -> dict:
-        """从 ClawHub 搜索技能.
+        """從 ClawHub 搜尋技能.
 
         params:
-            q: 搜索查询字符串 (必需)
-            limit: 结果数量限制 (可选)
+            q: 搜尋查詢字串 (必需)
+            limit: 結果數量限制 (可選)
         """
         query = str(params.get("q", "")).strip()
         if not query:
-            return {"success": False, "detail": "缺少参数: q"}
+            return {"success": False, "detail": "缺少引數: q"}
 
         token = self._get_clawhub_token()
         if not token:
             return {
                 "success": False,
-                "detail": "未配置 ClawHub CLI token，请先配置",
+                "detail": "未配置 ClawHub CLI token，請先配置",
                 "detail_key": "skills.clawhub.errors.tokenNotConfigured",
             }
 
@@ -919,7 +919,7 @@ class SkillManager:
             try:
                 limit = int(limit)
             except Exception:
-                return {"success": False, "detail": "参数 limit 必须是整数"}
+                return {"success": False, "detail": "引數 limit 必須是整數"}
 
         try:
             base_url = "https://clawhub.ai"
@@ -962,7 +962,7 @@ class SkillManager:
                     "skills": normalized,
                 }
         except httpx.HTTPStatusError as exc:
-            logger.error("ClawHub 搜索 HTTP 错误: %s", exc)
+            logger.error("ClawHub 搜尋 HTTP 錯誤: %s", exc)
             detail = f"HTTP {exc.response.status_code}: {exc.response.text[:200]}"
             return {
                 "success": False,
@@ -970,7 +970,7 @@ class SkillManager:
                 "detail_key": "skills.clawhub.errors.httpError",
             }
         except Exception as exc:
-            logger.error("ClawHub 搜索失败: %s", exc)
+            logger.error("ClawHub 搜尋失敗: %s", exc)
             return {
                 "success": False,
                 "detail": str(exc)[:500],
@@ -978,17 +978,17 @@ class SkillManager:
             }
 
     async def handle_skills_clawhub_download(self, params: dict) -> dict:
-        """从 ClawHub 下载技能.
+        """從 ClawHub 下載技能.
 
         params:
             slug: skill slug (必需)
-            version: 版本号 (可选，默认 latest)
-            tag: 标签 (可选，如 latest)
-            force: 强制覆盖 (可选，默认 False)
+            version: 版本號 (可選，預設 latest)
+            tag: 標籤 (可選，如 latest)
+            force: 強制覆蓋 (可選，預設 False)
         """
         slug = str(params.get("slug", "")).strip()
         if not slug:
-            return {"success": False, "detail": "缺少参数: slug"}
+            return {"success": False, "detail": "缺少引數: slug"}
         try:
             slug = _safe_path_name(slug, "skill")
         except ValueError as exc:
@@ -999,7 +999,7 @@ class SkillManager:
         if not token:
             return {
                 "success": False,
-                "detail": "未配置 ClawHub CLI token，请先配置",
+                "detail": "未配置 ClawHub CLI token，請先配置",
                 "detail_key": "skills.clawhub.errors.tokenNotConfigured",
             }
 
@@ -1007,12 +1007,12 @@ class SkillManager:
         tag = params.get("tag")
         force = bool(params.get("force", False))
 
-        # 检查 skill 是否已安装
+        # 檢查 skill 是否已安裝
         dest = _safe_child_path(self._skills_dir, slug, "skill")
         if dest.exists() and not force:
             return {
                 "success": False,
-                "detail": f"技能 {slug} 已安装",
+                "detail": f"技能 {slug} 已安裝",
                 "detail_key": "skills.clawhub.errors.skillAlreadyInstalled",
             }
 
@@ -1038,45 +1038,45 @@ class SkillManager:
                 )
                 response.raise_for_status()
 
-                # 解压下载的内容
+                # 解壓下載的內容
                 with tempfile.TemporaryDirectory(prefix="jiuwenclari_clawhub_") as tmpdir:
                     tmp_path = Path(tmpdir)
 
-                    # 保存 zip 文件
+                    # 儲存 zip 檔案
                     zip_content = io.BytesIO(response.content)
                     with zipfile.ZipFile(zip_content, "r") as zip_ref:
                         zip_ref.extractall(tmp_path)
 
-                    # 查找 skill 目录
+                    # 查詢 skill 目錄
                     skill_dir = self._locate_skill_dir(tmp_path)
                     if skill_dir is None:
                         return {
                             "success": False,
-                            "detail": "下载内容不完整，未找到 SKILL.md",
+                            "detail": "下載內容不完整，未找到 SKILL.md",
                             "detail_key": "skills.clawhub.errors.skillMdNotFound",
                         }
 
-                    # 解析元数据
+                    # 解析後設資料
                     md = self._try_find_skill_file(skill_dir)
                     meta = self._parse_skill_md(md) if md else None
                     if meta is None:
                         return {
                             "success": False,
-                            "detail": "无法解析下载的技能文件",
+                            "detail": "無法解析下載的技能檔案",
                             "detail_key": "skills.clawhub.errors.parseSkillFailed",
                         }
 
-                    # 删除已存在的
+                    # 刪除已存在的
                     if dest.exists():
                         if not force:
                             return {
                                 "success": False,
-                                "detail": f"技能 {slug} 已安装",
+                                "detail": f"技能 {slug} 已安裝",
                                 "detail_key": "skills.clawhub.errors.skillAlreadyInstalled",
                             }
                         _safe_rmtree(dest)
 
-                    # 复制到 skills 目录
+                    # 複製到 skills 目錄
                     shutil.copytree(skill_dir, dest)
                     for mirror_root in self._get_mirror_skills_dirs():
                         mirror_dest = _safe_child_path(mirror_root, slug, "skill")
@@ -1087,7 +1087,7 @@ class SkillManager:
                         mirror_root.mkdir(parents=True, exist_ok=True)
                         shutil.copytree(skill_dir, mirror_dest)
 
-                    # 记录安装信息
+                    # 記錄安裝資訊
                     skill_name = meta.get("name", slug)
                     self._add_local_skill(
                         {
@@ -1115,7 +1115,7 @@ class SkillManager:
                     }
 
         except httpx.HTTPStatusError as exc:
-            logger.error("ClawHub 下载 HTTP 错误: %s", exc)
+            logger.error("ClawHub 下載 HTTP 錯誤: %s", exc)
             detail = f"HTTP {exc.response.status_code}: {exc.response.text[:200]}"
             return {
                 "success": False,
@@ -1123,7 +1123,7 @@ class SkillManager:
                 "detail_key": "skills.clawhub.errors.httpError",
             }
         except Exception as exc:
-            logger.error("ClawHub 下载失败: %s", exc)
+            logger.error("ClawHub 下載失敗: %s", exc)
             return {
                 "success": False,
                 "detail": str(exc)[:500],
@@ -1131,10 +1131,10 @@ class SkillManager:
             }
 
     async def handle_skills_team_skills_hub_init(self, params: dict) -> dict:
-        """初始化 TeamSkills 模板目录（最小可用脚手架）。"""
+        """初始化 TeamSkills 模板目錄（最小可用腳手架）。"""
         name_raw = str(params.get("name") or "").strip()
         if not name_raw:
-            return {"success": False, "detail": "缺少参数: name"}
+            return {"success": False, "detail": "缺少引數: name"}
         try:
             skill_name = _safe_path_name(name_raw, "skill")
         except ValueError as exc:
@@ -1149,25 +1149,25 @@ class SkillManager:
             or "teamskills"
         ).strip().lower()
         if skill_type not in {"teamskills", "skill"}:
-            return {"success": False, "detail": "type 仅支持: teamskills 或 skill"}
+            return {"success": False, "detail": "type 僅支援: teamskills 或 skill"}
         force = bool(params.get("force", False))
         parent_dir = Path(parent_raw).expanduser().resolve()
         if not parent_dir.exists() or not parent_dir.is_dir():
-            return {"success": False, "detail": f"path 不是有效目录: {parent_dir}"}
+            return {"success": False, "detail": f"path 不是有效目錄: {parent_dir}"}
 
         target_dir = parent_dir / skill_name
         try:
             if target_dir.exists():
                 if not target_dir.is_dir():
-                    return {"success": False, "detail": f"目标路径不是目录: {target_dir}"}
+                    return {"success": False, "detail": f"目標路徑不是目錄: {target_dir}"}
                 if any(target_dir.iterdir()):
                     if not force:
-                        return {"success": False, "detail": f"目标目录非空: {target_dir}"}
+                        return {"success": False, "detail": f"目標目錄非空: {target_dir}"}
                     _safe_rmtree(target_dir)
             target_dir.mkdir(parents=True, exist_ok=True)
             skill_file = target_dir / "SKILL.md"
             if skill_file.exists() and not force:
-                return {"success": False, "detail": f"文件已存在: {skill_file}"}
+                return {"success": False, "detail": f"檔案已存在: {skill_file}"}
             if skill_type == "teamskills":
                 content = (
                     "---\n"
@@ -1199,23 +1199,23 @@ class SkillManager:
             self._refresh_agent_data_indexes()
             return {"success": True, "path": str(target_dir)}
         except Exception as exc:
-            logger.error("Team Skills Hub init 失败: %s", exc)
+            logger.error("Team Skills Hub init 失敗: %s", exc)
             return {"success": False, "detail": str(exc)[:500]}
 
     async def handle_skills_team_skills_hub_validate(self, params: dict) -> dict:
-        """校验 TeamSkills 目录结构与 SKILL.md 内容。"""
+        """校驗 TeamSkills 目錄結構與 SKILL.md 內容。"""
         path_raw = str(params.get("path") or "").strip()
         if not path_raw:
-            return {"success": False, "detail": "缺少参数: path"}
+            return {"success": False, "detail": "缺少引數: path"}
         skill_root = Path(path_raw).expanduser().resolve()
         if not skill_root.exists() or not skill_root.is_dir():
-            return {"success": False, "detail": f"path 不是有效目录: {skill_root}"}
+            return {"success": False, "detail": f"path 不是有效目錄: {skill_root}"}
         skill_md = self._try_find_skill_file(skill_root)
         if skill_md is None:
-            return {"success": False, "detail": f"目录中未找到 SKILL.md: {skill_root}"}
+            return {"success": False, "detail": f"目錄中未找到 SKILL.md: {skill_root}"}
         meta = self._parse_skill_md(skill_md)
         if meta is None:
-            return {"success": False, "detail": f"无法解析 SKILL.md: {skill_md}"}
+            return {"success": False, "detail": f"無法解析 SKILL.md: {skill_md}"}
 
         skill_type = str(
             params.get("skill_type") or params.get("plugin_type") or params.get("type") or ""
@@ -1254,7 +1254,7 @@ class SkillManager:
         if errors:
             return {
                 "success": False,
-                "detail": "TeamSkills roles 校验失败" if skill_type == "teamskills" else "校验失败",
+                "detail": "TeamSkills roles 校驗失敗" if skill_type == "teamskills" else "校驗失敗",
                 "errors": errors,
             }
 
@@ -1268,16 +1268,16 @@ class SkillManager:
         }
 
     async def handle_skills_team_skills_hub_pack(self, params: dict) -> dict:
-        """将 TeamSkills 目录打包为 zip。"""
+        """將 TeamSkills 目錄打包為 zip。"""
         path_raw = str(params.get("path") or "").strip()
         if not path_raw:
-            return {"success": False, "detail": "缺少参数: path"}
+            return {"success": False, "detail": "缺少引數: path"}
         skill_root = Path(path_raw).expanduser().resolve()
         if not skill_root.exists() or not skill_root.is_dir():
-            return {"success": False, "detail": f"path 不是有效目录: {skill_root}"}
+            return {"success": False, "detail": f"path 不是有效目錄: {skill_root}"}
         skill_md = self._try_find_skill_file(skill_root)
         if skill_md is None:
-            return {"success": False, "detail": f"目录中未找到 SKILL.md: {skill_root}"}
+            return {"success": False, "detail": f"目錄中未找到 SKILL.md: {skill_root}"}
 
         output_raw = str(params.get("output") or "out").strip() or "out"
         output_path = Path(output_raw).expanduser()
@@ -1297,17 +1297,17 @@ class SkillManager:
                     zf.write(child, arcname=rel)
             return {"success": True, "path": str(zip_path)}
         except Exception as exc:
-            logger.error("Team Skills Hub pack 失败: %s", exc)
+            logger.error("Team Skills Hub pack 失敗: %s", exc)
             return {"success": False, "detail": str(exc)[:500]}
 
     async def handle_skills_team_skills_hub_info(self, params: dict) -> dict:
-        """查询 Team Skills Hub 技能版本详情（/api/v1/artifacts/{asset_id}）。"""
+        """查詢 Team Skills Hub 技能版本詳情（/api/v1/artifacts/{asset_id}）。"""
         asset_id = str(params.get("asset_id", "")).strip()
         if not asset_id:
-            return {"success": False, "detail": "缺少参数: asset_id"}
+            return {"success": False, "detail": "缺少引數: asset_id"}
         version = str(params.get("version", "")).strip()
         if not version:
-            return {"success": False, "detail": "缺少参数: version"}
+            return {"success": False, "detail": "缺少引數: version"}
         base_url = self._get_team_skills_hub_base_url(str(params.get("market_url") or "").strip() or None)
         try:
             detail = await self._team_skills_hub_http_get_data(
@@ -1317,27 +1317,27 @@ class SkillManager:
                 base_url=base_url,
             )
             if not isinstance(detail, dict):
-                return {"success": False, "detail": "marketplace 返回数据格式错误"}
+                return {"success": False, "detail": "marketplace 返回資料格式錯誤"}
             return {"success": True, "asset_id": asset_id, "version": version, "data": detail}
         except Exception as exc:
-            logger.error("Team Skills Hub 详情查询失败: %s", exc)
+            logger.error("Team Skills Hub 詳情查詢失敗: %s", exc)
             return {"success": False, "detail": str(exc)[:500]}
 
     async def handle_skills_team_skills_hub_search(self, params: dict) -> dict:
-        """从 Team Skills Hub 搜索技能（/api/v1/plugins）。"""
+        """從 Team Skills Hub 搜尋技能（/api/v1/plugins）。"""
         query = str(params.get("q", "")).strip()
 
         page_size_raw = params.get("page_size", params.get("limit", 20))
         try:
             page_size = max(1, min(int(page_size_raw), 100))
         except Exception:
-            return {"success": False, "detail": "参数 page_size 必须是整数"}
+            return {"success": False, "detail": "引數 page_size 必須是整數"}
 
         page = params.get("page", 1)
         try:
             page = max(1, int(page))
         except Exception:
-            return {"success": False, "detail": "参数 page 必须是整数"}
+            return {"success": False, "detail": "引數 page 必須是整數"}
 
         skill_type = str(params.get("skill_type") or params.get("plugin_type") or "").strip()
         author = str(params.get("author", "")).strip()
@@ -1398,7 +1398,7 @@ class SkillManager:
                 "skills": normalized,
             }
         except Exception as exc:
-            logger.error("Team Skills Hub 搜索失败: %s", exc)
+            logger.error("Team Skills Hub 搜尋失敗: %s", exc)
             return {
                 "success": False,
                 "detail": str(exc)[:500],
@@ -1406,10 +1406,10 @@ class SkillManager:
             }
 
     async def handle_skills_team_skills_hub_install(self, params: dict) -> dict:
-        """从 Team Skills Hub 安装技能（/api/v1/artifacts/{asset_id}）。"""
+        """從 Team Skills Hub 安裝技能（/api/v1/artifacts/{asset_id}）。"""
         asset_id = str(params.get("asset_id", "")).strip()
         if not asset_id:
-            return {"success": False, "detail": "缺少参数: asset_id"}
+            return {"success": False, "detail": "缺少引數: asset_id"}
 
         force = bool(params.get("force", False))
         version = params.get("version")
@@ -1424,7 +1424,7 @@ class SkillManager:
                 base_url=base_url,
             )
             if not isinstance(artifact_data, dict):
-                return {"success": False, "detail": "marketplace 返回数据格式错误"}
+                return {"success": False, "detail": "marketplace 返回資料格式錯誤"}
 
             download_url = str(artifact_data.get("download_url", "")).strip()
             if not download_url:
@@ -1436,17 +1436,17 @@ class SkillManager:
 
             with tempfile.TemporaryDirectory(prefix="jiuwenclaw_team_skills_hub_") as tmpdir:
                 tmp_path = Path(tmpdir)
-                # 与 ClawHub 一致：从内存解压，避免在临时目录写入 skill.zip（扁平包时 copytree 曾误拷入安装目录）。
+                # 與 ClawHub 一致：從記憶體解壓，避免在臨時目錄寫入 skill.zip（扁平包時 copytree 曾誤拷入安裝目錄）。
                 self._safe_extract_zip_bytes_to_dir(artifact_bytes, tmp_path)
 
                 skill_dir = self._locate_skill_dir(tmp_path)
                 if skill_dir is None:
-                    return {"success": False, "detail": "下载内容不完整，未找到 SKILL.md"}
+                    return {"success": False, "detail": "下載內容不完整，未找到 SKILL.md"}
 
                 md = self._try_find_skill_file(skill_dir)
                 meta = self._parse_skill_md(md) if md else None
                 if meta is None:
-                    return {"success": False, "detail": "无法解析下载的技能文件"}
+                    return {"success": False, "detail": "無法解析下載的技能檔案"}
 
                 skill_name = str(meta.get("name", "")).strip() or asset_id
                 output_raw = str(params.get("output", "")).strip()
@@ -1456,7 +1456,7 @@ class SkillManager:
                 dest = install_root / skill_name
                 if dest.exists():
                     if not force:
-                        return {"success": False, "detail": f"技能 {skill_name} 已安装"}
+                        return {"success": False, "detail": f"技能 {skill_name} 已安裝"}
                     _safe_rmtree(dest)
 
                 shutil.copytree(skill_dir, dest)
@@ -1510,7 +1510,7 @@ class SkillManager:
                     },
                 }
         except Exception as exc:
-            logger.error("Team Skills Hub 安装失败: %s", exc)
+            logger.error("Team Skills Hub 安裝失敗: %s", exc)
             return {
                 "success": False,
                 "detail": str(exc)[:500],
@@ -1518,14 +1518,14 @@ class SkillManager:
             }
 
     async def handle_skills_team_skills_hub_publish(self, params: dict) -> dict:
-        """发布 TeamSkills（对齐 jiuwen-teamskills 的 /api/v1/plugins 协议）。"""
+        """釋出 TeamSkills（對齊 jiuwen-teamskills 的 /api/v1/plugins 協議）。"""
         auth = self._resolve_teamskills_hub_auth(params)
         if auth.get("error"):
             return {"success": False, "detail": str(auth["error"])}
 
         plugin_version = str(params.get("version") or "").strip()
         if not plugin_version:
-            return {"success": False, "detail": "缺少参数: version"}
+            return {"success": False, "detail": "缺少引數: version"}
 
         plugin_id = str(params.get("skill_id") or "").strip() or None
         version_desc = str(params.get("version_desc") or "").strip()
@@ -1535,7 +1535,7 @@ class SkillManager:
         path_raw = str(params.get("path") or "").strip()
         file_raw = str(params.get("file") or "").strip()
         if not path_raw and not file_raw:
-            return {"success": False, "detail": "缺少参数: path 或 file"}
+            return {"success": False, "detail": "缺少引數: path 或 file"}
 
         try:
             with tempfile.TemporaryDirectory(prefix="jiuwenclaw_teamskills_publish_") as tmpdir:
@@ -1567,7 +1567,7 @@ class SkillManager:
                 version = str(response_data.get("version") or plugin_version).strip() or plugin_version
                 return {"success": True, "skill_id": skill_id, "name": name, "version": version}
         except Exception as exc:
-            logger.error("Team Skills Hub 发布失败: %s", exc)
+            logger.error("Team Skills Hub 釋出失敗: %s", exc)
             return {
                 "success": False,
                 "detail": str(exc)[:500],
@@ -1575,10 +1575,10 @@ class SkillManager:
             }
 
     async def handle_skills_team_skills_hub_delete(self, params: dict) -> dict:
-        """删除 TeamSkills（对齐 jiuwen-teamskills 的 DELETE /api/v1/plugins/...）。"""
+        """刪除 TeamSkills（對齊 jiuwen-teamskills 的 DELETE /api/v1/plugins/...）。"""
         skill_id = str(params.get("skill_id") or "").strip()
         if not skill_id:
-            return {"success": False, "detail": "缺少参数: skill_id"}
+            return {"success": False, "detail": "缺少引數: skill_id"}
 
         auth = self._resolve_teamskills_hub_auth(params)
         if auth.get("error"):
@@ -1596,7 +1596,7 @@ class SkillManager:
             )
             return {"success": True, "skill_id": skill_id, "version": version}
         except Exception as exc:
-            logger.error("Team Skills Hub 删除失败: %s", exc)
+            logger.error("Team Skills Hub 刪除失敗: %s", exc)
             return {
                 "success": False,
                 "detail": str(exc)[:500],
@@ -1613,11 +1613,11 @@ class SkillManager:
         try:
             result = await asyncio.to_thread(self._skillnet_install_files_sync, skill_url, force, mirror_url)
         except Exception as exc:
-            logger.error("SkillNet 后台安装异常: %s", exc)
+            logger.error("SkillNet 後臺安裝異常: %s", exc)
             raw = str(exc).strip()
             self._skillnet_install_jobs[install_id] = {
                 "status": "failed",
-                "detail": raw or "安装失败，请重试。",
+                "detail": raw or "安裝失敗，請重試。",
                 **(
                     {}
                     if raw
@@ -1631,7 +1631,7 @@ class SkillManager:
         if not result.get("ok"):
             job_entry: dict[str, Any] = {
                 "status": "failed",
-                "detail": result.get("detail", "安装失败，请重试。"),
+                "detail": result.get("detail", "安裝失敗，請重試。"),
             }
             if result.get("detail_key"):
                 job_entry["detail_key"] = result["detail_key"]
@@ -1664,10 +1664,10 @@ class SkillManager:
             )
             self._refresh_agent_data_indexes()
         except Exception as exc:
-            logger.error("SkillNet 写入状态失败: %s", exc)
+            logger.error("SkillNet 寫入狀態失敗: %s", exc)
             self._skillnet_install_jobs[install_id] = {
                 "status": "failed",
-                "detail": "安装完成但保存配置失败，请刷新页面重试。",
+                "detail": "安裝完成但儲存配置失敗，請重新整理頁面重試。",
                 "detail_key": "skills.skillNet.errors.saveConfigFailed",
             }
             return
@@ -1677,10 +1677,10 @@ class SkillManager:
             try:
                 await hook()
             except Exception as exc:
-                logger.error("SkillNet 安装完成后 hook 失败: %s", exc)
+                logger.error("SkillNet 安裝完成後 hook 失敗: %s", exc)
                 self._skillnet_install_jobs[install_id] = {
                     "status": "failed",
-                    "detail": "技能已安装，请手动刷新页面生效。",
+                    "detail": "技能已安裝，請手動重新整理頁面生效。",
                     "detail_key": "skills.skillNet.errors.reloadRequired",
                 }
                 return
@@ -1693,7 +1693,7 @@ class SkillManager:
     def _skillnet_install_files_sync(
         self, skill_url: str, force: bool, mirror_url: str | None = None
     ) -> dict[str, Any]:
-        """在工作线程中下载并拷贝到 skills 目录；返回 ok / skill_name / meta / skill_url."""
+        """在工作執行緒中下載並複製到 skills 目錄；返回 ok / skill_name / meta / skill_url."""
         try:
             with tempfile.TemporaryDirectory(prefix="jiuwenclaw_skillnet_") as tmpdir:
                 tmp_path = Path(tmpdir)
@@ -1702,16 +1702,16 @@ class SkillManager:
                 if not download_path.exists():
                     return {
                         "ok": False,
-                        "detail": "下载失败，请重试。",
+                        "detail": "下載失敗，請重試。",
                         "detail_key": "skills.skillNet.errors.downloadFailed",
                     }
 
-                # 库在部分文件下载失败时仍会返回路径，只有找到 SKILL.md 才视为下载完整，才继续后续逻辑
+                # 庫在部分檔案下載失敗時仍會返回路徑，只有找到 SKILL.md 才視為下載完整，才繼續後續邏輯
                 skill_dir = self._locate_skill_dir(download_path)
                 if skill_dir is None:
                     return {
                         "ok": False,
-                        "detail": "下载未完成或内容不完整，未找到 SKILL.md，请重试。",
+                        "detail": "下載未完成或內容不完整，未找到 SKILL.md，請重試。",
                         "detail_key": "skills.skillNet.errors.skillMdNotFound",
                     }
 
@@ -1720,7 +1720,7 @@ class SkillManager:
                 if meta is None:
                     return {
                         "ok": False,
-                        "detail": "无法解析下载的技能文件",
+                        "detail": "無法解析下載的技能檔案",
                         "detail_key": "skills.skillNet.errors.parseSkillFailed",
                     }
 
@@ -1735,7 +1735,7 @@ class SkillManager:
                     if not force:
                         return {
                             "ok": False,
-                            "detail": "该技能已安装。",
+                            "detail": "該技能已安裝。",
                             "detail_key": "skills.skillNet.errors.skillAlreadyInstalled",
                         }
                     _safe_rmtree(dest)
@@ -1757,7 +1757,7 @@ class SkillManager:
                     "skill_url": skill_url,
                 }
         except SkillNetEmptyDownloadError as exc:
-            logger.error("SkillNet 下载失败: %s", exc)
+            logger.error("SkillNet 下載失敗: %s", exc)
             out: dict[str, Any] = {
                 "ok": False,
                 "detail_key": exc.detail_key,
@@ -1766,44 +1766,44 @@ class SkillManager:
             out["detail_params"] = exc.detail_params
             return out
         except Exception as exc:
-            logger.error("SkillNet 下载失败: %s", exc)
+            logger.error("SkillNet 下載失敗: %s", exc)
             raw = str(exc).strip()
-            detail = raw or "安装失败，请重试。"
+            detail = raw or "安裝失敗，請重試。"
             extra: dict[str, Any] = {}
             if not raw:
                 extra["detail_key"] = "skills.skillNet.errors.installFailedFallback"
             return {"ok": False, "detail": detail, **extra}
 
     async def handle_skills_uninstall(self, params: dict) -> dict:
-        """卸载已安装的 skill.
+        """解除安裝已安裝的 skill.
 
         params:
-            name: skill 名称
+            name: skill 名稱
         """
         name = params.get("name", "")
         if not name:
-            return {"success": False, "detail": "缺少参数: name"}
+            return {"success": False, "detail": "缺少引數: name"}
         try:
             name = _safe_path_name(name, "skill")
         except ValueError as exc:
             _log_rejected_name("skills.uninstall", "skill", name, exc)
             return {"success": False, "detail": str(exc)}
 
-        # 使用 _resolve_local_skill_dir 正确解析技能目录（处理 name 与文件夹名称不一致的情况）
+        # 使用 _resolve_local_skill_dir 正確解析技能目錄（處理 name 與資料夾名稱不一致的情況）
         dest = self._resolve_local_skill_dir(name)
         if dest is None:
             return {"success": False, "detail": f"未找到 skill: {name}"}
 
-        # 检查是否为真正的内置技能（源码目录中的，不允许删除）
+        # 檢查是否為真正的內建技能（原始碼目錄中的，不允許刪除）
         builtin_dir = get_builtin_skills_dir()
         if builtin_dir.exists():
-            # 检查 builtin 技能目录中是否有该技能
+            # 檢查 builtin 技能目錄中是否有該技能
             builtin_skill_path = None
             direct_builtin = _safe_child_path(builtin_dir, name, "skill")
             if direct_builtin.exists() and direct_builtin.is_dir():
                 builtin_skill_path = direct_builtin
             else:
-                # 遍历 builtin 目录，通过解析 SKILL.md 查找匹配的技能
+                # 遍歷 builtin 目錄，透過解析 SKILL.md 查詢匹配的技能
                 for child in builtin_dir.iterdir():
                     if not child.is_dir() or child.name.startswith("_"):
                         continue
@@ -1817,11 +1817,11 @@ class SkillManager:
 
             if builtin_skill_path:
                 if dest.resolve() == builtin_skill_path.resolve():
-                    return {"success": False, "detail": "内置技能不允许删除"}
+                    return {"success": False, "detail": "內建技能不允許刪除"}
 
         _safe_rmtree(dest)
 
-        # 处理 mirror 根目录中的技能
+        # 處理 mirror 根目錄中的技能
         for mirror_root in self._get_mirror_skills_dirs():
             mirror_dest = _safe_child_path(mirror_root, dest.name, "skill")
             if mirror_dest.exists() and mirror_dest.is_dir():
@@ -1833,7 +1833,7 @@ class SkillManager:
         return {"success": True}
 
     async def handle_skills_import_local(self, params: dict) -> dict:
-        """从本地路径或远程归档 URL 导入 skill."""
+        """從本地路徑或遠端歸檔 URL 匯入 skill."""
         raw_path = params.get("path", "")
         force = bool(params.get("force", False))
         checksum_sha256 = str(params.get("checksum_sha256", "") or "").strip()
@@ -1844,7 +1844,7 @@ class SkillManager:
             self._is_http_download_target(str(raw_path).strip()),
         )
         if not raw_path:
-            return {"success": False, "detail": "缺少参数: path"}
+            return {"success": False, "detail": "缺少引數: path"}
 
         remote_url = str(raw_path).strip()
         if self._is_http_download_target(remote_url):
@@ -1868,12 +1868,12 @@ class SkillManager:
             force,
         )
         if not src.exists():
-            return {"success": False, "detail": f"路径不存在: {origin}"}
+            return {"success": False, "detail": f"路徑不存在: {origin}"}
 
         if src.is_file():
             meta = self._parse_skill_md(src)
             if meta is None:
-                return {"success": False, "detail": "无法解析 skill 文件"}
+                return {"success": False, "detail": "無法解析 skill 檔案"}
             raw_skill_name = meta.get("name", src.stem)
             try:
                 skill_name = _safe_path_name(raw_skill_name, "skill")
@@ -1890,7 +1890,7 @@ class SkillManager:
         elif src.is_dir():
             md = self._try_find_skill_file(src)
             if md is None:
-                return {"success": False, "detail": f"目录中未找到 SKILL.md: {origin}"}
+                return {"success": False, "detail": f"目錄中未找到 SKILL.md: {origin}"}
             meta = self._parse_skill_md(md) or {}
             raw_skill_name = meta.get("name", src.name)
             try:
@@ -1905,7 +1905,7 @@ class SkillManager:
                 _safe_rmtree(dest)
             shutil.copytree(src, dest)
         else:
-            return {"success": False, "detail": f"不支持的路径类型: {origin}"}
+            return {"success": False, "detail": f"不支援的路徑型別: {origin}"}
 
         self._add_local_skill({"name": skill_name, "origin": origin, "source": "local"})
         self._refresh_agent_data_indexes()
@@ -1957,13 +1957,13 @@ class SkillManager:
                 len(body),
             )
             if not body:
-                raise RuntimeError("下载内容为空")
+                raise RuntimeError("下載內容為空")
 
             expected = checksum_sha256.strip().lower()
             if expected:
                 digest = hashlib.sha256(body).hexdigest().lower()
                 if digest != expected:
-                    raise RuntimeError("下载文件校验失败（SHA256 不匹配）")
+                    raise RuntimeError("下載檔案校驗失敗（SHA256 不匹配）")
             return body
 
         artifact_bytes = _download_with_requests()
@@ -1974,48 +1974,48 @@ class SkillManager:
             self._extract_archive_bytes_to_dir(artifact_bytes, tmp_path)
             skill_dir = self._locate_skill_dir(tmp_path)
             if skill_dir is None:
-                return {"success": False, "detail": "下载内容不完整，未找到 SKILL.md"}
+                return {"success": False, "detail": "下載內容不完整，未找到 SKILL.md"}
             logger.info("[SkillManager] remote import extracted: url=%s skill_dir=%s", download_url, skill_dir)
             return self._import_local_from_path(skill_dir, force=force, origin=download_url)
 
 
     async def handle_skills_marketplace_add(self, params: dict) -> dict:
-        """添加 marketplace 源.
+        """新增 marketplace 源.
 
         params:
-            name: marketplace 名称
-            url: git 仓库 URL
+            name: marketplace 名稱
+            url: git 倉庫 URL
         """
         name = params.get("name", "")
         url = params.get("url", "")
         if not name or not url:
-            return {"success": False, "detail": "缺少参数: name 和 url"}
+            return {"success": False, "detail": "缺少引數: name 和 url"}
         try:
             name = _safe_path_name(name, "marketplace")
         except ValueError as exc:
             _log_rejected_name("skills.marketplace.add", "marketplace", name, exc)
             return {"success": False, "detail": str(exc)}
 
-        # 检查是否已存在
+        # 檢查是否已存在
         for m in self._get_marketplaces():
             if m.get("name") == name:
                 return {"success": False, "detail": f"marketplace 已存在: {name}"}
 
-        # 新增源默认禁用，避免未经确认就触发远程同步。
+        # 新增源預設禁用，避免未經確認就觸發遠端同步。
         self._add_marketplace({"name": name, "url": url, "enabled": False})
         return {"success": True}
 
     async def handle_skills_marketplace_remove(self, params: dict) -> dict:
-        """删除 marketplace 源.
+        """刪除 marketplace 源.
 
         params:
-            name: marketplace 名称
-            remove_cache: 是否删除本地仓库缓存（可选，默认 True）
+            name: marketplace 名稱
+            remove_cache: 是否刪除本地倉庫快取（可選，預設 True）
         """
         name = params.get("name", "")
         remove_cache = params.get("remove_cache", True)
         if not name:
-            return {"success": False, "detail": "缺少参数: name"}
+            return {"success": False, "detail": "缺少引數: name"}
         try:
             name = _safe_path_name(name, "marketplace")
         except ValueError as exc:
@@ -2034,7 +2034,7 @@ class SkillManager:
                     _safe_rmtree(repo_dir)
                     cache_removed = True
                 except Exception as exc:
-                    logger.warning("删除 marketplace 缓存失败: %s", exc)
+                    logger.warning("刪除 marketplace 快取失敗: %s", exc)
 
         return {
             "success": True,
@@ -2043,18 +2043,18 @@ class SkillManager:
         }
 
     async def handle_skills_marketplace_toggle(self, params: dict) -> dict:
-        """启用或禁用 marketplace 源.
+        """啟用或禁用 marketplace 源.
 
         params:
-            name: marketplace 名称
-            enabled: 目标状态
+            name: marketplace 名稱
+            enabled: 目標狀態
         """
         name = params.get("name", "")
         enabled = params.get("enabled")
         if not name:
-            return {"success": False, "detail": "缺少参数: name"}
+            return {"success": False, "detail": "缺少引數: name"}
         if not isinstance(enabled, bool):
-            return {"success": False, "detail": "缺少参数: enabled (bool)"}
+            return {"success": False, "detail": "缺少引數: enabled (bool)"}
         try:
             name = _safe_path_name(name, "marketplace")
         except ValueError as exc:
@@ -2074,29 +2074,29 @@ class SkillManager:
             if not url:
                 return {"success": False, "detail": f"marketplace {name} 缺少 url"}
 
-            detail = "已启用"
+            detail = "已啟用"
             if repo_dir.exists():
                 commit = await self._git_pull(repo_dir)
                 if commit is None:
-                    return {"success": False, "name": name, "enabled": False, "detail": "git pull 失败"}
-                detail = "已启用并执行 git pull"
+                    return {"success": False, "name": name, "enabled": False, "detail": "git pull 失敗"}
+                detail = "已啟用並執行 git pull"
             else:
                 commit = await self._git_clone(url, repo_dir)
                 if commit is None:
-                    return {"success": False, "name": name, "enabled": False, "detail": "git clone 失败"}
-                detail = "已启用并执行 git clone"
+                    return {"success": False, "name": name, "enabled": False, "detail": "git clone 失敗"}
+                detail = "已啟用並執行 git clone"
 
             self._set_marketplace_enabled(name, True)
             self._set_marketplace_last_updated(name)
             return {"success": True, "name": name, "enabled": True, "detail": detail}
 
-        # 禁用：删除本地缓存目录，不卸载已安装 skill。
+        # 禁用：刪除本地快取目錄，不解除安裝已安裝 skill。
         repo_dir = _safe_child_path(self._marketplace_dir, name, "marketplace")
         cache_removed = False
         if repo_dir.exists() and repo_dir.is_dir():
             cache_removed = _safe_rmtree(repo_dir)
             if not cache_removed:
-                return {"success": False, "name": name, "enabled": True, "detail": "删除本地缓存失败"}
+                return {"success": False, "name": name, "enabled": True, "detail": "刪除本地快取失敗"}
 
         self._set_marketplace_enabled(name, False)
         self._set_marketplace_last_updated(name)
@@ -2105,7 +2105,7 @@ class SkillManager:
             "name": name,
             "enabled": False,
             "cache_removed": cache_removed,
-            "detail": "已禁用并删除本地缓存" if cache_removed else "已禁用（无本地缓存）",
+            "detail": "已禁用並刪除本地快取" if cache_removed else "已禁用（無本地快取）",
         }
 
     # -----------------------------------------------------------------------
@@ -2114,7 +2114,7 @@ class SkillManager:
 
     @staticmethod
     def _coerce_str_list(val: Any) -> list[str]:
-        """frontmatter 里 tags/allowed_tools 可能是逗号分隔字符串，统一为 list[str]."""
+        """frontmatter 裡 tags/allowed_tools 可能是逗號分隔字串，統一為 list[str]."""
         if val is None:
             return []
         if isinstance(val, list):
@@ -2142,25 +2142,25 @@ class SkillManager:
     def _parse_skill_md(path: Path) -> dict | None:
         """解析 SKILL.md，提取 YAML frontmatter 和正文.
 
-        支持两种格式:
-        1. 有 frontmatter（--- 分隔的 YAML 头 + 正文）
-        2. 无 frontmatter（整个文件作为 body，name 从文件名推断）
+        支援兩種格式:
+        1. 有 frontmatter（--- 分隔的 YAML 頭 + 正文）
+        2. 無 frontmatter（整個檔案作為 body，name 從檔名推斷）
         """
         try:
             text = path.read_text(encoding="utf-8")
         except Exception:
-            logger.warning("无法读取文件: %s", path)
+            logger.warning("無法讀取檔案: %s", path)
             return None
 
         meta: dict[str, Any] = {}
         body = text
 
-        # 尝试解析 frontmatter
+        # 嘗試解析 frontmatter
         fm_match = re.match(r"^---\s*\n(.*?)\n---\s*\n?(.*)", text, re.DOTALL)
         if fm_match:
             fm_text = fm_match.group(1)
             body = fm_match.group(2).strip()
-            # 优先完整 YAML（支持 description: >- 多行、嵌套等），与 Team Skills Hub register_skill 一致
+            # 優先完整 YAML（支援 description: >- 多行、巢狀等），與 Team Skills Hub register_skill 一致
             try:
                 loaded = yaml.safe_load(fm_text)
                 if isinstance(loaded, dict):
@@ -2171,7 +2171,7 @@ class SkillManager:
             except Exception:
                 meta = {}
             if not meta:
-                # 回退：逐行 key: value（旧逻辑，无 PyYAML 语义）
+                # 回退：逐行 key: value（舊邏輯，無 PyYAML 語義）
                 for line in fm_text.splitlines():
                     line = line.strip()
                     if not line or line.startswith("#"):
@@ -2187,11 +2187,11 @@ class SkillManager:
                             val = val[1:-1]
                         meta[key] = val
 
-        # 如果没有 name，从文件名推断
+        # 如果沒有 name，從檔名推斷
         if "name" not in meta:
             meta["name"] = path.stem
 
-        # 默认字段
+        # 預設欄位
         meta.setdefault("description", "")
         meta.setdefault("version", "")
         meta.setdefault("author", "")
@@ -2205,15 +2205,15 @@ class SkillManager:
 
     @staticmethod
     def _try_find_skill_file(directory: Path) -> Path | None:
-        """在目录中查找 skill 文件.
+        """在目錄中查詢 skill 檔案.
 
-        优先查找 SKILL.md，其次查找任意 .md 文件.
+        優先查詢 SKILL.md，其次查詢任意 .md 檔案.
         """
         skill_md = directory / "SKILL.md"
         if skill_md.is_file():
             return skill_md
 
-        # 兼容：查找任意 .md 文件
+        # 相容：查詢任意 .md 檔案
         md_files = list(directory.glob("*.md"))
         if md_files:
             return md_files[0]
@@ -2221,39 +2221,39 @@ class SkillManager:
         return None
 
     # -----------------------------------------------------------------------
-    # 内置技能判断
+    # 內建技能判斷
     # -----------------------------------------------------------------------
 
     def _is_builtin_skill(self, skill_name: str, installed_plugins: list[dict], skill_path: Path | None = None) -> bool:
-        """判断技能是否为内置技能.
+        """判斷技能是否為內建技能.
 
-        内置技能的判断标准：
-        1. 不在 local_skills 中（用户本地导入）
-        2. 不在 installed_plugins 中（marketplace安装）
-        3. 实际路径在源码内置路径下（通过 skill_path 参数判断）
+        內建技能的判斷標準：
+        1. 不在 local_skills 中（使用者本地匯入）
+        2. 不在 installed_plugins 中（marketplace安裝）
+        3. 實際路徑在原始碼內建路徑下（透過 skill_path 引數判斷）
 
-        注意：如果 skill_path 不为 None，则直接判断该路径是否在 builtin_dir 下，
-        这比仅通过 skill_name 判断更准确，避免名称冲突导致的误判。
+        注意：如果 skill_path 不為 None，則直接判斷該路徑是否在 builtin_dir 下，
+        這比僅透過 skill_name 判斷更準確，避免名稱衝突導致的誤判。
         """
         try:
-            # 检查是否在 local_skills 中（用户本地导入或SkillNet下载）
+            # 檢查是否在 local_skills 中（使用者本地匯入或SkillNet下載）
             for local_skill in self._state.get("local_skills", []):
                 if local_skill.get("name") == skill_name:
                     return False
 
-            # 检查是否在 installed_plugins 中记录（marketplace安装的）
+            # 檢查是否在 installed_plugins 中記錄（marketplace安裝的）
             for plugin in installed_plugins:
                 if plugin.get("name") == skill_name:
                     return False
 
-            # 如果提供了 skill_path，直接判断该路径是否在 builtin_dir 下
+            # 如果提供了 skill_path，直接判斷該路徑是否在 builtin_dir 下
             if skill_path is not None:
                 builtin_dir = get_builtin_skills_dir()
                 if builtin_dir.exists():
                     return skill_path.resolve().parent == builtin_dir.resolve()
                 return False
 
-            # 没有提供 skill_path 时，回退到通过 skill_name 判断（兼容旧代码）
+            # 沒有提供 skill_path 時，回退到透過 skill_name 判斷（相容舊程式碼）
             builtin_dir = get_builtin_skills_dir()
             if builtin_dir.exists():
                 builtin_skill_path = _safe_child_path(builtin_dir, skill_name, "skill")
@@ -2263,11 +2263,11 @@ class SkillManager:
             return False
 
     # -----------------------------------------------------------------------
-    # 目录扫描
+    # 目錄掃描
     # -----------------------------------------------------------------------
 
     def _scan_local_skills(self) -> list[dict]:
-        """扫描 agent/skills/ 下的本地 skill（跳过 _marketplace）."""
+        """掃描 agent/skills/ 下的本地 skill（跳過 _marketplace）."""
         results: list[dict] = []
         if not self._skills_dir.exists():
             return results
@@ -2282,7 +2282,7 @@ class SkillManager:
             if meta is None:
                 continue
 
-            # 判断 source 类型
+            # 判斷 source 型別
             installed = self._get_installed_plugins()
             source = "project"
             for p in installed:
@@ -2291,7 +2291,7 @@ class SkillManager:
                     if source == "project" and p.get("marketplace"):
                         source = p.get("marketplace", "project")
                     break
-            # 检查是否通过 import_local / SkillNet 等写入 local_skills（含 origin 供前端对照 skill_url）
+            # 檢查是否透過 import_local / SkillNet 等寫入 local_skills（含 origin 供前端對照 skill_url）
             for ls in self._state.get("local_skills", []):
                 if ls.get("name") == meta.get("name"):
                     source = ls.get("source", "local") if isinstance(ls, dict) else "local"
@@ -2302,7 +2302,7 @@ class SkillManager:
                     break
 
             meta["source"] = source
-            # 判断是否为内置技能（传入 child 路径，通过实际路径判断）
+            # 判斷是否為內建技能（傳入 child 路徑，透過實際路徑判斷）
             meta["is_builtin"] = self._is_builtin_skill(meta.get("name", ""), self._get_installed_plugins(), child)
             builtin_dir = get_builtin_skills_dir()
             if builtin_dir.exists():
@@ -2318,9 +2318,9 @@ class SkillManager:
         return results
 
     def _scan_builtin_skills(self) -> list[dict]:
-        """扫描内置技能目录中尚未安装到用户目录的技能.
+        """掃描內建技能目錄中尚未安裝到使用者目錄的技能.
 
-        返回的技能列表仅包含那些存在于内置目录但尚未在用户目录中的技能。
+        返回的技能列表僅包含那些存在於內建目錄但尚未在使用者目錄中的技能。
         """
         results: list[dict] = []
         builtin_dir = get_builtin_skills_dir()
@@ -2333,10 +2333,10 @@ class SkillManager:
             if not child.is_dir() or child.name.startswith("_"):
                 continue
 
-            # 检查该技能是否已经在用户目录中安装
+            # 檢查該技能是否已經在使用者目錄中安裝
             user_skill_path = user_skills_dir / child.name
             if user_skill_path.exists() and user_skill_path.is_dir():
-                continue  # 已安装，跳过
+                continue  # 已安裝，跳過
 
             md = self._try_find_skill_file(child)
             if md is None:
@@ -2345,10 +2345,10 @@ class SkillManager:
             if meta is None:
                 continue
 
-            # 设置内置技能的标记
+            # 設定內建技能的標記
             meta["source"] = "builtin"
             meta["is_builtin"] = True
-            meta["is_builtin_source"] = True  # 这是内置技能来源
+            meta["is_builtin_source"] = True  # 這是內建技能來源
             meta["has_evolutions"] = False
             # 不在列表中返回 body
             meta.pop("body", None)
@@ -2357,7 +2357,7 @@ class SkillManager:
         return results
 
     def _resolve_skill_source(self, skill_name: str) -> str:
-        """解析 skill 来源（local / project / marketplace 名称）."""
+        """解析 skill 來源（local / project / marketplace 名稱）."""
         if not skill_name:
             return "project"
 
@@ -2380,7 +2380,7 @@ class SkillManager:
         return "project"
 
     def _resolve_local_skill_dir(self, skill_name: str) -> Path | None:
-        """根据 skill name 定位本地技能目录（仅 agent/skills 下）."""
+        """根據 skill name 定位本地技能目錄（僅 agent/skills 下）."""
         try:
             direct = _safe_child_path(self._skills_dir, skill_name, "skill")
         except ValueError:
@@ -2409,9 +2409,9 @@ class SkillManager:
         return skill_dir / _EVOLUTION_FILENAME
 
     def _scan_marketplace_skills(self) -> list[dict]:
-        """扫描 _marketplace/ 下已 clone 的仓库中未安装的 skill.
+        """掃描 _marketplace/ 下已 clone 的倉庫中未安裝的 skill.
 
-        扫描路径：_marketplace/{marketplace_name}/skills/{plugin_name}
+        掃描路徑：_marketplace/{marketplace_name}/skills/{plugin_name}
         """
         results: list[dict] = []
         if not self._marketplace_dir.exists():
@@ -2430,12 +2430,12 @@ class SkillManager:
             if marketplace_name not in enabled_marketplaces:
                 continue
 
-            # 检查 skills 子目录是否存在
+            # 檢查 skills 子目錄是否存在
             skills_dir = repo_dir / "skills"
-            # 单skill兼容
+            # 單skill相容
             is_skills_dir = True
             if not skills_dir.exists() or not skills_dir.is_dir():
-                # 如果没有 skills 子目录，尝试直接扫描 repo_dir（兼容旧结构）
+                # 如果沒有 skills 子目錄，嘗試直接掃描 repo_dir（相容舊結構）
                 skills_dir = repo_dir
                 is_skills_dir = False
 
@@ -2444,7 +2444,7 @@ class SkillManager:
                     continue
                 if not plugin_dir.is_dir():
                     continue
-                # 跳过 git 元数据和以 _ 开头的目录
+                # 跳過 git 後設資料和以 _ 開頭的目錄
                 if plugin_dir.name.startswith((".", "_")):
                     continue
                 md = self._try_find_skill_file(plugin_dir)
@@ -2454,11 +2454,11 @@ class SkillManager:
                 if meta is None:
                     continue
 
-                # 跳过已安装的
+                # 跳過已安裝的
                 if meta.get("name") in installed_names:
                     continue
 
-                # source 直接返回 marketplace 名称，便于前端安装时自动拼接 spec
+                # source 直接返回 marketplace 名稱，便於前端安裝時自動拼接 spec
                 meta["source"] = marketplace_name
                 meta["marketplace"] = marketplace_name
                 meta["is_builtin"] = False
@@ -2469,10 +2469,10 @@ class SkillManager:
         return results
 
     def _get_mirror_skills_dirs(self) -> list[Path]:
-        """返回需要镜像同步的 skills 目录（不包含当前运行目录）.
+        """返回需要映象同步的 skills 目錄（不包含當前執行目錄）.
 
-        注意：开发模式下不返回源码目录作为镜像目标，避免用户下载的
-        skill被复制到源码目录，重启后被误判为内置skill。
+        注意：開發模式下不返回原始碼目錄作為映象目標，避免使用者下載的
+        skill被複制到原始碼目錄，重啟後被誤判為內建skill。
         """
         mirrors: list[Path] = []
         if is_package_installation():
@@ -2480,8 +2480,8 @@ class SkillManager:
         try:
             source_repo_root = Path(__file__).resolve().parents[2]
             source_resources_skills_dir = source_repo_root / "jiuwenclaw" / "resources" / "agent" / "skills"
-            # 开发模式下不将源码目录作为镜像目标
-            # 这样用户下载的skill只保存在用户目录，不会污染源码目录
+            # 開發模式下不將原始碼目錄作為映象目標
+            # 這樣使用者下載的skill只儲存在使用者目錄，不會汙染原始碼目錄
             if (
                 source_resources_skills_dir.exists()
                 and source_resources_skills_dir.resolve() != self._skills_dir.resolve()
@@ -2494,7 +2494,7 @@ class SkillManager:
 
     @staticmethod
     def _normalize_lang_suffix(name: str) -> str:
-        """将 xxxx_zh.MD / xxxx_en.MD 规范为 xxxx.MD（去除 _zh/_en 后缀）。"""
+        """將 xxxx_zh.MD / xxxx_en.MD 規範為 xxxx.MD（去除 _zh/_en 字尾）。"""
         stem, suffix = name.rpartition(".")[0], name.rpartition(".")[2]
         suffix_lower = suffix.lower()
         if suffix_lower in ("md", "mdx"):
@@ -2561,7 +2561,7 @@ class SkillManager:
         workspace_roots: set[Path] = {self._agent_root.resolve()}
         for mirror_root in self._get_mirror_skills_dirs():
             try:
-                # mirror_root = .../agent/skills → agent 根目录为其 parent
+                # mirror_root = .../agent/skills → agent 根目錄為其 parent
                 workspace_roots.add(mirror_root.parent.resolve())
             except Exception:
                 continue
@@ -2569,11 +2569,11 @@ class SkillManager:
             try:
                 self._generate_agent_data_for_workspace(workspace_root)
             except Exception as exc:
-                logger.warning("重建 agent-data.json 失败: agent_root=%s error=%s", workspace_root, exc)
+                logger.warning("重建 agent-data.json 失敗: agent_root=%s error=%s", workspace_root, exc)
 
     @staticmethod
     def _locate_skill_dir(path: Path) -> Path | None:
-        """定位包含 SKILL.md 的目录（优先当前目录，再向下递归）；文件名大小写不敏感."""
+        """定位包含 SKILL.md 的目錄（優先當前目錄，再向下遞迴）；檔名大小寫不敏感."""
         if path.is_file() and path.name.lower() == "skill.md":
             return path.parent
         if path.is_dir():
@@ -2583,7 +2583,7 @@ class SkillManager:
             for md in path.rglob("SKILL.md"):
                 if md.is_file():
                     return md.parent
-            # 兼容小写 skill.md（如 Linux 下仓库命名）
+            # 相容小寫 skill.md（如 Linux 下倉庫命名）
             for md in path.rglob("*.md"):
                 if md.is_file() and md.name.lower() == "skill.md":
                     return md.parent
@@ -2601,7 +2601,7 @@ class SkillManager:
         has_user = bool(token)
         has_system = bool(system_token)
         if has_user == has_system:
-            return {"error": "请且仅请提供一种鉴权：token 或 system_token"}
+            return {"error": "請且僅請提供一種鑑權：token 或 system_token"}
         if has_system:
             return {"system_token": system_token}
         return {"token": token}
@@ -2614,25 +2614,25 @@ class SkillManager:
         plugin_version: str,
         tmpdir: Path,
     ) -> Path:
-        """对齐 jiuwen-teamskills：上传前规范化 zip，确保包含合法 plugin.yaml."""
+        """對齊 jiuwen-teamskills：上傳前規範化 zip，確保包含合法 plugin.yaml."""
         if file_raw:
             src_zip = Path(file_raw).expanduser().resolve()
             if not src_zip.is_file():
-                raise RuntimeError(f"zip 文件不存在: {src_zip}")
+                raise RuntimeError(f"zip 檔案不存在: {src_zip}")
             if src_zip.suffix.lower() != ".zip":
-                raise RuntimeError("file 必须是 .zip 文件")
+                raise RuntimeError("file 必須是 .zip 檔案")
             stage_dir = tmpdir / "zip_stage"
             stage_dir.mkdir(parents=True, exist_ok=True)
             try:
                 with zipfile.ZipFile(src_zip, "r") as zf:
                     zf.extractall(stage_dir)
             except zipfile.BadZipFile as exc:
-                raise RuntimeError(f"zip 文件损坏或格式非法: {src_zip}") from exc
+                raise RuntimeError(f"zip 檔案損壞或格式非法: {src_zip}") from exc
             return self._build_teamskills_publish_zip_from_root(stage_dir, plugin_version, tmpdir)
 
         root = Path(path_raw).expanduser().resolve()
         if not root.exists() or not root.is_dir():
-            raise RuntimeError(f"path 不是有效目录: {root}")
+            raise RuntimeError(f"path 不是有效目錄: {root}")
         return self._build_teamskills_publish_zip_from_root(root, plugin_version, tmpdir)
 
     def _build_teamskills_publish_zip_from_root(
@@ -2643,11 +2643,11 @@ class SkillManager:
     ) -> Path:
         skill_dir = self._locate_skill_dir(root)
         if skill_dir is None:
-            raise RuntimeError("发布目录中未找到 SKILL.md")
+            raise RuntimeError("釋出目錄中未找到 SKILL.md")
         skill_md = skill_dir / "SKILL.md"
         meta = self._parse_skill_md(skill_md)
         if not meta:
-            raise RuntimeError("SKILL.md 解析失败")
+            raise RuntimeError("SKILL.md 解析失敗")
 
         skill_name = str(meta.get("name") or "").strip()
         if not skill_name:
@@ -2665,7 +2665,7 @@ class SkillManager:
         if not normalized_tags:
             normalized_tags = ["teamskills"]
 
-        # 与 jiuwen-teamskills 兼容：market publish 仍使用 runtime.type=skill
+        # 與 jiuwen-teamskills 相容：market publish 仍使用 runtime.type=skill
         plugin_yaml_payload = {
             "name": skill_name,
             "version": plugin_version,
@@ -2698,8 +2698,8 @@ class SkillManager:
     def _normalize_teamskills_hub_http_error(resp: httpx.Response) -> str:
         detail = (resp.text or "").strip()[:300]
         if not detail:
-            return f"Team Skills Hub API 错误 HTTP {resp.status_code}"
-        return f"Team Skills Hub API 错误 HTTP {resp.status_code}: {detail}"
+            return f"Team Skills Hub API 錯誤 HTTP {resp.status_code}"
+        return f"Team Skills Hub API 錯誤 HTTP {resp.status_code}: {detail}"
 
     async def _teamskills_hub_publish_request(
         self,
@@ -2736,17 +2736,17 @@ class SkillManager:
             raise RuntimeError(self._normalize_teamskills_hub_http_error(resp))
         payload = resp.json()
         if not isinstance(payload, dict):
-            raise RuntimeError("Team Skills Hub API 响应格式错误")
+            raise RuntimeError("Team Skills Hub API 響應格式錯誤")
         code = payload.get("code", 200)
         if int(code) != 200:
-            message = str(payload.get("message") or "").strip() or "Team Skills Hub API 返回失败"
+            message = str(payload.get("message") or "").strip() or "Team Skills Hub API 返回失敗"
             raise RuntimeError(message)
         data_payload = payload.get("data")
         if isinstance(data_payload, dict):
             return data_payload
         if data_payload is None:
             return {}
-        raise RuntimeError("Team Skills Hub API 响应 data 格式错误")
+        raise RuntimeError("Team Skills Hub API 響應 data 格式錯誤")
 
     async def _teamskills_hub_delete_request(
         self,
@@ -2798,28 +2798,28 @@ class SkillManager:
     def _assert_team_skills_hub_download_url_allowed(download_url: str) -> None:
         parsed = urlparse(download_url)
         if parsed.scheme not in {"http", "https"}:
-            raise RuntimeError("Team Skills Hub download_url 必须使用 HTTP 或 HTTPS")
+            raise RuntimeError("Team Skills Hub download_url 必須使用 HTTP 或 HTTPS")
         host = (parsed.hostname or "").strip().lower()
         if not host:
-            raise RuntimeError("Team Skills Hub download_url 缺少主机名")
+            raise RuntimeError("Team Skills Hub download_url 缺少主機名")
         for rule in SkillManager._get_team_skills_hub_allowed_download_hosts():
-            # 支持 .example.com 后缀匹配与 * 单段通配（如 a.*.c.com）。
+            # 支援 .example.com 字尾匹配與 * 單段通配（如 a.*.c.com）。
             if rule.startswith("."):
                 if host.endswith(rule):
                     return
                 continue
             if SkillManager._team_skills_hub_host_matches_rule(host, rule):
                 return
-        raise RuntimeError(f"Team Skills Hub download_url host 不在白名单: {host}")
+        raise RuntimeError(f"Team Skills Hub download_url host 不在白名單: {host}")
 
     @staticmethod
     def _assert_import_local_download_url_allowed(download_url: str) -> None:
         parsed = urlparse(download_url)
         if parsed.scheme != "https":
-            raise RuntimeError("远程导入 URL 必须使用 HTTPS")
+            raise RuntimeError("遠端匯入 URL 必須使用 HTTPS")
         host = (parsed.hostname or "").strip().lower()
         if not host:
-            raise RuntimeError("远程导入 URL 缺少主机名")
+            raise RuntimeError("遠端匯入 URL 缺少主機名")
         for rule in SkillManager._get_import_local_allowed_download_hosts():
             if rule.startswith("."):
                 if host.endswith(rule):
@@ -2827,7 +2827,7 @@ class SkillManager:
                 continue
             if SkillManager._team_skills_hub_host_matches_rule(host, rule):
                 return
-        raise RuntimeError(f"远程导入 URL host 不在白名单: {host}")
+        raise RuntimeError(f"遠端匯入 URL host 不在白名單: {host}")
 
     @staticmethod
     def _team_skills_hub_host_matches_rule(host: str, rule: str) -> bool:
@@ -2862,50 +2862,50 @@ class SkillManager:
             async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as client:
                 resp = await client.get(req_url, params=params)
         except Exception as exc:
-            raise RuntimeError(f"无法连接 Team Skills Hub: {exc}") from exc
+            raise RuntimeError(f"無法連線 Team Skills Hub: {exc}") from exc
 
         if not resp.is_success:
             detail = (resp.text or "").strip()[:300]
-            raise RuntimeError(f"Team Skills Hub API 错误 HTTP {resp.status_code}: {detail}")
+            raise RuntimeError(f"Team Skills Hub API 錯誤 HTTP {resp.status_code}: {detail}")
         try:
             payload = resp.json()
         except Exception as exc:
-            raise RuntimeError(f"Team Skills Hub API 响应不是合法 JSON: {exc}") from exc
+            raise RuntimeError(f"Team Skills Hub API 響應不是合法 JSON: {exc}") from exc
         if not isinstance(payload, dict):
-            raise RuntimeError("Team Skills Hub API 响应格式错误")
+            raise RuntimeError("Team Skills Hub API 響應格式錯誤")
 
         code = payload.get("code", 200)
         if int(code) != 200:
-            message = str(payload.get("message", "")).strip() or "Team Skills Hub API 返回失败"
+            message = str(payload.get("message", "")).strip() or "Team Skills Hub API 返回失敗"
             raise RuntimeError(message)
 
         data = payload.get("data")
         if not isinstance(data, dict):
-            raise RuntimeError("Team Skills Hub API 响应 data 格式错误")
+            raise RuntimeError("Team Skills Hub API 響應 data 格式錯誤")
         return data
 
     @staticmethod
     def _safe_extract_zip_members_into(zf: zipfile.ZipFile, dest_root: Path) -> None:
-        """将已打开的 ZIP 成员解压到 dest_root（须为 resolve() 后的目录），拒绝 Zip Slip。"""
+        """將已開啟的 ZIP 成員解壓到 dest_root（須為 resolve() 後的目錄），拒絕 Zip Slip。"""
         for info in zf.infolist():
             raw = (info.filename or "").replace("\\", "/")
             if not raw or raw.startswith("/"):
                 continue
             if "\0" in raw:
-                raise RuntimeError("ZIP 包含非法文件名")
+                raise RuntimeError("ZIP 包含非法檔名")
             is_dir = raw.endswith("/") or info.is_dir()
             rel_str = raw.rstrip("/")
             if not rel_str:
                 continue
             rel = PurePosixPath(rel_str)
             if rel.is_absolute() or ".." in rel.parts:
-                raise RuntimeError("ZIP 包含非法路径")
+                raise RuntimeError("ZIP 包含非法路徑")
             dest_path = dest_root.joinpath(*rel.parts)
             try:
                 dest_path = dest_path.resolve()
                 dest_path.relative_to(dest_root)
             except ValueError as exc:
-                raise RuntimeError("ZIP 路径越界") from exc
+                raise RuntimeError("ZIP 路徑越界") from exc
             if is_dir:
                 dest_path.mkdir(parents=True, exist_ok=True)
                 continue
@@ -2915,7 +2915,7 @@ class SkillManager:
 
     @staticmethod
     def _safe_extract_zip_bytes_to_dir(data: bytes, dest_dir: Path) -> None:
-        """将 ZIP 字节解压到 dest_dir（不落盘 staging zip，与 ClawHub extractall 语义一致）。"""
+        """將 ZIP 位元組解壓到 dest_dir（不落盤 staging zip，與 ClawHub extractall 語義一致）。"""
         dest_root = dest_dir.resolve()
         dest_root.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(io.BytesIO(data), "r") as zf:
@@ -2923,7 +2923,7 @@ class SkillManager:
 
     @staticmethod
     def _safe_extract_zip_to_dir(zip_path: Path, dest_dir: Path) -> None:
-        """将 ZIP 文件解压到 dest_dir，拒绝 Zip Slip（..、绝对路径、写出目标目录外）。"""
+        """將 ZIP 檔案解壓到 dest_dir，拒絕 Zip Slip（..、絕對路徑、寫出目標目錄外）。"""
         dest_root = dest_dir.resolve()
         dest_root.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(zip_path, "r") as zf:
@@ -2940,20 +2940,20 @@ class SkillManager:
                 if not raw or raw.startswith("/"):
                     continue
                 if "\0" in raw:
-                    raise RuntimeError("归档包含非法文件名")
+                    raise RuntimeError("歸檔包含非法檔名")
                 rel = PurePosixPath(raw.rstrip("/"))
                 if not rel.parts:
                     continue
                 if rel.is_absolute() or ".." in rel.parts:
-                    raise RuntimeError("归档包含非法路径")
+                    raise RuntimeError("歸檔包含非法路徑")
                 if member.islnk() or member.issym():
-                    raise RuntimeError("归档包含链接文件，已拒绝导入")
+                    raise RuntimeError("歸檔包含連結檔案，已拒絕匯入")
                 dest_path = dest_root.joinpath(*rel.parts)
                 try:
                     dest_path = dest_path.resolve()
                     dest_path.relative_to(dest_root)
                 except ValueError as exc:
-                    raise RuntimeError("归档路径越界") from exc
+                    raise RuntimeError("歸檔路徑越界") from exc
                 if member.isdir():
                     dest_path.mkdir(parents=True, exist_ok=True)
                     continue
@@ -2993,7 +2993,7 @@ class SkillManager:
             archive_path.write_bytes(body)
             self._safe_extract_tar_to_dir(archive_path, dest_dir)
             return
-        raise RuntimeError("下载内容不是受支持的归档格式，目前仅支持 zip/tar/tar.gz/tgz")
+        raise RuntimeError("下載內容不是受支援的歸檔格式，目前僅支援 zip/tar/tar.gz/tgz")
 
     async def _download_remote_archive_and_verify(
         self,
@@ -3009,31 +3009,31 @@ class SkillManager:
             body = resp.content or b""
 
         if not body:
-            raise RuntimeError("下载内容为空")
+            raise RuntimeError("下載內容為空")
 
         expected = checksum_sha256.strip().lower()
         if expected:
             digest = hashlib.sha256(body).hexdigest().lower()
             if digest != expected:
-                raise RuntimeError("下载文件校验失败（SHA256 不匹配）")
+                raise RuntimeError("下載檔案校驗失敗（SHA256 不匹配）")
 
         archive_format = self._detect_archive_format(body)
         if archive_format == "zip":
             try:
                 with zipfile.ZipFile(io.BytesIO(body), "r") as zf:
                     if zf.testzip() is not None:
-                        raise RuntimeError("下载 ZIP 文件已损坏")
+                        raise RuntimeError("下載 ZIP 檔案已損壞")
             except zipfile.BadZipFile as exc:
-                raise RuntimeError("下载内容不是有效 ZIP 文件") from exc
+                raise RuntimeError("下載內容不是有效 ZIP 檔案") from exc
             return body
         if archive_format == "tar":
             try:
                 with tarfile.open(fileobj=io.BytesIO(body), mode="r:*"):
                     pass
             except tarfile.TarError as exc:
-                raise RuntimeError("下载内容不是有效 TAR 归档") from exc
+                raise RuntimeError("下載內容不是有效 TAR 歸檔") from exc
             return body
-        raise RuntimeError("下载内容不是受支持的归档格式，目前仅支持 zip/tar/tar.gz/tgz")
+        raise RuntimeError("下載內容不是受支援的歸檔格式，目前僅支援 zip/tar/tar.gz/tgz")
 
     async def _download_zip_and_verify(
         self,
@@ -3049,22 +3049,22 @@ class SkillManager:
             body = resp.content or b""
 
         if not body:
-            raise RuntimeError("下载内容为空")
+            raise RuntimeError("下載內容為空")
         if len(body) < 4 or not body.startswith(b"PK"):
-            raise RuntimeError("下载内容不是 ZIP 文件")
+            raise RuntimeError("下載內容不是 ZIP 檔案")
 
         expected = checksum_sha256.strip().lower()
         if expected:
             digest = hashlib.sha256(body).hexdigest().lower()
             if digest != expected:
-                raise RuntimeError("下载文件校验失败（SHA256 不匹配）")
+                raise RuntimeError("下載檔案校驗失敗（SHA256 不匹配）")
 
         try:
             with zipfile.ZipFile(io.BytesIO(body), "r") as zf:
                 if zf.testzip() is not None:
-                    raise RuntimeError("下载 ZIP 文件已损坏")
+                    raise RuntimeError("下載 ZIP 檔案已損壞")
         except zipfile.BadZipFile as exc:
-            raise RuntimeError("下载内容不是有效 ZIP 文件") from exc
+            raise RuntimeError("下載內容不是有效 ZIP 檔案") from exc
         return body
 
     @staticmethod
@@ -3073,7 +3073,7 @@ class SkillManager:
 
     @staticmethod
     def _skillnet_eval_llm_params() -> dict[str, str | None]:
-        """与主对话一致的 API Key / Base URL / 模型名（config.yaml react 段）."""
+        """與主對話一致的 API Key / Base URL / 模型名（config.yaml react 段）."""
         try:
             from jiuwenclaw.common.config import get_config
         except Exception:
@@ -3099,14 +3099,14 @@ class SkillManager:
 
     @staticmethod
     def _skillnet_evaluate_sync(skill_url: str) -> dict[str, Any]:
-        """同步 evaluate，供 asyncio.to_thread 调用."""
+        """同步 evaluate，供 asyncio.to_thread 呼叫."""
         try:
             from skillnet_ai import SkillNetClient
             from skillnet_ai.client import SkillNetError
         except Exception as exc:
             return {
                 "ok": False,
-                "detail": "未安装 skillnet-ai，请先安装依赖: pip install skillnet-ai",
+                "detail": "未安裝 skillnet-ai，請先安裝依賴: pip install skillnet-ai",
                 "detail_key": "skills.skillNet.errors.skillnetAiMissing",
             }
 
@@ -3128,10 +3128,10 @@ class SkillManager:
                 client = SkillNetClient(**kwargs)
                 result = client.evaluate(target=skill_url, model=str(llm["model"]))
         except SkillNetError as exc:
-            return {"ok": False, "detail": str(exc).strip() or "评估失败。"}
+            return {"ok": False, "detail": str(exc).strip() or "評估失敗。"}
         except Exception as exc:
-            logger.exception("SkillNet evaluate 异常")
-            return {"ok": False, "detail": str(exc).strip() or "评估失败。"}
+            logger.exception("SkillNet evaluate 異常")
+            return {"ok": False, "detail": str(exc).strip() or "評估失敗。"}
 
         if not isinstance(result, dict):
             return {"ok": True, "evaluation": result}
@@ -3139,11 +3139,11 @@ class SkillManager:
 
     @staticmethod
     def _skillnet_search_sync(search_kwargs: dict[str, Any]) -> list[Any]:
-        """同步调用 skillnet-ai search，供 asyncio.to_thread 使用."""
+        """同步呼叫 skillnet-ai search，供 asyncio.to_thread 使用."""
         try:
             from skillnet_ai.searcher import SkillNetSearcher
         except Exception as exc:
-            raise RuntimeError("未安装 skillnet-ai，请先安装依赖: pip install skillnet-ai") from exc
+            raise RuntimeError("未安裝 skillnet-ai，請先安裝依賴: pip install skillnet-ai") from exc
 
         with _skillnet_network_context():
             searcher = SkillNetSearcher()
@@ -3157,7 +3157,7 @@ class SkillManager:
 
     @staticmethod
     def _github_skillnet_install_error_context(skill_url: str) -> str:
-        """下载失败时拉 GitHub Contents 与 rate_limit，把官方 message 等拼给前端."""
+        """下載失敗時拉 GitHub Contents 與 rate_limit，把官方 message 等拼給前端."""
         try:
             from skillnet_ai.downloader import SkillDownloader
         except ImportError:
@@ -3175,7 +3175,7 @@ class SkillManager:
             with _skillnet_network_context():
                 r = dl.session.get(api, timeout=_SKILLNET_DOWNLOAD_TIMEOUT)
         except Exception as exc:
-            logger.debug("SkillNet 安装错误上下文: GitHub Contents 请求失败: %s", exc)
+            logger.debug("SkillNet 安裝錯誤上下文: GitHub Contents 請求失敗: %s", exc)
             return ""
 
         parts: list[str] = []
@@ -3190,7 +3190,7 @@ class SkillManager:
                     if raw:
                         parts.append(f"HTTP {r.status_code}: {raw}")
             except Exception as exc:
-                logger.debug("SkillNet 安装错误上下文: 解析 GitHub 错误 JSON 失败: %s", exc)
+                logger.debug("SkillNet 安裝錯誤上下文: 解析 GitHub 錯誤 JSON 失敗: %s", exc)
                 raw = (r.text or "").strip()[:500]
                 if raw:
                     parts.append(f"HTTP {r.status_code}: {raw}")
@@ -3204,12 +3204,12 @@ class SkillManager:
                         rem, lim = core.get("remaining"), core.get("limit")
                         if rem is not None and lim is not None:
                             parts.append(
-                                f"GitHub 核心 API 剩余 {rem}/{lim}，"
-                                "可在配置页「第三方服务」填写 github_token（GITHUB_TOKEN）提高额度"
+                                f"GitHub 核心 API 剩餘 {rem}/{lim}，"
+                                "可在配置頁「第三方服務」填寫 github_token（GITHUB_TOKEN）提高額度"
                             )
                 except Exception as exc:
                     logger.debug(
-                        "SkillNet 安装错误上下文: GitHub rate_limit 请求失败: %s",
+                        "SkillNet 安裝錯誤上下文: GitHub rate_limit 請求失敗: %s",
                         exc,
                     )
 
@@ -3217,11 +3217,11 @@ class SkillManager:
 
     @staticmethod
     def _skillnet_download_sync(skill_url: str, target_dir: str, mirror_url: str | None = None) -> str:
-        """同步调用 skillnet-ai download；失败时附带 GitHub API 返回说明（如前端的限流文案）。"""
+        """同步呼叫 skillnet-ai download；失敗時附帶 GitHub API 返回說明（如前端的限流文案）。"""
         try:
             from skillnet_ai.downloader import SkillDownloader, GitHubAPIError
         except Exception as exc:
-            raise RuntimeError("未安装 skillnet-ai，请先安装依赖: pip install skillnet-ai") from exc
+            raise RuntimeError("未安裝 skillnet-ai，請先安裝依賴: pip install skillnet-ai") from exc
 
         token = SkillManager._get_github_token()
         dl_kwargs: dict[str, Any] = {
@@ -3244,14 +3244,14 @@ class SkillManager:
                     raise RuntimeError(f"{exc} | {ctx}") from exc
                 raise
         if not local_path:
-            # skillnet-ai 在多种情况下会无异常地返回 None：URL 无效、目录下列表为空、
-            # 或 Contents API 成功但拉 raw 文件全部失败（超时/网络）等，库未区分原因。
+            # skillnet-ai 在多種情況下會無異常地返回 None：URL 無效、目錄下列表為空、
+            # 或 Contents API 成功但拉 raw 檔案全部失敗（超時/網路）等，庫未區分原因。
             ctx = SkillManager._github_skillnet_install_error_context(skill_url)
             raise SkillNetEmptyDownloadError(github_context=ctx)
         return str(local_path)
 
     async def _git_clone(self, url: str, dest: Path) -> str | None:
-        """浅克隆 git 仓库，返回 commit hash 或 None."""
+        """淺克隆 git 倉庫，返回 commit hash 或 None."""
         dest.parent.mkdir(parents=True, exist_ok=True)
         try:
             proc = await asyncio.create_subprocess_exec(
@@ -3266,15 +3266,15 @@ class SkillManager:
             )
             _, stderr = await proc.communicate()
             if proc.returncode != 0:
-                logger.error("git clone 失败: %s", stderr.decode(errors="replace"))
+                logger.error("git clone 失敗: %s", stderr.decode(errors="replace"))
                 return None
             return await self._git_get_commit(dest)
         except Exception as exc:
-            logger.error("git clone 异常: %s", exc)
+            logger.error("git clone 異常: %s", exc)
             return None
 
     async def _git_pull(self, repo_path: Path) -> str | None:
-        """拉取最新代码，返回 commit hash 或 None."""
+        """拉取最新程式碼，返回 commit hash 或 None."""
         try:
             proc = await asyncio.create_subprocess_exec(
                 "git",
@@ -3287,15 +3287,15 @@ class SkillManager:
             )
             _, stderr = await proc.communicate()
             if proc.returncode != 0:
-                logger.warning("git pull 失败: %s", stderr.decode(errors="replace"))
+                logger.warning("git pull 失敗: %s", stderr.decode(errors="replace"))
                 return None
             return await self._git_get_commit(repo_path)
         except Exception as exc:
-            logger.warning("git pull 异常: %s", exc)
+            logger.warning("git pull 異常: %s", exc)
             return None
 
     async def _git_get_commit(self, repo_path: Path) -> str | None:
-        """获取当前 HEAD commit hash."""
+        """獲取當前 HEAD commit hash."""
         try:
             proc = await asyncio.create_subprocess_exec(
                 "git",
@@ -3314,7 +3314,7 @@ class SkillManager:
             return None
 
     async def _sync_marketplace_repos(self) -> None:
-        """同步所有已配置 marketplace 到本地目录（存在则 pull，不存在则 clone）."""
+        """同步所有已配置 marketplace 到本地目錄（存在則 pull，不存在則 clone）."""
         marketplaces = [m for m in self._get_marketplaces() if bool(m.get("enabled", True))]
         if not marketplaces:
             return
@@ -3338,31 +3338,31 @@ class SkillManager:
                     await self._git_clone(url, repo_dir)
             except Exception as exc:
                 logger.warning(
-                    "同步 marketplace 失败: name=%s url=%s error=%s",
+                    "同步 marketplace 失敗: name=%s url=%s error=%s",
                     name,
                     url,
                     exc,
                 )
 
     # -----------------------------------------------------------------------
-    # 状态持久化
+    # 狀態持久化
     # -----------------------------------------------------------------------
 
     def _load_state(self) -> dict[str, Any]:
-        """加载 skills_state.json，失败时返回默认空状态."""
+        """載入 skills_state.json，失敗時返回預設空狀態."""
         try:
             if self._state_file.exists():
                 state = json.loads(self._state_file.read_text(encoding="utf-8"))
                 self._normalize_state(state)
                 return state
         except Exception:
-            logger.warning("加载 skills_state.json 失败，使用默认空状态")
+            logger.warning("載入 skills_state.json 失敗，使用預設空狀態")
         default_state = {"marketplaces": [], "installed_plugins": [], "local_skills": []}
         self._normalize_state(default_state)
         return default_state
 
     def _save_state(self) -> None:
-        """持久化状态到 skills_state.json."""
+        """持久化狀態到 skills_state.json."""
         try:
             self._state_file.parent.mkdir(parents=True, exist_ok=True)
             self._state_file.write_text(
@@ -3370,12 +3370,12 @@ class SkillManager:
                 encoding="utf-8",
             )
         except Exception:
-            logger.error("保存 skills_state.json 失败")
+            logger.error("儲存 skills_state.json 失敗")
 
     def _get_marketplaces(self) -> list[dict]:
         marketplaces = self._state.get("marketplaces", [])
         normalized = self.normalize_marketplaces(marketplaces)
-        # 仅当结构发生变化时写回，避免每次读取都触盘。
+        # 僅當結構發生變化時寫回，避免每次讀取都觸盤。
         if normalized != marketplaces:
             self._state["marketplaces"] = normalized
             self._save_state()
@@ -3453,19 +3453,19 @@ class SkillManager:
         return self._state.get("installed_plugins", [])
 
     # -----------------------------------------------------------------------
-    # 供 AgentServer 内部其它组件复用的轻量公开查询接口
+    # 供 AgentServer 內部其它元件複用的輕量公開查詢介面
     # -----------------------------------------------------------------------
 
     def get_installed_plugins(self) -> list[dict]:
-        """返回已安装插件记录的拷贝。"""
+        """返回已安裝外掛記錄的複製。"""
         return list(self._get_installed_plugins())
 
     def get_local_skills(self) -> list[dict]:
-        """返回本地技能安装记录的拷贝。"""
+        """返回本地技能安裝記錄的複製。"""
         return list(self._state.get("local_skills", []))
 
     def get_skill_meta(self, skill_name: str) -> dict[str, Any] | None:
-        """返回本地 skill 的解析元数据，附带目录与 skill 文件路径。"""
+        """返回本地 skill 的解析後設資料，附帶目錄與 skill 檔案路徑。"""
         skill_dir = self._resolve_local_skill_dir(skill_name)
         if skill_dir is None:
             return None
@@ -3480,7 +3480,7 @@ class SkillManager:
         return meta
 
     def is_builtin_skill(self, skill_name: str) -> bool:
-        """判断当前运行目录中的 skill 是否为真正的内置技能。"""
+        """判斷當前執行目錄中的 skill 是否為真正的內建技能。"""
         if not skill_name:
             return False
         try:
@@ -3500,7 +3500,7 @@ class SkillManager:
 
     def _add_installed_plugin(self, plugin: dict) -> None:
         plugins = self._state.setdefault("installed_plugins", [])
-        # 更新已有记录
+        # 更新已有記錄
         for i, p in enumerate(plugins):
             if p.get("name") == plugin.get("name"):
                 plugins[i] = plugin
@@ -3516,7 +3516,7 @@ class SkillManager:
 
     def _add_local_skill(self, skill: dict) -> None:
         local = self._state.setdefault("local_skills", [])
-        # 更新已有记录
+        # 更新已有記錄
         for i, s in enumerate(local):
             if s.get("name") == skill.get("name"):
                 local[i] = skill
@@ -3531,21 +3531,21 @@ class SkillManager:
         self._save_state()
 
     # -----------------------------------------------------------------------
-    # ClawHub 相关方法
+    # ClawHub 相關方法
     # -----------------------------------------------------------------------
 
     def _get_clawhub_token(self) -> str:
-        """获取 ClawHub CLI token."""
+        """獲取 ClawHub CLI token."""
         return (self._state.get("clawhub", {}).get("token") or "").strip()
 
     def _set_clawhub_token(self, token: str) -> None:
-        """设置 ClawHub CLI token（掩码处理）。"""
+        """設定 ClawHub CLI token（掩碼處理）。"""
         self._state.setdefault("clawhub", {})["token"] = token.strip() if token.strip() else ""
         self._save_state()
 
     @staticmethod
     def _mask_clawhub_token(token: str) -> str:
-        """掩码处理 ClawHub token。"""
+        """掩碼處理 ClawHub token。"""
         if not token:
             return ""
         if len(token) <= 8:

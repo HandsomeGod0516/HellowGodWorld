@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""AgentServerClient - Gateway 与 AgentServer 的 WebSocket 客户端."""
+"""AgentServerClient - Gateway 與 AgentServer 的 WebSocket 客戶端."""
 
 from __future__ import annotations
 
@@ -29,14 +29,14 @@ _WS_MAX_SIZE = 8 * 2**20
 
 
 def _wire_request_id_key(request_id: Any) -> str:
-    """与 AgentServer 回包 ``request_id`` 对齐：统一为 str，避免 JSON 数字/字符串导致队列键不一致。"""
+    """與 AgentServer 回包 ``request_id`` 對齊：統一為 str，避免 JSON 數字/字串導致佇列鍵不一致。"""
     if request_id is None:
         return ""
     return str(request_id)
 
 
 def _to_json(data: Any) -> str:
-    """将任意对象序列化为日志友好的 JSON 字符串."""
+    """將任意物件序列化為日誌友好的 JSON 字串."""
     try:
         return json.dumps(data, ensure_ascii=False, sort_keys=True, default=str)
     except Exception:
@@ -44,7 +44,7 @@ def _to_json(data: Any) -> str:
 
 
 def _build_ws_origin(uri: str) -> str | None:
-    """将 ws/wss URI 转为标准浏览器 Origin。"""
+    """將 ws/wss URI 轉為標準瀏覽器 Origin。"""
     try:
         parsed = urlsplit(uri)
     except ValueError:
@@ -58,16 +58,16 @@ def _build_ws_origin(uri: str) -> str | None:
 
 
 class AgentServerClient(ABC):
-    """AgentServer WebSocket 客户端接口."""
+    """AgentServer WebSocket 客戶端介面."""
 
     @abstractmethod
     async def connect(self, uri: str) -> None:
-        """建立与 AgentServer 的 WebSocket 连接."""
+        """建立與 AgentServer 的 WebSocket 連線."""
         ...
 
     @abstractmethod
     async def disconnect(self) -> None:
-        """断开连接."""
+        """斷開連線."""
         ...
 
     @abstractmethod
@@ -77,35 +77,35 @@ class AgentServerClient(ABC):
         config: dict[str, Any],
         env: dict[str, str] | None = None,
     ) -> None:
-        """缓存或更新服务端配置快照，供自定义 client 后续使用."""
+        """快取或更新服務端配置快照，供自定義 client 後續使用."""
         ...
 
     @abstractmethod
     async def send_request(self, envelope: E2AEnvelope) -> AgentResponse:
-        """发送 E2A 信封，等待完整响应."""
+        """傳送 E2A 信封，等待完整響應."""
         ...
 
     @abstractmethod
     async def send_request_stream(
         self, envelope: E2AEnvelope
     ) -> AsyncIterator[AgentResponseChunk]:
-        """发送 E2A 信封，流式接收响应."""
+        """傳送 E2A 信封，流式接收響應."""
         ...
 
 
 def _e2a_to_wire(envelope: E2AEnvelope) -> dict[str, Any]:
-    """E2AEnvelope → WebSocket JSON（与 AgentServer from_dict 对齐）。"""
+    """E2AEnvelope → WebSocket JSON（與 AgentServer from_dict 對齊）。"""
     return envelope.to_dict()
 
 
 class WebSocketAgentServerClient(AgentServerClient):
     """
-    基于 websockets 的 AgentServer WebSocket 客户端实现。
+    基於 websockets 的 AgentServer WebSocket 客戶端實現。
 
-    协议约定：
-    - 发送：JSON 对象为 E2AEnvelope.to_dict()（含 protocol_version、method、channel、params、is_stream 等）。
-    - 接收（非流式）：一条 **E2AResponse** 线 JSON（或过渡期 legacy AgentResponse 形），解析为 AgentResponse。
-    - 接收（流式）：多条 E2AResponse 线 JSON（或 legacy chunk），解析为 AgentResponseChunk。
+    協議約定：
+    - 傳送：JSON 物件為 E2AEnvelope.to_dict()（含 protocol_version、method、channel、params、is_stream 等）。
+    - 接收（非流式）：一條 **E2AResponse** 線 JSON（或過渡期 legacy AgentResponse 形），解析為 AgentResponse。
+    - 接收（流式）：多條 E2AResponse 線 JSON（或 legacy chunk），解析為 AgentResponseChunk。
     """
 
     def __init__(self, *, ping_interval: float | None = 30.0, ping_timeout: float | None = 300.0) -> None:
@@ -115,19 +115,19 @@ class WebSocketAgentServerClient(AgentServerClient):
         self._ping_interval = ping_interval
         self._ping_timeout = ping_timeout
         self._server_ready: bool = False
-        # 消息分发机制：根据 request_id 路由到对应队列
+        # 訊息分發機制：根據 request_id 路由到對應佇列
         self._message_queues: dict[str, asyncio.Queue] = {}
-        self._queue_lock = asyncio.Lock()  # 保护队列操作的锁
+        self._queue_lock = asyncio.Lock()  # 保護佇列操作的鎖
         self._cancelled_request_ids: set[str] = set()  # 已取消但等待清理的 request_id
         self._receiver_task: asyncio.Task | None = None
         self._running = False
-        # AgentServer send_push：旁路投递，勿进入与 request_id 绑定的 RPC 等待队列
+        # AgentServer send_push：旁路投遞，勿進入與 request_id 繫結的 RPC 等待佇列
         self._on_server_push: Callable[[dict[str, Any]], Awaitable[None]] | None = None
 
     def set_server_push_handler(
         self, handler: Callable[[dict[str, Any]], Awaitable[None]] | None
     ) -> None:
-        """注册 Agent 主动推送处理回调（metadata 含 ``E2A_WIRE_SERVER_PUSH_KEY`` 的帧）。"""
+        """註冊 Agent 主動推送處理回撥（metadata 含 ``E2A_WIRE_SERVER_PUSH_KEY`` 的幀）。"""
         self._on_server_push = handler
 
     def set_or_update_server_config(
@@ -136,18 +136,18 @@ class WebSocketAgentServerClient(AgentServerClient):
         config: dict[str, Any],
         env: dict[str, str] | None = None,
     ) -> None:
-        """默认 WebSocket client 不处理服务端配置缓存，留给扩展 client 自行实现."""
+        """預設 WebSocket client 不處理服務端配置快取，留給擴充套件 client 自行實現."""
         return None
 
     @property
     def server_ready(self) -> bool:
-        """AgentServer 是否已发送 connection.ack 确认就绪."""
+        """AgentServer 是否已傳送 connection.ack 確認就緒."""
         return self._server_ready
 
     async def connect(self, uri: str) -> None:
         if self._ws is not None:
             await self.disconnect()
-        logger.info("[WebSocketAgentServerClient] 正在连接: %s", uri)
+        logger.info("[WebSocketAgentServerClient] 正在連線: %s", uri)
         self._uri = uri
         self._server_ready = False
         origin = _build_ws_origin(uri)
@@ -165,34 +165,34 @@ class WebSocketAgentServerClient(AgentServerClient):
             close_timeout=5.0,
             max_size=_WS_MAX_SIZE,
         )
-        logger.info("[WebSocketAgentServerClient] 已连接: %s", uri)
+        logger.info("[WebSocketAgentServerClient] 已連線: %s", uri)
 
-        # 读取 AgentServer 的 connection.ack 事件
+        # 讀取 AgentServer 的 connection.ack 事件
         try:
             raw = await asyncio.wait_for(self._ws.recv(), timeout=5.0)
-            logger.info("[WebSocketAgentServerClient] connect 首帧(raw): %s", raw)
+            logger.info("[WebSocketAgentServerClient] connect 首幀(raw): %s", raw)
             data = json.loads(raw)
-            logger.info("[WebSocketAgentServerClient] connect 首帧(parsed): %s", _to_json(data))
+            logger.info("[WebSocketAgentServerClient] connect 首幀(parsed): %s", _to_json(data))
             if data.get("type") == "event" and data.get("event") == "connection.ack":
                 self._server_ready = True
-                logger.info("[WebSocketAgentServerClient] 收到 connection.ack，AgentServer 已就绪")
+                logger.info("[WebSocketAgentServerClient] 收到 connection.ack，AgentServer 已就緒")
             else:
                 logger.warning(
-                    "[WebSocketAgentServerClient] 首帧非 connection.ack: %s",
+                    "[WebSocketAgentServerClient] 首幀非 connection.ack: %s",
                     data.get("type"),
                 )
         except asyncio.TimeoutError:
-            logger.warning("[WebSocketAgentServerClient] 等待 connection.ack 超时")
+            logger.warning("[WebSocketAgentServerClient] 等待 connection.ack 超時")
         except Exception as e:
-            logger.warning("[WebSocketAgentServerClient] 读取 connection.ack 失败: %s", e)
+            logger.warning("[WebSocketAgentServerClient] 讀取 connection.ack 失敗: %s", e)
 
-        # 启动消息接收和分发任务
+        # 啟動訊息接收和分發任務
         self._running = True
         self._receiver_task = asyncio.create_task(self._message_receiver_loop())
-        logger.info("[WebSocketAgentServerClient] 消息接收任务已启动")
+        logger.info("[WebSocketAgentServerClient] 訊息接收任務已啟動")
 
     async def _message_receiver_loop(self) -> None:
-        """后台任务：从 WebSocket 接收消息并根据 request_id 分发到对应队列."""
+        """後臺任務：從 WebSocket 接收訊息並根據 request_id 分發到對應佇列."""
         try:
             while self._running and self._ws is not None:
                 try:
@@ -204,19 +204,19 @@ class WebSocketAgentServerClient(AgentServerClient):
                             asyncio.create_task(self._on_server_push(data))
                         else:
                             logger.warning(
-                                "[WebSocketAgentServerClient] 收到 server_push 但未注册 handler，已丢弃: "
+                                "[WebSocketAgentServerClient] 收到 server_push 但未註冊 handler，已丟棄: "
                                 "request_id=%s",
                                 data.get("request_id"),
                             )
                         continue
                     request_id = _wire_request_id_key(data.get("request_id"))
 
-                    # 使用锁保护队列访问，避免竞态条件
+                    # 使用鎖保護佇列訪問，避免競態條件
                     async with self._queue_lock:
-                        # 检查是否是已取消的请求，静默丢弃消息
+                        # 檢查是否是已取消的請求，靜默丟棄訊息
                         if request_id in self._cancelled_request_ids:
                             logger.debug(
-                                "[WebSocketAgentServerClient] 收到已取消请求的残余消息，已丢弃: request_id=%s",
+                                "[WebSocketAgentServerClient] 收到已取消請求的殘餘訊息，已丟棄: request_id=%s",
                                 request_id
                             )
                             continue
@@ -224,21 +224,21 @@ class WebSocketAgentServerClient(AgentServerClient):
                         if request_id and request_id in self._message_queues:
                             await self._message_queues[request_id].put(data)
                         else:
-                            # 没有对应的队列（非预期情况）
+                            # 沒有對應的佇列（非預期情況）
                             logger.debug(
-                                "[WebSocketAgentServerClient] 收到无目标队列的消息: request_id=%s",
+                                "[WebSocketAgentServerClient] 收到無目標佇列的訊息: request_id=%s",
                                 request_id
                             )
                 except asyncio.CancelledError:
                     break
                 except Exception as e:
-                    logger.exception("[WebSocketAgentServerClient] 消息接收循环异常: %s", e)
-                    await asyncio.sleep(0.1)  # 避免快速循环
+                    logger.exception("[WebSocketAgentServerClient] 訊息接收迴圈異常: %s", e)
+                    await asyncio.sleep(0.1)  # 避免快速迴圈
         finally:
-            logger.info("[WebSocketAgentServerClient] 消息接收任务已停止")
+            logger.info("[WebSocketAgentServerClient] 訊息接收任務已停止")
 
     async def disconnect(self) -> None:
-        # 停止接收任务
+        # 停止接收任務
         self._running = False
         if self._receiver_task and not self._receiver_task.done():
             self._receiver_task.cancel()
@@ -248,28 +248,28 @@ class WebSocketAgentServerClient(AgentServerClient):
                 pass
             self._receiver_task = None
 
-        # 清理所有队列
+        # 清理所有佇列
         self._message_queues.clear()
 
-        # 关闭 WebSocket
+        # 關閉 WebSocket
         if self._ws is None:
             return
         try:
             await self._ws.close()
         except Exception as e:
-            logger.warning("关闭 AgentServer WebSocket 时异常: %s", e)
+            logger.warning("關閉 AgentServer WebSocket 時異常: %s", e)
         finally:
             self._ws = None
             self._uri = None
-        logger.info("[WebSocketAgentServerClient] 已断开")
+        logger.info("[WebSocketAgentServerClient] 已斷開")
 
     def _ensure_connected(self) -> None:
         if self._ws is None:
-            raise RuntimeError("未连接 AgentServer，请先调用 connect(uri)")
+            raise RuntimeError("未連線 AgentServer，請先呼叫 connect(uri)")
 
     async def send_request(self, envelope: E2AEnvelope) -> AgentResponse:
         self._ensure_connected()
-        # 非流式 API 必须与 AgentServer 的 unary 路径一致；忽略信封上误带的 is_stream=True。
+        # 非流式 API 必須與 AgentServer 的 unary 路徑一致；忽略信封上誤帶的 is_stream=True。
         envelope.is_stream = False
         rid = _wire_request_id_key(envelope.request_id)
         logger.info(
@@ -280,7 +280,7 @@ class WebSocketAgentServerClient(AgentServerClient):
             envelope.is_stream,
         )
         logger.debug(
-            "[WebSocketAgentServerClient] 发送请求(非流式) E2A: %s",
+            "[WebSocketAgentServerClient] 傳送請求(非流式) E2A: %s",
             _to_json(envelope.to_dict()),
         )
 
@@ -290,34 +290,34 @@ class WebSocketAgentServerClient(AgentServerClient):
                 "refusing to register queue (would mis-route responses, e.g. stream chunks to unary waiters)."
             )
 
-        # 创建该请求的消息队列
+        # 建立該請求的訊息佇列
         queue = asyncio.Queue()
         self._message_queues[rid] = queue
 
         try:
-            # 发送请求
+            # 傳送請求
             async with self._lock:
                 payload = _e2a_to_wire(envelope)
-                logger.info("[WebSocketAgentServerClient] 发送请求(非流式) payload: %s", _to_json(payload))
+                logger.info("[WebSocketAgentServerClient] 傳送請求(非流式) payload: %s", _to_json(payload))
                 await self._ws.send(json.dumps(payload, ensure_ascii=False))
 
             try:
                 data = await asyncio.wait_for(queue.get(), timeout=_UNARY_REQUEST_TIMEOUT_SECONDS)
             except asyncio.TimeoutError as e:
                 logger.warning(
-                    "[WebSocketAgentServerClient] 非流式请求超时: request_id=%s timeout=%ss",
+                    "[WebSocketAgentServerClient] 非流式請求超時: request_id=%s timeout=%ss",
                     rid,
                     _UNARY_REQUEST_TIMEOUT_SECONDS,
                 )
                 raise RuntimeError(
-                    f"AgentServer 非流式请求超时 (request_id={rid}, timeout={_UNARY_REQUEST_TIMEOUT_SECONDS}s)"
+                    f"AgentServer 非流式請求超時 (request_id={rid}, timeout={_UNARY_REQUEST_TIMEOUT_SECONDS}s)"
                 ) from e
-            logger.info("[WebSocketAgentServerClient] 收到响应(非流式) raw: %s", json.dumps(data, ensure_ascii=False))
+            logger.info("[WebSocketAgentServerClient] 收到響應(非流式) raw: %s", json.dumps(data, ensure_ascii=False))
             resp = parse_agent_server_wire_unary(data)
-            logger.info("[WebSocketAgentServerClient] 收到完整响应 AgentResponse: %s", _to_json(asdict(resp)))
+            logger.info("[WebSocketAgentServerClient] 收到完整響應 AgentResponse: %s", _to_json(asdict(resp)))
             return resp
         finally:
-            # 清理队列
+            # 清理佇列
             await self._drain_and_remove_queue(rid)
 
     async def send_request_stream(
@@ -334,7 +334,7 @@ class WebSocketAgentServerClient(AgentServerClient):
             envelope.is_stream,
         )
         logger.debug(
-            "[WebSocketAgentServerClient] 发送请求(流式) E2A: %s",
+            "[WebSocketAgentServerClient] 傳送請求(流式) E2A: %s",
             _to_json(envelope.to_dict()),
         )
 
@@ -344,18 +344,18 @@ class WebSocketAgentServerClient(AgentServerClient):
                 "refusing to register queue (would mis-route responses, e.g. stream chunks to unary waiters)."
             )
 
-        # 创建该请求的消息队列
+        # 建立該請求的訊息佇列
         queue = asyncio.Queue()
         self._message_queues[rid] = queue
 
         try:
-            # 发送请求
+            # 傳送請求
             async with self._lock:
                 payload = _e2a_to_wire(envelope)
-                logger.info("[WebSocketAgentServerClient] 发送请求(流式) payload: %s", _to_json(payload))
+                logger.info("[WebSocketAgentServerClient] 傳送請求(流式) payload: %s", _to_json(payload))
                 await self._ws.send(json.dumps(payload, ensure_ascii=False))
 
-            # 从队列中接收流式响应
+            # 從佇列中接收流式響應
             chunk_count = 0
             saw_complete = False
             while True:
@@ -379,29 +379,29 @@ class WebSocketAgentServerClient(AgentServerClient):
                 yield chunk
                 if chunk.is_complete:
                     saw_complete = True
-            logger.info("[WebSocketAgentServerClient] 流式响应结束: request_id=%s 共 %s 个 chunk", rid, chunk_count)
+            logger.info("[WebSocketAgentServerClient] 流式響應結束: request_id=%s 共 %s 個 chunk", rid, chunk_count)
         except asyncio.CancelledError:
             logger.info("[WebSocketAgentServerClient] 流式接收被取消: request_id=%s", rid)
             raise
         finally:
-            # 清理队列
+            # 清理佇列
             await self._drain_and_remove_queue(rid)
 
     async def _drain_and_remove_queue(self, rid: str) -> None:
-        """清空队列中的残余消息并移除队列，同时标记 request_id 为已取消状态.
+        """清空佇列中的殘餘訊息並移除佇列，同時標記 request_id 為已取消狀態.
 
-        标记为已取消后，后续到达的残余消息会被 _message_receiver_loop 静默丢弃。
-        使用锁保护，确保操作的原子性。
+        標記為已取消後，後續到達的殘餘訊息會被 _message_receiver_loop 靜默丟棄。
+        使用鎖保護，確保操作的原子性。
         """
         async with self._queue_lock:
             queue = self._message_queues.get(rid)
             if queue is None:
                 return
-            # 1. 先标记为已取消，阻止后续消息进入队列
+            # 1. 先標記為已取消，阻止後續訊息進入佇列
             self._cancelled_request_ids.add(rid)
-            # 2. 删除队列注册
+            # 2. 刪除佇列註冊
             del self._message_queues[rid]
-            # 3. 清空队列中的残余消息（非阻塞）
+            # 3. 清空佇列中的殘餘訊息（非阻塞）
             drained_count = 0
             while True:
                 try:
@@ -410,36 +410,36 @@ class WebSocketAgentServerClient(AgentServerClient):
                 except asyncio.QueueEmpty:
                     break
             logger.debug(
-                "[WebSocketAgentServerClient] 队列已清空并移除: request_id=%s 清理消息数=%d",
+                "[WebSocketAgentServerClient] 佇列已清空並移除: request_id=%s 清理訊息數=%d",
                 rid,
                 drained_count,
             )
-            # 4. 异步延迟清理已取消标记（给 AgentServer 一点时间发送残余消息）
+            # 4. 非同步延遲清理已取消標記（給 AgentServer 一點時間傳送殘餘訊息）
             asyncio.create_task(self._delayed_cleanup_cancelled_request_id(rid))
 
     async def _delayed_cleanup_cancelled_request_id(self, rid: str) -> None:
-        """延迟清理已取消的 request_id 标记.
+        """延遲清理已取消的 request_id 標記.
 
-        等待一段时间后清理，确保 AgentServer 的残余消息能够被静默丢弃而不打印日志。
+        等待一段時間後清理，確保 AgentServer 的殘餘訊息能夠被靜默丟棄而不列印日誌。
         """
-        # 等待足够时间让 AgentServer 的残余消息被接收和丢弃
-        await asyncio.sleep(2.0)  # 2秒应该足够
+        # 等待足夠時間讓 AgentServer 的殘餘訊息被接收和丟棄
+        await asyncio.sleep(2.0)  # 2秒應該足夠
         async with self._queue_lock:
             self._cancelled_request_ids.discard(rid)
             logger.debug(
-                "[WebSocketAgentServerClient] 已取消标记已清理: request_id=%s",
+                "[WebSocketAgentServerClient] 已取消標記已清理: request_id=%s",
                 rid,
             )
 
 
 # ---------------------------------------------------------------------------
-# Mock AgentServer（协议兼容，供示例或测试使用）
+# Mock AgentServer（協議相容，供示例或測試使用）
 # ---------------------------------------------------------------------------
 
 
 async def mock_agent_server_handler(ws: Any) -> None:
     """
-    协议兼容的 Mock AgentServer：按 is_stream 回 E2AResponse 线 JSON（与生产 AgentServer 一致）。
+    協議相容的 Mock AgentServer：按 is_stream 回 E2AResponse 線 JSON（與生產 AgentServer 一致）。
     """
     import websockets
 
@@ -486,7 +486,7 @@ async def mock_agent_server_handler(ws: Any) -> None:
     except websockets.exceptions.ConnectionClosed:
         pass
     except Exception as e:
-        logger.exception("[MockAgentServer] 处理异常: %s", e)
+        logger.exception("[MockAgentServer] 處理異常: %s", e)
 
 
 async def run_mock_agent_server(
@@ -494,9 +494,9 @@ async def run_mock_agent_server(
     port: int = 8000,
 ) -> Any:
     """
-    启动 Mock AgentServer（使用 mock_agent_server_handler），监听 host:port。
-    返回 Server，调用方需在结束时 server.close(); await server.wait_closed()。
-    websockets 14+ 使用 legacy.server.serve，与 legacy 客户端一致，避免 InvalidMessage。
+    啟動 Mock AgentServer（使用 mock_agent_server_handler），監聽 host:port。
+    返回 Server，呼叫方需在結束時 server.close(); await server.wait_closed()。
+    websockets 14+ 使用 legacy.server.serve，與 legacy 客戶端一致，避免 InvalidMessage。
     """
     try:
         from websockets.legacy.server import serve as legacy_serve
@@ -504,29 +504,29 @@ async def run_mock_agent_server(
     except ImportError:
         import websockets
         server = await websockets.serve(mock_agent_server_handler, host, port)
-    logger.info("[MockAgentServer] 已启动: ws://%s:%s", host, port)
+    logger.info("[MockAgentServer] 已啟動: ws://%s:%s", host, port)
     return server
 
 
 # ---------------------------------------------------------------------------
-# 自验证：内存 Mock 服务端 + main
+# 自驗證：記憶體 Mock 服務端 + main
 # ---------------------------------------------------------------------------
 
 
 async def _run_verification() -> None:
-    """用内存 Mock 服务端验证 WebSocketAgentServerClient 的 connect/send_request/send_request_stream."""
+    """用記憶體 Mock 服務端驗證 WebSocketAgentServerClient 的 connect/send_request/send_request_stream."""
     from jiuwenclaw.common.e2a.gateway_normalize import e2a_from_agent_fields
 
     port = 18765
     uri = f"ws://127.0.0.1:{port}"
     server = await run_mock_agent_server("127.0.0.1", port)
-    logger.info("[main] Mock AgentServer 已启动: %s", uri)
+    logger.info("[main] Mock AgentServer 已啟動: %s", uri)
 
     client = WebSocketAgentServerClient()
     try:
         await client.connect(uri)
 
-        # 1. 非流式请求
+        # 1. 非流式請求
         req1 = e2a_from_agent_fields(
             request_id="req-1",
             channel_id="ch-1",
@@ -537,14 +537,14 @@ async def _run_verification() -> None:
         assert resp1.request_id == "req-1"
         assert resp1.ok is True
         assert "Echo:" in str(resp1.payload)
-        logger.info("[main] 非流式验证通过: payload=%s", resp1.payload)
+        logger.info("[main] 非流式驗證透過: payload=%s", resp1.payload)
 
-        # 2. 流式请求
+        # 2. 流式請求
         req2 = e2a_from_agent_fields(
             request_id="req-2",
             channel_id="ch-1",
             session_id="sess-1",
-            params={"message": "流式测试"},
+            params={"message": "流式測試"},
         )
         chunks = []
         async for ch in client.send_request_stream(req2):
@@ -552,16 +552,16 @@ async def _run_verification() -> None:
         assert len(chunks) == 3
         assert chunks[-1].is_complete
         full_content = "".join(c.payload.get("content", "") for c in chunks if c.payload)
-        logger.info("[main] 流式验证通过: 共 %s 个 chunk, 拼接内容=%r", len(chunks), full_content)
+        logger.info("[main] 流式驗證透過: 共 %s 個 chunk, 拼接內容=%r", len(chunks), full_content)
     finally:
         await client.disconnect()
         server.close()
         await server.wait_closed()
-    logger.info("[main] 验证完成，功能正常")
+    logger.info("[main] 驗證完成，功能正常")
 
 
 def main() -> None:
-    """入口：配置日志并运行自验证."""
+    """入口：配置日誌並執行自驗證."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s.%(msecs)03d %(name)s %(levelname)s: %(message)s",

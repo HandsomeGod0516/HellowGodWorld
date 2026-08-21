@@ -1,4 +1,4 @@
-"""面向 agent 的 skill 管理工具封装。"""
+"""面向 agent 的 skill 管理工具封裝。"""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 _AUTO_SOURCE = "auto"
 _DEFAULT_SOURCE = "skillnet"
 _SUPPORTED_SOURCES = {"skillnet", "clawhub", "teamskillshub"}
-# identifier 对模型是统一字段；这里根据其形态推断底层来源。
+# identifier 對模型是統一欄位；這裡根據其形態推斷底層來源。
 _INSTALL_SOURCE_BY_TARGET: tuple[tuple[str, str], ...] = (
     (r"^https?://", "skillnet"),
     (r"^[A-Za-z0-9][A-Za-z0-9._/-]*$", "clawhub"),
@@ -56,14 +56,14 @@ class SkillToolkit:
         return max(parsed, 1)
 
     def _get_skill_meta(self, skill_name: str) -> dict[str, Any] | None:
-        """从本地技能目录读取解析后的 SKILL.md 元数据。"""
+        """從本地技能目錄讀取解析後的 SKILL.md 後設資料。"""
         return self._manager.get_skill_meta(skill_name)
 
     def _get_installed_names(self) -> set[str]:
         return {str(item.get("name", "")) for item in self._manager.get_installed_plugins()}
 
     def _find_installed_by_target(self, identifier: str, source: str) -> dict[str, Any] | None:
-        """按统一 identifier 反查是否已安装，避免重复安装。"""
+        """按統一 identifier 反查是否已安裝，避免重複安裝。"""
         target = str(identifier or "").strip()
         if not target:
             return None
@@ -104,12 +104,12 @@ class SkillToolkit:
         return None
 
     def _is_builtin_skill(self, skill_name: str) -> bool:
-        """复用原有卸载语义：只有真正运行在 builtin 目录中的技能才视为内置。"""
+        """複用原有解除安裝語義：只有真正執行在 builtin 目錄中的技能才視為內建。"""
         return self._manager.is_builtin_skill(skill_name)
 
     @staticmethod
     def _normalize_search_item(item: dict[str, Any], source: str, installed_names: set[str]) -> dict[str, Any]:
-        """把不同来源的原始搜索结果归一成统一字段。"""
+        """把不同來源的原始搜尋結果歸一成統一欄位。"""
         if source == "skillnet":
             name = str(item.get("skill_name", "")).strip()
             description = str(item.get("skill_description", "")).strip()
@@ -146,7 +146,7 @@ class SkillToolkit:
 
     @staticmethod
     def _summarize_search_payload(source: str, query: str, payload: dict[str, Any]) -> dict[str, Any]:
-        """提取一小段调试摘要，便于日志与 tool 返回里排查问题。"""
+        """提取一小段除錯摘要，便於日誌與 tool 返回裡排查問題。"""
         skills = payload.get("skills", []) or []
         first = skills[0] if skills else {}
         if not isinstance(first, dict):
@@ -178,7 +178,7 @@ class SkillToolkit:
         return f"- `{name}`: {desc}"
 
     def _build_installed_item(self, name: str, source: str) -> dict[str, Any]:
-        """补齐已安装 skill 的展示信息，供 list/install 返回复用。"""
+        """補齊已安裝 skill 的展示資訊，供 list/install 返回複用。"""
         meta = self._get_skill_meta(name) or {}
         description = str(meta.get("description", "")).strip()
         skill_dir = str(meta.get("skill_dir", ""))
@@ -233,7 +233,7 @@ class SkillToolkit:
             any_success = False
             for current_source in sources:
                 params = {"q": query, "limit": search_limit}
-                # SkillNet 的 vector 模式对多关键词查询召回更稳定。
+                # SkillNet 的 vector 模式對多關鍵詞查詢召回更穩定。
                 if current_source == "skillnet":
                     params["mode"] = "vector"
                 if current_source == "skillnet":
@@ -285,7 +285,7 @@ class SkillToolkit:
         identifier: str,
         timeout_sec: int,
     ) -> dict[str, Any]:
-        """在单次 tool 调用内轮询 SkillNet 安装状态，直到完成或超时。"""
+        """在單次 tool 呼叫內輪詢 SkillNet 安裝狀態，直到完成或超時。"""
         payload = await self._manager.handle_skills_skillnet_install({"url": identifier, "force": False})
         if not payload.get("success"):
             return payload
@@ -297,7 +297,7 @@ class SkillToolkit:
             return {"success": False, "detail": "missing install_id from skillnet install"}
 
         async def _poll_status() -> dict[str, Any]:
-            # 复用原有 install_status 轮询接口，直到安装完成或超时。
+            # 複用原有 install_status 輪詢介面，直到安裝完成或超時。
             while True:
                 status_payload = await self._manager.handle_skills_skillnet_install_status(
                     {"install_id": install_id}
@@ -408,7 +408,7 @@ class SkillToolkit:
         skill = payload.get("skill") or {}
         name = str(skill.get("name", "")).strip()
         if not name:
-            # 底层未显式返回名称时，尽量从 identifier 推断一个稳定值。
+            # 底層未顯式返回名稱時，儘量從 identifier 推斷一個穩定值。
             name = Path(target).name if resolved_source == "skillnet" else target
 
         installed_item = self._build_installed_item(name, resolved_source)
@@ -499,7 +499,7 @@ class SkillToolkit:
         }
 
     async def _list_installed_skills(self) -> dict[str, Any]:
-        """列出已安装 skills，供 toolkit 内部逻辑复用。"""
+        """列出已安裝 skills，供 toolkit 內部邏輯複用。"""
         try:
             logger.info("[SkillToolkit] _list_installed_skills called")
             payload = await self._manager.handle_skills_installed({})
@@ -540,7 +540,7 @@ class SkillToolkit:
         """Return skill-management tools for agent registration."""
 
         def make_tool(name: str, description: str, input_params: dict, func: Callable[..., Any]) -> Tool:
-            # 统一用 LocalFunction 包装，保持与现有 toolkit 注册方式一致。
+            # 統一用 LocalFunction 包裝，保持與現有 toolkit 註冊方式一致。
             card = ToolCard(
                 id=name,
                 name=name,

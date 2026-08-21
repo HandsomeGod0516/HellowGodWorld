@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'market', 'supply_store']
 TARGET_INTERACTIONS = ['take_walk', 'coordinate_group', 'inspect_supplies']
 STATUS = 'planning_patrol'
 EMOTION = 'alert'
-SPEECH = '我先规划一条能覆盖重点地点的路线。'
+SPEECH = '我先規劃一條能覆蓋重點地點的路線。'
 MEMORY_TEMPLATE = 'Used patrol.plan: {summary} at {location_id}.'
 
 

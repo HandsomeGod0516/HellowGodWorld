@@ -1,7 +1,7 @@
 /**
- * 用户问题弹窗组件
+ * 使用者問題彈窗元件
  *
- * 显示 Agent 提出的问题，让用户选择或输入回答
+ * 顯示 Agent 提出的問題，讓使用者選擇或輸入回答
  */
 
 import { useState, useCallback } from 'react';
@@ -18,7 +18,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
   const { pendingQuestion, setPendingQuestion } = useChatStore();
   const [answers, setAnswers] = useState<Map<number, UserAnswer>>(new Map());
 
-  // 处理选项选择
+  // 處理選項選擇
   const handleOptionSelect = useCallback(
     (questionIndex: number, optionLabel: string, isMultiSelect: boolean) => {
       setAnswers((prev) => {
@@ -28,7 +28,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
         };
 
         if (isMultiSelect) {
-          // 多选：切换选项
+          // 多選：切換選項
           const selected = current.selected_options || [];
           const newSelected = selected.includes(optionLabel)
             ? selected.filter((o) => o !== optionLabel)
@@ -38,7 +38,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
             selected_options: newSelected,
           });
         } else {
-          // 单选：替换选项
+          // 單選：替換選項
           newAnswers.set(questionIndex, {
             ...current,
             selected_options: [optionLabel],
@@ -51,7 +51,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
     []
   );
 
-  // 处理自定义输入
+  // 處理自定義輸入
   const handleCustomInput = useCallback(
     (questionIndex: number, value: string) => {
       setAnswers((prev) => {
@@ -79,7 +79,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
         if (answer) {
           return answer;
         }
-        // 默认选择第一个选项
+        // 預設選擇第一個選項
         return {
           selected_options: q.options.length > 0 ? [q.options[0].label] : [],
         };
@@ -90,7 +90,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
     setAnswers(new Map());
   }, [pendingQuestion, answers, onSubmit]);
 
-  // 取消/关闭
+  // 取消/關閉
   const handleCancel = useCallback(() => {
     setPendingQuestion(null);
     setAnswers(new Map());
@@ -108,7 +108,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
         onClick={handleCancel}
       />
 
-      {/* 弹窗内容 */}
+      {/* 彈窗內容 */}
       <div
         className="relative w-full max-w-lg max-h-[80vh] overflow-hidden rounded-xl animate-rise"
         style={{
@@ -116,7 +116,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
           boxShadow: 'var(--shadow-xl)',
         }}
       >
-        {/* 标题栏 */}
+        {/* 標題欄 */}
         <div
           className="px-6 py-4 flex items-center gap-4"
           style={{
@@ -160,7 +160,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
           </div>
         </div>
 
-        {/* 问题列表 */}
+        {/* 問題列表 */}
         <div
           className="px-6 py-5 overflow-y-auto"
           style={{
@@ -180,7 +180,7 @@ export function UserQuestionModal({ onSubmit }: UserQuestionModalProps) {
           ))}
         </div>
 
-        {/* 操作按钮 */}
+        {/* 操作按鈕 */}
         <div
           className="px-6 py-4 flex justify-end gap-3"
           style={{
@@ -247,7 +247,7 @@ function QuestionItem({
 
   return (
     <div className="mb-6 last:mb-0">
-      {/* 问题标题 */}
+      {/* 問題標題 */}
       <div className="mb-3">
         <span
           className="inline-block px-2 py-0.5 text-xs font-medium rounded mb-2"
@@ -274,7 +274,7 @@ function QuestionItem({
         )}
       </div>
 
-      {/* 选项列表 */}
+      {/* 選項列表 */}
       <div className="space-y-2">
         {question.options.map((option, oIndex) => {
           const isSelected = selectedOptions.includes(option.label);
@@ -339,7 +339,7 @@ function QuestionItem({
           );
         })}
 
-        {/* 自定义输入选项 */}
+        {/* 自定義輸入選項 */}
         <button
           onClick={() => setShowCustomInput(!showCustomInput)}
           className="w-full text-left px-4 py-3 rounded-lg transition-all"
@@ -381,7 +381,7 @@ function QuestionItem({
           </div>
         </button>
 
-        {/* 自定义输入框 */}
+        {/* 自定義輸入框 */}
         {showCustomInput && (
           <div className="mt-2 ml-8">
             <textarea

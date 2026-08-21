@@ -1,7 +1,7 @@
 """
-代码执行器的数据模型定义
+程式碼執行器的資料模型定義
 
-使用Pydantic进行数据验证和序列化。
+使用Pydantic進行資料驗證和序列化。
 """
 
 from typing import Optional
@@ -11,40 +11,40 @@ from pydantic import BaseModel, Field, ConfigDict
 
 class CodeGenerationRequest(BaseModel):
     """
-    代码生成请求模型
+    程式碼生成請求模型
 
-    包含生成代码所需的所有参数。
+    包含生成程式碼所需的所有引數。
     """
 
-    description: str = Field(..., description="代码生成的要求描述")
+    description: str = Field(..., description="程式碼生成的要求描述")
     """
-    代码生成的要求描述，详细说明需要生成什么样的代码。
+    程式碼生成的要求描述，詳細說明需要生成什麼樣的程式碼。
     """
 
     input_files: Optional[list[str]] = Field(
         default=None,
-        description="输入文件路径列表（可选）",
+        description="輸入檔案路徑列表（可選）",
     )
     """
-    输入文件路径列表，用于提供上下文或参考文件。
-    如果提供，这些文件的内容会被包含在生成提示中。
+    輸入檔案路徑列表，用於提供上下文或參考檔案。
+    如果提供，這些檔案的內容會被包含在生成提示中。
     """
 
     additional_context: Optional[str] = Field(
         default=None,
-        description="额外的上下文信息（可选）",
+        description="額外的上下文資訊（可選）",
     )
     """
-    额外的上下文信息，用于补充描述。
+    額外的上下文資訊，用於補充描述。
     """
 
     save_path: Optional[str] = Field(
         default=None,
-        description="代码保存路径（可选，如果为None则使用默认路径）",
+        description="程式碼儲存路徑（可選，如果為None則使用預設路徑）",
     )
     """
-    代码保存路径。
-    如果未指定此路径，将使用默认路径。
+    程式碼儲存路徑。
+    如果未指定此路徑，將使用預設路徑。
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -52,41 +52,41 @@ class CodeGenerationRequest(BaseModel):
 
 class ExecutionResult(BaseModel):
     """
-    代码执行结果模型
+    程式碼執行結果模型
 
-    包含代码执行的输出、错误信息等。
-    """
-
-    success: bool = Field(..., description="执行是否成功")
-    """
-    执行是否成功。
+    包含程式碼執行的輸出、錯誤資訊等。
     """
 
-    stdout: str = Field(default="", description="标准输出内容")
+    success: bool = Field(..., description="執行是否成功")
     """
-    标准输出内容。
-    """
-
-    stderr: str = Field(default="", description="标准错误输出内容")
-    """
-    标准错误输出内容。
+    執行是否成功。
     """
 
-    return_code: int = Field(default=0, description="返回码")
+    stdout: str = Field(default="", description="標準輸出內容")
     """
-    执行返回码。0通常表示成功，非0表示失败。
+    標準輸出內容。
     """
 
-    execution_time: float = Field(default=0.0, description="执行耗时（秒）")
+    stderr: str = Field(default="", description="標準錯誤輸出內容")
+    """
+    標準錯誤輸出內容。
+    """
+
+    return_code: int = Field(default=0, description="返回碼")
+    """
+    執行返回碼。0通常表示成功，非0表示失敗。
+    """
+
+    execution_time: float = Field(default=0.0, description="執行耗時（秒）")
     artifacts_path: Optional[str] = Field(
-        default=None, description="执行产物保存目录（如有）"
+        default=None, description="執行產物儲存目錄（如有）"
     )
     artifacts: list[str] = Field(
         default_factory=list,
-        description="执行产物列表（相对 artifacts_path 的相对路径，如无则为空）",
+        description="執行產物列表（相對 artifacts_path 的相對路徑，如無則為空）",
     )
     """
-    代码执行耗时，单位为秒。
+    程式碼執行耗時，單位為秒。
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -94,40 +94,40 @@ class ExecutionResult(BaseModel):
 
 class CodeGenerationResponse(BaseModel):
     """
-    代码生成响应模型
+    程式碼生成響應模型
 
-    包含生成的代码、执行结果等信息。
+    包含生成的程式碼、執行結果等資訊。
     """
 
-    generated_code: str = Field(..., description="生成的代码")
+    generated_code: str = Field(..., description="生成的程式碼")
     """
-    大模型生成的代码内容。
+    大模型生成的程式碼內容。
     """
 
     detected_dependencies: list[str] = Field(
         default_factory=list,
-        description="检测到的依赖包列表",
+        description="檢測到的依賴包列表",
     )
     """
-    从生成的代码中检测到的Python依赖包列表。
+    從生成的程式碼中檢測到的Python依賴包列表。
     """
 
     execution_result: Optional[ExecutionResult] = Field(
         default=None,
-        description="代码执行结果（如果执行了）",
+        description="程式碼執行結果（如果執行了）",
     )
     """
-    代码执行结果。
-    如果代码被执行，此字段包含执行输出和错误信息。
+    程式碼執行結果。
+    如果程式碼被執行，此欄位包含執行輸出和錯誤資訊。
     """
 
     saved_path: Optional[str] = Field(
         default=None,
-        description="代码保存路径",
+        description="程式碼儲存路徑",
     )
     """
-    代码保存的文件路径。
-    如果使用默认保存目录且未显式指定save_path，此字段为自动生成的文件路径。
+    程式碼儲存的檔案路徑。
+    如果使用預設儲存目錄且未顯式指定save_path，此欄位為自動生成的檔案路徑。
     """
 
     model_config = ConfigDict(extra="forbid")

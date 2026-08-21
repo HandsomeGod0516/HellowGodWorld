@@ -103,7 +103,7 @@ export function AvatarPermEditor({ channelId, userId }: AvatarPermEditorProps) {
     const ext = scope?.external_directory;
     const extVal = typeof ext === "string" ? ext : (ext as Record<string, string>)?.["*"] || "deny";
     setExtDir(extVal);
-    // 使用传入的 guidance 参数计算 originalJson，避免闭包捕获过期的 denyGuidance
+    // 使用傳入的 guidance 引數計算 originalJson，避免閉包捕獲過期的 denyGuidance
     const guidanceVal = guidance !== undefined ? guidance : denyGuidance;
     setOriginalJson(JSON.stringify({ defaultAction: defAction, tools: fullTools, extDir: extVal, denyGuidance: guidanceVal }));
   }, [denyGuidance]);

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-进阶版日报生成器 - 数据采集模块
+進階版日報生成器 - 資料採集模組
 
 包含：
-- GitCollector: Git 提交记录采集
-- EmailCollector: 邮件统计采集
-- MemoryCollector: 记忆数据采集
-- TodoCollector: 待办事项采集
-- DataAggregator: 数据聚合器
+- GitCollector: Git 提交記錄採集
+- EmailCollector: 郵件統計採集
+- MemoryCollector: 記憶資料採集
+- TodoCollector: 待辦事項採集
+- DataAggregator: 資料聚合器
 """
 
 from .git_collector import GitCollector, GitCommit

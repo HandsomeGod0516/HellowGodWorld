@@ -1,18 +1,18 @@
-命令行界面
+命令列介面
 ========================================
 
-AgentSociety 2 提供了一个强大的命令行界面（CLI）用于运行实验。
+AgentSociety 2 提供了一個強大的命令列介面（CLI）用於執行實驗。
 
 概述
 ------------
 
-CLI 是运行 AgentSociety 2 实验的主要方式。它提供：
+CLI 是執行 AgentSociety 2 實驗的主要方式。它提供：
 
-* 实验配置加载和验证
-* 步骤化执行跟踪
-* 进度持久化（pid.json）
-* 灵活的日志配置
-* 后台运行支持
+* 實驗配置載入和驗證
+* 步驟化執行跟蹤
+* 進度持久化（pid.json）
+* 靈活的日誌配置
+* 後臺執行支援
 
 基本用法
 ------------
@@ -21,45 +21,45 @@ CLI 是运行 AgentSociety 2 实验的主要方式。它提供：
 
    python -m agentsociety2.society.cli [OPTIONS]
 
-必需参数
+必需引數
 ~~~~~~~~~~~~~~~~
 
 .. list-table::
    :header-rows: 1
 
-   * - 参数
-     - 说明
+   * - 引數
+     - 說明
    * - ``--config`` <PATH>
-     - 初始化配置文件路径（init_config.json）
+     - 初始化配置檔案路徑（init_config.json）
    * - ``--steps`` <PATH>
-     - 步骤配置文件路径（steps.yaml）
+     - 步驟配置檔案路徑（steps.yaml）
 
-可选参数
+可選引數
 ~~~~~~~~~~~~~~~~
 
 .. list-table::
    :header-rows: 1
 
-   * - 参数
-     - 默认值
-     - 说明
+   * - 引數
+     - 預設值
+     - 說明
    * - ``--run-dir`` <PATH>
-     - 当前目录
-     - 运行输出目录路径
+     - 當前目錄
+     - 執行輸出目錄路徑
    * - ``--experiment-id`` <TEXT>
-     - 无
-     - 实验标识符
+     - 無
+     - 實驗識別符號
    * - ``--log-level``
      - INFO
-     - 日志级别：DEBUG, INFO, WARNING, ERROR, CRITICAL
+     - 日誌級別：DEBUG, INFO, WARNING, ERROR, CRITICAL
    * - ``--log-file`` <PATH>
-     - 无
-     - 日志文件路径（**后台运行必需**）
+     - 無
+     - 日誌檔案路徑（**後臺執行必需**）
 
-运行实验
+執行實驗
 ------------
 
-前台运行（调试模式）
+前臺執行（除錯模式）
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
@@ -70,12 +70,12 @@ CLI 是运行 AgentSociety 2 实验的主要方式。它提供：
        --run-dir hypothesis_1/experiment_1/run \
        --log-level DEBUG
 
-日志输出到控制台。
+日誌輸出到控制檯。
 
-后台运行（生产模式）
+後臺執行（生產模式）
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**重要**: 后台运行时必须指定 ``--log-file`` 以捕获日志。
+**重要**: 後臺執行時必須指定 ``--log-file`` 以捕獲日誌。
 
 .. code-block:: bash
 
@@ -87,35 +87,35 @@ CLI 是运行 AgentSociety 2 实验的主要方式。它提供：
        --log-level INFO \
        --log-file hypothesis_1/experiment_1/run/output.log &
 
-检查实验状态
+檢查實驗狀態
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
-   # 检查 pid.json 查看运行状态
+   # 檢查 pid.json 檢視執行狀態
    cat hypothesis_1/experiment_1/run/pid.json
 
-   # 查看日志
+   # 檢視日誌
    tail -f hypothesis_1/experiment_1/run/output.log
 
-停止实验
+停止實驗
 ~~~~~~~~~~~~~
 
 .. code-block:: bash
 
-   # 查找进程 ID
+   # 查詢程序 ID
    pid=$(jq -r '.pid' hypothesis_1/experiment_1/run/pid.json)
 
-   # 发送 SIGTERM 信号
+   # 傳送 SIGTERM 訊號
    kill $pid
 
-配置文件
+配置檔案
 ------------
 
 init_config.json
 ~~~~~~~~~~~~~~~~~~~~
 
-初始化配置文件定义实验的基本设置：
+初始化配置檔案定義實驗的基本設定：
 
 .. code-block:: json
 
@@ -144,7 +144,7 @@ init_config.json
 steps.yaml
 ~~~~~~~~~~~~~
 
-步骤配置文件定义实验的执行步骤：
+步驟配置檔案定義實驗的執行步驟：
 
 .. code-block:: yaml
 
@@ -160,33 +160,33 @@ steps.yaml
        content: "Make everyone feel better"
        save_artifact: true
 
-步骤类型
+步驟型別
 ~~~~~~~~~~~~~
 
 .. list-table::
    :header-rows: 1
 
-   * - 类型
-     - 说明
+   * - 型別
+     - 說明
    * - ``ask``
-     - 只读查询，不修改环境
+     - 只讀查詢，不修改環境
    * - ``intervene``
-     - 读写操作，可以修改环境
+     - 讀寫操作，可以修改環境
    * - ``step``
-     - 执行一个模拟步骤（指定 tick 时长）
+     - 執行一個模擬步驟（指定 tick 時長）
 
-输出文件
+輸出檔案
 ------------
 
-运行实验后，``run-dir`` 目录将包含：
+執行實驗後，``run-dir`` 目錄將包含：
 
 .. code-block:: text
 
    hypothesis_1/experiment_1/run/
-   ├── pid.json              # 进程信息（PID、启动时间、状态）
-   ├── output.log            # 日志文件（如果指定了 --log-file）
-   ├── experiment.db         # SQLite 数据库
-   └── artifacts/            # 步骤产物（如果启用了 save_artifact）
+   ├── pid.json              # 程序資訊（PID、啟動時間、狀態）
+   ├── output.log            # 日誌檔案（如果指定了 --log-file）
+   ├── experiment.db         # SQLite 資料庫
+   └── artifacts/            # 步驟產物（如果啟用了 save_artifact）
        ├── step_1_ask.json
        ├── step_2_intervene.json
        └── ...
@@ -206,55 +206,55 @@ pid.json 格式
        }
    }
 
-遥测配置
+遙測配置
 ------------
 
-AgentSociety 2 自动禁用所有遥测服务以防止外部连接：
+AgentSociety 2 自動禁用所有遙測服務以防止外部連線：
 
-* ``MEM0_TELEMETRY=False`` - 禁用 mem0 遥测
-* ``ANONYMIZED_TELEMETRY=False`` - 禁用 ChromaDB/Posthog 遥测
+* ``MEM0_TELEMETRY=False`` - 禁用 mem0 遙測
+* ``ANONYMIZED_TELEMETRY=False`` - 禁用 ChromaDB/Posthog 遙測
 
-这些设置在 CLI 启动时强制执行，无需手动配置。
+這些設定在 CLI 啟動時強制執行，無需手動配置。
 
-日志级别
+日誌級別
 ------------
 
-可选的日志级别：
+可選的日誌級別：
 
 .. list-table::
    :header-rows: 1
    :widths: 20 80
 
-   * - 级别
+   * - 級別
      - 用途
    * - ``DEBUG``
-     - 详细的调试信息，包括 LLM 调用
+     - 詳細的除錯資訊，包括 LLM 呼叫
    * - ``INFO``
-     - 常规运行信息（默认）
+     - 常規執行資訊（預設）
    * - ``WARNING``
-     - 警告信息
+     - 警告資訊
    * - ``ERROR``
-     - 错误信息
+     - 錯誤資訊
    * - ``CRITICAL``
-     - 严重错误
+     - 嚴重錯誤
 
 示例：完整工作流
 ------------------------
 
 .. code-block:: bash
 
-   # 1. 准备配置文件
+   # 1. 準備配置檔案
    mkdir -p my_experiment/init my_experiment/run
-   # ... 创建 init_config.json 和 steps.yaml ...
+   # ... 建立 init_config.json 和 steps.yaml ...
 
-   # 2. 前台测试运行
+   # 2. 前臺測試執行
    python -m agentsociety2.society.cli \
        --config my_experiment/init/init_config.json \
        --steps my_experiment/init/steps.yaml \
        --run-dir my_experiment/run \
        --log-level DEBUG
 
-   # 3. 后台生产运行
+   # 3. 後臺生產執行
    python -m agentsociety2.society.cli \
        --config my_experiment/init/init_config.json \
        --steps my_experiment/init/steps.yaml \
@@ -263,8 +263,8 @@ AgentSociety 2 自动禁用所有遥测服务以防止外部连接：
        --log-level INFO \
        --log-file my_experiment/run/output.log &
 
-   # 4. 监控运行
+   # 4. 監控執行
    tail -f my_experiment/run/output.log
 
-   # 5. 完成后分析结果
+   # 5. 完成後分析結果
    sqlite3 my_experiment/run/sqlite.db "SELECT dataset_id, table_name FROM replay_dataset_catalog;"

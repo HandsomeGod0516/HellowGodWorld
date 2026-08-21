@@ -1,17 +1,17 @@
-快速入门
+快速入門
 ===========
 
-本指南将帮助您快速上手 AgentSociety 2。
+本指南將幫助您快速上手 AgentSociety 2。
 
-前置条件
+前置條件
 ----------------
 
-在运行示例前，请先配置 LLM 环境变量（见 :doc:`installation`），或在项目目录中准备好 ``.env`` 并在入口处尽早加载。
+在執行示例前，請先配置 LLM 環境變數（見 :doc:`installation`），或在專案目錄中準備好 ``.env`` 並在入口處儘早載入。
 
-您的第一个智能体
+您的第一個智慧體
 ----------------
 
-让我们使用 **AgentSociety** 创建一个简单的智能体并与它交互：
+讓我們使用 **AgentSociety** 建立一個簡單的智慧體並與它互動：
 
 .. code-block:: python
 
@@ -62,17 +62,17 @@
    if __name__ == "__main__":
        asyncio.run(main())
 
-运行此代码将产生类似以下输出：
+執行此程式碼將產生類似以下輸出：
 
 .. code-block:: text
 
    Agent: I really love hiking! Being in nature, exploring new trails, and enjoying beautiful scenery brings a sense of peace.
    It's a great way to relax and stay energized.
 
-创建自定义环境
+建立自定義環境
 --------------
 
-环境模块允许智能体与特定功能进行交互：
+環境模組允許智慧體與特定功能進行互動：
 
 .. code-block:: python
 
@@ -109,12 +109,12 @@
 
    await society.close()
 
-使用 CLI 运行实验
+使用 CLI 執行實驗
 ------------------
 
-AgentSociety 2 提供了一个强大的 CLI 用于运行实验。
+AgentSociety 2 提供了一個強大的 CLI 用於執行實驗。
 
-**前台运行（调试）:**
+**前臺執行（除錯）:**
 
 .. code-block:: bash
 
@@ -124,7 +124,7 @@ AgentSociety 2 提供了一个强大的 CLI 用于运行实验。
        --run-dir my_experiment/run \
        --log-level DEBUG
 
-**后台运行（生产）:**
+**後臺執行（生產）:**
 
 .. code-block:: bash
 
@@ -135,14 +135,14 @@ AgentSociety 2 提供了一个强大的 CLI 用于运行实验。
        --log-level INFO \
        --log-file my_experiment/run/output.log &
 
-**重要**: 后台运行时必须指定 ``--log-file`` 参数。
+**重要**: 後臺執行時必須指定 ``--log-file`` 引數。
 
-更多详情请参见 :doc:`cli`。
+更多詳情請參見 :doc:`cli`。
 
-运行实验（代码方式）
+執行實驗（程式碼方式）
 --------------------
 
-下面是一个使用 AgentSociety 的多智能体完整实验示例：
+下面是一個使用 AgentSociety 的多智慧體完整實驗示例：
 
 .. code-block:: python
 
@@ -200,48 +200,48 @@ AgentSociety 2 提供了一个强大的 CLI 用于运行实验。
 
 .. note::
 
-   ``ReplayWriter`` 现在只记录环境侧 replay dataset。``PersonAgent`` 的本地状态、
-   thread 和工具日志会落在 ``run/agents/agent_xxxx/`` 目录，而不是 SQLite 的
+   ``ReplayWriter`` 現在只記錄環境側 replay dataset。``PersonAgent`` 的本地狀態、
+   thread 和工具日誌會落在 ``run/agents/agent_xxxx/`` 目錄，而不是 SQLite 的
    ``agent_status`` / ``agent_profile`` 表。
 
 下一步
 ----------
 
-既然您已经掌握了基础知识，可以继续探索：
+既然您已經掌握了基礎知識，可以繼續探索：
 
-* :doc:`agents` - 详细了解智能体
-* :doc:`env_modules` - 创建自定义环境模块
+* :doc:`agents` - 詳細瞭解智慧體
+* :doc:`env_modules` - 建立自定義環境模組
 * :doc:`concepts` - 理解核心概念
-* :doc:`storage` - 了解回放系统
-* :doc:`examples` - 查看更多示例
+* :doc:`storage` - 瞭解回放系統
+* :doc:`examples` - 檢視更多示例
 
-常见模式
+常見模式
 ---------------
 
-只读查询
+只讀查詢
 ~~~~~~~~~~~~~~~~
 
-对于不修改状态的查询，使用 ``society.ask()``：
+對於不修改狀態的查詢，使用 ``society.ask()``：
 
 .. code-block:: python
 
    # society.ask() ensures read-only access
    response = await society.ask("What agents are in the simulation?")
 
-进行修改
+進行修改
 ~~~~~~~~~~~~~~
 
-对于修改环境的操作，使用 ``society.intervene()``：
+對於修改環境的操作，使用 ``society.intervene()``：
 
 .. code-block:: python
 
    # society.intervene() allows environment modifications
    result = await society.intervene("Make everyone feel better")
 
-查询特定智能体
+查詢特定智慧體
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-向特定智能体提问：
+向特定智慧體提問：
 
 .. code-block:: python
 

@@ -1,11 +1,11 @@
 /**
- * InlineQuestionCard 组件
+ * InlineQuestionCard 元件
  *
- * 在聊天流内以内联卡片形式展示用户审批请求（接收/拒绝），
- * 替代全屏大弹窗（UserQuestionModal）。
+ * 在聊天流內以內聯卡片形式展示使用者審批請求（接收/拒絕），
+ * 替代全屏大彈窗（UserQuestionModal）。
  *
- * 单问题模式：点击选项后立即提交。
- * 多问题模式（批量审批）：逐条选择后统一提交，并提供"全部接收"快捷操作。
+ * 單問題模式：點選選項後立即提交。
+ * 多問題模式（批次審批）：逐條選擇後統一提交，並提供"全部接收"快捷操作。
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -111,7 +111,7 @@ export function InlineQuestionCard({ onSubmit }: InlineQuestionCardProps) {
           backgroundColor: 'var(--card)',
         }}
       >
-        {/* 标题行 */}
+        {/* 標題行 */}
         <div
           className="px-4 py-2.5 flex items-center justify-between"
           style={{
@@ -180,7 +180,7 @@ export function InlineQuestionCard({ onSubmit }: InlineQuestionCardProps) {
           )}
         </div>
 
-        {/* 问题列表 */}
+        {/* 問題列表 */}
         <div
           className="overflow-y-auto"
           style={{ maxHeight: '60vh' }}
@@ -197,7 +197,7 @@ export function InlineQuestionCard({ onSubmit }: InlineQuestionCardProps) {
                     : undefined
                 }
               >
-                {/* 问题正文 */}
+                {/* 問題正文 */}
                 <div
                   className="px-4 pt-3 pb-2 text-sm prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-sm prose-ul:my-1 prose-li:my-0 prose-li:pl-1"
                   style={{ color: 'var(--text)' }}
@@ -207,16 +207,16 @@ export function InlineQuestionCard({ onSubmit }: InlineQuestionCardProps) {
                   </ReactMarkdown>
                 </div>
 
-                {/* 选项按钮 */}
+                {/* 選項按鈕 */}
                 <div className="px-4 pb-3 flex flex-col gap-2">
                   {question.options.map((option) => {
                     const isAccept = option.label === t('chatUi.inlineQuestion.accept')
                       || option.label === t('chatUi.inlineQuestion.allowOnce')
-                      || option.label === '本次允许';
+                      || option.label === '本次允許';
                     const isAlwaysAllow = option.label === t('chatUi.inlineQuestion.alwaysAllow')
-                      || option.label === '总是允许';
+                      || option.label === '總是允許';
                     const isReject = option.label === t('chatUi.inlineQuestion.reject')
-                      || option.label === '拒绝';
+                      || option.label === '拒絕';
                     const isSelected = selectedLabel === option.label;
 
                     return (
@@ -289,7 +289,7 @@ export function InlineQuestionCard({ onSubmit }: InlineQuestionCardProps) {
           })}
         </div>
 
-        {/* 批量模式底部操作栏 */}
+        {/* 批次模式底部操作欄 */}
         {isBatch && !submitted && (
           <div
             className="px-4 py-3 flex items-center justify-between"

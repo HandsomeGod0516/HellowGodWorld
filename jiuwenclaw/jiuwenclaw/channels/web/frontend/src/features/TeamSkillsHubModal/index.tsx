@@ -1,11 +1,11 @@
 /**
- * Team Skills Hub（teamskillshub）在线检索弹窗：从 Hub 检索并安装技能。
+ * Team Skills Hub（teamskillshub）線上檢索彈窗：從 Hub 檢索並安裝技能。
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { webRequest } from "../../services/webClient";
 
-/** 与后端 TEAM_SKILLS_HUB_BASE_URL 默认值一致（info 请求失败时的回退） */
+/** 與後端 TEAM_SKILLS_HUB_BASE_URL 預設值一致（info 請求失敗時的回退） */
 const DEFAULT_TEAMSKILLS_HUB_BASE_URL = "https://teamskills.openjiuwen.com";
 
 type LoadState = "idle" | "loading" | "success" | "error";
@@ -92,7 +92,7 @@ export function TeamSkillsHubModal({
         const url = data.market_base_url?.trim();
         if (!cancelled && data.success && url) {
           try {
-            // 确保为合法绝对 URL（与服务端配置的基地址一致）
+            // 確保為合法絕對 URL（與服務端配置的基地址一致）
             setHubBaseUrl(new URL(url).href.replace(/\/$/, ""));
           } catch {
             setHubBaseUrl(url.replace(/\/$/, ""));

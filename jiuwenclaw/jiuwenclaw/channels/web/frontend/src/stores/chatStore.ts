@@ -1,5 +1,5 @@
 /**
- * 聊天状态管理
+ * 聊天狀態管理
  */
 
 import { create } from 'zustand';
@@ -30,7 +30,7 @@ function resolveExecutionStatus(result: ToolResult): ToolExecutionStatus {
 }
 
 /**
- * 子任务状态
+ * 子任務狀態
  */
 export interface SubtaskState {
   task_id: string;
@@ -53,16 +53,16 @@ interface TaskItem {
 interface ChatState {
   messages: Message[];
   isProcessing: boolean;
-  isThinking: boolean;  // 思考中状态（显示闪烁动画）
+  isThinking: boolean;  // 思考中狀態（顯示閃爍動畫）
   evolutionStatus: EvolutionStatusPayload | null;
-  isPaused: boolean;    // 任务是否暂停
-  pausedTask: string | null;  // 暂停的任务描述
-  interruptResult: InterruptResultPayload | null;  // 最近的中断结果
-  switchingMode: boolean;  // 是否正在切换模式
+  isPaused: boolean;    // 任務是否暫停
+  pausedTask: string | null;  // 暫停的任務描述
+  interruptResult: InterruptResultPayload | null;  // 最近的中斷結果
+  switchingMode: boolean;  // 是否正在切換模式
   currentStreamContent: string;
   currentStreamId: string | null;
   streamBuffers: Map<string, string>;
-  activeSubtasks: Map<string, SubtaskState>;  // 活跃的子任务
+  activeSubtasks: Map<string, SubtaskState>;  // 活躍的子任務
   toolExecutions: Map<string, ToolExecution>;
   toolExecutionOrder: string[];
   orphanResults: Map<string, ToolResult>;
@@ -70,11 +70,11 @@ interface ChatState {
     toolCallDedupDropped: number;
     toolResultDedupDropped: number;
   };
-  // 任务队列
+  // 任務佇列
   taskQueue: TaskItem[];
-  // 用户问题相关
-  pendingQuestion: AskUserQuestionPayload | null;  // 待回答的问题
-  // 输入框内容
+  // 使用者問題相關
+  pendingQuestion: AskUserQuestionPayload | null;  // 待回答的問題
+  // 輸入框內容
   inputValue: string;
 
   // Actions
@@ -95,15 +95,15 @@ interface ChatState {
   updateSubtask: (payload: SubtaskUpdatePayload) => void;
   clearSubtasks: () => void;
   clearMessages: () => void;
-  /** 在列表头部插入更早的历史消息（数组内建议时间升序） */
+  /** 在列表頭部插入更早的歷史訊息（陣列內建議時間升序） */
   prependMessages: (olderFirst: Message[]) => void;
-  // 任务队列相关
+  // 任務佇列相關
   addToTaskQueue: (content: string) => void;
   clearTaskQueue: () => void;
   removeFromTaskQueue: (id: string) => void;
-  // 用户问题相关
+  // 使用者問題相關
   setPendingQuestion: (question: AskUserQuestionPayload | null) => void;
-  // 输入框相关
+  // 輸入框相關
   setInputValue: (value: string) => void;
   // Usage summary
   setUsageSummary: (messageId: string, usage: UsageSummary) => void;
@@ -220,11 +220,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setInterruptResult: (result) => {
     set({ interruptResult: result });
-    // 3 秒后自动清除中断结果提示
+    // 3 秒後自動清除中斷結果提示
     if (result) {
       setTimeout(() => {
         set((state) => {
-          // 只有当前结果没有变化时才清除
+          // 只有當前結果沒有變化時才清除
           if (state.interruptResult === result) {
             return { interruptResult: null };
           }
@@ -235,7 +235,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setSwitchingMode: (switching) => {
-    // 切换模式时，同时重置所有相关状态
+    // 切換模式時，同時重置所有相關狀態
     if (switching) {
       set({ 
         switchingMode: true,
@@ -446,10 +446,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const newSubtasks = new Map(state.activeSubtasks);
       
       if (payload.status === 'completed' || payload.status === 'error') {
-        // 任务完成或出错，从活跃列表中移除
+        // 任務完成或出錯，從活躍列表中移除
         newSubtasks.delete(payload.task_id);
       } else {
-        // 更新或添加子任务状态
+        // 更新或新增子任務狀態
         newSubtasks.set(payload.task_id, {
           task_id: payload.task_id,
           description: payload.description,
@@ -466,11 +466,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return { activeSubtasks: newSubtasks };
     });
 
-    // 同时更新 todoStore 中对应任务的 activeForm（如果能匹配）
+    // 同時更新 todoStore 中對應任務的 activeForm（如果能匹配）
     const todoState = useTodoStore.getState();
     const { todos, setTodos } = todoState;
     
-    // 尝试匹配子任务描述和 todo 内容
+    // 嘗試匹配子任務描述和 todo 內容
     const matchingTodo = todos.find(
       (todo) =>
         todo.status === 'in_progress' &&
@@ -483,7 +483,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       if (payload.status === 'starting') {
         activeForm = `正在${payload.description}...`;
       } else if (payload.status === 'tool_call') {
-        activeForm = `正在调用 ${payload.tool_name}...`;
+        activeForm = `正在呼叫 ${payload.tool_name}...`;
       } else if (payload.status === 'completed') {
         activeForm = '';  // 清除
       }

@@ -21,7 +21,7 @@
   ],
   "status": "learning",
   "emotion": "focused",
-  "speech": "我先把今天该学的内容跟上。",
+  "speech": "我先把今天該學的內容跟上。",
   "memory_template": "Used class.learn: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

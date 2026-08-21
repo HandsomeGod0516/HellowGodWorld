@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['cafe', 'park']
 TARGET_INTERACTIONS = ['casual_meetup', 'meet_friend']
 STATUS = 'matching_people'
 EMOTION = 'warm'
-SPEECH = '我想把合适的人介绍到一起聊聊。'
+SPEECH = '我想把合適的人介紹到一起聊聊。'
 MEMORY_TEMPLATE = 'Used social.matchmake: {summary} at {location_id}.'
 
 

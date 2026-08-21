@@ -193,7 +193,7 @@ async def _connect_with_retry(
 
 @dataclass
 class RouteConfig:
-    """单条路由的配置（/acp, /cli 等）。"""
+    """單條路由的配置（/acp, /cli 等）。"""
 
     path: str
     channel_id: str
@@ -227,8 +227,8 @@ class GatewayServerConfig:
 class GatewayServer:
     """通用多路路由 WebSocket Gateway Server。
 
-    支持多个路径（如 /acp、/cli），每条路径可以有独立的 channel_id 和本地 handler。
-    本地 handler 优先处理请求，未处理或无匹配则 forward 到 MessageHandler。
+    支援多個路徑（如 /acp、/cli），每條路徑可以有獨立的 channel_id 和本地 handler。
+    本地 handler 優先處理請求，未處理或無匹配則 forward 到 MessageHandler。
     """
 
     def __init__(self, config: GatewayServerConfig, router) -> None:
@@ -283,7 +283,7 @@ class GatewayServer:
             route.cleanup_handler = route.cleanup_handler or self._acp_bridge.cleanup
 
     def _resolve_route(self, request_path: str) -> tuple[RouteConfig | None, str]:
-        """按精确路径匹配路由；支持常见变体（如尾部斜杠）以避免客户端握手失败。"""
+        """按精確路徑匹配路由；支援常見變體（如尾部斜槓）以避免客戶端握手失敗。"""
         routes = self.config.routes
         p = (request_path or "").strip()
         if not p:
@@ -297,13 +297,13 @@ class GatewayServer:
         return None, p
 
     async def wait_until_closed(self) -> None:
-        """阻塞至底层 WebSocket 服务完全关闭（与 :meth:`start` 配对供主循环持有任务）。"""
+        """阻塞至底層 WebSocket 服務完全關閉（與 :meth:`start` 配對供主迴圈持有任務）。"""
         if self._server is None:
             return
         await self._server.wait_closed()
 
     def register_local_handler(self, path: str, method: str, handler: Callable[..., Awaitable[None]]) -> None:
-        """为指定路径注册本地方法 handler。"""
+        """為指定路徑註冊本地方法 handler。"""
         route = self.config.routes.get(path)
         if route is None:
             route = RouteConfig(path=path, channel_id=path.strip("/"))
@@ -320,7 +320,7 @@ class GatewayServer:
             error: str | None = None,
             code: str | None = None,
     ) -> None:
-        """向指定客户端发送 res 帧（供本地 handler 使用）。"""
+        """向指定客戶端傳送 res 幀（供本地 handler 使用）。"""
         frame: dict[str, Any] = {
             "type": "res",
             "id": req_id,
@@ -342,7 +342,7 @@ class GatewayServer:
             event: str,
             payload: dict[str, Any],
     ) -> None:
-        """向指定客户端发送 event 帧（供本地 handler 使用）。"""
+        """向指定客戶端傳送 event 幀（供本地 handler 使用）。"""
         frame: dict[str, Any] = {"type": "event", "event": event, "payload": payload}
         try:
             await ws.send(json.dumps(frame, ensure_ascii=False))
@@ -411,7 +411,7 @@ class GatewayServer:
             if handled:
                 return
 
-        # 让 route 的 outbound_interceptor 有机会拦截
+        # 讓 route 的 outbound_interceptor 有機會攔截
         for route in self.config.routes.values():
             if route.channel_id == msg.channel_id and route.outbound_interceptor is not None:
                 try:
@@ -534,7 +534,7 @@ class GatewayServer:
         if route.channel_id == "acp" and self._acp_bridge.is_jsonrpc_request(data):
             return
 
-        # route 级别的原始帧拦截（如 ACP JSON-RPC response）
+        # route 級別的原始幀攔截（如 ACP JSON-RPC response）
         if route.inbound_interceptor is not None:
             try:
                 handled = route.inbound_interceptor(ws, data)
@@ -572,7 +572,7 @@ class GatewayServer:
 
         session_id = str(params.get("session_id") or "").strip() or req_id
 
-        # 1. forward 优先：方法在 forward_methods 中则转发到 MessageHandler
+        # 1. forward 優先：方法在 forward_methods 中則轉發到 MessageHandler
         if method in route.forward_methods:
             req_method = None
             for item in ReqMethod:
@@ -599,11 +599,11 @@ class GatewayServer:
             default_mode = Mode.CODE_NORMAL if route.channel_id == "tui" else Mode.AGENT_PLAN
             mode = Mode.from_raw(params.get("mode"), default=default_mode)
 
-            # 确保 mode 被设置到 params 中，以便后续转发到 AgentServer
+            # 確保 mode 被設定到 params 中，以便後續轉發到 AgentServer
             params = dict(params)
             params.setdefault("mode", mode.value)
 
-            # 从 params 中提取 cwd，注入到 metadata 中以便 message_handler 解析 @file 引用
+            # 從 params 中提取 cwd，注入到 metadata 中以便 message_handler 解析 @file 引用
             metadata = {"method": method}
             cwd = params.get("cwd")
             if cwd and isinstance(cwd, str) and cwd.strip():
@@ -637,7 +637,7 @@ class GatewayServer:
             if method in route.forward_no_local_handler_methods:
                 return
 
-        # 2. 本地 handler：发 ack 或纯本地处理
+        # 2. 本地 handler：發 ack 或純本地處理
         local_handler = route.local_handlers.get(method)
         if local_handler is not None:
             try:
@@ -662,7 +662,7 @@ class GatewayServer:
                     )
             return
 
-        # 3. 无 forward 也无本地 handler
+        # 3. 無 forward 也無本地 handler
         await ws.send(
             json.dumps(
                 {"type": "res", "id": req_id, "ok": False, "error": f"unknown method: {method}"},
@@ -789,7 +789,7 @@ async def _run(
     message_handler = MessageHandler(client)
     await message_handler.start_forwarding()
 
-    # IM Pipeline 初始化（数字分身）
+    # IM Pipeline 初始化（數字分身）
     from jiuwenclaw.gateway.im_pipeline.im_inbound import IMInboundPipeline
     from jiuwenclaw.gateway.im_pipeline.im_outbound import IMOutboundPipeline
     im_inbound = IMInboundPipeline()
@@ -1187,7 +1187,7 @@ async def _run(
                         enable_memory=bool(feishu_conf.get("enable_memory", False)),
                         message_merge_window_ms=int(feishu_conf.get("message_merge_window_ms", 15000)),
                     )
-                    # 数字分身：创建 adapter 并注册到 pipeline
+                    # 數字分身：建立 adapter 並註冊到 pipeline
                     feishu_adapter = None
                     if feishu_config.group_digital_avatar:
                         from jiuwenclaw.gateway.channel_manager.im_platforms.feishu.feishu_im_adapter import \
@@ -1476,7 +1476,7 @@ async def _run(
                         bot_name=str(wecom_conf.get("bot_name") or "").strip(),
                         enable_memory=bool(wecom_conf.get("enable_memory", False)),
                     )
-                    # 数字分身：创建 adapter 并注册到 pipeline
+                    # 數字分身：建立 adapter 並註冊到 pipeline
                     wecom_adapter = None
                     if wecom_config.group_digital_avatar:
                         from jiuwenclaw.gateway.channel_manager.im_platforms.wecom.wecom_im_adapter import \
@@ -1533,7 +1533,7 @@ async def _run(
 
     await channel_manager.start_dispatch()
     await cron_scheduler.start()
-    # 先同步完成监听绑定，避免 IDE/ACP 子进程在端口尚未就绪时连接导致多次重试。
+    # 先同步完成監聽繫結，避免 IDE/ACP 子程序在埠尚未就緒時連線導致多次重試。
     await gateway_server.start()
     gateway_server_task = asyncio.create_task(
         gateway_server.wait_until_closed(),

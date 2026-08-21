@@ -1,11 +1,11 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""JiuWenClaw Facade - 统一入口与 SDK 适配层.
+"""JiuWenClaw Facade - 統一入口與 SDK 適配層.
 
-此模块提供：
-- 统一的 JiuWenClaw 公开 API
-- SDK 工厂路由（通过环境变量选择）
-- 公共编排逻辑（session 队列、Skills 路由、heartbeat、流式包装）
+此模組提供：
+- 統一的 JiuWenClaw 公開 API
+- SDK 工廠路由（透過環境變數選擇）
+- 公共編排邏輯（session 佇列、Skills 路由、heartbeat、流式包裝）
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ reset_free_search_runtime_flags()
 
 logger = logging.getLogger(__name__)
 
-# SkillDev 请求方法集合（统一委托给 SkillDevService）
+# SkillDev 請求方法集合（統一委託給 SkillDevService）
 _SKILLDEV_METHODS: frozenset[ReqMethod] = frozenset(
     m for m in ReqMethod if m.value.startswith("skilldev.")
 )
@@ -121,9 +121,9 @@ def build_user_prompt(content: str, files: dict, channel: str, language: str, *,
         content = new_content
 
     if language == "zh":
-        prompt = "你收到一条消息：\n"
+        prompt = "你收到一條訊息：\n"
         if channel == "cron":
-            prompt = "你收到一条消息，你的最终回复将直接发送给用户，请输出用户期望看到的内容，而非操作确认：\n"
+            prompt = "你收到一條訊息，你的最終回覆將直接傳送給使用者，請輸出使用者期望看到的內容，而非操作確認：\n"
     else:
         prompt = "You receive a new message:\n"
         if channel == "cron":
@@ -150,7 +150,7 @@ def build_user_prompt(content: str, files: dict, channel: str, language: str, *,
     final_prompt = interaction_prefix + prompt + json.dumps(msg_data, ensure_ascii=False)
     if interaction_prefix:
         logger.info(
-            "[build_user_prompt][DEBUG] interaction_context 存在，最终 prompt=\n%s",
+            "[build_user_prompt][DEBUG] interaction_context 存在，最終 prompt=\n%s",
             final_prompt,
         )
 
@@ -175,12 +175,12 @@ def build_user_prompt(content: str, files: dict, channel: str, language: str, *,
 
 
 class JiuWenClaw:
-    """JiuWenClaw 统一门面.
+    """JiuWenClaw 統一門面.
 
     提供：
-    - SDK 工厂路由
-    - 统一对外 API（create_instance, reload_agent_config, process_message, process_message_stream）
-    - 公共编排（session 队列、Skills 路由、heartbeat、流式包装）
+    - SDK 工廠路由
+    - 統一對外 API（create_instance, reload_agent_config, process_message, process_message_stream）
+    - 公共編排（session 佇列、Skills 路由、heartbeat、流式包裝）
     """
 
     def __init__(self) -> None:
@@ -188,14 +188,14 @@ class JiuWenClaw:
         self._sdk_name: str | None = None
         self._skill_manager = SkillManager(workspace_dir=str(get_agent_workspace_dir()))
         self._session_manager = SessionManager()
-        # SkillDev 模式：懒初始化，首次 skilldev.* 请求时构造
+        # SkillDev 模式：懶初始化，首次 skilldev.* 請求時構造
         self._skilldev_service = None
 
     def _get_skilldev_service(self):
-        """懒初始化并返回 SkillDevService 实例.
+        """懶初始化並返回 SkillDevService 例項.
 
-        SkillDevService 是无状态的，单实例即可服务所有请求。
-        首次调用时从当前 JiuWenClaw 配置中提取最小依赖并构造。
+        SkillDevService 是無狀態的，單例項即可服務所有請求。
+        首次呼叫時從當前 JiuWenClaw 配置中提取最小依賴並構造。
         """
         if self._skilldev_service is not None:
             return self._skilldev_service
@@ -216,7 +216,7 @@ class JiuWenClaw:
         deps = SkillDevDeps(
             model_name=default_model.get("model_name", ""),
             model_client_config=default_model.get("model_client_config", {}),
-            mcp_tools_factory=get_mcp_tools,  # 直接复用已加载的 MCP 工具工厂
+            mcp_tools_factory=get_mcp_tools,  # 直接複用已載入的 MCP 工具工廠
             sysop_config=None,
             state_store=state_store,
             workspace_provider=workspace_provider,
@@ -226,7 +226,7 @@ class JiuWenClaw:
         return self._skilldev_service
 
     def _ensure_adapter(self, *, mode: str = "agent") -> AgentAdapter:
-        """确保 adapter 已初始化，如果未初始化则根据环境变量和 mode 创建."""
+        """確保 adapter 已初始化，如果未初始化則根據環境變數和 mode 建立."""
         if self._adapter is None:
             self._sdk_name = resolve_sdk_choice()
             self._adapter = create_adapter(self._sdk_name, mode=mode)
@@ -240,11 +240,11 @@ class JiuWenClaw:
 
     async def create_instance(self, config: dict[str, Any] | None = None, *,
                               mode: str = "agent", sub_mode: str = None) -> None:
-        """初始化 Agent 实例.
+        """初始化 Agent 例項.
 
         Args:
-            config: 可选配置，透传给底层 adapter.
-            mode: 实例化模式，"claw"（默认）或 "code"，透传给底层 adapter.
+            config: 可選配置，透傳給底層 adapter.
+            mode: 例項化模式，"claw"（預設）或 "code"，透傳給底層 adapter.
             sub_mode: 子模式
         """
         adapter = self._ensure_adapter(mode=mode)
@@ -256,18 +256,18 @@ class JiuWenClaw:
             config_base: dict[str, Any] | None = None,
             env_overrides: dict[str, Any] | None = None,
     ) -> None:
-        """从配置重新加载.
+        """從配置重新載入.
 
         Args:
-            config_base: 可选的完整配置快照；传入时优先使用它而不是读取本地 config.yaml。
-            env_overrides: 可选的环境变量增量；仅覆盖请求中出现的 key。
+            config_base: 可選的完整配置快照；傳入時優先使用它而不是讀取本地 config.yaml。
+            env_overrides: 可選的環境變數增量；僅覆蓋請求中出現的 key。
         """
         adapter = self._ensure_adapter()
         await adapter.reload_agent_config(config_base, env_overrides)
         logger.info("[JiuWenClaw] Agent config reloaded: sdk=%s", self._sdk_name)
 
     def _build_inputs(self, request: AgentRequest) -> Tuple[dict[str, Any], str, str]:
-        """构建 adapter 所需的 inputs 字典."""
+        """構建 adapter 所需的 inputs 字典."""
         from openjiuwen.core.session.interaction.interactive_input import InteractiveInput
 
         config_base = get_config()
@@ -322,11 +322,11 @@ class JiuWenClaw:
             "language": language,
         }
 
-        # 传递 enable_memory 参数
+        # 傳遞 enable_memory 引數
         enable_memory = request.metadata.get("enable_memory", True) if request.metadata else True
         inputs["enable_memory"] = enable_memory
 
-        # 传递 trusted_dirs 参数（用于 RuntimePromptRail 添加路径限制策略）
+        # 傳遞 trusted_dirs 引數（用於 RuntimePromptRail 新增路徑限制策略）
         if trusted_dirs:
             inputs["trusted_dirs"] = trusted_dirs
 
@@ -334,23 +334,23 @@ class JiuWenClaw:
         if run:
             inputs["run"] = run
 
-        # 返回原始 query（未经 build_user_prompt 包装）
-        # Team 模式需要使用原始 query，而不是 JSON 包装后的 prompt
+        # 返回原始 query（未經 build_user_prompt 包裝）
+        # Team 模式需要使用原始 query，而不是 JSON 包裝後的 prompt
         return inputs, memory_mode, query
 
     @staticmethod
     def _build_interactive_input_from_answers(
             request_id: str, answers: list[dict], source: str = ""
     ) -> Any:
-        """从用户答案构建 InteractiveInput.
+        """從使用者答案構建 InteractiveInput.
 
         Args:
-            request_id: 工具调用 ID
-            answers: 用户答案列表，每个答案对应一个问题
-            source: 中断来源，用于区分 PermissionRail 和 AskUserRail
+            request_id: 工具呼叫 ID
+            answers: 使用者答案列表，每個答案對應一個問題
+            source: 中斷來源，用於區分 PermissionRail 和 AskUserRail
 
         Returns:
-            InteractiveInput 实例
+            InteractiveInput 例項
         """
         from openjiuwen.core.session.interaction.interactive_input import InteractiveInput
 
@@ -376,19 +376,19 @@ class JiuWenClaw:
         selected_options = answer.get("selected_options", []) if isinstance(answer, dict) else []
         custom_input = answer.get("custom_input", "") if isinstance(answer, dict) else ""
 
-        if "本次允许" in selected_options:
+        if "本次允許" in selected_options:
             confirm_payload = {"approved": True, "auto_confirm": False, "feedback": ""}
-        elif "总是允许" in selected_options:
+        elif "總是允許" in selected_options:
             confirm_payload = {
                 "approved": True,
                 "auto_confirm": True,
                 "persist_allow": True,
                 "feedback": "",
             }
-        elif "拒绝" in selected_options:
-            confirm_payload = {"approved": False, "auto_confirm": False, "feedback": custom_input or "用户拒绝"}
+        elif "拒絕" in selected_options:
+            confirm_payload = {"approved": False, "auto_confirm": False, "feedback": custom_input or "使用者拒絕"}
         else:
-            confirm_payload = {"approved": False, "auto_confirm": False, "feedback": "未知选项"}
+            confirm_payload = {"approved": False, "auto_confirm": False, "feedback": "未知選項"}
 
         interactive_input.update(request_id, confirm_payload)
         logger.info(
@@ -399,7 +399,7 @@ class JiuWenClaw:
         return interactive_input
 
     async def _handle_skilldev_request(self, request: AgentRequest) -> AgentResponse | None:
-        """处理 SkillDev 相关请求，返回 None 表示不是 SkillDev 请求."""
+        """處理 SkillDev 相關請求，返回 None 表示不是 SkillDev 請求."""
         if request.req_method not in _SKILLDEV_METHODS:
             return None
 
@@ -411,7 +411,7 @@ class JiuWenClaw:
             final = chunks[-1] if chunks else None
             payload = final.payload if final else {}
         except Exception as exc:
-            logger.error("[JiuWenClaw] skilldev 请求处理失败: %s", exc)
+            logger.error("[JiuWenClaw] skilldev 請求處理失敗: %s", exc)
             return AgentResponse(
                 request_id=request.request_id,
                 channel_id=request.channel_id,
@@ -428,7 +428,7 @@ class JiuWenClaw:
         )
 
     async def _handle_skills_request(self, request: AgentRequest) -> AgentResponse | None:
-        """处理 Skills 相关请求，返回 None 表示不是 Skills 请求."""
+        """處理 Skills 相關請求，返回 None 表示不是 Skills 請求."""
         if request.req_method not in _SKILL_ROUTES:
             return None
 
@@ -449,7 +449,7 @@ class JiuWenClaw:
             if _reload_after_skills:
                 await self.create_instance()
         except Exception as exc:
-            logger.error("[JiuWenClaw] skills 请求处理失败: %s", exc)
+            logger.error("[JiuWenClaw] skills 請求處理失敗: %s", exc)
             return AgentResponse(
                 request_id=request.request_id,
                 channel_id=request.channel_id,
@@ -466,41 +466,41 @@ class JiuWenClaw:
         )
 
     async def _process_interrupt(self, request: AgentRequest) -> AgentResponse:
-        """处理 interrupt 请求.
+        """處理 interrupt 請求.
 
-        根据 intent 分流：
-        - pause: 暂停 ReAct 循环（不取消任务）
-        - resume: 恢复已暂停的 ReAct 循环
-        - cancel: 取消当前 session 正在运行的任务
-        - supplement: 取消当前任务但保留 todo
+        根據 intent 分流：
+        - pause: 暫停 ReAct 迴圈（不取消任務）
+        - resume: 恢復已暫停的 ReAct 迴圈
+        - cancel: 取消當前 session 正在執行的任務
+        - supplement: 取消當前任務但保留 todo
 
         Args:
             request: AgentRequest，params 中可包含：
-                - intent: 中断意图 ('pause' | 'cancel' | 'resume' | 'supplement')
-                - new_input: 新的用户输入（用于切换任务）
+                - intent: 中斷意圖 ('pause' | 'cancel' | 'resume' | 'supplement')
+                - new_input: 新的使用者輸入（用於切換任務）
 
         Returns:
-            AgentResponse 包含 interrupt_result 事件数据
+            AgentResponse 包含 interrupt_result 事件資料
         """
         intent = request.params.get("intent", "cancel")
         session_id = self._session_manager.get_session_id(request.session_id)
         adapter = self._ensure_adapter()
 
         if intent == "pause":
-            # 暂停：不取消任务，只暂停 ReAct 循环
+            # 暫停：不取消任務，只暫停 ReAct 迴圈
             return await adapter.process_interrupt(request)
 
         if intent == "resume":
-            # 恢复：恢复 ReAct 循环
+            # 恢復：恢復 ReAct 迴圈
             return await adapter.process_interrupt(request)
 
         if intent == "supplement":
-            # 取消当前 session 的任务
+            # 取消當前 session 的任務
             response = await adapter.process_interrupt(request)
             await self._session_manager.cancel_session_task(session_id, "interrupt(supplement): ")
             return response
 
-        # cancel: 仅取消当前 session 的任务，避免误伤其它并发会话
+        # cancel: 僅取消當前 session 的任務，避免誤傷其它併發會話
         await self._session_manager.cancel_session_task(session_id, f"interrupt(intent={intent}): ")
         await self._cancel_team_work_for_session(
             session_id,
@@ -515,7 +515,7 @@ class JiuWenClaw:
         channel_id: str | None = None,
         log_prefix: str = "",
     ) -> bool:
-        """终止当前 session 的 Team runtime（若存在）。"""
+        """終止當前 session 的 Team runtime（若存在）。"""
         from jiuwenclaw.agents.harness.team import get_team_manager
 
         try:
@@ -529,9 +529,9 @@ class JiuWenClaw:
             return False
 
     async def process_message(self, request: AgentRequest) -> AgentResponse:
-        """处理非流式请求.
+        """處理非流式請求.
 
-        支持多 session 并发执行，同 session 内任务按先进后出顺序执行.
+        支援多 session 併發執行，同 session 內任務按先進後出順序執行.
         """
         adapter = self._ensure_adapter()
 
@@ -567,7 +567,7 @@ class JiuWenClaw:
         )
 
         logger.info(
-            "[JiuWenClaw] 处理请求: request_id=%s channel_id=%s session_id=%s sdk=%s",
+            "[JiuWenClaw] 處理請求: request_id=%s channel_id=%s session_id=%s sdk=%s",
             request.request_id, request.channel_id, session_id, self._sdk_name,
         )
 
@@ -624,18 +624,18 @@ class JiuWenClaw:
     async def process_message_stream(
             self, request: AgentRequest
     ) -> AsyncIterator[AgentResponseChunk]:
-        """处理流式请求.
+        """處理流式請求.
 
-        支持多 session 并发执行，同 session 内任务按先进后出顺序执行.
+        支援多 session 併發執行，同 session 內任務按先進後出順序執行.
         """
-        # SkillDev 流式请求：直接委托给 SkillDevService，绕过 ReActAgent
+        # SkillDev 流式請求：直接委託給 SkillDevService，繞過 ReActAgent
         if request.req_method in _SKILLDEV_METHODS:
             service = self._get_skilldev_service()
             try:
                 async for chunk in service.handle(request):
                     yield chunk
             except Exception as exc:
-                logger.error("[JiuWenClaw] skilldev 流式请求处理失败: %s", exc)
+                logger.error("[JiuWenClaw] skilldev 流式請求處理失敗: %s", exc)
                 yield AgentResponseChunk(
                     request_id=request.request_id,
                     channel_id=request.channel_id,
@@ -665,7 +665,7 @@ class JiuWenClaw:
         )
 
         logger.info(
-            "[JiuWenClaw] 处理流式请求: request_id=%s channel_id=%s session_id=%s sdk=%s",
+            "[JiuWenClaw] 處理流式請求: request_id=%s channel_id=%s session_id=%s sdk=%s",
             request.request_id, request.channel_id, session_id, self._sdk_name,
         )
 
@@ -673,7 +673,7 @@ class JiuWenClaw:
         rid = request.request_id
         cid = request.channel_id
 
-        # Team 模式：使用原始 query，而不是 build_user_prompt 包装后的内容
+        # Team 模式：使用原始 query，而不是 build_user_prompt 包裝後的內容
         if is_team_mode:
             inputs["query"] = raw_query
             logger.info(
@@ -695,7 +695,7 @@ class JiuWenClaw:
             memory_block = "\n\n".join(b for b in mem_ctx.memory_blocks if b)
             inputs["memory_block"] = memory_block
 
-        # Team 模式: 检查是否是后续请求（需要绕过 Session Manager）
+        # Team 模式: 檢查是否是後續請求（需要繞過 Session Manager）
         is_team_first_request = True
         if is_team_mode:
             from jiuwenclaw.agents.harness.team import get_team_manager
@@ -716,20 +716,20 @@ class JiuWenClaw:
                 async for chunk in adapter.process_message_stream_impl(request, inputs):
                     await stream_queue.put(("chunk", chunk))
             except asyncio.CancelledError:
-                logger.info("[JiuWenClaw] 流式任务被取消: request_id=%s session_id=%s", rid, session_id)
+                logger.info("[JiuWenClaw] 流式任務被取消: request_id=%s session_id=%s", rid, session_id)
                 await stream_queue.put(("error", asyncio.CancelledError()))
             except Exception as exc:
-                logger.exception("[JiuWenClaw] 流式任务异常: %s", exc)
+                logger.exception("[JiuWenClaw] 流式任務異常: %s", exc)
                 await stream_queue.put(("error", exc))
             finally:
                 stream_done.set()
 
-        # Team 模式: 后续请求直接执行，绕过 Session Manager 队列
-        # 因为 Team 是长期运行的(persistent)，interact 调用不需要等待前一个任务完成
-        # 且 team_helpers 内部已有请求锁保证同一 session 的请求串行执行
+        # Team 模式: 後續請求直接執行，繞過 Session Manager 佇列
+        # 因為 Team 是長期執行的(persistent)，interact 呼叫不需要等待前一個任務完成
+        # 且 team_helpers 內部已有請求鎖保證同一 session 的請求序列執行
         if is_team_mode and not is_team_first_request:
             logger.info(
-                "[JiuWenClaw] Team模式后续请求，直接执行: request_id=%s session_id=%s",
+                "[JiuWenClaw] Team模式後續請求，直接執行: request_id=%s session_id=%s",
                 rid, session_id,
             )
             asyncio.create_task(run_stream_task())
@@ -747,7 +747,7 @@ class JiuWenClaw:
 
                 if event_type == "error":
                     if isinstance(data, asyncio.CancelledError):
-                        logger.info("[JiuWenClaw] 流式处理被中断: request_id=%s", rid)
+                        logger.info("[JiuWenClaw] 流式處理被中斷: request_id=%s", rid)
                         raise data
                     append_history_record(
                         session_id=session_id,
@@ -835,7 +835,7 @@ class JiuWenClaw:
                             is_complete=False,
                         )
         except asyncio.CancelledError:
-            logger.info("[JiuWenClaw] 流式处理被中断: request_id=%s", rid)
+            logger.info("[JiuWenClaw] 流式處理被中斷: request_id=%s", rid)
             raise
 
         # cloud memory: after chat hook
@@ -859,22 +859,22 @@ class JiuWenClaw:
             is_complete=True,
         )
 
-    # ---------- 实例获取 ----------
+    # ---------- 例項獲取 ----------
 
     def get_instance(self):
         return self._adapter._instance
 
     async def compress_context(self, session_id: str, session: Any = None) -> dict[str, Any]:
-        """主动触发上下文压缩。
+        """主動觸發上下文壓縮。
 
         Args:
-            session_id: 会话ID
-            session: Session 对象（可选）
+            session_id: 會話ID
+            session: Session 物件（可選）
 
         Returns:
-            包含压缩结果的字典:
+            包含壓縮結果的字典:
             - result: "busy" | "compressed" | "noop"
-            - stats: 压缩统计信息（仅当 result == "compressed" 时）
+            - stats: 壓縮統計資訊（僅當 result == "compressed" 時）
         """
         adapter = self._adapter
         if adapter is None:
@@ -884,10 +884,10 @@ class JiuWenClaw:
             session=session,
         )
 
-    # ---------- 资源清理 ----------
+    # ---------- 資源清理 ----------
 
     async def cancel_inflight_work(self, log_prefix: str = "[gateway disconnect] ") -> None:
-        """Gateway 与 AgentServer 的 WebSocket 断开时调用：取消 session 流式任务并中止 adapter 内层循环。"""
+        """Gateway 與 AgentServer 的 WebSocket 斷開時呼叫：取消 session 流式任務並中止 adapter 內層迴圈。"""
         await self._session_manager.cancel_all_session_tasks(log_prefix)
         adapter = self._adapter
         if adapter is None:
@@ -901,12 +901,12 @@ class JiuWenClaw:
             logger.exception("[JiuWenClaw] adapter.abort_on_gateway_disconnect failed")
 
     async def cleanup(self) -> None:
-        """清理资源，准备销毁实例.
+        """清理資源，準備銷燬例項.
 
-        每次 initialize 重建 agent 时调用。
-        不清理记忆数据（记忆数据保留在文件系统中）。
+        每次 initialize 重建 agent 時呼叫。
+        不清理記憶資料（記憶資料保留在檔案系統中）。
         """
-        logger.info("[JiuWenClaw] cleanup: 清理资源")
+        logger.info("[JiuWenClaw] cleanup: 清理資源")
 
         if self._adapter is not None:
             try:

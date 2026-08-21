@@ -21,7 +21,7 @@
   ],
   "status": "guiding_crowd",
   "emotion": "steady",
-  "speech": "大家先别急，我来把方向和顺序说清楚。",
+  "speech": "大家先別急，我來把方向和順序說清楚。",
   "memory_template": "Used crowd.guide: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

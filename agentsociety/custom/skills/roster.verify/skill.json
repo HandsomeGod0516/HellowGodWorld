@@ -21,7 +21,7 @@
   ],
   "status": "verifying_roster",
   "emotion": "precise",
-  "speech": "我先核对名单，避免漏掉关键的人。",
+  "speech": "我先核對名單，避免漏掉關鍵的人。",
   "memory_template": "Used roster.verify: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

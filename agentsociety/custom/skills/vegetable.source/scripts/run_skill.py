@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['market', 'supply_store']
 TARGET_INTERACTIONS = ['restock_vegetables', 'buy_food']
 STATUS = 'sourcing_vegetables'
 EMOTION = 'practical'
-SPEECH = '我先看今天哪些菜新鲜、数量够不够。'
+SPEECH = '我先看今天哪些菜新鮮、數量夠不夠。'
 MEMORY_TEMPLATE = 'Used vegetable.source: {summary} at {location_id}.'
 
 

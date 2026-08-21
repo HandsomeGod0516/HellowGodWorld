@@ -76,7 +76,7 @@ class SendGroupMessageResponse(BaseModel):
 
 
 class SimpleSocialSpace(EnvBase):
-    # 声明式状态持久化
+    # 宣告式狀態持久化
     _env_state_columns: ClassVar[list[ColumnDef]] = [
         ColumnDef("total_messages_sent", "INTEGER"),
         ColumnDef("active_groups", "INTEGER"),
@@ -419,7 +419,7 @@ Your task is to use the available social functions to manage individual mailboxe
             for group_id in groups_to_remove:
                 del self._groups[group_id]
 
-        # 持久化环境全局状态
+        # 持久化環境全域性狀態
         await self._write_env_state(
             step=self._step_counter, t=t,
             total_messages_sent=self._total_messages_sent,

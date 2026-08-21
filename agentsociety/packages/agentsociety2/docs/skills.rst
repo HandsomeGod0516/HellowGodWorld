@@ -1,102 +1,102 @@
 研究技能
 ========================================
 
-AgentSociety 2 包含一组 LLM 原生的研究技能，用于自动化科学研究工作流。
+AgentSociety 2 包含一組 LLM 原生的研究技能，用於自動化科學研究工作流。
 
 概述
 ------------
 
-研究技能模块提供以下功能：
+研究技能模組提供以下功能：
 
-* **文献检索**: 搜索和管理学术论文
-* **假设生成**: 从研究问题生成可测试的假设
-* **实验设计**: 设计完整的实验配置
-* **网络研究**: 使用 Miro 进行网络搜索和总结
-* **论文撰写**: 使用 EasyPaper 生成学术论文
-* **数据分析**: 分析实验数据并生成报告
-* **智能体处理**: 智能体选择、生成和过滤
+* **文獻檢索**: 搜尋和管理學術論文
+* **假設生成**: 從研究問題生成可測試的假設
+* **實驗設計**: 設計完整的實驗配置
+* **網路研究**: 使用 Miro 進行網路搜尋和總結
+* **論文撰寫**: 使用 EasyPaper 生成學術論文
+* **資料分析**: 分析實驗資料並生成報告
+* **智慧體處理**: 智慧體選擇、生成和過濾
 
 Claude Code Skills
 --------------------
 
-研究工作流主要通过 Claude Code 的“skills-first”方式提供：
-- AgentSociety 内置研究 skills：随 VSCode 插件打包，可在插件树视图中浏览（只读）。
-- Agent(Person) 扩展 skills：由后端 `/api/v1/agent-skills/*` 管理，支持扫描/导入/热重载。
+研究工作流主要透過 Claude Code 的“skills-first”方式提供：
+- AgentSociety 內建研究 skills：隨 VSCode 外掛打包，可在外掛樹檢視中瀏覽（只讀）。
+- Agent(Person) 擴充套件 skills：由後端 `/api/v1/agent-skills/*` 管理，支援掃描/匯入/熱過載。
 
-* **agentsociety-literature-search** - 文献检索
-* **agentsociety-hypothesis** - 假设管理（add, get, list, delete）
-* **agentsociety-experiment-config** - 实验配置生成与验证
-* **agentsociety-run-experiment** - 实验执行与监控
-* **agentsociety-analysis** - 数据分析
-* **agentsociety-synthesize** - 结果综合
-* **agentsociety-generate-paper** - 论文生成
-* **agentsociety-quick-web-search** - 快速网络搜索
-* **agentsociety-web-research** - 深度网络研究
+* **agentsociety-literature-search** - 文獻檢索
+* **agentsociety-hypothesis** - 假設管理（add, get, list, delete）
+* **agentsociety-experiment-config** - 實驗配置生成與驗證
+* **agentsociety-run-experiment** - 實驗執行與監控
+* **agentsociety-analysis** - 資料分析
+* **agentsociety-synthesize** - 結果綜合
+* **agentsociety-generate-paper** - 論文生成
+* **agentsociety-quick-web-search** - 快速網路搜尋
+* **agentsociety-web-research** - 深度網路研究
 
 Python API
 --------------------
 
-研究技能也可以通过 Python API 直接调用。
+研究技能也可以透過 Python API 直接呼叫。
 
-文献技能 (literature)
+文獻技能 (literature)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
    from agentsociety2.skills.literature import search_literature_and_save, load_literature_index
 
-   # 搜索并保存文献（默认搜索所有数据源）
+   # 搜尋並儲存文獻（預設搜尋所有資料來源）
    await search_literature_and_save(
        workspace_path=Path("./workspace"),
        query="agent-based modeling social networks",
        limit=10,
-       year_from=2020,      # 可选：年份筛选
+       year_from=2020,      # 可選：年份篩選
        year_to=2024,
-       enable_multi_query=True,  # 可选：启用多查询模式
+       enable_multi_query=True,  # 可選：啟用多查詢模式
    )
 
-   # 指定数据源搜索
+   # 指定資料來源搜尋
    await search_literature_and_save(
        workspace_path=Path("./workspace"),
        query="machine learning",
        limit=5,
-       sources=["local", "arxiv"],  # 可选：指定数据源
+       sources=["local", "arxiv"],  # 可選：指定資料來源
    )
 
-   # 加载文献索引
+   # 載入文獻索引
    index = load_literature_index(workspace_path=Path("./workspace"))
 
-**数据源**:
-- ``local``: RAGFlow 本地知识库
-- ``arxiv``: arXiv 预印本平台
-- ``crossref``: CrossRef DOI 元数据库
-- ``openalex``: OpenAlex 学术图谱 (2.5亿+ 论文)
+**資料來源**:
+- ``local``: RAGFlow 本地知識庫
+- ``arxiv``: arXiv 預印本平臺
+- ``crossref``: CrossRef DOI 後設資料庫
+- ``openalex``: OpenAlex 學術圖譜 (2.5億+ 論文)
 
 **配置**:
-需要在 ``.env`` 文件中配置 API:
+需要在 ``.env`` 檔案中配置 API:
 
 .. code-block:: bash
 
    LITERATURE_SEARCH_API_URL=http://localhost:8008/api/search
    LITERATURE_SEARCH_API_KEY=lit-your-api-key-here
 
-假设技能 (hypothesis)
+假設技能 (hypothesis)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
    from agentsociety2.skills.hypothesis import add_hypothesis, get_hypothesis, list_hypotheses
 
-   # 添加假设
+   # 新增假設
    add_hypothesis(
        workspace_path=Path("./workspace"),
-       hypothesis="网络密度越高，信息传播速度越快"
+       hypothesis="網路密度越高，資訊傳播速度越快"
    )
 
-   # 列出假设
+   # 列出假設
    hypotheses = list_hypotheses(workspace_path=Path("./workspace"))
 
-实验技能 (experiment)
+實驗技能 (experiment)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -106,11 +106,11 @@ Python API
        get_available_env_modules, get_available_agent_modules
    )
 
-   # 获取可用模块
+   # 獲取可用模組
    env_modules = get_available_env_modules()
    agent_modules = get_available_agent_modules()
 
-   # 启动实验
+   # 啟動實驗
    await start_experiment(
        workspace_path=Path("./workspace"),
        hypothesis_id="1",
@@ -130,33 +130,33 @@ Python API
        run_synthesis,
    )
 
-   # 使用便捷函数
+   # 使用便捷函式
    result = await run_analysis(
        workspace_path=Path("./workspace"),
        hypothesis_id="1",
        experiment_id="1"
    )
 
-   # 同一 hypothesis 下批量分析（experiment_ids 不传则自动发现）
+   # 同一 hypothesis 下批次分析（experiment_ids 不傳則自動發現）
    batch = await run_analysis_many(
        workspace_path=str(Path("./workspace")),
        hypothesis_id="1",
-       experiment_ids=["1", "2", "3"],  # 可选
+       experiment_ids=["1", "2", "3"],  # 可選
    )
 
-   # 统一入口：single | batch | synthesize
+   # 統一入口：single | batch | synthesize
    out = await run_analysis_workflow(
        workspace_path=str(Path("./workspace")),
        mode="synthesize",
-       hypothesis_ids=["1"],          # 可选，不传则自动发现
-       experiment_ids=["1", "2", "3"] # 可选，不传则分析全部
+       hypothesis_ids=["1"],          # 可選，不傳則自動發現
+       experiment_ids=["1", "2", "3"] # 可選，不傳則分析全部
    )
 
-   # 使用 Analyzer 类
+   # 使用 Analyzer 類
    analyzer = Analyzer(workspace_path=Path("./workspace"))
    await analyzer.analyze(hypothesis_id="1", experiment_id="1")
 
-论文技能 (paper)
+論文技能 (paper)
 ~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -172,49 +172,49 @@ Python API
 完整工作流示例
 ------------------------
 
-下面是一个使用 Claude Code Skills 的典型研究工作流：
+下面是一個使用 Claude Code Skills 的典型研究工作流：
 
-1. **定义研究话题** - 编辑 ``TOPIC.md``
-2. **文献检索** - 使用 ``/agentsociety-literature-search``
-3. **创建假设** - 使用 ``/agentsociety-hypothesis add``
-4. **配置实验** - 使用 ``/agentsociety-experiment-config validate/prepare/run``
-5. **执行实验** - 使用 ``/agentsociety-run-experiment start``
-6. **分析结果** - 使用 ``/agentsociety-analysis``
-7. **生成论文** - 使用 ``/agentsociety-generate-paper``
+1. **定義研究話題** - 編輯 ``TOPIC.md``
+2. **文獻檢索** - 使用 ``/agentsociety-literature-search``
+3. **建立假設** - 使用 ``/agentsociety-hypothesis add``
+4. **配置實驗** - 使用 ``/agentsociety-experiment-config validate/prepare/run``
+5. **執行實驗** - 使用 ``/agentsociety-run-experiment start``
+6. **分析結果** - 使用 ``/agentsociety-analysis``
+7. **生成論文** - 使用 ``/agentsociety-generate-paper``
 
 配置
 ------------------------
 
-研究技能使用相同的 LLM 配置。可以通过环境变量为特定技能配置不同的模型：
+研究技能使用相同的 LLM 配置。可以透過環境變數為特定技能配置不同的模型：
 
 .. code-block:: bash
 
-   # 默认 LLM
+   # 預設 LLM
    export AGENTSOCIETY_LLM_MODEL="gpt-5.4"
 
-   # 代码生成（实验设计、分析）
+   # 程式碼生成（實驗設計、分析）
    export AGENTSOCIETY_CODER_LLM_MODEL="gpt-5.4"
 
-   # 高频操作（智能体生成）
+   # 高頻操作（智慧體生成）
    export AGENTSOCIETY_NANO_LLM_MODEL="gpt-5.4-nano"
 
 Agent Skills
 --------------------
 
-AgentSociety 2 还支持 Agent Skills，这些是 PersonAgent 的认知能力模块：
+AgentSociety 2 還支援 Agent Skills，這些是 PersonAgent 的認知能力模組：
 
-* **observation** - 环境感知
-* **needs** - 需求系统
-* **cognition** - 认知与意图
-* **plan** - 规划与执行
-* **memory** - 记忆管理
+* **observation** - 環境感知
+* **needs** - 需求系統
+* **cognition** - 認知與意圖
+* **plan** - 規劃與執行
+* **memory** - 記憶管理
 
-详见 :doc:`agent_skills`。
+詳見 :doc:`agent_skills`。
 
-参考
+參考
 ------------------------
 
-* :doc:`cli` - 使用 CLI 运行实验
-* :doc:`agent_skills` - Agent Skills 详解
-* :doc:`custom_modules` - 创建自定义模块
-* :doc:`development` - 开发指南
+* :doc:`cli` - 使用 CLI 執行實驗
+* :doc:`agent_skills` - Agent Skills 詳解
+* :doc:`custom_modules` - 建立自定義模組
+* :doc:`development` - 開發指南

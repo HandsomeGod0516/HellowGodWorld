@@ -1,18 +1,18 @@
-"""Backend API 模块 - 提供 FastAPI 后端服务。
+"""Backend API 模組 - 提供 FastAPI 後端服務。
 
-本模块为 AI Social Scientist VSCode 扩展提供 HTTP API 服务。
+本模組為 AI Social Scientist VSCode 擴充套件提供 HTTP API 服務。
 
-路由模块
+路由模組
 --------
 
-- **prefill_params**: 参数预填充 API
-- **experiments**: 实验管理 API
-- **replay**: 回放数据 API
-- **custom**: 自定义模块扫描 API
-- **modules**: 模块注册 API
+- **prefill_params**: 引數預填充 API
+- **experiments**: 實驗管理 API
+- **replay**: 回放資料 API
+- **custom**: 自定義模組掃描 API
+- **modules**: 模組註冊 API
 - **agent_skills**: Agent Skills 管理 API
 
-启动服务::
+啟動服務::
 
     python -m agentsociety2.backend.app
 

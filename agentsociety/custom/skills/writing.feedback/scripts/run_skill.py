@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['library', 'school']
 TARGET_INTERACTIONS = ['quiet_work', 'hold_office_hours']
 STATUS = 'giving_feedback'
 EMOTION = 'focused'
-SPEECH = '我把反馈说具体一点，让对方知道怎么改。'
+SPEECH = '我把反饋說具體一點，讓對方知道怎麼改。'
 MEMORY_TEMPLATE = 'Used writing.feedback: {summary} at {location_id}.'
 
 

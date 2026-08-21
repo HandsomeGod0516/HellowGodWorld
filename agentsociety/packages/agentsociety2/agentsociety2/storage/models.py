@@ -1,9 +1,9 @@
-"""历史 agent 回放表的兼容模型（SQLModel）。
+"""歷史 agent 回放表的相容模型（SQLModel）。
 
-该模块保留 ``agent_profile``、``agent_status``、``agent_dialog`` 三张旧表的 ORM
-定义，供后端读取历史 SQLite 数据库时使用。
+該模組保留 ``agent_profile``、``agent_status``、``agent_dialog`` 三張舊錶的 ORM
+定義，供後端讀取歷史 SQLite 資料庫時使用。
 
-当前 :class:`~agentsociety2.storage.ReplayWriter` 不再初始化或写入这些表。
+當前 :class:`~agentsociety2.storage.ReplayWriter` 不再初始化或寫入這些表。
 """
 
 from datetime import datetime
@@ -14,7 +14,7 @@ from sqlmodel import Field, SQLModel
 
 
 class AgentProfile(SQLModel, table=True):
-    """agent 档案信息（框架表）。"""
+    """agent 檔案資訊（框架表）。"""
 
     __tablename__ = "agent_profile"
 
@@ -25,7 +25,7 @@ class AgentProfile(SQLModel, table=True):
 
 
 class AgentStatus(SQLModel, table=True):
-    """agent 在某一步的状态快照（框架表）。"""
+    """agent 在某一步的狀態快照（框架表）。"""
 
     __tablename__ = "agent_status"
 
@@ -38,7 +38,7 @@ class AgentStatus(SQLModel, table=True):
 
 
 class AgentDialog(SQLModel, table=True):
-    """agent 对话记录（框架表）。"""
+    """agent 對話記錄（框架表）。"""
 
     __tablename__ = "agent_dialog"
 

@@ -1,9 +1,9 @@
-Agent 模块
+Agent 模組
 ==========
 
-本模块提供智能体的核心类和数据模型。
+本模組提供智慧體的核心類和資料模型。
 
-核心类
+核心類
 ------
 
 AgentBase
@@ -23,8 +23,8 @@ PersonAgent
    :show-inheritance:
    :special-members: __init__
 
-数据模型
+資料模型
 --------
 
-当前 Agent 已切换到 skills-first 的运行方式：数据结构更多通过 skill frontmatter + SKILL.md + tool-loop 的 JSON 结果来约定。
-如需扩展技能与查看技能元信息，请参见 :doc:`/agent_skills` 与 :doc:`/skills`。
+當前 Agent 已切換到 skills-first 的執行方式：資料結構更多透過 skill frontmatter + SKILL.md + tool-loop 的 JSON 結果來約定。
+如需擴充套件技能與檢視技能元資訊，請參見 :doc:`/agent_skills` 與 :doc:`/skills`。

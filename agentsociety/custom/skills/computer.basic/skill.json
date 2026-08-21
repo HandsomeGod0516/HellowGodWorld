@@ -21,7 +21,7 @@
   ],
   "status": "computing",
   "emotion": "focused",
-  "speech": "我先用电脑把这件事整理成可执行的信息。",
+  "speech": "我先用電腦把這件事整理成可執行的資訊。",
   "memory_template": "Used computer.basic: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

@@ -6,7 +6,7 @@ from typing import Any, Awaitable, Callable
 
 @dataclass
 class GatewayRouteBinding:
-    """统一描述 Gateway 路由及其附加安装动作。"""
+    """統一描述 Gateway 路由及其附加安裝動作。"""
 
     path: str
     channel_id: str

@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['cafe', 'park']
 TARGET_INTERACTIONS = ['chat_over_coffee', 'meet_friend']
 STATUS = 'relaying'
 EMOTION = 'attentive'
-SPEECH = '我会先听完整，再转述给该知道的人。'
+SPEECH = '我會先聽完整，再轉述給該知道的人。'
 MEMORY_TEMPLATE = 'Used listen.relay: {summary} at {location_id}.'
 
 

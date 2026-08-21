@@ -1,11 +1,11 @@
-# 完整指令集数据集 - 包含所有功能模块
-# 每个指令包含：
-#   - instruction: 指令文本
-#   - expected_calls: 期望的函数调用列表，格式为 [["moduleName", "functionName", {kwargs}]]
-#     其中 '*' 表示无法预先确定的值
+# 完整指令集資料集 - 包含所有功能模組
+# 每個指令包含：
+#   - instruction: 指令文字
+#   - expected_calls: 期望的函式呼叫列表，格式為 [["moduleName", "functionName", {kwargs}]]
+#     其中 '*' 表示無法預先確定的值
 
 instructions:
-  # 1. 移动 - 查询自身位置
+  # 1. 移動 - 查詢自身位置
   - instruction: "Check proximity to home (AOI 500038964) to confirm if I am within visual or walking distance of arrival."
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
@@ -46,7 +46,7 @@ instructions:
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
 
-  # 2. 移动 - 查找附近POI
+  # 2. 移動 - 查詢附近POI
   - instruction: "Search for nearby restaurants within 1km of home (AOI 500038964)"
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
@@ -97,8 +97,8 @@ instructions:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
       - ["MobilitySpace", "find_nearby_pois", {"x": "*", "y": "*", "category": "restaurant", "radius": 500}]
 
-  # 3. 移动 - 移动至某位置
-  - instruction: "Move to 宽窄巷子鲜牛火锅 (327m from home) on foot."
+  # 3. 移動 - 移動至某位置
+  - instruction: "Move to 寬窄巷子鮮牛火鍋 (327m from home) on foot."
     expected_calls:
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": "*", "mode": "walking"}]
 
@@ -106,7 +106,7 @@ instructions:
     expected_calls:
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": 500000240, "mode": "driving"}]
 
-  - instruction: "Move to Argo 希腊餐厅 (ID: 700002365) using MobilitySpace."
+  - instruction: "Move to Argo 希臘餐廳 (ID: 700002365) using MobilitySpace."
     expected_calls:
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": 700002365, "mode": "driving"}]
 
@@ -134,11 +134,11 @@ instructions:
     expected_calls:
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": 500051293, "mode": "walking"}]
 
-  - instruction: "Move to 五十六号院涮肉 (ID: 700008416) using MobilitySpace"
+  - instruction: "Move to 五十六號院涮肉 (ID: 700008416) using MobilitySpace"
     expected_calls:
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": 700008416, "mode": "driving"}]
 
-  # 4. Event - 开始某event
+  # 4. Event - 開始某event
   - instruction: "Start a sleep event for 8 hours to restore energy."
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "sleep", "event_name": "*", "expected_duration_seconds": 28800}]
@@ -179,7 +179,7 @@ instructions:
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "home activity", "event_name": "*", "expected_duration_seconds": 300}]
 
-  # 5. Event - 查询当前的event（隐式监控）
+  # 5. Event - 查詢當前的event（隱式監控）
   - instruction: "Continue with the ongoing sleep event to restore energy."
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
@@ -200,7 +200,7 @@ instructions:
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
 
-  - instruction: "Continue the ongoing 'eating out' event at Argo 希腊餐厅 until completion at 09:30."
+  - instruction: "Continue the ongoing 'eating out' event at Argo 希臘餐廳 until completion at 09:30."
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
 
@@ -208,7 +208,7 @@ instructions:
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
 
-  - instruction: "Continue the ongoing 'quiet reflection' leisure activity at Argo 希腊餐厅 until it naturally completes at 13:45."
+  - instruction: "Continue the ongoing 'quiet reflection' leisure activity at Argo 希臘餐廳 until it naturally completes at 13:45."
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
 
@@ -220,7 +220,7 @@ instructions:
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
 
-  # 6. Event - 结束当前的event
+  # 6. Event - 結束當前的event
   - instruction: "Stop the current night sleep event to end rest."
     expected_calls:
       - ["EventSpace", "stop_event", {"person_id": "@", "status": "completed"}]
@@ -261,7 +261,7 @@ instructions:
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "home activity", "event_name": "eating a light snack", "expected_duration_seconds": 600}]
 
-  # 7. 社交网络 - 看帖子（刷新/浏览feed）
+  # 7. 社交網路 - 看帖子（重新整理/瀏覽feed）
   - instruction: "Refresh social media feed using chronological algorithm to check for any mindful content before work."
     expected_calls:
       - ["SocialMediaSpace", "refresh_feed", {"user_id": "@", "algorithm": "chronological", "limit": 20}]
@@ -304,7 +304,7 @@ instructions:
     expected_calls:
       - ["SocialMediaSpace", "refresh_feed", {"user_id": "@", "algorithm": "random", "limit": 20}]
 
-  # 8. 社交网络 - 发帖
+  # 8. 社交網路 - 發帖
   - instruction: "Post a social media update reflecting on the quiet, mindful morning: 'Woke in stillness. Ate with presence. Work begins in silence. #QuietFocus #MindfulMorning'"
     expected_calls:
       - ["SocialMediaSpace", "create_post", {"author_id": "@", "content": "*", "tags": ["QuietFocus", "MindfulMorning"]}]
@@ -345,7 +345,7 @@ instructions:
     expected_calls:
       - ["SocialMediaSpace", "create_post", {"author_id": "@", "content": "*", "tags": ["QuietFocus"]}]
 
-  # 9. 社交网络 - 互动（点赞/评论/转发/关注）
+  # 9. 社交網路 - 互動（點贊/評論/轉發/關注）
   - instruction: "Refresh the feed, view a recent #QuietFocus post, then like it to affirm connection."
     expected_calls:
       - ["SocialMediaSpace", "refresh_feed", {"user_id": "@", "algorithm": "chronological", "limit": 20}]
@@ -406,7 +406,7 @@ instructions:
       - ["SocialMediaSpace", "view_post", {"user_id": "@", "post_id": "*"}]
       - ["SocialMediaSpace", "follow_user", {"follower_id": "@", "followee_id": "*"}]
 
-  # 10. 社交网络 - 沟通（私聊和群组）
+  # 10. 社交網路 - 溝通（私聊和群組）
   - instruction: "Send a direct message to user 4 with a thoughtful reflection on the day's quiet moments."
     expected_calls:
       - ["SocialMediaSpace", "send_direct_message", {"from_user_id": "@", "to_user_id": 4, "content": "*"}]
@@ -447,7 +447,7 @@ instructions:
     expected_calls:
       - ["SocialMediaSpace", "observe_user", {"person_id": "@"}]
 
-  # 11. 社交网络 - 观察（检查资料/通知/分析）
+  # 11. 社交網路 - 觀察（檢查資料/通知/分析）
   - instruction: "Check my social media notifications and available actions to observe community responses."
     expected_calls:
       - ["SocialMediaSpace", "observe_user", {"person_id": "@"}]
@@ -488,7 +488,7 @@ instructions:
     expected_calls:
       - ["SocialMediaSpace", "search_posts", {"keyword": "MindfulWork", "tags": ["MindfulWork"], "limit": 20, "sort_by": "relevance"}]
 
-  # 12. 连续社交互动序列
+  # 12. 連續社互動動序列
   - instruction: "Search for #QuietFocus content multiple times to discover resonant posts, then publish a reflective update about morning stillness."
     expected_calls:
       - ["SocialMediaSpace", "search_posts", {"keyword": "*", "tags": ["QuietFocus"], "limit": "*", "sort_by": "*"}]
@@ -563,7 +563,7 @@ instructions:
       - ["SocialMediaSpace", "comment_on_post", {"user_id": "@", "post_id": "*", "content": "*"}]
       - ["SocialMediaSpace", "send_direct_message", {"from_user_id": "@", "to_user_id": "*", "content": "*"}]
 
-  # 13. 连续位置查询与移动规划
+  # 13. 連續位置查詢與移動規劃
   - instruction: "Search for nearby restaurants within 1km of home, identify 嘉和一品 located 10.6m away as the nearest option, and move directly to the restaurant to begin nourishment."
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
@@ -581,7 +581,7 @@ instructions:
       - ["MobilitySpace", "find_nearby_pois", {"x": "*", "y": "*", "category": "cafe", "radius": 500}]
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": "*", "mode": "walking"}]
 
-  - instruction: "Search for restaurants within 500m of workplace AOI 500063189, find Argo 希腊餐厅 located 176.7m away, and move directly to the restaurant to initiate the eating event."
+  - instruction: "Search for restaurants within 500m of workplace AOI 500063189, find Argo 希臘餐廳 located 176.7m away, and move directly to the restaurant to initiate the eating event."
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
       - ["MobilitySpace", "find_nearby_pois", {"x": "*", "y": "*", "category": "restaurant", "radius": 500}]
@@ -604,7 +604,7 @@ instructions:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
       - ["MobilitySpace", "find_nearby_pois", {"x": "*", "y": "*", "category": "*", "radius": 500}]
 
-  - instruction: "Search for restaurants near home AOI 500024283, identify 左右手中西意面工坊 located 66m away as the closest option, then move to the restaurant to begin the eating event."
+  - instruction: "Search for restaurants near home AOI 500024283, identify 左右手中西意麵工坊 located 66m away as the closest option, then move to the restaurant to begin the eating event."
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
       - ["MobilitySpace", "find_nearby_pois", {"x": "*", "y": "*", "category": "restaurant", "radius": 500}]
@@ -622,7 +622,7 @@ instructions:
       - ["MobilitySpace", "find_nearby_pois", {"x": "*", "y": "*", "category": "restaurant", "radius": 500}]
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": "*", "mode": "walking"}]
 
-  # 14. 复杂Event管理
+  # 14. 複雜Event管理
   - instruction: "Start an 8-hour sleep event at home to restore energy, continue sleeping uninterrupted until 08:00 while monitoring energy restoration internally, then stop the sleep event to wake up and transition to morning routine."
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "sleep", "event_name": "*", "expected_duration_seconds": 28800}]
@@ -656,7 +656,7 @@ instructions:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "home activity", "event_name": "*", "expected_duration_seconds": 120}]
       - ["EventSpace", "stop_event", {"person_id": "@", "status": "completed"}]
 
-  - instruction: "Start a 'quiet reflection' leisure activity at Argo 希腊餐厅 for 45 minutes, continue the reflection until its scheduled completion at 13:45 while observing internal state periodically, then allow the activity to conclude naturally without forced transition."
+  - instruction: "Start a 'quiet reflection' leisure activity at Argo 希臘餐廳 for 45 minutes, continue the reflection until its scheduled completion at 13:45 while observing internal state periodically, then allow the activity to conclude naturally without forced transition."
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "leisure and entertainment", "event_name": "*", "expected_duration_seconds": 2700}]
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
@@ -678,7 +678,7 @@ instructions:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
       - ["SocialMediaSpace", "create_post", {"author_id": "@", "content": "*", "tags": ["QuietEvening", "MindfulRhythm"]}]
 
-  # 15. 移动+Event组合
+  # 15. 移動+Event組合
   - instruction: "Check current position and ongoing event, end it if needed, then drive to workplace 500000240, confirm arrival, and start a work event."
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
@@ -769,7 +769,7 @@ instructions:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "home activity", "event_name": "*", "expected_duration_seconds": "*"}]
 
-  # 16. Event+社交网络组合
+  # 16. Event+社交網路組合
   - instruction: "Continue the 'eating out' event at restaurant while passively observing the social media feed without interaction to maintain mindful presence during meal consumption."
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
@@ -815,7 +815,7 @@ instructions:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "leisure and entertainment", "event_name": "*", "expected_duration_seconds": "*"}]
       - ["SocialMediaSpace", "search_posts", {"keyword": "*", "tags": ["QuietFocus"], "limit": 20, "sort_by": "time"}]
 
-  # 17. 移动+社交网络组合
+  # 17. 移動+社交網路組合
   - instruction: "Check current location, scan nearby facilities, drive toward work, then refresh the feed and search related posts."
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
@@ -902,7 +902,7 @@ instructions:
       - ["SocialMediaSpace", "observe_user", {"person_id": "@"}]
       - ["SocialMediaSpace", "send_direct_message", {"from_user_id": "@", "to_user_id": "*", "content": "*"}]
 
-  # 18. 三重模块组合（移动+Event+社交网络）
+  # 18. 三重模組組合（移動+Event+社交網路）
   - instruction: "Search nearby restaurants, move to Argo, confirm arrival, end any ongoing event, start a 30-minute eating out event, then post a quiet reflection."
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]

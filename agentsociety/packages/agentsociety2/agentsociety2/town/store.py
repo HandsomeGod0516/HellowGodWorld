@@ -1,6 +1,6 @@
 """Agent 配置持久化：``.god/town/agents.json``。
 
-沿用 ``scripts/god.sh`` 的 ``.god/`` 状态目录约定，可用 ``GOD_STATE_DIR`` 覆盖。
+沿用 ``scripts/god.sh`` 的 ``.god/`` 狀態目錄約定，可用 ``GOD_STATE_DIR`` 覆蓋。
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ def load_agents() -> list[TownAgentConfig]:
     for entry in raw if isinstance(raw, list) else []:
         try:
             configs.append(TownAgentConfig.model_validate(entry))
-        except Exception:  # noqa: BLE001 - 单条坏配置不该挡住整个小镇
+        except Exception:  # noqa: BLE001 - 單條壞配置不該擋住整個小鎮
             logger.warning("Skipping invalid town agent entry: %r", entry)
     return configs
 

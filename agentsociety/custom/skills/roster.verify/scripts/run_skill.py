@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['school', 'library']
 TARGET_INTERACTIONS = ['school_meeting', 'quiet_work']
 STATUS = 'verifying_roster'
 EMOTION = 'precise'
-SPEECH = '我先核对名单，避免漏掉关键的人。'
+SPEECH = '我先核對名單，避免漏掉關鍵的人。'
 MEMORY_TEMPLATE = 'Used roster.verify: {summary} at {location_id}.'
 
 

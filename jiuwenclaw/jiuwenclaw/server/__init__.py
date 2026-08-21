@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""AgentServer 模块."""
+"""AgentServer 模組."""
 
 from __future__ import annotations
 

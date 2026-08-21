@@ -165,8 +165,8 @@ def _run_command_sync(
     shell_type: str,
 ) -> tuple[subprocess.CompletedProcess[str], str]:
     plan, use_shell, resolved_shell = _resolve_execution_plan(command, shell_type)
-    # Windows 下 cmd 的输出通常是系统代码页（常见 CP936/GBK），
-    # 这里不要强行按 UTF-8 解码，否则会出现中文乱码（如 .lnk 名称）。
+    # Windows 下 cmd 的輸出通常是系統內碼表（常見 CP936/GBK），
+    # 這裡不要強行按 UTF-8 解碼，否則會出現中文亂碼（如 .lnk 名稱）。
     encoding = locale.getpreferredencoding(False) or "utf-8"
     result = subprocess.run(
         plan,

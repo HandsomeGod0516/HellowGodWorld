@@ -39,9 +39,9 @@ class ReplayWriter:
     """
 
     def __init__(self, db_path: Path):
-        """创建回放写入器。
+        """建立回放寫入器。
 
-        :param db_path: SQLite 数据库文件路径。
+        :param db_path: SQLite 資料庫檔案路徑。
         """
         self._db_path = db_path
         self._engine: Optional[AsyncEngine] = None
@@ -51,7 +51,7 @@ class ReplayWriter:
         self._registered_datasets: Set[str] = set()
 
     async def init(self) -> None:
-        """初始化数据库连接并创建 replay catalog 表。"""
+        """初始化資料庫連線並建立 replay catalog 表。"""
         # Ensure parent directory exists
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -68,7 +68,7 @@ class ReplayWriter:
 
 
     async def close(self) -> None:
-        """关闭数据库连接并释放资源。"""
+        """關閉資料庫連線並釋放資源。"""
         if self._engine:
             await self._engine.dispose()
             self._engine = None
@@ -190,9 +190,9 @@ class ReplayWriter:
         self._registered_datasets.add(spec.dataset_id)
 
     async def register_table(self, schema: TableSchema) -> None:
-        """动态注册并创建新表（用于环境模块自定义回放表）。
+        """動態註冊並建立新表（用於環境模組自定義回放表）。
 
-        :param schema: 表结构定义。
+        :param schema: 表結構定義。
         """
         if schema.name in self._registered_tables:
             return
@@ -242,10 +242,10 @@ class ReplayWriter:
         return " ".join(parts)
 
     async def write(self, table_name: str, data: Dict[str, Any]) -> None:
-        """向指定表写入一行（通用写入，支持动态表）。
+        """向指定表寫入一行（通用寫入，支援動態表）。
 
         :param table_name: 表名。
-        :param data: 列名到值的映射。
+        :param data: 列名到值的對映。
         """
         # For statically defined tables, allow using generic write but process specially?
         # Actually, for dynamic tables, we need to construct INSERT statement
@@ -274,7 +274,7 @@ class ReplayWriter:
     async def write_batch(
         self, table_name: str, data_list: List[Dict[str, Any]]
     ) -> None:
-        """批量写入多行（单事务）。"""
+        """批次寫入多行（單事務）。"""
         if not data_list:
             return
 
@@ -293,7 +293,7 @@ class ReplayWriter:
                 await session.commit()
     
     def _process_data_for_write(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """将数据转换为适合 SQLite/SQLAlchemy 的形式（datetime/JSON 等）。"""
+        """將資料轉換為適合 SQLite/SQLAlchemy 的形式（datetime/JSON 等）。"""
         new_data = {}
         for k, v in data.items():
             if isinstance(v, datetime):

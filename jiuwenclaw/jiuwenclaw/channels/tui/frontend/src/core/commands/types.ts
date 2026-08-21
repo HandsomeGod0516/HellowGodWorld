@@ -19,8 +19,8 @@ export interface CommandSuggestion {
 
 export interface CommandContext {
   /**
-   * options.logAsUser=false 可用于发送内部控制消息（例如 /init 生成的 orchestration prompt），
-   * 避免在 CLI/TUI 历史中渲染为普通用户输入。
+   * options.logAsUser=false 可用於傳送內部控制訊息（例如 /init 生成的 orchestration prompt），
+   * 避免在 CLI/TUI 歷史中渲染為普通使用者輸入。
    */
   sendEventOnly: (method: string, params: Record<string, unknown>) => string;
   request: <T = Record<string, unknown>>(

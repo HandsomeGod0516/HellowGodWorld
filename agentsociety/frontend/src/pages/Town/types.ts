@@ -23,6 +23,7 @@ export type WorldMap = {
     rooms: RoomInfo[];
     plaza_room: { id: string; name: string; name_en: string; rect: Rect; anchor: Point };
     walls: Point[];
+    food: Point;
 };
 
 export type ActorSnapshot = {
@@ -40,6 +41,7 @@ export type ActorSnapshot = {
     status: string;
     say: string | null;
     last_error: string | null;
+    hp: number;
 };
 
 export type TownEvent = {
@@ -71,6 +73,7 @@ export type TownAgent = {
     llm: LLMEndpoint;
     decision_interval_s: number;
     enabled: boolean;
+    behavior_hint: string;
     runtime: ActorSnapshot | null;
 };
 
@@ -89,6 +92,7 @@ export type TownDefaults = {
     base_url: string;
     model: string;
     has_api_key: boolean;
+    behavior_hint: string;
 };
 
 export type ServerMessage =

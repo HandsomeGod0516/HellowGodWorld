@@ -1,175 +1,175 @@
-# Linux 跨节点 NFS 使用说明
+# Linux 跨節點 NFS 使用說明
 
-这两个脚本用于在 Linux 节点之间共享 `jiuwenclaw` 团队共享工作空间。
+這兩個指令碼用於在 Linux 節點之間共享 `jiuwenclaw` 團隊共享工作空間。
 
-适用场景：
+適用場景：
 
-- 一个中心节点作为 NFS server
-- 一个或多个节点作为 NFS client
-- 多个节点共享一个或多个工作空间目录
-- 分布式 Team 场景下，只共享 `team.workspace.root_path` 指向的团队共享目录，不要共享 `.agent_teams`
+- 一箇中心節點作為 NFS server
+- 一個或多個節點作為 NFS client
+- 多個節點共享一個或多個工作空間目錄
+- 分散式 Team 場景下，只共享 `team.workspace.root_path` 指向的團隊共享目錄，不要共享 `.agent_teams`
 
-默认共享目录：
+預設共享目錄：
 
 ```text
 ${JIUWEN_TEAM_WORKSPACE_ROOT:-/tmp/jiuwenclaw/shared_workspace/jiuwen_team}
 ```
 
-建议：
+建議：
 
-- 优先使用内网 IP
-- 所有节点都先完成一次 `jiuwenclaw` 初始化
-- 尽量使用同一个用户运行
-- 如果要使用自定义挂载点，在所有节点设置相同的 `JIUWEN_TEAM_WORKSPACE_ROOT`
+- 優先使用內網 IP
+- 所有節點都先完成一次 `jiuwenclaw` 初始化
+- 儘量使用同一個使用者執行
+- 如果要使用自定義掛載點，在所有節點設定相同的 `JIUWEN_TEAM_WORKSPACE_ROOT`
 
-## 1. 服务端执行
+## 1. 服務端執行
 
-在中心节点执行（可重复传入多个 `--client-ip`）：
+在中心節點執行（可重複傳入多個 `--client-ip`）：
 
 ```bash
 sudo bash scripts/nfs/setup_nfs_server.sh \
-  --client-ip <客户端1内网IP> \
-  --client-ip <客户端2内网IP>
+  --client-ip <客戶端1內網IP> \
+  --client-ip <客戶端2內網IP>
 ```
 
 
 
-如果要自定义路径：
+如果要自定義路徑：
 
 ```bash
 sudo bash scripts/nfs/setup_nfs_server.sh \
-  --client-ip <客户端1内网IP> \
-  --client-ip <客户端2内网IP> \
+  --client-ip <客戶端1內網IP> \
+  --client-ip <客戶端2內網IP> \
   --export-dir /mnt/jiuwenclaw/shared_workspace/jiuwen_team \
   --mount-point /mnt/jiuwenclaw/shared_workspace/jiuwen_team
 ```
 
-如果只有一个客户端，保留单个 `--client-ip` 也可以。
+如果只有一個客戶端，保留單個 `--client-ip` 也可以。
 
-如果要共享多个目录（每组 `--export-dir` 必须对应一组 `--mount-point`）：
+如果要共享多個目錄（每組 `--export-dir` 必須對應一組 `--mount-point`）：
 
 ```bash
 sudo bash scripts/nfs/setup_nfs_server.sh \
-  --client-ip <客户端1内网IP> \
-  --client-ip <客户端2内网IP> \
+  --client-ip <客戶端1內網IP> \
+  --client-ip <客戶端2內網IP> \
   --export-dir /mnt/jiuwenclaw/shared_workspace/jiuwen_team \
   --mount-point /mnt/jiuwenclaw/shared_workspace/jiuwen_team \
   --export-dir /mnt/jiuwenclaw/shared_artifacts \
   --mount-point /mnt/jiuwenclaw/shared_artifacts
 ```
 
-## 2. 客户端执行
+## 2. 客戶端執行
 
-在每个客户端节点执行：
+在每個客戶端節點執行：
 
 ```bash
-sudo bash scripts/nfs/setup_nfs_client.sh --server-ip <服务端内网IP>
+sudo bash scripts/nfs/setup_nfs_client.sh --server-ip <服務端內網IP>
 ```
 
 
 
-如果要自定义路径：
+如果要自定義路徑：
 
 ```bash
 sudo bash scripts/nfs/setup_nfs_client.sh \
-  --server-ip <服务端内网IP> \
+  --server-ip <服務端內網IP> \
   --export-dir /mnt/jiuwenclaw/shared_workspace/jiuwen_team \
   --mount-point /mnt/jiuwenclaw/shared_workspace/jiuwen_team
 ```
 
-如果要挂载多个目录（参数成对出现）：
+如果要掛載多個目錄（引數成對出現）：
 
 ```bash
 sudo bash scripts/nfs/setup_nfs_client.sh \
-  --server-ip <服务端内网IP> \
+  --server-ip <服務端內網IP> \
   --export-dir /mnt/jiuwenclaw/shared_workspace/jiuwen_team \
   --mount-point /mnt/jiuwenclaw/shared_workspace/jiuwen_team \
   --export-dir /mnt/jiuwenclaw/shared_artifacts \
   --mount-point /mnt/jiuwenclaw/shared_artifacts
 ```
 
-## 3. 连通性检查
+## 3. 連通性檢查
 
-在客户端执行：
+在客戶端執行：
 
 ```bash
-rpcinfo -p <服务端内网IP>
-showmount -e <服务端内网IP>
+rpcinfo -p <服務端內網IP>
+showmount -e <服務端內網IP>
 ```
 
-如果两条命令都能正常返回，就说明 NFS 服务已经可达。
+如果兩條命令都能正常返回，就說明 NFS 服務已經可達。
 
-## 4. 挂载后检查
+## 4. 掛載後檢查
 
-在客户端执行：
+在客戶端執行：
 
 ```bash
 mount | grep jiuwen_team
 df -h | grep jiuwen_team
 ```
 
-## 5. 同步验证
+## 5. 同步驗證
 
-在服务端执行：
+在服務端執行：
 
 ```bash
 echo hello > "${JIUWEN_TEAM_WORKSPACE_ROOT:-/tmp/jiuwenclaw/shared_workspace/jiuwen_team}/hello.txt"
 ```
 
-在客户端执行：
+在客戶端執行：
 
 ```bash
 cat "${JIUWEN_TEAM_WORKSPACE_ROOT:-/tmp/jiuwenclaw/shared_workspace/jiuwen_team}/hello.txt"
 ```
 
-再在客户端追加：
+再在客戶端追加：
 
 ```bash
 echo world >> "${JIUWEN_TEAM_WORKSPACE_ROOT:-/tmp/jiuwenclaw/shared_workspace/jiuwen_team}/hello.txt"
 ```
 
-回到服务端查看：
+回到服務端檢視：
 
 ```bash
 cat "${JIUWEN_TEAM_WORKSPACE_ROOT:-/tmp/jiuwenclaw/shared_workspace/jiuwen_team}/hello.txt"
 ```
 
-如果两边都能看到相同内容，就说明同步成功。
+如果兩邊都能看到相同內容，就說明同步成功。
 
-## 6. 说明
+## 6. 說明
 
-- 客户端脚本会在挂载前备份已有本地目录
-- 如果有多个客户端，每个客户端都执行一次客户端脚本即可
-- 支持多客户端和多目录；多目录时 `--export-dir` 与 `--mount-point` 数量必须一致
-- 这套方案共享的是文件系统，不是多节点分布式运行时
-- `.agent_teams` 保存 team.db、成员 workspace、symlink 等本地运行状态，不应通过 NFS 在多个 teammate 之间共享
+- 客戶端指令碼會在掛載前備份已有本地目錄
+- 如果有多個客戶端，每個客戶端都執行一次客戶端指令碼即可
+- 支援多客戶端和多目錄；多目錄時 `--export-dir` 與 `--mount-point` 數量必須一致
+- 這套方案共享的是檔案系統，不是多節點分散式執行時
+- `.agent_teams` 儲存 team.db、成員 workspace、symlink 等本地執行狀態，不應透過 NFS 在多個 teammate 之間共享
 
-## 7. 取消挂载与回滚
+## 7. 取消掛載與回滾
 
-服务端回滚（删除脚本导出并重载 export）：
+服務端回滾（刪除指令碼匯出並過載 export）：
 
 ```bash
 sudo bash scripts/nfs/teardown_nfs_server.sh
 ```
 
-如果还要同时停止并禁用 NFS 服务：
+如果還要同時停止並禁用 NFS 服務：
 
 ```bash
 sudo bash scripts/nfs/teardown_nfs_server.sh --stop-service --disable-service
 ```
 
-客户端取消挂载（按挂载点）：
+客戶端取消掛載（按掛載點）：
 
 ```bash
 sudo bash scripts/nfs/teardown_nfs_client.sh \
-  --server-ip <服务端内网IP> \
+  --server-ip <服務端內網IP> \
   --mount-point "${JIUWEN_TEAM_WORKSPACE_ROOT:-/tmp/jiuwenclaw/shared_workspace/jiuwen_team}"
 ```
 
-如果要清理该服务端在 `/etc/fstab` 的全部 nfs4 记录：
+如果要清理該服務端在 `/etc/fstab` 的全部 nfs4 記錄：
 
 ```bash
 sudo bash scripts/nfs/teardown_nfs_client.sh \
-  --server-ip <服务端内网IP> \
+  --server-ip <服務端內網IP> \
   --clean-all-server-entries
 ```

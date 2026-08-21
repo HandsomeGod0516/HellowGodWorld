@@ -258,15 +258,15 @@ class CodingMemoryRail:
                 self._prefetch_task = None
         
         if self._recalled_content:
-            header = "## 已加载的相关记忆\n\n" if lang == "cn" else "## Loaded relevant memories\n\n"
-            footer = (f"\n\n（共 {self._total_memories} 条记忆，用 coding_memory_read 读取其他。）"
+            header = "## 已載入的相關記憶\n\n" if lang == "cn" else "## Loaded relevant memories\n\n"
+            footer = (f"\n\n（共 {self._total_memories} 條記憶，用 coding_memory_read 讀取其他。）"
                       if lang == "cn" else
                       f"\n\n({self._total_memories} total. Use coding_memory_read for others.)")
             section_content += "\n\n" + header + self._recalled_content + footer
         else:
             index = self._read_memory_index()
             if index:
-                header = "## 当前记忆索引\n\n" if lang == "cn" else "## Current memory index\n\n"
+                header = "## 當前記憶索引\n\n" if lang == "cn" else "## Current memory index\n\n"
                 section_content += "\n\n" + header + index
         
         section = MockPromptSection(
@@ -281,9 +281,9 @@ class CodingMemoryRail:
         if is_read_only:
             if lang == "cn":
                 return (
-                    f"# coding memory（只读）\n"
-                    f"位于 `{self._coding_memory_dir}`。"
-                    f"用 coding_memory_read 读取。不允许写入。"
+                    f"# coding memory（只讀）\n"
+                    f"位於 `{self._coding_memory_dir}`。"
+                    f"用 coding_memory_read 讀取。不允許寫入。"
                 )
             else:
                 return (
@@ -295,8 +295,8 @@ class CodingMemoryRail:
             if lang == "cn":
                 return (
                     f"# coding memory\n"
-                    f"你有一个基于文件的持久化记忆系统，"
-                    f"位于 `{self._coding_memory_dir}`。"
+                    f"你有一個基於檔案的持久化記憶系統，"
+                    f"位於 `{self._coding_memory_dir}`。"
                 )
             else:
                 return (
@@ -535,7 +535,7 @@ class TestCodingMemoryRailBeforeModelCall:
         
         section = mock_agent.system_prompt_builder.get_section("memory")
         assert section is not None
-        assert "只读" in section.content["cn"] or "read-only" in section.content["cn"].lower()
+        assert "只讀" in section.content["cn"] or "read-only" in section.content["cn"].lower()
 
     @pytest.mark.asyncio
     async def test_includes_memory_index(

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-待办事项采集器
+待辦事項採集器
 
 功能：
-- 读取 todo.md 文件
-- 解析任务状态
-- 统计完成情况
+- 讀取 todo.md 檔案
+- 解析任務狀態
+- 統計完成情況
 """
 
 import re
@@ -17,7 +17,7 @@ from typing import Optional
 
 @dataclass
 class TodoTask:
-    """待办任务"""
+    """待辦任務"""
 
     id: str
     content: str
@@ -37,7 +37,7 @@ class TodoTask:
 
 @dataclass
 class TodoStats:
-    """待办统计"""
+    """待辦統計"""
 
     total: int = 0
     completed: int = 0
@@ -66,21 +66,21 @@ class TodoStats:
 
 
 class TodoCollector:
-    """待办事项采集器"""
+    """待辦事項採集器"""
 
     def __init__(self, workspace_dir: str | Path):
         """
-        初始化待办采集器
+        初始化待辦採集器
 
         Args:
-            workspace_dir: Agent 根目录（如 ~/.jiuwenclaw/agent）
+            workspace_dir: Agent 根目錄（如 ~/.jiuwenclaw/agent）
         """
         self.workspace_dir = Path(workspace_dir)
         self.session_dir = self.workspace_dir / "sessions"
 
     @staticmethod
     def _read_file_safe(file_path: Path) -> str:
-        """安全读取文件"""
+        """安全讀取檔案"""
         if not file_path.exists():
             return ""
         try:
@@ -89,7 +89,7 @@ class TodoCollector:
             return ""
 
     def _find_latest_todo_file(self) -> Optional[Path]:
-        """查找最新的 todo.md 文件"""
+        """查詢最新的 todo.md 檔案"""
         if not self.session_dir.exists():
             return None
 
@@ -98,20 +98,20 @@ class TodoCollector:
         if not todo_files:
             return None
 
-        # 按修改时间排序，返回最新的
+        # 按修改時間排序，返回最新的
         todo_files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
         return todo_files[0]
 
     @staticmethod
     def _parse_status(line: str) -> tuple[str, str]:
         """
-        解析任务行，提取 ID 和状态
+        解析任務行，提取 ID 和狀態
 
-        支持格式：
-        - [x] 1. 任务内容
-        - [ ] 1. 任务内容
-        - 1. [status:completed] 任务内容
-        - 1. ✅ 任务内容
+        支援格式：
+        - [x] 1. 任務內容
+        - [ ] 1. 任務內容
+        - 1. [status:completed] 任務內容
+        - 1. ✅ 任務內容
         """
         # Markdown checkbox 格式
         checkbox_match = re.match(r"\s*-\s*\[([xX ])\]\s*(.+)", line)
@@ -121,7 +121,7 @@ class TodoCollector:
             status = "completed" if checked else "waiting"
             return "", status
 
-        # 带状态标记格式
+        # 帶狀態標記格式
         status_match = re.match(r"\s*(\d+)\.\s*\[status:(\w+)\]\s*(.+)", line, re.IGNORECASE)
         if status_match:
             task_id = status_match.group(1)
@@ -129,7 +129,7 @@ class TodoCollector:
             content = status_match.group(3).strip()
             return task_id, status
 
-        # 带状态标记格式（中括号前）
+        # 帶狀態標記格式（中括號前）
         bracket_match = re.match(r"\s*(\d+)\.\s*\[([xX✅🔄⏳❌])\]\s*(.+)", line)
         if bracket_match:
             task_id = bracket_match.group(1)
@@ -147,16 +147,16 @@ class TodoCollector:
             status = status_map.get(status_char, "waiting")
             return task_id, status
 
-        # 普通编号格式
+        # 普通編號格式
         number_match = re.match(r"\s*(\d+)\.\s+(.+)", line)
         if number_match:
             task_id = number_match.group(1)
             content = number_match.group(2).strip()
 
-            # 从内容中检测状态
+            # 從內容中檢測狀態
             if "✅" in content or "[完成]" in content:
                 status = "completed"
-            elif "🔄" in content or "[进行中]" in content:
+            elif "🔄" in content or "[進行中]" in content:
                 status = "running"
             elif "❌" in content or "[取消]" in content:
                 status = "cancelled"
@@ -169,10 +169,10 @@ class TodoCollector:
 
     def collect(self) -> TodoStats:
         """
-        采集待办数据
+        採集待辦資料
 
         Returns:
-            TodoStats: 待办统计数据
+            TodoStats: 待辦統計資料
         """
         stats = TodoStats()
 
@@ -195,7 +195,7 @@ class TodoCollector:
             if status:
                 task_counter += 1
 
-                # 提取任务内容（去除状态标记）
+                # 提取任務內容（去除狀態標記）
                 content_clean = re.sub(r"\[status:\w+\]\s*", "", line)
                 content_clean = re.sub(r"\[[xX✅🔄⏳❌]\]\s*", "", content_clean)
                 content_clean = re.sub(r"^\s*-\s*\[[xX ]\]\s*", "", content_clean)
@@ -227,7 +227,7 @@ class TodoCollector:
 
 
 def main():
-    """测试入口"""
+    """測試入口"""
     import sys
 
     if len(sys.argv) < 2:
@@ -238,15 +238,15 @@ def main():
     collector = TodoCollector(workspace_dir)
     stats = collector.collect()
 
-    print("待办统计:")
-    print(f"  总数: {stats.total}")
+    print("待辦統計:")
+    print(f"  總數: {stats.total}")
     print(f"  已完成: {stats.completed}")
-    print(f"  进行中: {stats.running}")
-    print(f"  待处理: {stats.waiting}")
+    print(f"  進行中: {stats.running}")
+    print(f"  待處理: {stats.waiting}")
     print(f"  完成率: {stats.completion_rate:.1%}")
 
     if stats.tasks:
-        print("\n任务列表:")
+        print("\n任務列表:")
         for task in stats.tasks:
             status_icon = {
                 "completed": "✅",

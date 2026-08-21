@@ -1,27 +1,27 @@
-"""Agent 上下文：配置阈值以外的记忆、thread 压缩、token 计量。
+"""Agent 上下文：配置閾值以外的記憶、thread 壓縮、token 計量。
 
-模块职责
+模組職責
 ========
 
-- 与 context_config 分工：本文件负责「记忆 + 压缩算法 + 摘要 prompt」；config 仅 dataclass 与 capability 映射
-- Token：优先 LiteLLM 的 token_counter（与路由模型名一致），失败再用 tiktoken，并与字符下界取 max 做保守估计
+- 與 context_config 分工：本檔案負責「記憶 + 壓縮演算法 + 摘要 prompt」；config 僅 dataclass 與 capability 對映
+- Token：優先 LiteLLM 的 token_counter（與路由模型名一致），失敗再用 tiktoken，並與字元下界取 max 做保守估計
 
-主要组件
+主要元件
 ========
 
-- :class:`ThreadTokenCounter`: 消息 token 计数器
-- :class:`AgentMemory`: 持久化记忆（AGENT_MEMORY.md）
-- :class:`StructuredSummary`: 结构化摘要
-- :func:`run_thread_compaction`: Thread 分层压缩
+- :class:`ThreadTokenCounter`: 訊息 token 計數器
+- :class:`AgentMemory`: 持久化記憶（AGENT_MEMORY.md）
+- :class:`StructuredSummary`: 結構化摘要
+- :func:`run_thread_compaction`: Thread 分層壓縮
 
-压缩策略
+壓縮策略
 ========
 
-分层压缩机制：
+分層壓縮機制：
 
-1. **Light pruning**: 去重相邻工具结果，按优先级丢弃低优先级消息
-2. **Medium compression**: 调用 LLM 生成结构化摘要
-3. **Heavy compression**: 滚动摘要合并，适用于极高利用率
+1. **Light pruning**: 去重相鄰工具結果，按優先順序丟棄低優先順序訊息
+2. **Medium compression**: 呼叫 LLM 生成結構化摘要
+3. **Heavy compression**: 滾動摘要合併，適用於極高利用率
 
 示例
 ====
@@ -34,15 +34,15 @@
         run_thread_compaction,
     )
 
-    # Token 计数
+    # Token 計數
     counter = ThreadTokenCounter(litellm_model="claude-3-opus")
     tokens = counter.count_messages(messages)
 
-    # 记忆管理
+    # 記憶管理
     memory = AgentMemory(workspace_path)
     memory.add_decision("Decided to go shopping")
 
-    # Thread 压缩
+    # Thread 壓縮
     result = await run_thread_compaction(
         thread_messages=messages,
         agent_id=1,
@@ -79,10 +79,10 @@ _ROLE_OVERHEAD_TOKENS = 4
 
 
 class ThreadTokenCounter:
-    """消息 token 计数器。
+    """訊息 token 計數器。
 
-    :class:`ThreadTokenCounter` 优先使用 LiteLLM 的 ``token_counter``（尽量贴近真实路由模型 tokenizer）。
-    当计数接口不可用或失败时，回退到 tiktoken 或字符长度启发式（保守估计，避免低估）。
+    :class:`ThreadTokenCounter` 優先使用 LiteLLM 的 ``token_counter``（儘量貼近真實路由模型 tokenizer）。
+    當計數介面不可用或失敗時，回退到 tiktoken 或字元長度啟發式（保守估計，避免低估）。
     """
 
     def __init__(
@@ -90,11 +90,11 @@ class ThreadTokenCounter:
         litellm_model: str = "",
         encoding_name: Optional[str] = None,
     ):
-        """初始化 token 计数器。
+        """初始化 token 計數器。
 
-        :param litellm_model: 与 LiteLLM 路由一致的模型名（建议完整形如 ``provider/model``）。
+        :param litellm_model: 與 LiteLLM 路由一致的模型名（建議完整形如 ``provider/model``）。
         :type litellm_model: str
-        :param encoding_name: 可选的 tiktoken 编码名；不提供则根据模型 id 推断。
+        :param encoding_name: 可選的 tiktoken 編碼名；不提供則根據模型 id 推斷。
         :type encoding_name: str | None
         """
         self.litellm_model = (litellm_model or "").strip()
@@ -119,11 +119,11 @@ class ThreadTokenCounter:
         return max(1, len(text) // 4)
 
     def count_text(self, text: str) -> int:
-        """估算一段文本的 token 数。
+        """估算一段文字的 token 數。
 
-        :param text: 待计数文本。
+        :param text: 待計數文字。
         :type text: str
-        :return: 估算 token 数（>= 0）。
+        :return: 估算 token 數（>= 0）。
         :rtype: int
         """
         if not text:
@@ -134,11 +134,11 @@ class ThreadTokenCounter:
         return max(floor, int(len(text) / self._approx_chars_per_token))
 
     def count_message(self, m: dict[str, str]) -> int:
-        """估算单条 chat message 的 token 数。
+        """估算單條 chat message 的 token 數。
 
         :param m: message，包含 ``role`` 和 ``content``。
         :type m: dict[str, str]
-        :return: 估算 token 数。
+        :return: 估算 token 數。
         :rtype: int
         """
         role = str(m.get("role", "user") or "user")
@@ -153,11 +153,11 @@ class ThreadTokenCounter:
         return n
 
     def count_messages(self, messages: list[dict[str, str]]) -> int:
-        """估算一组 messages 的 token 数。
+        """估算一組 messages 的 token 數。
 
         :param messages: messages 列表。
         :type messages: list[dict[str, str]]
-        :return: 估算 token 数。
+        :return: 估算 token 數。
         :rtype: int
         """
         if self.litellm_model:
@@ -188,7 +188,7 @@ class ThreadTokenCounter:
 
 
 def estimate_messages_tokens_approx(messages: list[dict[str, str]]) -> int:
-    """无 tiktoken/LiteLLM 之外的粗算 token 数（用于最后兜底）。"""
+    """無 tiktoken/LiteLLM 之外的粗算 token 數（用於最後兜底）。"""
     total = 0
     for m in messages:
         c = m.get("content", "") or ""
@@ -199,12 +199,12 @@ def estimate_messages_tokens_approx(messages: list[dict[str, str]]) -> int:
 
 
 def default_tiktoken_encoding_for_model(model: str | None) -> str:
-    """为给定模型选择默认 tiktoken 编码名（用于测试与本地回退）。
+    """為給定模型選擇預設 tiktoken 編碼名（用於測試與本地回退）。
 
-    :param model: LiteLLM 模型名（可为空）。
-    :returns: tiktoken encoding 名称。
+    :param model: LiteLLM 模型名（可為空）。
+    :returns: tiktoken encoding 名稱。
     """
-    _ = model  # 当前实现统一使用 cl100k_base
+    _ = model  # 當前實現統一使用 cl100k_base
     return "cl100k_base"
 
 
@@ -213,15 +213,15 @@ def get_context_utilization(
     context_window: int,
     token_counter: Optional[ThreadTokenCounter] = None,
 ) -> float:
-    """将 messages 的 token 估计为上下文利用率。
+    """將 messages 的 token 估計為上下文利用率。
 
     :param messages: messages 列表。
     :type messages: list[dict[str, str]]
-    :param context_window: 上下文窗口大小（tokens）。
+    :param context_window: 上下文視窗大小（tokens）。
     :type context_window: int
-    :param token_counter: 可选的 token 计数器。
+    :param token_counter: 可選的 token 計數器。
     :type token_counter: ThreadTokenCounter | None
-    :return: 利用率，范围 ``[0.0, 1.0]``。
+    :return: 利用率，範圍 ``[0.0, 1.0]``。
     :rtype: float
     """
     if context_window <= 0:
@@ -241,19 +241,19 @@ def should_compact(
     auto_ratio: float = 0.85,
     token_counter: Optional[ThreadTokenCounter] = None,
 ) -> tuple[bool, float, str]:
-    """判断是否需要进行 thread 压缩。
+    """判斷是否需要進行 thread 壓縮。
 
     :param messages: messages 列表。
     :type messages: list[dict[str, str]]
-    :param context_window: 上下文窗口大小（tokens）。
+    :param context_window: 上下文視窗大小（tokens）。
     :type context_window: int
-    :param warning_ratio: 利用率 >= 该值时返回 ``need_compact=False`` 且 status 为 ``warning``。
+    :param warning_ratio: 利用率 >= 該值時返回 ``need_compact=False`` 且 status 為 ``warning``。
     :type warning_ratio: float
-    :param trigger_ratio: 利用率 >= 该值时返回 ``need_compact=True``。
+    :param trigger_ratio: 利用率 >= 該值時返回 ``need_compact=True``。
     :type trigger_ratio: float
-    :param auto_ratio: 利用率 >= 该值时返回 ``need_compact=True`` 且 status 为 ``auto_compact``。
+    :param auto_ratio: 利用率 >= 該值時返回 ``need_compact=True`` 且 status 為 ``auto_compact``。
     :type auto_ratio: float
-    :param token_counter: 可选 token 计数器。
+    :param token_counter: 可選 token 計數器。
     :type token_counter: ThreadTokenCounter | None
     :return: ``(need_compact, utilization, status)``。
     :rtype: tuple[bool, float, str]
@@ -333,13 +333,13 @@ def _dedupe_adjacent_tool_results(
 
 
 def _drop_lowest_priority_one(old: list[dict[str, str]]) -> bool:
-    """删除优先级最低的一条消息（原地修改）。
+    """刪除優先順序最低的一條訊息（原地修改）。
 
-    避免每次全量扫描：预先计算所有优先级，找到最小值后删除。
+    避免每次全量掃描：預先計算所有優先順序，找到最小值後刪除。
     """
     if len(old) <= _MIN_OLD_SEGMENTS:
         return False
-    # 一次遍历找到最小优先级索引
+    # 一次遍歷找到最小優先順序索引
     worst_i = 0
     worst_score = _message_priority(old[0], 0, len(old))
     for i in range(1, len(old)):
@@ -540,9 +540,9 @@ class CompactTelemetry:
 
 
 class StructuredSummary(BaseModel):
-    """结构化摘要（Pydantic 模型）。
+    """結構化摘要（Pydantic 模型）。
 
-    用于验证 LLM 返回的摘要数据，确保字段类型正确。
+    用於驗證 LLM 返回的摘要資料，確保欄位型別正確。
     """
 
     primary_goal: str = ""
@@ -560,21 +560,21 @@ class StructuredSummary(BaseModel):
     @field_validator("completed_actions", "pending_actions", "blockers")
     @classmethod
     def limit_list_size(cls, v: list[str]) -> list[str]:
-        """限制列表最大 10 条。"""
+        """限制列表最大 10 條。"""
         return v[:10] if len(v) > 10 else v
 
     @field_validator("errors_encountered")
     @classmethod
     def limit_errors_size(cls, v: list[dict[str, str]]) -> list[dict[str, str]]:
-        """限制错误列表最大 5 条。"""
+        """限制錯誤列表最大 5 條。"""
         return v[:5] if len(v) > 5 else v
 
     def to_prompt_content(self) -> str:
-        """将结构化摘要转为可注入上下文的文本。
+        """將結構化摘要轉為可注入上下文的文字。
 
-        若摘要里没有可用字段，返回空字符串。
+        若摘要裡沒有可用欄位，返回空字串。
 
-        :return: 可注入文本（可能为空）。
+        :return: 可注入文字（可能為空）。
         :rtype: str
         """
         lines = []
@@ -609,13 +609,13 @@ def structured_summary_from_parsed(
     parsed: dict[str, Any],
     workspace_version: int,
 ) -> StructuredSummary:
-    """从已解析的 JSON 构造结构化摘要对象。
+    """從已解析的 JSON 構造結構化摘要物件。
 
-    :param parsed: 结构化摘要 JSON 对象。
+    :param parsed: 結構化摘要 JSON 物件。
     :type parsed: dict[str, Any]
-    :param workspace_version: workspace 状态版本。
+    :param workspace_version: workspace 狀態版本。
     :type workspace_version: int
-    :return: 构造完成的 :class:`StructuredSummary`。
+    :return: 構造完成的 :class:`StructuredSummary`。
     :rtype: StructuredSummary
     """
     try:
@@ -636,15 +636,15 @@ def structured_summary_from_parsed(
 
 
 class AgentMemory:
-    """持久化记忆（``workspace/AGENT_MEMORY.md``）。
+    """持久化記憶（``workspace/AGENT_MEMORY.md``）。
 
-    该记忆以 YAML frontmatter 存储，用于跨会话保存关键决策、错误与当前任务等信息。
+    該記憶以 YAML frontmatter 儲存，用於跨會話儲存關鍵決策、錯誤與當前任務等資訊。
     """
 
     def __init__(self, workspace_path: Path):
         """初始化 AgentMemory。
 
-        :param workspace_path: agent workspace 根目录路径。
+        :param workspace_path: agent workspace 根目錄路徑。
         :type workspace_path: pathlib.Path
         """
         self.path = workspace_path / "AGENT_MEMORY.md"
@@ -711,9 +711,9 @@ class AgentMemory:
         self._save()
 
     def to_prompt_context(self) -> str:
-        """将记忆转为可注入上下文的文本。
+        """將記憶轉為可注入上下文的文字。
 
-        :return: 可注入文本（若没有内容则返回空字符串）。
+        :return: 可注入文字（若沒有內容則返回空字串）。
         :rtype: str
         """
         lines = []
@@ -736,7 +736,7 @@ class AgentMemory:
         return "\n".join(lines) if lines else ""
 
     def clear(self) -> None:
-        """清空当前记忆并写回磁盘。"""
+        """清空當前記憶並寫回磁碟。"""
         self._data = {
             "goals": [],
             "decisions": [],
@@ -749,11 +749,11 @@ class AgentMemory:
 
 
 def load_rolling_summary_from_workspace(read_json: Callable[[str, Any], Any]) -> str:
-    """从 workspace 读取滚动摘要。
+    """從 workspace 讀取滾動摘要。
 
-    :param read_json: workspace 的 JSON 读取函数签名（`read_json(path, default)`）。
+    :param read_json: workspace 的 JSON 讀取函式簽名（`read_json(path, default)`）。
     :type read_json: Callable[[str, Any], Any]
-    :return: 当前滚动摘要字符串（可能为空）。
+    :return: 當前滾動摘要字串（可能為空）。
     :rtype: str
     """
     raw = read_json(".runtime/logs/thread_compact_state.json", {})
@@ -769,15 +769,15 @@ def save_thread_compact_state(
     tier: str,
     compact_count: int,
 ) -> None:
-    """将压缩状态写回 workspace（thread_compact_state.json）。
+    """將壓縮狀態寫回 workspace（thread_compact_state.json）。
 
-    :param workspace_write: workspace 写入函数签名（`workspace_write(path, content)`）。
+    :param workspace_write: workspace 寫入函式簽名（`workspace_write(path, content)`）。
     :type workspace_write: Callable[[str, str], str]
-    :param rolling_summary: 更新后的滚动摘要。
+    :param rolling_summary: 更新後的滾動摘要。
     :type rolling_summary: str
-    :param tier: 压缩层级（例如 ``medium``/``heavy``）。
+    :param tier: 壓縮層級（例如 ``medium``/``heavy``）。
     :type tier: str
-    :param compact_count: 已执行压缩次数累计值。
+    :param compact_count: 已執行壓縮次數累計值。
     :type compact_count: int
     :return: None
     :rtype: None
@@ -809,15 +809,15 @@ def save_thread_history_before_compact(
     thread_messages: list[dict[str, str]],
     compact_count: int,
 ) -> str:
-    """压缩前保存完整对话历史到文件。
+    """壓縮前儲存完整對話歷史到檔案。
 
-    借鉴 Cursor 的做法：压缩时将完整对话历史保存为文件，
-    Agent 可通过搜索找回关键事实，弥补有损压缩带来的信息丢失。
+    借鑑 Cursor 的做法：壓縮時將完整對話歷史儲存為檔案，
+    Agent 可透過搜尋找回關鍵事實，彌補有失真壓縮帶來的資訊丟失。
 
-    :param workspace_write: workspace 写入函数（签名：workspace_write(path, content) -> str）。
-    :param thread_messages: 当前完整的 thread 消息列表。
-    :param compact_count: 当前压缩次数（用于文件命名）。
-    :return: 保存的历史文件路径。
+    :param workspace_write: workspace 寫入函式（簽名：workspace_write(path, content) -> str）。
+    :param thread_messages: 當前完整的 thread 訊息列表。
+    :param compact_count: 當前壓縮次數（用於檔案命名）。
+    :return: 儲存的歷史檔案路徑。
     """
     history_path = f".runtime/logs/thread_history/compact_{compact_count:04d}.jsonl"
     lines = []
@@ -848,42 +848,42 @@ async def run_thread_compaction(
     memory_prompt: str,
     workspace_write: Optional[Callable[[str, str], str]] = None,
 ) -> ThreadCompactResult:
-    """执行 thread 分层压缩并返回紧凑后的 messages。
+    """執行 thread 分層壓縮並返回緊湊後的 messages。
 
-    该函数不直接读写 workspace：调用方负责传入 ``rolling_thread_summary`` 与 ``collect_key_state``，并根据需要把结果持久化。
+    該函式不直接讀寫 workspace：呼叫方負責傳入 ``rolling_thread_summary`` 與 ``collect_key_state``，並根據需要把結果持久化。
 
-    :param thread_messages: 当前 thread messages（role/content 结构）。
+    :param thread_messages: 當前 thread messages（role/content 結構）。
     :type thread_messages: list[dict[str, str]]
-    :param agent_id: Agent ID，用于 telemetry/log。
+    :param agent_id: Agent ID，用於 telemetry/log。
     :type agent_id: int
     :param cfg: 上下文配置。
     :type cfg: ContextConfig
-    :param litellm_model: LiteLLM 路由模型名（用于 token_counter）。
+    :param litellm_model: LiteLLM 路由模型名（用於 token_counter）。
     :type litellm_model: str
-    :param tiktoken_encoding: 可选 tiktoken 编码名覆盖。
+    :param tiktoken_encoding: 可選 tiktoken 編碼名覆蓋。
     :type tiktoken_encoding: str | None
-    :param focus_instruction: 可选定向压缩焦点（为空时自动推断）。
+    :param focus_instruction: 可選定向壓縮焦點（為空時自動推斷）。
     :type focus_instruction: str
-    :param active_skill_scope: 当前激活 skill 的 scope（用于推断摘要重点）。
+    :param active_skill_scope: 當前啟用 skill 的 scope（用於推斷摘要重點）。
     :type active_skill_scope: str
-    :param rolling_thread_summary: 历史滚动摘要文本。
+    :param rolling_thread_summary: 歷史滾動摘要文字。
     :type rolling_thread_summary: str
-    :param workspace_state_version: workspace 状态版本号，写入结构化摘要。
+    :param workspace_state_version: workspace 狀態版本號，寫入結構化摘要。
     :type workspace_state_version: int
-    :param compact_count: 压缩累计次数（用于 KEY_STATE 记录）。
+    :param compact_count: 壓縮累計次數（用於 KEY_STATE 記錄）。
     :type compact_count: int
-    :param run_summary_llm: LLM 执行函数（入参为 summary prompt messages）。
+    :param run_summary_llm: LLM 執行函式（入參為 summary prompt messages）。
     :type run_summary_llm: Callable[[list[dict[str, str]]], Awaitable[Any]]
-    :param collect_key_state: 收集 KEY_STATE_JSON 所需文件内容的回调。
+    :param collect_key_state: 收集 KEY_STATE_JSON 所需檔案內容的回撥。
     :type collect_key_state: Callable[[], dict[str, Any]]
-    :param memory_prompt: 持久化记忆注入用文本（可为空）。
+    :param memory_prompt: 持久化記憶注入用文字（可為空）。
     :type memory_prompt: str
-    :param workspace_write: 可选的 workspace 写入函数，用于保存压缩前的对话历史。
+    :param workspace_write: 可選的 workspace 寫入函式，用於儲存壓縮前的對話歷史。
     :type workspace_write: Callable[[str, str], str] | None
-    :return: 压缩后的结果对象。
+    :return: 壓縮後的結果物件。
     :rtype: ThreadCompactResult
     """
-    # 压缩前保存完整对话历史（如果提供了 workspace_write）
+    # 壓縮前儲存完整對話歷史（如果提供了 workspace_write）
     if workspace_write is not None and thread_messages:
         save_thread_history_before_compact(
             workspace_write, thread_messages, compact_count

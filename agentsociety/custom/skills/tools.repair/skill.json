@@ -21,7 +21,7 @@
   ],
   "status": "repairing",
   "emotion": "focused",
-  "speech": "我先找工具检查问题，再决定怎么修。",
+  "speech": "我先找工具檢查問題，再決定怎麼修。",
   "memory_template": "Used tools.repair: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

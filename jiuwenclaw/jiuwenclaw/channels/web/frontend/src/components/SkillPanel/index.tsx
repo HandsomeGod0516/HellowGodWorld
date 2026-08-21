@@ -1,5 +1,5 @@
 /**
- * SkillPanel 组件
+ * SkillPanel 元件
  *
  * Skills 管理面板
  */
@@ -13,7 +13,7 @@ import { TeamSkillsHubModal } from "../../features/TeamSkillsHubModal";
 import { SkillEvolutionModal } from "../../features/SkillEvolutionModal";
 import { normalizeSkillNetUrl } from "../../utils/skillNetUrl";
 
-/** 刷新会 git pull marketplace，略放宽；普通进页单次 RPC 一般很快。 */
+/** 重新整理會 git pull marketplace，略放寬；普通進頁單次 RPC 一般很快。 */
 const SKILLS_FETCH_TIMEOUT_REFRESH_MS = 60_000;
 const SKILLS_FETCH_TIMEOUT_NORMAL_MS = 30_000;
 
@@ -26,13 +26,13 @@ type SkillItem = {
   tags: string[];
   allowed_tools: string[];
   marketplace?: string;
-  /** SkillNet 等安装来源 URL，与在线搜索 skill_url 对照「已安装」 */
+  /** SkillNet 等安裝來源 URL，與線上搜尋 skill_url 對照「已安裝」 */
   origin?: string;
-  /** 是否为内置技能（不允许删除） */
+  /** 是否為內建技能（不允許刪除） */
   is_builtin?: boolean;
-  /** 是否为内置技能的来源（源码中存在内置版本） */
+  /** 是否為內建技能的來源（原始碼中存在內建版本） */
   is_builtin_source?: boolean;
-  /** 本地技能目录是否存在 evolutions.json */
+  /** 本地技能目錄是否存在 evolutions.json */
   has_evolutions?: boolean;
 };
 
@@ -73,7 +73,7 @@ function getSourceLabel(source: string, t: (key: string) => string, isBuiltinSou
   return source || t('skills.source.unknown');
 }
 
-/** 与后端一致：tags/allowed_tools 可能是逗号分隔字符串，统一为 string[] */
+/** 與後端一致：tags/allowed_tools 可能是逗號分隔字串，統一為 string[] */
 function coerceStringList(val: unknown): string[] {
   if (val == null) return [];
   if (Array.isArray(val)) {
@@ -140,7 +140,7 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
     [installedSkillMap]
   );
 
-  /** 已安装技能的来源 URL（规范化），与 SkillNet 搜索结果的 skill_url 匹配 */
+  /** 已安裝技能的來源 URL（規範化），與 SkillNet 搜尋結果的 skill_url 匹配 */
   const installedSkillOrigins = useMemo(() => {
     const set = new Set<string>();
     for (const s of skills) {
@@ -275,7 +275,7 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
         ? skills.find((skill) => skill.name === skillName)
         : undefined;
 
-      // 内置技能的安装：自动使用 builtin marketplace，不需要用户输入
+      // 內建技能的安裝：自動使用 builtin marketplace，不需要使用者輸入
       if (targetSkill?.is_builtin && targetSkill?.is_builtin_source) {
         const spec = `${skillName}@builtin`;
         setActionTarget(spec);
@@ -307,7 +307,7 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
         return;
       }
 
-      // 其他技能的安装：提示用户输入 spec
+      // 其他技能的安裝：提示使用者輸入 spec
       const marketplaceNames = marketplaces.map((m) => m.name).join(", ");
       const preferredMarketplace =
         targetSkill?.marketplace ||
@@ -436,8 +436,8 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
   const renderActionButton = (skill: SkillItem) => {
     const plugin = installedSkillMap.get(skill.name);
 
-    // 未安装到用户目录的内置技能（来自内置目录，需要安装）
-    // 判断条件：is_builtin_source 为 true 且不在已安装列表中
+    // 未安裝到使用者目錄的內建技能（來自內建目錄，需要安裝）
+    // 判斷條件：is_builtin_source 為 true 且不在已安裝列表中
     const isInstalled = installedSkillMap.has(skill.name) || skill.source === "local";
     if (skill.is_builtin_source && !isInstalled) {
       return (
@@ -453,7 +453,7 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
       );
     }
 
-    // 用户本地导入的技能（source="local"）允许删除
+    // 使用者本地匯入的技能（source="local"）允許刪除
     if (skill.source === "local") {
       const isLoading = actionTarget === skill.name;
       return (
@@ -474,7 +474,7 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
       );
     }
 
-    // Marketplace 安装的技能
+    // Marketplace 安裝的技能
     if (plugin) {
       const pluginName = plugin.plugin_name || skill.name;
       const isLoading = actionTarget === pluginName;
@@ -496,7 +496,7 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
       );
     }
 
-    // Marketplace 中未安装的技能显示安装按钮
+    // Marketplace 中未安裝的技能顯示安裝按鈕
     if (skill.source !== "project") {
       const isLoading = Boolean(actionTarget?.startsWith(`${skill.name}@`));
       return (
@@ -517,9 +517,9 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
       );
     }
 
-    // 已安装到用户目录的内置技能（从内置目录复制过来的）
-    // 这种情况下 source 可能是 "project"，但 is_builtin_source 为 true
-    // 只对已安装的内置技能显示卸载按钮
+    // 已安裝到使用者目錄的內建技能（從內建目錄複製過來的）
+    // 這種情況下 source 可能是 "project"，但 is_builtin_source 為 true
+    // 只對已安裝的內建技能顯示解除安裝按鈕
     if (skill.is_builtin_source && isInstalled) {
       const isLoading = actionTarget === skill.name;
       return (
@@ -540,7 +540,7 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
       );
     }
 
-    // 默认显示内置（兜底）
+    // 預設顯示內建（兜底）
     return (
       <button
         className="px-3 py-1.5 rounded-md text-sm bg-secondary text-text-muted cursor-not-allowed whitespace-nowrap"
@@ -555,7 +555,7 @@ export function SkillPanel({ sessionId, onNavigateToConfig }: SkillPanelProps) {
     if (installedSkillMap.has(skill.name)) return t('skills.status.installed');
     if (skill.source === "local") return t('skills.status.installed');
     if (skill.is_builtin) {
-      // 未安装的内置技能
+      // 未安裝的內建技能
       return t('skills.status.notInstalled');
     }
     if (skill.source !== "project") return t('skills.status.notInstalled');

@@ -119,9 +119,9 @@ async def fetch_wechat_article(
         id_=effective_id,
         text=text,
         source_url=url,
-        title=title or "(无标题)",
+        title=title or "(無標題)",
         source_type="wechat_article",
-        metadata={"source_url": url, "title": title or "(无标题)", "source_type": "wechat_article"},
+        metadata={"source_url": url, "title": title or "(無標題)", "source_type": "wechat_article"},
     )
-    logger.info("Parsed WeChat article: url=%s title=%s", url, title or "(无标题)")
+    logger.info("Parsed WeChat article: url=%s title=%s", url, title or "(無標題)")
     return [page]

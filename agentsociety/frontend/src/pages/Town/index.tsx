@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Badge, Button, Card, Empty, Input, Layout, Space, Tag, Typography, message } from 'antd';
-import { LoginOutlined, LogoutOutlined, PlusOutlined, SendOutlined } from '@ant-design/icons';
+import { Badge, Button, Card, Dropdown, Empty, Input, Layout, Space, Tag, Typography, message } from 'antd';
+import type { InputRef } from 'antd';
+import {
+    LoginOutlined,
+    LogoutOutlined,
+    NotificationOutlined,
+    PlusOutlined,
+    SendOutlined,
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import LanguageToggle from '../../components/LanguageToggle';
 import AgentForm, { type AgentFormValues } from './AgentForm';
@@ -8,6 +15,7 @@ import AgentPanel from './AgentPanel';
 import {
     createAgent,
     deleteAgent,
+    dispatchAllAgents,
     fetchDefaults,
     fetchRooms,
     fetchSprites,
@@ -33,6 +41,19 @@ const KEY_TO_FACING: Record<string, Facing> = {
     arrowright: 'right',
 };
 
+/**
+ * 中文/注音等輸入法用 Enter 確認候選字時也會觸發 onPressEnter。
+ * Firefox 這種 Enter 的 keydown 上 isComposing 還是 true，能直接擋掉；
+ * 但 Chrome 會先送 compositionend 才送這次 keydown，屆時 isComposing 已經是 false，
+ * 所以還要靠 compositionend 之後一小段時間內的 Enter 一起過濾掉。
+ */
+const IME_COMMIT_GUARD_MS = 100;
+
+const isComposingKeyEvent = (event: { nativeEvent: KeyboardEvent }): boolean => {
+    const native = event.nativeEvent;
+    return native.isComposing || native.keyCode === 229;
+};
+
 const isTypingTarget = (): boolean => {
     const active = document.activeElement;
     if (!active) {
@@ -52,6 +73,10 @@ const describeEvent = (event: TownEvent, t: ReturnType<typeof useTranslation>['t
             return t('town.events.leave', { name: event.actor_name });
         case 'arrive':
             return t('town.events.arrive', { name: event.actor_name, room: event.room_id ?? '' });
+        case 'announce':
+            return t('town.events.announce', { text: event.text ?? '' });
+        case 'starve':
+            return t('town.events.starve', { name: event.actor_name });
         default:
             return `${event.actor_name} · ${event.kind}`;
     }
@@ -64,6 +89,18 @@ const TownPage = () => {
 
     const canvasRef = useRef<HTMLDivElement>(null);
     const gameRef = useRef<ReturnType<typeof createTownGame> | undefined>(undefined);
+    const chatInputRef = useRef<InputRef>(null);
+    const compositionEndedAtRef = useRef(0);
+
+    const handleCompositionEnd = useCallback(() => {
+        compositionEndedAtRef.current = Date.now();
+    }, []);
+
+    const shouldSkipEnter = useCallback(
+        (event: { nativeEvent: KeyboardEvent }) =>
+            isComposingKeyEvent(event) || Date.now() - compositionEndedAtRef.current < IME_COMMIT_GUARD_MS,
+        [],
+    );
 
     const [rooms, setRooms] = useState<RoomOption[]>([]);
     const [sprites, setSprites] = useState<string[]>([]);
@@ -85,7 +122,7 @@ const TownPage = () => {
             .catch((error: Error) => messageApi.error(error.message));
     }, [messageApi]);
 
-    // 地图与角色图集都就位后再建 Phaser，只建一次。
+    // 地圖與角色圖集都就位後再建 Phaser，只建一次。
     useEffect(() => {
         const parent = canvasRef.current;
         if (!socket.worldMap || sprites.length === 0 || !parent || gameRef.current) {
@@ -111,7 +148,7 @@ const TownPage = () => {
         gameRef.current?.scene.setFollow(socket.humanId);
     }, [socket.humanId]);
 
-    // WASD / 方向键直接驱动自己的角色。
+    // WASD / 方向鍵直接驅動自己的角色。
     const { humanId, send } = socket;
     useEffect(() => {
         if (!humanId) {
@@ -179,6 +216,7 @@ const TownPage = () => {
                         persona: values.persona,
                         llm,
                         decision_interval_s: values.decision_interval_s,
+                        behavior_hint: values.behavior_hint,
                     });
                     messageApi.success(t('town.messages.updated', { name: values.name }));
                 } else {
@@ -190,6 +228,7 @@ const TownPage = () => {
                         llm,
                         decision_interval_s: values.decision_interval_s,
                         enabled: true,
+                        behavior_hint: values.behavior_hint,
                     });
                     messageApi.success(t('town.messages.created', { name: values.name }));
                 }
@@ -241,6 +280,23 @@ const TownPage = () => {
         [messageApi],
     );
 
+    const handleDispatchAll = useCallback(
+        async (roomId: string) => {
+            const room = rooms.find((option) => option.id === roomId);
+            const roomName = room?.name ?? roomId;
+            try {
+                const result = await dispatchAllAgents({
+                    room_id: roomId,
+                    message: t('town.panel.dispatchMessage', { room: roomName }),
+                });
+                messageApi.success(t('town.messages.dispatched', { count: result.dispatched, room: roomName }));
+            } catch (error) {
+                messageApi.error((error as Error).message);
+            }
+        },
+        [rooms, messageApi, t],
+    );
+
     const sendChat = () => {
         const text = chatText.trim();
         if (!text || !socket.humanId) {
@@ -248,6 +304,8 @@ const TownPage = () => {
         }
         socket.send({ type: 'say', text });
         setChatText('');
+        // 送出後交回焦點給遊戲畫布，WASD 才能馬上繼續走動。
+        chatInputRef.current?.blur();
     };
 
     const humanCount = socket.actors.filter((actor) => actor.kind === 'human').length;
@@ -272,25 +330,9 @@ const TownPage = () => {
                         </Space>
                         <Space size="small" wrap>
                             {socket.humanId ? (
-                                <>
-                                    <Input
-                                        className="town-chat-input"
-                                        value={chatText}
-                                        placeholder={t('town.chatPlaceholder')}
-                                        maxLength={200}
-                                        onChange={(event) => setChatText(event.target.value)}
-                                        onPressEnter={sendChat}
-                                    />
-                                    <Button icon={<SendOutlined />} onClick={sendChat}>
-                                        {t('town.say')}
-                                    </Button>
-                                    <Button
-                                        icon={<LogoutOutlined />}
-                                        onClick={() => socket.send({ type: 'leave' })}
-                                    >
-                                        {t('town.leave')}
-                                    </Button>
-                                </>
+                                <Button icon={<LogoutOutlined />} onClick={socket.leave}>
+                                    {t('town.leave')}
+                                </Button>
                             ) : (
                                 <>
                                     <Input
@@ -299,9 +341,13 @@ const TownPage = () => {
                                         placeholder={t('town.namePlaceholder')}
                                         maxLength={40}
                                         onChange={(event) => setPlayerName(event.target.value)}
-                                        onPressEnter={() =>
-                                            socket.send({ type: 'join', name: playerName || t('town.guest') })
-                                        }
+                                        onCompositionEnd={handleCompositionEnd}
+                                        onPressEnter={(event) => {
+                                            if (shouldSkipEnter(event)) {
+                                                return;
+                                            }
+                                            socket.send({ type: 'join', name: playerName || t('town.guest') });
+                                        }}
                                     />
                                     <Button
                                         type="primary"
@@ -319,6 +365,37 @@ const TownPage = () => {
                     </div>
                     <div ref={canvasRef} className="town-canvas" />
                     {socket.humanId && <div className="town-hint">{t('town.wasdHint')}</div>}
+                    {socket.humanId && (
+                        <div className="town-chat-bar">
+                            <Input
+                                ref={chatInputRef}
+                                className="town-chat-input"
+                                value={chatText}
+                                placeholder={t('town.chatPlaceholder')}
+                                maxLength={200}
+                                onChange={(event) => setChatText(event.target.value)}
+                                onCompositionEnd={handleCompositionEnd}
+                                onPressEnter={(event) => {
+                                    if (shouldSkipEnter(event)) {
+                                        return;
+                                    }
+                                    sendChat();
+                                }}
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Escape') {
+                                        chatInputRef.current?.blur();
+                                    }
+                                }}
+                            />
+                            <Button
+                                className="town-chat-send"
+                                icon={<SendOutlined />}
+                                onClick={sendChat}
+                            >
+                                {t('town.say')}
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 <aside className="town-side">
@@ -326,17 +403,30 @@ const TownPage = () => {
                         size="small"
                         title={t('town.panel.title')}
                         extra={
-                            <Button
-                                type="primary"
-                                size="small"
-                                icon={<PlusOutlined />}
-                                onClick={() => {
-                                    setEditing(undefined);
-                                    setFormOpen(true);
-                                }}
-                            >
-                                {t('town.panel.add')}
-                            </Button>
+                            <Space size="small">
+                                <Dropdown
+                                    disabled={socket.agents.length === 0}
+                                    menu={{
+                                        items: rooms.map((room) => ({ key: room.id, label: room.name })),
+                                        onClick: ({ key }) => handleDispatchAll(key),
+                                    }}
+                                >
+                                    <Button size="small" icon={<NotificationOutlined />}>
+                                        {t('town.panel.dispatchAll')}
+                                    </Button>
+                                </Dropdown>
+                                <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={<PlusOutlined />}
+                                    onClick={() => {
+                                        setEditing(undefined);
+                                        setFormOpen(true);
+                                    }}
+                                >
+                                    {t('town.panel.add')}
+                                </Button>
+                            </Space>
                         }
                         className="town-card town-card-agents"
                     >

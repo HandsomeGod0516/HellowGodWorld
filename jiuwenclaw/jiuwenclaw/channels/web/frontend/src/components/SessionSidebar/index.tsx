@@ -1,7 +1,7 @@
 /**
- * SessionSidebar 组件
+ * SessionSidebar 元件
  *
- * 会话侧边栏，显示会话列表
+ * 會話側邊欄，顯示會話列表
  */
 
 import { useTranslation } from 'react-i18next';

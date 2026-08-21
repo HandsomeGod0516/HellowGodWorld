@@ -1,13 +1,13 @@
-"""工具决策模型。
+"""工具決策模型。
 
-定义 LLM 输出的工具决策结构。
+定義 LLM 輸出的工具決策結構。
 
 .. important::
-   这里不对 ``tool_name`` 做 ``Literal[...]`` 级别的强校验：LLM 偶发的拼写/变形会触发
-   Pydantic ValidationError，进而引发重试，浪费 token。
+   這裡不對 ``tool_name`` 做 ``Literal[...]`` 級別的強校驗：LLM 偶發的拼寫/變形會觸發
+   Pydantic ValidationError，進而引發重試，浪費 token。
 
-   - **结构校验**：交给 Pydantic（字段存在、类型正确、extra forbid）
-   - **语义校验**：在运行时执行（PersonAgent 工具循环）并返回可恢复的错误对象
+   - **結構校驗**：交給 Pydantic（欄位存在、型別正確、extra forbid）
+   - **語義校驗**：在執行時執行（PersonAgent 工具迴圈）並返回可恢復的錯誤物件
 """
 
 from typing import Any
@@ -34,14 +34,14 @@ VALID_TOOL_NAMES = (
 
 
 class ToolDecision(BaseModel):
-    """单轮工具决策输出模型。
+    """單輪工具決策輸出模型。
 
-    由 LLM 生成并通过 Pydantic 校验，作为工具循环的唯一执行输入。
+    由 LLM 生成並透過 Pydantic 校驗，作為工具迴圈的唯一執行輸入。
 
-    :ivar tool_name: 工具名称，必须是有效工具之一。
-    :ivar arguments: 工具参数字典。
-    :ivar done: 是否结束当前仿真步。
-    :ivar summary: 执行摘要。
+    :ivar tool_name: 工具名稱，必須是有效工具之一。
+    :ivar arguments: 工具引數字典。
+    :ivar done: 是否結束當前模擬步。
+    :ivar summary: 執行摘要。
     """
 
     model_config = ConfigDict(extra="forbid")

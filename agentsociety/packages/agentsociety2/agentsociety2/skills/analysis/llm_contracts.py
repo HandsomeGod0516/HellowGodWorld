@@ -1,16 +1,16 @@
 """
-分析模块与 LLM 交互的 **输出契约**（XML 片段与说明函数）。
+分析模組與 LLM 互動的 **輸出契約**（XML 片段與說明函式）。
 
-可组合的 **自然语言能力说明** 见 `instruction_md/`（`utils.get_analysis_skills`）；模块总览见 `README.md`。
+可組合的 **自然語言能力說明** 見 `instruction_md/`（`utils.get_analysis_skills`）；模組總覽見 `README.md`。
 """
 
-# 通用裁判 XML 格式（分析/策略/可视化/报告等判断）
+# 通用裁判 XML 格式（分析/策略/視覺化/報告等判斷）
 JUDGMENT_XML = (
     "<judgment><success>true</success><reason>...</reason>"
     "<should_retry>false</should_retry><retry_instruction>...</retry_instruction></judgment>"
 )
 
-# 报告生成 XML 格式（中英双语各一份 Markdown + HTML，图表路径与 assets 引用保持一致）
+# 報告生成 XML 格式（中英雙語各一份 Markdown + HTML，圖表路徑與 assets 引用保持一致）
 REPORT_XML = (
     "<report>"
     "<markdown_zh><![CDATA[Chinese Markdown]]></markdown_zh>"
@@ -20,7 +20,7 @@ REPORT_XML = (
     "</report>"
 )
 
-# 报告裁判 XML
+# 報告裁判 XML
 REPORT_JUDGMENT_XML = (
     "<judgment><success>true</success><reason>...</reason>"
     "<has_markdown>true</has_markdown><has_html>true</has_html>"
@@ -37,22 +37,22 @@ SUMMARY_XML = (
 
 
 def judgment_prompt(suffix: str = "") -> str:
-    """返回裁判类 prompt 的 XML 要求部分。"""
+    """返回裁判類 prompt 的 XML 要求部分。"""
     return f"Return only XML: {JUDGMENT_XML}{suffix}"
 
 
 def report_xml_instruction() -> str:
-    """返回报告生成的 XML 要求。"""
+    """返回報告生成的 XML 要求。"""
     return (
         f"**Must** return only XML: {REPORT_XML} "
-        "Chinese sections use professional 简体中文; English sections are full English. "
+        "Chinese sections use professional 簡體中文; English sections are full English. "
         "Both locales must embed the same charts using the same relative paths "
         '(e.g. `assets/file.png`).'
     )
 
 
 def report_judgment_prompt() -> str:
-    """返回报告裁判的 XML 要求。"""
+    """返回報告裁判的 XML 要求。"""
     return f"Return only XML: {REPORT_JUDGMENT_XML}"
 
 
@@ -62,7 +62,7 @@ def summary_xml_contract() -> str:
 
 
 def analysis_xml_contract() -> str:
-    """分析结果生成的 XML 约定。"""
+    """分析結果生成的 XML 約定。"""
     return """Return only XML:
 <analysis>
   <insights><item>...</item><item>...</item></insights>
@@ -73,7 +73,7 @@ def analysis_xml_contract() -> str:
 
 
 def strategy_xml_contract() -> str:
-    """分析策略生成的 XML 约定。"""
+    """分析策略生成的 XML 約定。"""
     return """Return only XML:
 <strategy>
   <analysis_strategy>...</analysis_strategy>
@@ -100,7 +100,7 @@ Not all tools are needed. Choose wisely based on data and analysis context."""
 
 
 def adjust_tools_xml_contract() -> str:
-    """是否继续执行工具的 XML 约定。"""
+    """是否繼續執行工具的 XML 約定。"""
     return (
         "Return only XML: "
         "<adjust><assessment>...</assessment><tools_to_use><tool>...</tool></tools_to_use></adjust>. "
@@ -109,7 +109,7 @@ def adjust_tools_xml_contract() -> str:
 
 
 def visualization_xml_contract() -> str:
-    """可视化方案生成的 XML 约定。"""
+    """視覺化方案生成的 XML 約定。"""
     return (
         "Return only XML: "
         "<visualizations><viz><use_tool>true</use_tool><tool_name>code_executor</tool_name>"

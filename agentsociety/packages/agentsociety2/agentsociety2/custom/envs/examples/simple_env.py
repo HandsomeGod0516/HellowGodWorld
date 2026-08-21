@@ -1,7 +1,7 @@
 """
-简单环境模块示例
+簡單環境模組示例
 
-展示如何创建一个基础的环境模块。
+展示如何建立一個基礎的環境模組。
 """
 
 from agentsociety2.env import EnvBase, tool
@@ -10,16 +10,16 @@ from pydantic import BaseModel, Field
 
 
 class SimpleEnvConfig(BaseModel):
-    """简单环境配置"""
-    initial_value: int = Field(default=0, description="初始计数值")
+    """簡單環境配置"""
+    initial_value: int = Field(default=0, description="初始計數值")
     max_value: int = Field(default=100, description="最大值")
 
 
 class SimpleEnv(EnvBase):
     """
-    简单的计数器环境
+    簡單的計數器環境
 
-    这是一个基础的环境模块示例，提供简单的计数器功能。
+    這是一個基礎的環境模組示例，提供簡單的計數器功能。
     """
 
     def __init__(self, config: SimpleEnvConfig | dict = None):
@@ -34,21 +34,21 @@ class SimpleEnv(EnvBase):
     @classmethod
     def mcp_description(cls) -> str:
         """
-        返回环境模块的描述信息
+        返回環境模組的描述資訊
         """
-        return """SimpleEnv: 简单的计数器环境示例
+        return """SimpleEnv: 簡單的計數器環境示例
 
-这是一个基础的环境模块，提供简单的计数器功能。
+這是一個基礎的環境模組，提供簡單的計數器功能。
 
-**配置参数:**
-- initial_value (int): 初始计数值，默认 0
-- max_value (int): 最大值，默认 100
+**配置引數:**
+- initial_value (int): 初始計數值，預設 0
+- max_value (int): 最大值，預設 100
 
 **可用工具:**
-- get_counter(agent_id): 获取当前计数值（观察）
-- increment(agent_id, amount): 增加计数（操作）
-- decrement(agent_id, amount): 减少计数（操作）
-- reset_counter(agent_id): 重置计数（操作）
+- get_counter(agent_id): 獲取當前計數值（觀察）
+- increment(agent_id, amount): 增加計數（操作）
+- decrement(agent_id, amount): 減少計數（操作）
+- reset_counter(agent_id): 重置計數（操作）
 
 **初始化配置示例:**
 ```json
@@ -62,13 +62,13 @@ class SimpleEnv(EnvBase):
     @tool(readonly=True, kind="observe")
     async def get_counter(self, agent_id: int) -> dict:
         """
-        获取当前计数值
+        獲取當前計數值
 
         Args:
             agent_id: Agent ID
 
         Returns:
-            包含当前计数值的字典
+            包含當前計數值的字典
         """
         return {
             "counter": self._counter,
@@ -79,14 +79,14 @@ class SimpleEnv(EnvBase):
     @tool(readonly=False)
     async def increment(self, agent_id: int, amount: int = 1) -> dict:
         """
-        增加计数值
+        增加計數值
 
         Args:
             agent_id: Agent ID
-            amount: 增加的数量，默认 1
+            amount: 增加的數量，預設 1
 
         Returns:
-            操作结果
+            操作結果
         """
         old_value = self._counter
         self._counter = min(self._counter + amount, self._config.max_value)
@@ -102,14 +102,14 @@ class SimpleEnv(EnvBase):
     @tool(readonly=False)
     async def decrement(self, agent_id: int, amount: int = 1) -> dict:
         """
-        减少计数值
+        減少計數值
 
         Args:
             agent_id: Agent ID
-            amount: 减少的数量，默认 1
+            amount: 減少的數量，預設 1
 
         Returns:
-            操作结果
+            操作結果
         """
         old_value = self._counter
         self._counter = max(self._counter - amount, 0)
@@ -125,13 +125,13 @@ class SimpleEnv(EnvBase):
     @tool(readonly=False)
     async def reset_counter(self, agent_id: int) -> dict:
         """
-        重置计数值为初始值
+        重置計數值為初始值
 
         Args:
             agent_id: Agent ID
 
         Returns:
-            操作结果
+            操作結果
         """
         old_value = self._counter
         self._counter = self._config.initial_value
@@ -145,12 +145,12 @@ class SimpleEnv(EnvBase):
 
     async def step(self, tick: int, t: datetime):
         """
-        环境步骤
+        環境步驟
 
         Args:
-            tick: 时间刻度
-            t: 当前时间
+            tick: 時間刻度
+            t: 當前時間
         """
         self.t = t
-        # 可以在这里添加定期事件
-        # 例如：每段时间自动增加一些计数
+        # 可以在這裡新增定期事件
+        # 例如：每段時間自動增加一些計數

@@ -76,7 +76,7 @@ export function buildWelcomeLines(
 ): string[] {
   const artWidth = Math.max(...ART_TITLE_RAW.map((line) => visibleWidth(line)));
   const hint = connectionHint(connectionStatus);
-  const rgTip = hasRipgrep() ? null : "Tips: 未检测到 ripgrep (rg)，建议安装以优化文件搜索效果。";
+  const rgTip = hasRipgrep() ? null : "Tips: 未檢測到 ripgrep (rg)，建議安裝以最佳化檔案搜尋效果。";
   const version = modelInfo.version || "0.1.0";
   const provider = modelInfo.provider || "";
   const model = modelInfo.model || "";
@@ -103,7 +103,7 @@ export function buildWelcomeLines(
     const topRight = topPadding - topLeft;
     const cmdTop = chalk.hex("#FFFFFF")("┌") + "─".repeat(topLeft) + titleWithBorder + "─".repeat(topRight) + chalk.hex("#FFFFFF")("┐");
     const cmdBottom = chalk.hex("#FFFFFF")("└") + "─".repeat(cmdBoxWidth - 2) + chalk.hex("#FFFFFF")("┘");
-    const commands = " /help - 查看帮助    /mode - 切换模式    /skills - 可用技能    /exit - 退出  ";
+    const commands = " /help - 檢視幫助    /mode - 切換模式    /skills - 可用技能    /exit - 退出  ";
     return [
       ...coloredArt,
       "",
@@ -128,8 +128,8 @@ export function buildWelcomeLines(
     padToWidth(chalk.hex("#FFFFFF")("┌────────────────────────────────────────────────────────────┐"), width),
     padToWidth(chalk.hex("#FFFFFF")("│                    ") + chalk.hex("#FFFFFF")(" 快捷命令 ") + chalk.hex("#FFFFFF")("                    │"), width),
     padToWidth(chalk.hex("#FFFFFF")("├────────────────────────────────────────────────────────────┤"), width),
-    padToWidth(chalk.hex("#FFFFFF")("│  ") + chalk.hex("#FFFFFF")("/help - 查看帮助                                            ") + chalk.hex("#FFFFFF")("│"), width),
-    padToWidth(chalk.hex("#FFFFFF")("│  ") + chalk.hex("#FFFFFF")("/mode - 切换模式                                           ") + chalk.hex("#FFFFFF")("│"), width),
+    padToWidth(chalk.hex("#FFFFFF")("│  ") + chalk.hex("#FFFFFF")("/help - 檢視幫助                                            ") + chalk.hex("#FFFFFF")("│"), width),
+    padToWidth(chalk.hex("#FFFFFF")("│  ") + chalk.hex("#FFFFFF")("/mode - 切換模式                                           ") + chalk.hex("#FFFFFF")("│"), width),
     padToWidth(chalk.hex("#FFFFFF")("│  ") + chalk.hex("#FFFFFF")("/skills - 可用技能                                         ") + chalk.hex("#FFFFFF")("│"), width),
     padToWidth(chalk.hex("#FFFFFF")("│  ") + chalk.hex("#FFFFFF")("/exit - 退出                                               ") + chalk.hex("#FFFFFF")("│"), width),
     padToWidth(chalk.hex("#FFFFFF")("└────────────────────────────────────────────────────────────┘"), width),

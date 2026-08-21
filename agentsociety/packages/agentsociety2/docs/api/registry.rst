@@ -1,7 +1,7 @@
-Registry 模块
+Registry 模組
 =============
 
-本模块提供智能体和环境模块的集中注册中心，支持延迟加载。
+本模組提供智慧體和環境模組的集中註冊中心，支援延遲載入。
 
 ModuleRegistry
 --------------
@@ -11,12 +11,12 @@ ModuleRegistry
    :undoc-members:
    :show-inheritance:
 
-工具函数
+工具函式
 --------
 
 .. autofunction:: agentsociety2.registry.get_registry
 
-注册函数
+註冊函式
 --------
 
 .. autofunction:: agentsociety2.registry.get_registered_env_modules
@@ -35,7 +35,7 @@ ModuleRegistry
 
 .. autofunction:: agentsociety2.registry.discover_and_register_builtin_modules
 
-请求/响应模型
+請求/響應模型
 -------------
 
 .. autoclass:: agentsociety2.registry.EnvModuleInitConfig

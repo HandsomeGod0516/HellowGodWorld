@@ -21,7 +21,7 @@
   ],
   "status": "giving_feedback",
   "emotion": "focused",
-  "speech": "我把反馈说具体一点，让对方知道怎么改。",
+  "speech": "我把反饋說具體一點，讓對方知道怎麼改。",
   "memory_template": "Used writing.feedback: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

@@ -1,13 +1,13 @@
 """
-``agentsociety2.code_executor``：代码生成与执行。
+``agentsociety2.code_executor``：程式碼生成與執行。
 
-该包聚合了三类能力：
+該包聚合了三類能力：
 
-- **代码生成**：通过大模型生成可执行的 Python 脚本（见 :class:`~agentsociety2.code_executor.code_generator.CodeGenerator`）。
-- **依赖推断**：通过 AST 静态分析导入语句推断第三方依赖（见 :class:`~agentsociety2.code_executor.dependency_detector.DependencyDetector`）。
-- **代码执行**：本地子进程执行（见 :class:`~agentsociety2.code_executor.local_executor.LocalCodeExecutor`）
+- **程式碼生成**：透過大模型生成可執行的 Python 指令碼（見 :class:`~agentsociety2.code_executor.code_generator.CodeGenerator`）。
+- **依賴推斷**：透過 AST 靜態分析匯入語句推斷第三方依賴（見 :class:`~agentsociety2.code_executor.dependency_detector.DependencyDetector`）。
+- **程式碼執行**：本地子程序執行（見 :class:`~agentsociety2.code_executor.local_executor.LocalCodeExecutor`）
 
-对外导出对象见 ``__all__``。
+對外匯出物件見 ``__all__``。
 """
 
 from agentsociety2.code_executor.code_generator import CodeGenerator

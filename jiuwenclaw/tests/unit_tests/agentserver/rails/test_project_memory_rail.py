@@ -95,7 +95,7 @@ async def test_section_is_bilingual_with_localized_headers():
 
         section = agent.system_prompt_builder.added_sections[-1]
         assert "Project Memory" in section.content["en"]
-        assert "项目记忆" in section.content["cn"]
+        assert "專案記憶" in section.content["cn"]
 
 
 @pytest.mark.asyncio

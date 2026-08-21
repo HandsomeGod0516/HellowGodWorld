@@ -401,7 +401,7 @@ class TestExploreAgentSubagentIntegration:
         assert any(n.lower() == "explore" or n == "explore_agent" for n in names)
 
     def test_explore_agent_always_enabled(self, monkeypatch):
-        """explore_agent 是 Code 模式核心子代理，始终启用，enabled: False 被忽略。"""
+        """explore_agent 是 Code 模式核心子代理，始終啟用，enabled: False 被忽略。"""
         from openjiuwen.core.foundation.llm import (
             Model,
             ModelClientConfig,
@@ -427,7 +427,7 @@ class TestExploreAgentSubagentIntegration:
             model_config=ModelRequestConfig(model_name="mock-model"),
         )
 
-        # explore_agent 的 enabled: False 被忽略，仍然挂载
+        # explore_agent 的 enabled: False 被忽略，仍然掛載
         subagents = adapter._build_configured_subagents(
             model,
             {"max_iterations": 8, "subagents": {"explore_agent": {"enabled": False}}},
@@ -688,7 +688,7 @@ class TestProjectMemoryRailLanguagePropagation:
             await rail.before_model_call(ctx=MagicMock())
 
             section = agent.system_prompt_builder.added_sections[-1]
-            assert "项目记忆" in section.content["cn"]
+            assert "專案記憶" in section.content["cn"]
             assert "Project Memory" in section.content["en"]
 
             # Switch to English
@@ -698,7 +698,7 @@ class TestProjectMemoryRailLanguagePropagation:
             # Reload — section content keys stay bilingual (both cn+en always populated)
             await rail.before_model_call(ctx=MagicMock())
             section2 = agent.system_prompt_builder.added_sections[-1]
-            assert "项目记忆" in section2.content["cn"]
+            assert "專案記憶" in section2.content["cn"]
             assert "Project Memory" in section2.content["en"]
 
     @pytest.mark.asyncio

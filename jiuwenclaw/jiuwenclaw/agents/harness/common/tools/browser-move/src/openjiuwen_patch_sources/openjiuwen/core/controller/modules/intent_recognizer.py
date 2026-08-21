@@ -49,9 +49,9 @@ from openjiuwen.core.single_agent.ability_manager import AbilityManager
 
 
 class IntentRecognizer:
-    """意图识别器
+    """意圖識別器
 
-    负责识别用户输入中的意图，将事件转换为Intent对象。
+    負責識別使用者輸入中的意圖，將事件轉換為Intent物件。
     """
     def __init__(
             self,
@@ -60,11 +60,11 @@ class IntentRecognizer:
             ability_manager: AbilityManager,
             context_engine: ContextEngine
     ):
-        """初始化意图识别器
+        """初始化意圖識別器
 
         Args:
             config: 控制器配置
-            task_manager: 任务管理器
+            task_manager: 工作管理員
             ability_manager: 能力包
             context_engine: 上下文引擎
         """
@@ -74,30 +74,30 @@ class IntentRecognizer:
         self._ability_manager = ability_manager
 
         self._system_message = SystemMessage(content="""# 角色
-你是一个任务管理助手，专门使用工具创建和管理任务。你的核心理念是：**任何用户请求都可以转化为一个任务**，并由任务管理器处理。
+你是一個任務管理助手，專門使用工具建立和管理任務。你的核心理念是：**任何使用者請求都可以轉化為一個任務**，並由工作管理員處理。
 
-# 核心原则
-1. **任务化一切**：对于任何用户请求（包括信息查询、事务处理、提醒等），你的第一反应不是直接执行或拒绝，而是思考如何将它创建为一个任务。
-2. **透明管理**：如果任务需要外部能力（如天气API），你仍然创建它，并明确告知用户任务的状态。
+# 核心原則
+1. **任務化一切**：對於任何使用者請求（包括資訊查詢、事務處理、提醒等），你的第一反應不是直接執行或拒絕，而是思考如何將它建立為一個任務。
+2. **透明管理**：如果任務需要外部能力（如天氣API），你仍然建立它，並明確告知使用者任務的狀態。
 
 # 工作流程
-1. **解析请求**：理解用户想做什么。
-2. **任务操作**：使用工具创建一个对应的任务或修改已有任务。
-3. **永远不拒绝**：不声称“超出能力范围”，而是告知用户任务会由其他执行器处理。
+1. **解析請求**：理解使用者想做什麼。
+2. **任務操作**：使用工具建立一個對應的任務或修改已有任務。
+3. **永遠不拒絕**：不聲稱“超出能力範圍”，而是告知使用者任務會由其他執行器處理。
 
-# 任务目标
-- 根据用户输入，**总是优先创建对应的任务**。
-- 使用工具进行任务操作（创建、更新、列表、删除）。
-- 只有纯粹闲聊或问候时不调用工具。
+# 任務目標
+- 根據使用者輸入，**總是優先建立對應的任務**。
+- 使用工具進行任務操作（建立、更新、列表、刪除）。
+- 只有純粹閒聊或問候時不呼叫工具。
 """)
 
-        self._user_prompt_template = """你当前拥有的任务有：
+        self._user_prompt_template = """你當前擁有的任務有：
 {task_descriptions}
 
-当前用户的输入为：
+當前使用者的輸入為：
 {query}
 
-请根据你当前的任务和用户输入，进行合适的任务操作。
+請根據你當前的任務和使用者輸入，進行合適的任務操作。
 """
 
     async def _prepare_user_message(self, query):
@@ -108,7 +108,7 @@ class IntentRecognizer:
                 task_prompt.append(
                     f"## Task id: {task.task_id}\n### Task description: {task.description}\nStatus: {task.status}\n")
         else:
-            task_prompt.append("无")
+            task_prompt.append("無")
         task_prompt = "\n".join(task_prompt)
 
         prompt = self._user_prompt_template.format(
@@ -118,14 +118,14 @@ class IntentRecognizer:
         return UserMessage(content=prompt)
 
     async def recognize(self, event: Event, session: Session) -> List[Intent]:
-        """识别意图
+        """識別意圖
 
         Args:
-            event: 输入事件
-            session: 会话对象
+            event: 輸入事件
+            session: 會話物件
 
         Returns:
-            Intent: 识别出的意图对象
+            Intent: 識別出的意圖物件
         """
 
         context = self._context_engine.get_context(session_id=session.get_session_id())
@@ -187,9 +187,9 @@ class IntentRecognizer:
 
 
 class EventHandlerWithIntentRecognition(EventHandler):
-    """基于意图识别的事件处理器
+    """基於意圖識別的事件處理器
 
-    在EventHandler的基础上增加意图识别功能，根据识别出的意图调用相应的处理方法。
+    在EventHandler的基礎上增加意圖識別功能，根據識別出的意圖呼叫相應的處理方法。
     """
 
     def __init__(self):
@@ -202,12 +202,12 @@ class EventHandlerWithIntentRecognition(EventHandler):
         )
 
     async def handle_input(self, inputs: EventHandlerInput):
-        """处理输入事件
+        """處理輸入事件
 
-        识别输入意图，并调用相应方法处理意图，可重写。
+        識別輸入意圖，並呼叫相應方法處理意圖，可重寫。
 
         Args:
-            inputs: 事件处理器输入
+            inputs: 事件處理器輸入
         """
         intents = await self.recognizer.recognize(inputs.event, inputs.session)
         tasks = []
@@ -231,12 +231,12 @@ class EventHandlerWithIntentRecognition(EventHandler):
         return await asyncio.gather(*tasks)
 
     async def handle_task_interaction(self, inputs: EventHandlerInput):
-        """处理任务交互事件
+        """處理任務互動事件
 
-        将interaction直接抛出给用户，可重写。
+        將interaction直接丟擲給使用者，可重寫。
 
         Args:
-            inputs: 事件处理器输入
+            inputs: 事件處理器輸入
         """
         if not isinstance(inputs.event, TaskInteractionEvent):
             raise build_error(
@@ -248,12 +248,12 @@ class EventHandlerWithIntentRecognition(EventHandler):
             })
 
     async def handle_task_completion(self, inputs: EventHandlerInput):
-        """处理任务完成事件
+        """處理任務完成事件
 
-        将任务完成信息抛出给用户，可重写。
+        將任務完成資訊丟擲給使用者，可重寫。
 
         Args:
-            inputs: 事件处理器输入
+            inputs: 事件處理器輸入
         """
         if not isinstance(inputs.event, TaskCompletionEvent):
             raise build_error(
@@ -265,12 +265,12 @@ class EventHandlerWithIntentRecognition(EventHandler):
             })
 
     async def handle_task_failed(self, inputs: EventHandlerInput):
-        """处理任务失败事件
+        """處理任務失敗事件
 
-        将错误信息抛出给用户，可重写。
+        將錯誤資訊丟擲給使用者，可重寫。
 
         Args:
-            inputs: 事件处理器输入
+            inputs: 事件處理器輸入
         """
         if not isinstance(inputs.event, TaskFailedEvent):
             raise build_error(
@@ -282,12 +282,12 @@ class EventHandlerWithIntentRecognition(EventHandler):
             })
 
     async def _process_create_task_intent(self, intent: Intent, session: Session):
-        """处理创建任务意图
+        """處理建立任務意圖
 
-        用户自定义执行新任务逻辑。
+        使用者自定義執行新任務邏輯。
 
         Args:
-            intent: 意图
+            intent: 意圖
             session: Session
         """
         task = Task(
@@ -305,23 +305,23 @@ class EventHandlerWithIntentRecognition(EventHandler):
         await self.task_manager.add_task(task)
 
     async def _process_pause_task_intent(self, intent: Intent, session: Session):
-        """处理暂停任务意图
+        """處理暫停任務意圖
 
-        调用 task_scheduler 的 pause_task 方法打断目标任务。
+        呼叫 task_scheduler 的 pause_task 方法打斷目標任務。
 
         Args:
-            intent: 意图
+            intent: 意圖
             session: Session
         """
         await self.task_scheduler.pause_task(intent.target_task_id)
 
     async def _process_resume_task_intent(self, intent: Intent, session: Session):
-        """处理恢复任务意图
+        """處理恢復任務意圖
 
-        将要恢复的任务的状态置为 submitted。
+        將要恢復的任務的狀態置為 submitted。
 
         Args:
-            intent: 意图
+            intent: 意圖
             session: Session
         """
         task = await self.task_manager.get_task(TaskFilter(task_id=intent.target_task_id))
@@ -331,10 +331,10 @@ class EventHandlerWithIntentRecognition(EventHandler):
             await self.task_manager.update_task(task)
 
     async def _process_continue_task_intent(self, intent: Intent, session: Session):
-        """处理接续任务意图
+        """處理接續任務意圖
 
         Args:
-            intent: 意图
+            intent: 意圖
             session: Session
         """
         if not isinstance(intent.event, InputEvent):
@@ -373,10 +373,10 @@ class EventHandlerWithIntentRecognition(EventHandler):
         await self.task_manager.add_task(task)
 
     async def _process_supplement_task_intent(self, intent: Intent, session: Session):
-        """处理补充任务意图
+        """處理補充任務意圖
 
         Args:
-            intent: 意图
+            intent: 意圖
             session: Session
         """
         if intent.intent_type != IntentType.SUPPLEMENT_TASK:
@@ -388,17 +388,17 @@ class EventHandlerWithIntentRecognition(EventHandler):
         tasks = await self.task_manager.get_task(TaskFilter(task_id=intent.target_task_id))
         task = tasks[0]
         await self.task_scheduler.pause_task(intent.target_task_id)
-        task.description += "\n\n任务补充信息:\n{}".format(intent.supplementary_info)
+        task.description += "\n\n任務補充資訊:\n{}".format(intent.supplementary_info)
         task.status = TaskStatus.SUBMITTED
         await self.task_manager.update_task(task)
 
     async def _process_cancel_task_intent(self, intent: Intent, session: Session):
-        """处理取消任务意图
+        """處理取消任務意圖
 
-        调用 task_scheduler 的 cancel_task 方法取消目标任务。
+        呼叫 task_scheduler 的 cancel_task 方法取消目標任務。
 
         Args:
-            intent: 意图
+            intent: 意圖
             session: Session
         """
         if intent.intent_type != IntentType.CANCEL_TASK:
@@ -410,12 +410,12 @@ class EventHandlerWithIntentRecognition(EventHandler):
         await self.task_scheduler.cancel_task(intent.target_task_id)
 
     async def _process_modify_task_intent(self, intent: Intent, session: Session):
-        """处理修改任务意图
+        """處理修改任務意圖
 
-        修改目标任务后，将其状态置为 submitted。
+        修改目標任務後，將其狀態置為 submitted。
 
         Args:
-            intent: 意图
+            intent: 意圖
             session: Session
         """
         if intent.intent_type != IntentType.MODIFY_TASK:
@@ -434,12 +434,12 @@ class EventHandlerWithIntentRecognition(EventHandler):
         await self.task_manager.update_task(task[0])
 
     async def _process_unknown_task_intent(self, intent: Intent, session: Session):
-        """处理未知任务意图
+        """處理未知任務意圖
 
-        返回 Intent 的 clarification_prompt 字段给用户。
+        返回 Intent 的 clarification_prompt 欄位給使用者。
 
         Args:
-            intent: 意图
+            intent: 意圖
             session: Session
         """
         if intent.intent_type != IntentType.UNKNOWN_TASK:

@@ -20,7 +20,7 @@ function normalizeTodoText(text: string): string {
     .replace(/^Fetching\s+/i, "")
     .replace(/^Writing\s+/i, "")
     .replace(/^Editing\s+/i, "")
-    .replace(/^正在调用\s+/u, "")
+    .replace(/^正在呼叫\s+/u, "")
     .replace(/^正在/u, "")
     .replace(/(?:\.\.\.|…)\s*$/u, "");
 }

@@ -1,7 +1,7 @@
 /**
- * 环境变量工具
+ * 環境變數工具
  *
- * 用于在前端配置后端 API/WS 地址
+ * 用於在前端配置後端 API/WS 地址
  */
 function normalizeBase(input: string): string {
   return input.replace(/\/+$/, "");

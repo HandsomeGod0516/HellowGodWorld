@@ -1,5 +1,5 @@
 """
-SASRec算法配置类
+SASRec演算法配置類
 """
 
 from dataclasses import dataclass
@@ -8,27 +8,27 @@ from dataclasses import dataclass
 @dataclass
 class SASRecConfig:
     """
-    SASRec算法配置
+    SASRec演算法配置
 
-    模型超参数：
-        hidden_units: 隐藏层维度（嵌入维度）
-        maxlen: 最大序列长度（行为历史的最大条数）
-        num_blocks: Transformer块数量
-        num_heads: 多头注意力的头数
-        dropout_rate: Dropout概率
-        l2_emb: L2正则化系数（嵌入层）
+    模型超引數：
+        hidden_units: 隱藏層維度（嵌入維度）
+        maxlen: 最大序列長度（行為歷史的最大條數）
+        num_blocks: Transformer塊數量
+        num_heads: 多頭注意力的頭數
+        dropout_rate: Dropout機率
+        l2_emb: L2正則化係數（嵌入層）
 
-    训练超参数：
-        learning_rate: 学习率
-        weight_decay: 权重衰减（L2正则化）
-        batch_size: 训练批大小
-        max_epochs: 最大训练轮数
-        patience: 早停耐心值（验证集无改进的轮数）
-        eval_interval: 评估间隔（每N个epoch评估一次）
+    訓練超引數：
+        learning_rate: 學習率
+        weight_decay: 權重衰減（L2正則化）
+        batch_size: 訓練批大小
+        max_epochs: 最大訓練輪數
+        patience: 早停耐心值（驗證集無改進的輪數）
+        eval_interval: 評估間隔（每N個epoch評估一次）
 
-    数据参数：
-        user_num: 用户数量（自动从数据集推断）
-        item_num: 物品数量（自动从数据集推断）
+    資料引數：
+        user_num: 使用者數量（自動從資料集推斷）
+        item_num: 物品數量（自動從資料集推斷）
 
     CoLLM最佳配置（MovieLens-1M）：
         - hidden_units: 64
@@ -36,55 +36,55 @@ class SASRecConfig:
         - learning_rate: 0.01
         - weight_decay: 0.01
         - batch_size: 2048
-        - 最终AUC: ~0.71, UAUC: ~0.67
+        - 最終AUC: ~0.71, UAUC: ~0.67
     """
 
-    # 模型超参数
-    hidden_units: int = 64          # 嵌入维度
-    maxlen: int = 25                # 最大序列长度
-    num_blocks: int = 2             # Transformer块数量
-    num_heads: int = 1              # 注意力头数
+    # 模型超引數
+    hidden_units: int = 64          # 嵌入維度
+    maxlen: int = 25                # 最大序列長度
+    num_blocks: int = 2             # Transformer塊數量
+    num_heads: int = 1              # 注意力頭數
     dropout_rate: float = 0.2       # Dropout率
-    l2_emb: float = 1e-4            # L2正则化系数
+    l2_emb: float = 1e-4            # L2正則化係數
 
-    # 训练超参数
-    learning_rate: float = 0.01     # 学习率
-    weight_decay: float = 0.01      # 权重衰减
-    batch_size: int = 1024          # 批大小（根据数据集规模调整）
-    max_epochs: int = 5000          # 最大训练轮数
+    # 訓練超引數
+    learning_rate: float = 0.01     # 學習率
+    weight_decay: float = 0.01      # 權重衰減
+    batch_size: int = 1024          # 批大小（根據資料集規模調整）
+    max_epochs: int = 5000          # 最大訓練輪數
     patience: int = 100             # 早停耐心值
-    eval_interval: int = 1          # 评估间隔
+    eval_interval: int = 1          # 評估間隔
 
-    # 数据参数（由数据集自动设置）
-    user_num: int = 0               # 用户数量
-    item_num: int = 0               # 物品数量
+    # 資料引數（由資料集自動設定）
+    user_num: int = 0               # 使用者數量
+    item_num: int = 0               # 物品數量
 
     def __post_init__(self):
-        """后处理：验证配置有效性"""
-        assert self.hidden_units > 0, "hidden_units必须大于0"
-        assert self.maxlen > 0, "maxlen必须大于0"
-        assert self.num_blocks > 0, "num_blocks必须大于0"
-        assert self.num_heads > 0, "num_heads必须大于0"
-        assert 0 <= self.dropout_rate < 1, "dropout_rate必须在[0, 1)范围内"
-        assert self.learning_rate > 0, "learning_rate必须大于0"
-        assert self.batch_size > 0, "batch_size必须大于0"
+        """後處理：驗證配置有效性"""
+        assert self.hidden_units > 0, "hidden_units必須大於0"
+        assert self.maxlen > 0, "maxlen必須大於0"
+        assert self.num_blocks > 0, "num_blocks必須大於0"
+        assert self.num_heads > 0, "num_heads必須大於0"
+        assert 0 <= self.dropout_rate < 1, "dropout_rate必須在[0, 1)範圍內"
+        assert self.learning_rate > 0, "learning_rate必須大於0"
+        assert self.batch_size > 0, "batch_size必須大於0"
 
     @classmethod
     def from_dict(cls, config_dict: dict) -> "SASRecConfig":
         """
-        从字典创建配置对象
+        從字典建立配置物件
 
         Args:
             config_dict: 配置字典
 
         Returns:
-            SASRecConfig实例
+            SASRecConfig例項
         """
         return cls(**{k: v for k, v in config_dict.items() if hasattr(cls, k)})
 
     def to_dict(self) -> dict:
         """
-        转换为字典
+        轉換為字典
 
         Returns:
             配置字典
@@ -107,7 +107,7 @@ class SASRecConfig:
         }
 
     def __str__(self) -> str:
-        """字符串表示"""
+        """字串表示"""
         return (
             f"SASRecConfig(\n"
             f"  Model: hidden={self.hidden_units}, maxlen={self.maxlen}, "

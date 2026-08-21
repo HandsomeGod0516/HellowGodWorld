@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Git 提交记录采集器
+Git 提交記錄採集器
 
 功能：
-- 获取指定日期的 Git 提交记录
-- 统计提交次数、修改文件数、代码行数变化
-- 支持多个仓库
+- 獲取指定日期的 Git 提交記錄
+- 統計提交次數、修改檔案數、程式碼行數變化
+- 支援多個倉庫
 """
 
 import subprocess
@@ -20,15 +20,15 @@ _REPORT_TZ = ZoneInfo("Asia/Shanghai")
 
 @dataclass
 class GitCommit:
-    """Git 提交记录"""
+    """Git 提交記錄"""
 
-    hash: str  # 提交哈希
-    message: str  # 提交信息
+    hash: str  # 提交雜湊
+    message: str  # 提交資訊
     author: str  # 作者
-    date: datetime  # 提交时间
-    files_changed: int = 0  # 修改文件数
-    insertions: int = 0  # 新增行数
-    deletions: int = 0  # 删除行数
+    date: datetime  # 提交時間
+    files_changed: int = 0  # 修改檔案數
+    insertions: int = 0  # 新增行數
+    deletions: int = 0  # 刪除行數
 
     def to_dict(self) -> dict:
         return {
@@ -44,7 +44,7 @@ class GitCommit:
 
 @dataclass
 class GitStats:
-    """Git 统计数据"""
+    """Git 統計資料"""
 
     commits: list[GitCommit] = field(default_factory=list)
     total_commits: int = 0
@@ -54,7 +54,7 @@ class GitStats:
 
     @property
     def net_lines(self) -> int:
-        """净增行数"""
+        """淨增行數"""
         return self.total_insertions - self.total_deletions
 
     def to_dict(self) -> dict:
@@ -69,27 +69,27 @@ class GitStats:
 
 
 class GitCollector:
-    """Git 提交记录采集器"""
+    """Git 提交記錄採集器"""
 
     def __init__(self, repo_path: str | Path):
         """
-        初始化 Git 采集器
+        初始化 Git 採集器
 
         Args:
-            repo_path: Git 仓库路径
+            repo_path: Git 倉庫路徑
         """
         self.repo_path = Path(repo_path).resolve()
 
     def _run_git_command(self, args: list[str], timeout: int = 30) -> str:
         """
-        执行 Git 命令
+        執行 Git 命令
 
         Args:
-            args: Git 命令参数
-            timeout: 超时时间（秒）
+            args: Git 命令引數
+            timeout: 超時時間（秒）
 
         Returns:
-            命令输出
+            命令輸出
         """
         try:
             result = subprocess.run(
@@ -108,21 +108,21 @@ class GitCollector:
 
     def get_commits(self, date: Optional[str] = None, author: Optional[str] = None) -> GitStats:
         """
-        获取指定日期的提交记录
+        獲取指定日期的提交記錄
 
         Args:
-            date: 日期字符串 (YYYY-MM-DD)，默认今天
-            author: 作者名称过滤，默认不过滤
+            date: 日期字串 (YYYY-MM-DD)，預設今天
+            author: 作者名稱過濾，預設不過濾
 
         Returns:
-            GitStats: Git 统计数据
+            GitStats: Git 統計資料
         """
         if date is None:
             date = datetime.now(_REPORT_TZ).strftime("%Y-%m-%d")
 
         stats = GitStats()
 
-        # 获取提交列表
+        # 獲取提交列表
         log_format = "%H|%s|%an|%ai"
         since = f"{date} 00:00:00"
         until = f"{date} 23:59:59"
@@ -142,7 +142,7 @@ class GitCollector:
         if not log_output:
             return stats
 
-        # 解析提交记录
+        # 解析提交記錄
         for line in log_output.split("\n"):
             if not line.strip():
                 continue
@@ -158,7 +158,7 @@ class GitCollector:
             except ValueError:
                 commit_date = datetime.now(_REPORT_TZ)
 
-            # 获取每个提交的文件变更统计
+            # 獲取每個提交的檔案變更統計
             numstat = self._run_git_command(
                 ["show", "--numstat", "--format=", commit_hash]
             )
@@ -201,13 +201,13 @@ class GitCollector:
 
     def get_week_commits(self, end_date: Optional[str] = None) -> dict[str, GitStats]:
         """
-        获取一周内每天的提交统计
+        獲取一週內每天的提交統計
 
         Args:
-            end_date: 结束日期，默认今天
+            end_date: 結束日期，預設今天
 
         Returns:
-            按日期分组的 GitStats 字典
+            按日期分組的 GitStats 字典
         """
         if end_date is None:
             end_date = datetime.now(_REPORT_TZ)
@@ -223,14 +223,14 @@ class GitCollector:
 
     def get_month_commits(self, year: int, month: int) -> dict[str, GitStats]:
         """
-        获取一个月内每天的提交统计
+        獲取一個月內每天的提交統計
 
         Args:
             year: 年份
             month: 月份
 
         Returns:
-            按日期分组的 GitStats 字典
+            按日期分組的 GitStats 字典
         """
         import calendar
 
@@ -245,13 +245,13 @@ class GitCollector:
 
     def get_commits_for_pattern_analysis(self, days: int = 7) -> list[dict]:
         """
-        获取近期提交数据，用于工作模式分析
+        獲取近期提交資料，用於工作模式分析
 
         Args:
-            days: 天数，默认 7 天
+            days: 天數，預設 7 天
 
         Returns:
-            包含日期、时间、提交信息的字典列表
+            包含日期、時間、提交資訊的字典列表
         """
         end_date = datetime.now(_REPORT_TZ)
         result = []
@@ -273,7 +273,7 @@ class GitCollector:
 
 
 def main():
-    """测试入口"""
+    """測試入口"""
     import sys
 
     if len(sys.argv) < 2:
@@ -286,15 +286,15 @@ def main():
     collector = GitCollector(repo_path)
     stats = collector.get_commits(date)
 
-    print(f"Git 统计 ({date or '今天'}):")
-    print(f"  提交次数: {stats.total_commits}")
-    print(f"  修改文件: {stats.total_files_changed}")
-    print(f"  新增行数: {stats.total_insertions}")
-    print(f"  删除行数: {stats.total_deletions}")
-    print(f"  净增行数: {stats.net_lines}")
+    print(f"Git 統計 ({date or '今天'}):")
+    print(f"  提交次數: {stats.total_commits}")
+    print(f"  修改檔案: {stats.total_files_changed}")
+    print(f"  新增行數: {stats.total_insertions}")
+    print(f"  刪除行數: {stats.total_deletions}")
+    print(f"  淨增行數: {stats.net_lines}")
 
     if stats.commits:
-        print("\n提交记录:")
+        print("\n提交記錄:")
         for commit in stats.commits:
             print(f"  [{commit.hash}] {commit.message} ({commit.author})")
 

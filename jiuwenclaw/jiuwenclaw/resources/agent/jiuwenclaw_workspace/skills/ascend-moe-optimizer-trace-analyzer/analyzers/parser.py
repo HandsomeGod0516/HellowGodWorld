@@ -45,7 +45,7 @@ def _load_raw_events(trace_path: str) -> List[Dict[str, Any]]:
 
 def _parse_complete_event(item: Dict[str, Any]) -> Optional[Event]:
     """
-    处理 ph == 'X' 的完整事件
+    處理 ph == 'X' 的完整事件
     """
     name = item.get("name")
     ts = _safe_float(item.get("ts"))
@@ -69,16 +69,16 @@ def _parse_complete_event(item: Dict[str, Any]) -> Optional[Event]:
 
 def _pair_begin_end_events(raw_events: List[Dict[str, Any]]) -> List[Event]:
     """
-    将 B/E 事件配对成完整 Event。
+    將 B/E 事件配對成完整 Event。
 
-    配对策略：
-    - 按 (pid, tid, name) 维护栈
-    - 遇到 B 入栈
-    - 遇到 E 出栈并生成 Event
+    配對策略：
+    - 按 (pid, tid, name) 維護棧
+    - 遇到 B 入棧
+    - 遇到 E 出棧並生成 Event
 
     注意：
-    - 若 E 找不到对应 B，则忽略
-    - 若 B 最终未匹配到 E，则忽略
+    - 若 E 找不到對應 B，則忽略
+    - 若 B 最終未匹配到 E，則忽略
     """
     stacks: Dict[Tuple[Any, Any, str], List[Dict[str, Any]]] = {}
     paired_events: List[Event] = []
@@ -105,7 +105,7 @@ def _pair_begin_end_events(raw_events: List[Dict[str, Any]]) -> List[Event]:
         # ph == "E"
         stack = stacks.get(key)
         if not stack:
-            # 孤立的 E，直接跳过
+            # 孤立的 E，直接跳過
             continue
 
         begin_item = stack.pop()
@@ -114,7 +114,7 @@ def _pair_begin_end_events(raw_events: List[Dict[str, Any]]) -> List[Event]:
             continue
 
         if ts < ts_begin:
-            # 时间反常，跳过
+            # 時間反常，跳過
             continue
 
         begin_args = begin_item.get("args", {}) or {}
@@ -144,9 +144,9 @@ def _pair_begin_end_events(raw_events: List[Dict[str, Any]]) -> List[Event]:
 def parse_trace_json(trace_path: str) -> List[Event]:
     """
     V1 parser:
-    - 支持 ph == 'X'
-    - 支持 ph == 'B' / 'E' 配对
-    - 返回统一的完整事件列表
+    - 支援 ph == 'X'
+    - 支援 ph == 'B' / 'E' 配對
+    - 返回統一的完整事件列表
     """
     raw_events = _load_raw_events(trace_path)
 
@@ -160,11 +160,11 @@ def parse_trace_json(trace_path: str) -> List[Event]:
             if event is not None:
                 parsed_events.append(event)
 
-    # 2. 再解析 B/E 配对事件
+    # 2. 再解析 B/E 配對事件
     be_events = _pair_begin_end_events(raw_events)
     parsed_events.extend(be_events)
 
-    # 3. 按时间排序
+    # 3. 按時間排序
     parsed_events.sort(key=lambda e: (e.ts_start, e.ts_end, e.name))
     return parsed_events
 

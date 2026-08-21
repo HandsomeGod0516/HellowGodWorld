@@ -1,9 +1,9 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""WebChannel - WebSocket 通道实现.
+"""WebChannel - WebSocket 通道實現.
 
-提供可扩展的方法处理器注册机制 (`register_method`) 和连接钩子 (`on_connect`)，
-使上层应用可以灵活控制每个 req method 的行为，而无需修改通道本身。
+提供可擴充套件的方法處理器序號產生器制 (`register_method`) 和連線鉤子 (`on_connect`)，
+使上層應用可以靈活控制每個 req method 的行為，而無需修改通道本身。
 """
 
 from __future__ import annotations
@@ -33,10 +33,10 @@ from jiuwenclaw.common.schema.message import Message, Mode, ReqMethod
 
 logger = logging.getLogger(__name__)
 
-# ── 类型别名 ──────────────────────────────────────────────
-# 方法处理器签名: (ws, req_id, params, session_id) -> None
+# ── 型別別名 ──────────────────────────────────────────────
+# 方法處理器簽名: (ws, req_id, params, session_id) -> None
 MethodHandler = Callable[..., Awaitable[None]]
-# 连接钩子签名: (ws) -> None | Awaitable[None]
+# 連線鉤子簽名: (ws) -> None | Awaitable[None]
 ConnectHook = Callable[..., Any]
 
 
@@ -54,11 +54,11 @@ class WebChannelConfig:
 class WebChannel(BaseChannel):
     """Web 前端 WebSocket 通道.
 
-    核心职责：
-    1. 管理 WebSocket 连接生命周期
-    2. 解析帧协议 (req / res / event)
-    3. 将入站消息发布到 RobotMessageRouter
-    4. 将方法路由委托给通过 `register_method` 注册的处理器
+    核心職責：
+    1. 管理 WebSocket 連線生命週期
+    2. 解析幀協議 (req / res / event)
+    3. 將入站訊息釋出到 RobotMessageRouter
+    4. 將方法路由委託給透過 `register_method` 註冊的處理器
     """
 
     name = "web"
@@ -72,37 +72,37 @@ class WebChannel(BaseChannel):
         self._method_handlers: dict[str, MethodHandler] = {}
         self._connect_hooks: list[ConnectHook] = []
 
-    # ── 公共属性 ──────────────────────────────────────────
+    # ── 公共屬性 ──────────────────────────────────────────
 
     @property
     def channel_id(self) -> str:
-        """返回唯一 Channel 标识."""
+        """返回唯一 Channel 標識."""
         return self.name
 
     @property
     def clients(self) -> set[Any]:
-        """当前活跃的 WebSocket 客户端集合（只读副本）."""
+        """當前活躍的 WebSocket 客戶端集合（只讀副本）."""
         return set(self._clients)
 
-    # ── 扩展注册 API ──────────────────────────────────────
+    # ── 擴充套件註冊 API ──────────────────────────────────────
 
     def register_method(self, method: str, handler: MethodHandler) -> None:
-        """注册 req method 处理器.
+        """註冊 req method 處理器.
 
-        handler 签名: ``async def handler(ws, req_id, params, session_id) -> None``
-        handler 应通过 `send_response` / `send_event` 向客户端回复。
+        handler 簽名: ``async def handler(ws, req_id, params, session_id) -> None``
+        handler 應透過 `send_response` / `send_event` 向客戶端回覆。
         """
         self._method_handlers[method] = handler
 
     def on_connect(self, callback: ConnectHook) -> None:
-        """注册连接建立钩子，新客户端接入时依次调用."""
+        """註冊連線建立鉤子，新客戶端接入時依次呼叫."""
         self._connect_hooks.append(callback)
 
     def on_message(self, callback: Callable[[Message], None]) -> None:
-        """注册消息接收回调（替代默认的 router.publish_user_messages）。"""
+        """註冊訊息接收回撥（替代預設的 router.publish_user_messages）。"""
         self._on_message_cb = callback
 
-    # ── 帧发送 API（公开给处理器使用）─────────────────────
+    # ── 幀傳送 API（公開給處理器使用）─────────────────────
 
     async def send_response(
             self,
@@ -114,7 +114,7 @@ class WebChannel(BaseChannel):
             error: str | None = None,
             code: str | None = None,
     ) -> None:
-        """向指定客户端发送 ``res`` 帧."""
+        """向指定客戶端傳送 ``res`` 幀."""
         frame: dict[str, Any] = {
             "type": "res",
             "id": req_id,
@@ -142,7 +142,7 @@ class WebChannel(BaseChannel):
             seq: int | None = None,
             stream_id: str | None = None,
     ) -> None:
-        """向指定客户端发送 ``event`` 帧."""
+        """向指定客戶端傳送 ``event`` 幀."""
         frame: dict[str, Any] = {"type": "event", "event": event, "payload": payload}
         if seq is not None:
             frame["seq"] = seq
@@ -164,7 +164,7 @@ class WebChannel(BaseChannel):
             seq: int | None = None,
             stream_id: str | None = None,
     ) -> None:
-        """向所有已连接客户端广播 ``event`` 帧."""
+        """向所有已連線客戶端廣播 ``event`` 幀."""
         frame: dict[str, Any] = {"type": "event", "event": event, "payload": payload}
         if seq is not None:
             frame["seq"] = seq
@@ -179,10 +179,10 @@ class WebChannel(BaseChannel):
                     if response.status == 200:
                         return await response.read()
                     else:
-                        logger.warning("WebChannel 文件下载失败: {}, 状态码: {}", url, response.status)
+                        logger.warning("WebChannel 檔案下載失敗: {}, 狀態碼: {}", url, response.status)
                         return None
         except Exception as e:
-            logger.warning("WebChannel 文件下载异常: {}, 错误: {}", url, e)
+            logger.warning("WebChannel 檔案下載異常: {}, 錯誤: {}", url, e)
             return None
 
     async def _process_files(self, params: dict[str, Any]) -> dict[str, Any]:
@@ -211,22 +211,22 @@ class WebChannel(BaseChannel):
                             f.write(file_content)
                         file_info["path"] = file_path
                     except Exception as e:
-                        logger.warning("WebChannel 文件保存失败: {}", e)
+                        logger.warning("WebChannel 檔案儲存失敗: {}", e)
 
             downloaded_files.append(file_info)
 
         params["files"] = downloaded_files
         return params
 
-    # ── Channel 生命周期 ──────────────────────────────────
+    # ── Channel 生命週期 ──────────────────────────────────
 
     async def start(self) -> None:
-        """启动 WebSocket 服务并监听客户端连接."""
+        """啟動 WebSocket 服務並監聽客戶端連線."""
         if self._running:
-            logger.warning("WebChannel 已在运行")
+            logger.warning("WebChannel 已在執行")
             return
         if not self.config.enabled:
-            logger.warning("WebChannel 未启用（enabled=False）")
+            logger.warning("WebChannel 未啟用（enabled=False）")
             return
 
         try:
@@ -246,12 +246,12 @@ class WebChannel(BaseChannel):
         )
         self._running = True
         logger.info(
-            f"WebChannel 已启动: ws://{self.config.host}:{self.config.port}{self.config.path}"
+            f"WebChannel 已啟動: ws://{self.config.host}:{self.config.port}{self.config.path}"
         )
         await self._server.wait_closed()
 
     async def stop(self) -> None:
-        """停止 WebSocket 服务并清理连接."""
+        """停止 WebSocket 服務並清理連線."""
         self._running = False
 
         close_tasks = [client.close(code=1001, reason="server shutdown") for client in list(self._clients)]
@@ -266,20 +266,20 @@ class WebChannel(BaseChannel):
         logger.info("WebChannel 已停止")
 
     async def connect(self) -> None:
-        """兼容方法：调用 start."""
+        """相容方法：呼叫 start."""
         await self.start()
 
     async def disconnect(self) -> None:
-        """兼容方法：调用 stop."""
+        """相容方法：呼叫 stop."""
         await self.stop()
 
     async def _process_request(self, *args: Any) -> Any:
-        """在握手阶段执行 Origin 校验，兼容 legacy/new websockets APIs。"""
+        """在握手階段執行 Origin 校驗，相容 legacy/new websockets APIs。"""
         path, request_headers = extract_handshake_request(args)
         origin = get_header_value(request_headers, "Origin")
         allowed = is_allowed_browser_origin(origin)
         logger.info(
-            "WebChannel 握手检查 path=%s origin=%s allowed=%s",
+            "WebChannel 握手檢查 path=%s origin=%s allowed=%s",
             path,
             origin,
             allowed,
@@ -288,18 +288,18 @@ class WebChannel(BaseChannel):
             return None
 
         logger.warning(
-            "WebChannel 握手拒绝 path=%s origin=%s reason=origin_not_allowed",
+            "WebChannel 握手拒絕 path=%s origin=%s reason=origin_not_allowed",
             path,
             origin,
         )
         return forbidden_origin_response(args)
 
     async def send(self, msg: Message) -> None:
-        """向客户端发送消息（默认封装为 event 帧广播）."""
+        """向客戶端傳送訊息（預設封裝為 event 幀廣播）."""
         if not self._clients:
             return
 
-        # 响应帧：优先按 res 语义透传，避免误封装为 chat.final
+        # 響應幀：優先按 res 語義透傳，避免誤封裝為 chat.final
         if msg.type == "res":
             if isinstance(msg.payload, dict):
                 res_payload = {**msg.payload}
@@ -324,7 +324,7 @@ class WebChannel(BaseChannel):
             await self._broadcast(frame)
             return
 
-        # 确定事件名称
+        # 確定事件名稱
         event_name = "chat.final"
         if msg.event_type is not None:
             event_name = msg.event_type.value
@@ -333,11 +333,11 @@ class WebChannel(BaseChannel):
             if isinstance(payload_event_type, str) and payload_event_type.strip():
                 event_name = payload_event_type.strip()
 
-        # 根据事件类型构造 payload
+        # 根據事件型別構造 payload
         payload = {}
 
         if isinstance(msg.payload, dict):
-            # 对于需要传递完整结构化数据的事件类型
+            # 對於需要傳遞完整結構化資料的事件型別
             if event_name in ("connection.ack", "todo.updated", "chat.tool_call", "chat.tool_result",
                               "chat.processing_status", "chat.interrupt_result", "chat.evolution_status",
                               "chat.error", "heartbeat.relay",
@@ -345,13 +345,13 @@ class WebChannel(BaseChannel):
                               "history.message",
                               "chat.session_result", "chat.usage_metadata",
                               "chat.usage_summary") or event_name.startswith("team."):
-                # 传递完整 payload，保留所有字段
+                # 傳遞完整 payload，保留所有欄位
                 payload = {**msg.payload}
-                # 确保包含 session_id
+                # 確保包含 session_id
                 if "session_id" not in payload and msg.session_id:
                     payload["session_id"] = msg.session_id
             else:
-                # 对于纯文本消息（chat.delta, chat.final, chat.error 等），提取 content
+                # 對於純文字訊息（chat.delta, chat.final, chat.error 等），提取 content
                 content = str(msg.payload.get("content", "") or "")
                 if not content and not getattr(msg, "ok", True) and msg.payload.get("error"):
                     content = str(msg.payload.get("error", ""))
@@ -359,13 +359,13 @@ class WebChannel(BaseChannel):
                     "session_id": msg.session_id,
                     "content": content,
                 }
-                # 定时任务推送：附带 cron 元数据，供前端识别并替换占位消息（避免误写入流式气泡）
+                # 定時任務推送：附帶 cron 後設資料，供前端識別並替換佔位訊息（避免誤寫入流式氣泡）
                 if event_name == "chat.final":
                     cron_extra = msg.payload.get("cron")
                     if isinstance(cron_extra, dict):
                         payload["cron"] = cron_extra
         else:
-            # payload 不是 dict，尝试从 params 提取
+            # payload 不是 dict，嘗試從 params 提取
             content = str((msg.params or {}).get("content", "") or "")
             payload = {
                 "session_id": msg.session_id,
@@ -379,7 +379,7 @@ class WebChannel(BaseChannel):
         }
         await self._broadcast(frame)
 
-        # interrupt_result 根据 intent 决定 is_processing 状态
+        # interrupt_result 根據 intent 決定 is_processing 狀態
         if event_name == "chat.interrupt_result":
             intent = payload.get("intent", "cancel") if isinstance(payload, dict) else "cancel"
             is_processing = intent in ("pause", "supplement", "resume")
@@ -390,14 +390,14 @@ class WebChannel(BaseChannel):
             })
 
     def get_metadata(self) -> ChannelMetadata:
-        """获取 Channel 元数据."""
+        """獲取 Channel 後設資料."""
         return ChannelMetadata(
             channel_id=self.channel_id,
             source="websocket",
             extra={"host": self.config.host, "port": self.config.port, "path": self.config.path},
         )
 
-    # ── 内部实现 ──────────────────────────────────────────
+    # ── 內部實現 ──────────────────────────────────────────
 
     async def _connection_handler(self, ws: Any, path: str | None = None) -> None:
         raw_path = path if path is not None else getattr(ws, "path", "")
@@ -410,9 +410,9 @@ class WebChannel(BaseChannel):
         query = parse_qs(parsed.query)
         remote = getattr(ws, "remote_address", None)
         self._clients.add(ws)
-        logger.info(f"WebChannel 新连接: remote={remote} query={query}")
+        logger.info(f"WebChannel 新連線: remote={remote} query={query}")
 
-        # 触发连接钩子（如发送 connection.ack）
+        # 觸發連線鉤子（如傳送 connection.ack）
         for hook in self._connect_hooks:
             try:
                 result = hook(ws)
@@ -424,11 +424,11 @@ class WebChannel(BaseChannel):
         try:
             async for raw in ws:
                 await self._handle_raw_message(ws, raw, query)
-        except Exception as e:  # pragma: no cover - 连接生命周期容错
-            logger.warning("WebChannel 连接异常: %s", e)
+        except Exception as e:  # pragma: no cover - 連線生命週期容錯
+            logger.warning("WebChannel 連線異常: %s", e)
         finally:
             self._clients.discard(ws)
-            logger.info(f"WebChannel 连接关闭: remote={remote}")
+            logger.info(f"WebChannel 連線關閉: remote={remote}")
 
     async def _handle_raw_message(self, ws: Any, raw: str, query: dict[str, list[str]]) -> None:
         try:
@@ -477,7 +477,7 @@ class WebChannel(BaseChannel):
             metadata={"query": query, "method": method},
         )
 
-        # 发布到 route 或回调
+        # 釋出到 route 或回撥
         handled_by_callback = False
         if self._on_message_cb is not None:
             result = self._on_message_cb(user_message)
@@ -490,13 +490,13 @@ class WebChannel(BaseChannel):
         if handled_by_callback:
             return
 
-        # 路由到已注册的方法处理器
+        # 路由到已註冊的方法處理器
         handler = self._method_handlers.get(method)
         if handler is not None:
             try:
                 await handler(ws, req_id, params, session_id)
             except Exception as e:
-                # 客户端断开（如服务关闭时 code=1001）不再尝试回包，避免二次异常噪音。
+                # 客戶端斷開（如服務關閉時 code=1001）不再嘗試回包，避免二次異常噪音。
                 ws_closed = bool(getattr(ws, "closed", False))
                 if ws_closed:
                     logger.warning(
@@ -541,7 +541,7 @@ class WebChannel(BaseChannel):
 
     @staticmethod
     def _make_session_id() -> str:
-        # 与前端 generateSessionId 保持一致：毫秒时间戳(16进制) + 6位随机16进制
+        # 與前端 generateSessionId 保持一致：毫秒時間戳(16進位制) + 6位隨機16進位制
         ts = format(int(time.time() * 1000), "x")
         suffix = secrets.token_hex(3)
         return f"sess_{ts}_{suffix}"

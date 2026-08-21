@@ -1,5 +1,5 @@
 """
-MF (矩阵分解) 算法模块
+MF (矩陣分解) 演算法模組
 """
 
 from .config import MFConfig

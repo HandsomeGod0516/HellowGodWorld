@@ -1,13 +1,13 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Owner-scoped 工具权限（数字分身 / DeepAgent）。
+"""Owner-scoped 工具許可權（數字分身 / DeepAgent）。
 
-逻辑集中在 ``jiuwenclaw.agents.harness.common.rails.permissions``，与 openjiuwen 工具护栏配合使用。
+邏輯集中在 ``jiuwenclaw.agents.harness.common.rails.permissions``，與 openjiuwen 工具護欄配合使用。
 
 使用方式：
-  1. interface_deep.py 入口处调用 setup_permission_context(request) 设置 ContextVar
-  2. AvatarPromptRail 与 PermissionInterruptRail 场景钩子中使用 check_avatar_permission()
-  3. finally 中调用 cleanup_permission_context(token)
+  1. interface_deep.py 入口處呼叫 setup_permission_context(request) 設定 ContextVar
+  2. AvatarPromptRail 與 PermissionInterruptRail 場景鉤子中使用 check_avatar_permission()
+  3. finally 中呼叫 cleanup_permission_context(token)
 """
 
 from __future__ import annotations
@@ -25,10 +25,10 @@ _persist_lock = threading.Lock()
 
 @dataclass
 class PermissionContext:
-    """数字分身场景下的权限上下文。
+    """數字分身場景下的許可權上下文。
 
     不放入 schema/agent.py，不序列化到 AgentRequest；
-    仅从 metadata 构建 → ContextVar → 匹配。
+    僅從 metadata 構建 → ContextVar → 匹配。
     """
     channel_id: str = ""
     group_digital_avatar: bool = False
@@ -36,7 +36,7 @@ class PermissionContext:
     triggering_user_id: str = ""
     enable_memory: bool = True
     avatar_principal_name: str = ""
-    avatar_mode: bool = False  # 用于判断是否为群聊消息，与 React 模式的 is_group_chat 对应
+    avatar_mode: bool = False  # 用於判斷是否為群聊訊息，與 React 模式的 is_group_chat 對應
 
     @property
     def scene(self) -> str:
@@ -48,7 +48,7 @@ class PermissionContext:
 
     @property
     def owner_scope_key(self) -> tuple[str, str]:
-        """(channel_id, principal_user_id) — 用于 owner_scopes 配置查找."""
+        """(channel_id, principal_user_id) — 用於 owner_scopes 配置查詢."""
         return self.channel_id.strip(), self.principal_user_id.strip()
 
 
@@ -59,11 +59,11 @@ TOOL_PERMISSION_CONTEXT: contextvars.ContextVar[PermissionContext | None] = cont
 
 
 def setup_permission_context(request: Any) -> contextvars.Token | None:
-    """从 request.metadata 构造 PermissionContext 并设置 ContextVar。
+    """從 request.metadata 構造 PermissionContext 並設定 ContextVar。
 
-    metadata 无 avatar_mode 时：
-    - 如果 enable_memory=False，仍需设置上下文（用于禁用记忆）
-    - 否则返回 None（原有行为不受影响）
+    metadata 無 avatar_mode 時：
+    - 如果 enable_memory=False，仍需設定上下文（用於禁用記憶）
+    - 否則返回 None（原有行為不受影響）
     """
     meta = getattr(request, "metadata", None) or {}
     avatar_mode = bool(meta.get("avatar_mode", False))
@@ -99,13 +99,13 @@ async def check_avatar_permission(
     channel_id: str,
     session_id: str | None,
 ) -> str:
-    """单工具 owner_scopes 权限检查。返回 "allow" 或 "deny"（ASK 自动降级为 DENY）。
+    """單工具 owner_scopes 許可權檢查。返回 "allow" 或 "deny"（ASK 自動降級為 DENY）。
 
     Args:
-        tool_name: 工具名称
-        tool_args: 工具参数
-        channel_id: 频道 ID
-        session_id: 会话 ID
+        tool_name: 工具名稱
+        tool_args: 工具引數
+        channel_id: 頻道 ID
+        session_id: 會話 ID
 
     Returns:
         "allow" 或 "deny"
@@ -174,11 +174,11 @@ def _resolve_owner_scope_level(
     tool_name: str,
     tool_args: dict[str, Any],
 ) -> str | None:
-    """在 owner-scope 层按优先级匹配，返回 "allow"/"deny"/"ask" 或 None。
+    """在 owner-scope 層按優先順序匹配，返回 "allow"/"deny"/"ask" 或 None。
 
-    优先级（匹配到即返回，不再 fallback）：
+    優先順序（匹配到即返回，不再 fallback）：
     1. owner_scopes.<channel>.<user>.tools.<tool>.patterns
-    2. owner_scopes.<channel>.<user>.tools.<tool>.* (或直接字符串)
+    2. owner_scopes.<channel>.<user>.tools.<tool>.* (或直接字串)
     3. owner_scopes.<channel>.<user>.defaults.*
     """
     if not scope_cfg or not isinstance(scope_cfg, dict):
@@ -207,7 +207,7 @@ def _resolve_owner_scope_level(
 
 
 def _match_args(pattern: str, tool_args: dict[str, Any]) -> bool:
-    """简化的参数模式匹配（复用 openjiuwen harness patterns）。"""
+    """簡化的引數模式匹配（複用 openjiuwen harness patterns）。"""
     try:
         from openjiuwen.harness.security.patterns import (
             match_command,
@@ -238,7 +238,7 @@ def persist_to_owner_scope(
     user_id: str,
     config: dict,
 ) -> None:
-    """将规则持久化到 config.yaml 的 owner_scopes 节点."""
+    """將規則持久化到 config.yaml 的 owner_scopes 節點."""
     try:
         from jiuwenclaw.common.config import get_config_raw, set_config
 

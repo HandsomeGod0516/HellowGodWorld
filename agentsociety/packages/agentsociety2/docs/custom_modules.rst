@@ -1,25 +1,25 @@
-自定义模块
+自定義模組
 ==============
 
-AgentSociety 2 支持创建和注册自定义智能体和环境模块，
-允许您使用自己的模拟组件扩展平台。
+AgentSociety 2 支援建立和註冊自定義智慧體和環境模組，
+允許您使用自己的模擬元件擴充套件平臺。
 
 概述
 --------
 
-自定义模块系统允许您：
+自定義模組系統允許您：
 
-* 创建具有专门行为的自定义智能体类
-* 创建具有特定领域工具的自定义环境模块
-* 通过 API 自动发现和注册模块
-* 使用自动生成的测试脚本测试自定义模块
-* 与现有 AgentSociety 框架无缝集成
-* 通过 Progressive Disclosure workflow 持久化需求、设计和验证产物
+* 建立具有專門行為的自定義智慧體類
+* 建立具有特定領域工具的自定義環境模組
+* 透過 API 自動發現和註冊模組
+* 使用自動生成的測試指令碼測試自定義模組
+* 與現有 AgentSociety 框架無縫整合
+* 透過 Progressive Disclosure workflow 持久化需求、設計和驗證產物
 
-目录结构
+目錄結構
 -------------------
 
-自定义模块放置在工作区内的 ``custom/`` 目录中::
+自定義模組放置在工作區內的 ``custom/`` 目錄中::
 
    workspace/
    ├── custom/                    # User-created directory
@@ -33,10 +33,10 @@ AgentSociety 2 支持创建和注册自定义智能体和环境模块，
        └── custom_env_skill/
            └── runs/
 
-创建自定义智能体
+建立自定義智慧體
 -------------------------
 
-所有自定义智能体必须继承 ``AgentBase`` 并实现必需的方法：
+所有自定義智慧體必須繼承 ``AgentBase`` 並實現必需的方法：
 
 .. code-block:: python
 
@@ -82,20 +82,20 @@ AgentSociety 2 支持创建和注册自定义智能体和环境模块，
    * - Method
      - Description
    * - ``mcp_description()``
-     - 返回模块描述（类方法，建议覆盖；``AgentBase``/``EnvBase`` 有默认描述）
+     - 返回模組描述（類方法，建議覆蓋；``AgentBase``/``EnvBase`` 有預設描述）
    * - ``ask()``
-     - 回答环境的问题
+     - 回答環境的問題
    * - ``step()``
-     - 执行一个模拟步骤
+     - 執行一個模擬步驟
    * - ``dump()``
-     - 序列化智能体状态
+     - 序列化智慧體狀態
    * - ``load()``
-     - 从字典加载智能体状态
+     - 從字典載入智慧體狀態
 
-创建自定义环境
+建立自定義環境
 ------------------------------
 
-自定义环境必须继承 ``EnvBase`` 并使用 ``@tool`` 装饰器注册方法：
+自定義環境必須繼承 ``EnvBase`` 並使用 ``@tool`` 裝飾器註冊方法：
 
 .. code-block:: python
 
@@ -130,28 +130,28 @@ AgentSociety 2 支持创建和注册自定义智能体和环境模块，
            """Environment step"""
            self.t = t
 
-现实兼容约束
+現實相容約束
 ~~~~~~~~~~~~~~~~~~~
 
-生成的自定义环境模块仍然必须遵循当前仓库的真实兼容约束：
+生成的自定義環境模組仍然必須遵循當前倉庫的真實相容約束：
 
-* 文件必须位于 ``custom/envs/*.py``
-* 类定义必须直接位于该文件中，不能只做 re-export
-* 注册 key 继续使用 ``class_name``
-* 至少存在一个合法 ``@tool``
-* ``step()`` 必须存在
-* 默认应支持无参实例化 ``cls()``
-* 若模块需要观察能力，应提供 readonly ``kind="observe"`` 工具
-* 建议提供信息完整的 ``mcp_description()``（未覆盖时会显示基类默认描述）
+* 檔案必須位於 ``custom/envs/*.py``
+* 類定義必須直接位於該檔案中，不能只做 re-export
+* 註冊 key 繼續使用 ``class_name``
+* 至少存在一個合法 ``@tool``
+* ``step()`` 必須存在
+* 預設應支援無參例項化 ``cls()``
+* 若模組需要觀察能力，應提供 readonly ``kind="observe"`` 工具
+* 建議提供資訊完整的 ``mcp_description()``（未覆蓋時會顯示基類預設描述）
 
 .. note::
 
-   扫描器会跳过路径中包含 ``examples/`` 的文件（示例仅供参考，不参与注册）。
+   掃描器會跳過路徑中包含 ``examples/`` 的檔案（示例僅供參考，不參與註冊）。
 
-@tool 装饰器
+@tool 裝飾器
 ~~~~~~~~~~~~~~~~~~~
 
-``@tool`` 装饰器将方法注册为智能体可访问的工具：
+``@tool`` 裝飾器將方法註冊為智慧體可訪問的工具：
 
 .. list-table::
    :header-rows: 1
@@ -159,22 +159,22 @@ AgentSociety 2 支持创建和注册自定义智能体和环境模块，
    * - Parameter
      - Description
    * - ``readonly=True``
-     - 工具不修改环境状态
+     - 工具不修改環境狀態
    * - ``readonly=False``
-     - 工具可以修改环境状态
+     - 工具可以修改環境狀態
    * - ``kind="observe"``
-     - 观察工具（单个 agent_id 参数，readonly=True）
+     - 觀察工具（單個 agent_id 引數，readonly=True）
    * - ``kind="statistics"``
-     - 统计工具（无参数，readonly=True）
+     - 統計工具（無引數，readonly=True）
    * - ``kind=None``
-     - 常规工具（任何参数，可以是 readonly=False）
+     - 常規工具（任何引數，可以是 readonly=False）
 
-注册自定义模块
+註冊自定義模組
 ---------------------------
 
-创建自定义模块后，使用 API 注册它们：
+建立自定義模組後，使用 API 註冊它們：
 
-**扫描并注册**
+**掃描並註冊**
 
 .. code-block:: bash
 
@@ -182,13 +182,13 @@ AgentSociety 2 支持创建和注册自定义智能体和环境模块，
      -H "Content-Type: application/json" \
      -d '{"workspace_path": "/path/to/workspace"}'
 
-**列出已注册的模块**
+**列出已註冊的模組**
 
 .. code-block:: bash
 
    curl http://localhost:8001/api/v1/custom/list
 
-**测试自定义模块**
+**測試自定義模組**
 
 .. code-block:: bash
 
@@ -196,7 +196,7 @@ AgentSociety 2 支持创建和注册自定义智能体和环境模块，
      -H "Content-Type: application/json" \
      -d '{"workspace_path": "/path/to/workspace"}'
 
-**创建或恢复 workflow run**
+**建立或恢復 workflow run**
 
 .. code-block:: bash
 
@@ -204,7 +204,7 @@ AgentSociety 2 支持创建和注册自定义智能体和环境模块，
      -H "Content-Type: application/json" \
      -d '{"workspace_path": "/path/to/workspace", "user_request": "create a resource env"}'
 
-**验证 workflow run**
+**驗證 workflow run**
 
 .. code-block:: bash
 
@@ -212,7 +212,7 @@ AgentSociety 2 支持创建和注册自定义智能体和环境模块，
      -H "Content-Type: application/json" \
      -d '{"module_path": "custom/envs/my_env.py", "class_name": "MyEnv"}'
 
-API 端点
+API 端點
 ~~~~~~~~~~~~~
 
 .. list-table::
@@ -223,78 +223,78 @@ API 端点
      - Description
    * - ``/api/v1/custom/scan``
      - POST
-     - 扫描并注册自定义模块
+     - 掃描並註冊自定義模組
    * - ``/api/v1/custom/test``
      - POST
-     - 测试自定义模块
+     - 測試自定義模組
    * - ``/api/v1/custom/clean``
      - POST
-     - 清理自定义模块配置
+     - 清理自定義模組配置
    * - ``/api/v1/custom/list``
      - GET
-     - 列出已注册的自定义模块
+     - 列出已註冊的自定義模組
    * - ``/api/v1/custom/status``
      - GET
-     - 获取模块状态概述
+     - 獲取模組狀態概述
    * - ``/api/v1/custom/workflow/runs``
      - POST
-     - 创建或恢复自定义环境 workflow run
+     - 建立或恢復自定義環境 workflow run
    * - ``/api/v1/custom/workflow/runs/{run_id}/validate``
      - POST
-     - 执行 scanner/tester/registry 的端到端校验
+     - 執行 scanner/tester/registry 的端到端校驗
 
 示例
 --------
 
-示例智能体和环境可在 ``custom/`` 目录中找到：
+示例智慧體和環境可在 ``custom/`` 目錄中找到：
 
-* ``custom/agents/examples/simple_agent.py`` - 基本智能体示例
-* ``custom/agents/examples/advanced_agent.py`` - 具有记忆和情绪的智能体
-* ``custom/envs/examples/simple_env.py`` - 计数器环境
-* ``custom/envs/examples/advanced_env.py`` - 资源管理环境
+* ``custom/agents/examples/simple_agent.py`` - 基本智慧體示例
+* ``custom/agents/examples/advanced_agent.py`` - 具有記憶和情緒的智慧體
+* ``custom/envs/examples/simple_env.py`` - 計數器環境
+* ``custom/envs/examples/advanced_env.py`` - 資源管理環境
 
-这些示例演示了创建自定义模块的最佳实践。
+這些示例演示了建立自定義模組的最佳實踐。
 
 配置
 -------------
 
-设置 ``WORKSPACE_PATH`` 环境变量以指向您的工作区：
+設定 ``WORKSPACE_PATH`` 環境變數以指向您的工作區：
 
 .. code-block:: bash
 
    export WORKSPACE_PATH=/path/to/workspace
 
-或添加到您的 ``.env`` 文件：
+或新增到您的 ``.env`` 檔案：
 
 .. code-block:: ini
 
    WORKSPACE_PATH=/path/to/workspace
 
-此设置告诉系统在哪里找到 ``custom/`` 目录。
+此設定告訴系統在哪裡找到 ``custom/`` 目錄。
 
-最佳实践
+最佳實踐
 --------------
 
-**命名约定**
+**命名約定**
 
-* 智能体类名应以 ``Agent`` 结尾
-* 环境类名应以 ``Env`` 结尾
-* 文件名应使用小写字母和下划线：``my_agent.py``
+* 智慧體類名應以 ``Agent`` 結尾
+* 環境類名應以 ``Env`` 結尾
+* 檔名應使用小寫字母和下劃線：``my_agent.py``
 
-**错误处理**
+**錯誤處理**
 
-* 返回有意义的错误消息
-* 对关键路径保留必要日志，便于复盘与定位问题
+* 返回有意義的錯誤訊息
+* 對關鍵路徑保留必要日誌，便於覆盤與定位問題
 
-**状态管理**
+**狀態管理**
 
-* 使用 ``dump()`` 和 ``load()`` 进行状态持久化
-* 在回放中记录重要的状态更改
-* 保持状态可序列化（JSON 兼容）
+* 使用 ``dump()`` 和 ``load()`` 進行狀態持久化
+* 在回放中記錄重要的狀態更改
+* 保持狀態可序列化（JSON 相容）
 
-**工具设计**
+**工具設計**
 
-* 对只读观察使用 ``kind="observe"``
-* 对聚合数据使用 ``kind="statistics"``
-* 对操作使用 ``kind=None`` 和 ``readonly=False``
-* 生成后优先通过 workflow 产物中的 ``validation_report.json`` 定位失败原因
+* 對只讀觀察使用 ``kind="observe"``
+* 對聚合資料使用 ``kind="statistics"``
+* 對操作使用 ``kind=None`` 和 ``readonly=False``
+* 生成後優先透過 workflow 產物中的 ``validation_report.json`` 定位失敗原因

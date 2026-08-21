@@ -46,9 +46,9 @@ async def test_replace_teammate_agent_card_accepts_configured_payload() -> None:
         service_id="sid-1",
         member_name="team-1",
         source="test",
-        description="负责拆解任务",
+        description="負責拆解任務",
         status="busy",
-        skills=[{"name": "plan", "description": "子任务拆解"}],
+        skills=[{"name": "plan", "description": "子任務拆解"}],
     )
     assert ok is True
     client.replace_agent_card.assert_awaited_once()
@@ -56,9 +56,9 @@ async def test_replace_teammate_agent_card_accepts_configured_payload() -> None:
     assert dataset == "team_pool"
     assert service_id == "sid-1"
     assert card["name"] == "team-1"
-    assert card["description"] == "负责拆解任务"
+    assert card["description"] == "負責拆解任務"
     assert card["status"] == "busy"
-    assert card["skills"] == [{"name": "plan", "description": "子任务拆解"}]
+    assert card["skills"] == [{"name": "plan", "description": "子任務拆解"}]
 
 
 @pytest.mark.asyncio

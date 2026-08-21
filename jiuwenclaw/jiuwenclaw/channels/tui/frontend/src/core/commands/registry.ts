@@ -1,4 +1,4 @@
-/** 内置 slash 与 Gateway 受控指令对齐时参见仓库 `jiuwenclaw/gateway/slash_command.py`（SSOT）与 `docs/zh/CLI_COMMANDS.md`。 */
+/** 內建 slash 與 Gateway 受控指令對齊時參見倉庫 `jiuwenclaw/gateway/slash_command.py`（SSOT）與 `docs/zh/CLI_COMMANDS.md`。 */
 import type { SlashCommand } from "./types.js";
 import { createClearCommand } from "./builtins/clear.js";
 import { createColorCommand } from "./builtins/color.js";

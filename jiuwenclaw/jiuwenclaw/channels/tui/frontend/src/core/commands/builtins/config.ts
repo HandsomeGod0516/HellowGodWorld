@@ -116,7 +116,7 @@ function buildConfigDisplayItems(
       displayPayload[k] = v;
     }
   }
-  // 若用户指定了 key 但后端未返回该字段，应明确提示未找到，而不是 fallback 回全部配置
+  // 若使用者指定了 key 但後端未返回該欄位，應明確提示未找到，而不是 fallback 回全部配置
   if (key) {
     if (displayPayload[key] === undefined) {
       return { items: [], emptyMessage: `No config value found for ${key}` };

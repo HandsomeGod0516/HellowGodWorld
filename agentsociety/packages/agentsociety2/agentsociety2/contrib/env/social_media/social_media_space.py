@@ -102,14 +102,14 @@ class SocialMediaSpace(EnvBase):
     """
     Social Media Environment Module (e.g. Weibo/Twitter style).
 
-    Agent 与社交媒体用户的对应关系：
-    - 默认（未传 agent_id_name_pairs）：约定 agent_id === person_id。observe_user(person_id) 及
-      各 tool 的 user_id 即仿真中的 agent id；用户来自 persons.json 或按需自动创建（_ensure_person_exists）。
-    - 若传入 agent_id_name_pairs：显式列出参与本环境的 (agent_id, name)。
-      此时仅允许这些 id 作为 user_id 使用；init() 时会为列表中尚未在 persons 数据里的 id 创建对应用户（username=name）。
+    Agent 與社交媒體使用者的對應關係：
+    - 預設（未傳 agent_id_name_pairs）：約定 agent_id === person_id。observe_user(person_id) 及
+      各 tool 的 user_id 即模擬中的 agent id；使用者來自 persons.json 或按需自動建立（_ensure_person_exists）。
+    - 若傳入 agent_id_name_pairs：顯式列出參與本環境的 (agent_id, name)。
+      此時僅允許這些 id 作為 user_id 使用；init() 時會為列表中尚未在 persons 資料裡的 id 建立對應使用者（username=name）。
     """
 
-    # 声明式 per-person per-step 快照
+    # 宣告式 per-person per-step 快照
     _agent_state_columns: ClassVar[list[ColumnDef]] = [
         ColumnDef(
             "followers_count",
@@ -147,16 +147,16 @@ class SocialMediaSpace(EnvBase):
         **kwargs: Any,
     ):
         """
-        初始化社交媒体空间环境。
+        初始化社交媒體空間環境。
 
         Args:
-            persons: 初始用户，key=person_id, value=SocialMediaPerson 可序列化 dict。
+            persons: 初始使用者，key=person_id, value=SocialMediaPerson 可序列化 dict。
             posts: 初始帖子，key=post_id, value=Post 可序列化 dict。
-            comments: 初始评论，key=post_id, value=该帖下的 Comment dict 列表。
-            follows: 关注关系，key=person_id, value=被关注者 person_id 列表。
-            likes: 点赞关系，key=person_id, value=被点赞的 post_id 列表。
-            agent_id_name_pairs: 可选。显式 agent–用户映射 [(agent_id, name), ...]。
-            **kwargs: feed_source, polarization_mode 等实验参数。
+            comments: 初始評論，key=post_id, value=該帖下的 Comment dict 列表。
+            follows: 關注關係，key=person_id, value=被關注者 person_id 列表。
+            likes: 點贊關係，key=person_id, value=被點讚的 post_id 列表。
+            agent_id_name_pairs: 可選。顯式 agent–使用者對映 [(agent_id, name), ...]。
+            **kwargs: feed_source, polarization_mode 等實驗引數。
         """
         super().__init__()
         self._initial_persons = persons
@@ -165,7 +165,7 @@ class SocialMediaSpace(EnvBase):
         self._initial_follows = follows
         self._initial_likes = likes
 
-        # 极化实验参数（feed 候选池与同阵营/异阵营比例）
+        # 極化實驗引數（feed 候選池與同陣營/異陣營比例）
         self._feed_source: str = str(kwargs.get("feed_source", "global"))
         self._polarization_mode: str = str(kwargs.get("polarization_mode", "none"))
         self._within_community_ratio: float = float(kwargs.get("within_community_ratio", 0.5))
@@ -173,7 +173,7 @@ class SocialMediaSpace(EnvBase):
         _seed = kwargs.get("random_seed")
         self._random_seed: Optional[int] = int(_seed) if _seed is not None else None
 
-        # 并发锁，保护状态修改操作
+        # 併發鎖，保護狀態修改操作
         self._lock = asyncio.Lock()
 
         self._persons: Dict[int, SocialMediaPerson] = {}
@@ -183,13 +183,13 @@ class SocialMediaSpace(EnvBase):
         self._next_post_id: int = 1
         self._next_comment_id: int = 1
 
-        # 贴文推荐引擎（Feed Recommendation）；可选预训练模型路径与算法名
+        # 貼文推薦引擎（Feed Recommendation）；可選預訓練模型路徑與演算法名
         self._rec_engine = RecommendationEngine(
             model_path=kwargs.get("recommendation_model_path"),
             recommendation_algorithm=kwargs.get("recommendation_algorithm", "mf"),
         )
 
-        # 事件缓冲：tool 调用时追加，step() 末尾批量刷写到 replay DB
+        # 事件緩衝：tool 呼叫時追加，step() 末尾批次刷寫到 replay DB
         self._pending_events: List[dict] = []
         self._event_id: int = 0
         self._recent_events = deque(maxlen=200)
@@ -197,7 +197,7 @@ class SocialMediaSpace(EnvBase):
         # Step counter for replay
         self._step_counter: int = 0
 
-        # 显式 agent–用户映射：仅允许这些 id 作为 user_id
+        # 顯式 agent–使用者對映：僅允許這些 id 作為 user_id
         self._allowed_user_ids: Optional[Set[int]] = None
         self._agent_names: Dict[int, str] = {}
         if agent_id_name_pairs:
@@ -216,12 +216,12 @@ class SocialMediaSpace(EnvBase):
 
     def _get_community_labels(self) -> Dict[int, int]:
         """
-        为每个用户分配社区标签 0 或 1，用于极化实验。
+        為每個使用者分配社群標籤 0 或 1，用於極化實驗。
         """
         user_ids = set(self._persons.keys())
         if not user_ids:
             return {}
-        # 若所有用户都有 camp_score，则直接用阵营分数
+        # 若所有使用者都有 camp_score，則直接用陣營分數
         if all(
             getattr(self._persons.get(uid), "camp_score", None) is not None
             for uid in user_ids
@@ -267,7 +267,7 @@ class SocialMediaSpace(EnvBase):
         return labels
 
     def _get_candidate_posts(self, user_id: int) -> List[Post]:
-        """按 feed_source 得到候选帖子列表：global=全站，following=仅关注者+自己的帖子。"""
+        """按 feed_source 得到候選帖子列表：global=全站，following=僅關注者+自己的帖子。"""
         all_posts = list(self._posts.values())
         if self._feed_source != "following":
             return all_posts
@@ -279,8 +279,8 @@ class SocialMediaSpace(EnvBase):
         self, user_id: int, candidate_posts: List[Post], limit: int
     ) -> List[Post]:
         """
-        当 polarization_mode=="follow_community" 时，按 within_community_ratio
-        从同阵营与异阵营作者中混合取样，再按时间倒序；否则直接返回 candidate_posts。
+        當 polarization_mode=="follow_community" 時，按 within_community_ratio
+        從同陣營與異陣營作者中混合取樣，再按時間倒序；否則直接返回 candidate_posts。
         """
         if self._polarization_mode != "follow_community" or not candidate_posts:
             return candidate_posts
@@ -310,7 +310,7 @@ class SocialMediaSpace(EnvBase):
         receiver_id: Optional[int] = None,
         target_id: Optional[int] = None,
     ) -> None:
-        """将事件追加到 pending 缓冲。在 step() 末尾批量刷写到 replay DB。"""
+        """將事件追加到 pending 緩衝。在 step() 末尾批次刷寫到 replay DB。"""
         self._event_id += 1
         event = {
             "id": self._event_id,
@@ -326,7 +326,7 @@ class SocialMediaSpace(EnvBase):
         self._recent_events.append(dict(event))
 
     async def _flush_events(self) -> None:
-        """将 pending 事件批量写入 social_media_event 表，然后清空缓冲。"""
+        """將 pending 事件批次寫入 social_media_event 表，然後清空緩衝。"""
         if self._replay_writer is None or not self._pending_events:
             return
         for event in self._pending_events:
@@ -334,7 +334,7 @@ class SocialMediaSpace(EnvBase):
         self._pending_events.clear()
 
     async def _register_event_table(self) -> None:
-        """注册统一事件表 schema。"""
+        """註冊統一事件表 schema。"""
         if self._replay_writer is None:
             return
         await self._replay_writer.register_table(_SOCIAL_MEDIA_EVENT_SCHEMA)
@@ -492,7 +492,7 @@ Use the available tools based on the agent's request."""
         self._posts = {}
         for pid, data in (self._initial_posts or {}).items():
             self._posts[int(pid)] = Post(**self._norm_post_data(data))
-        # 将 follows 数据合入 SocialMediaPerson.following
+        # 將 follows 資料合入 SocialMediaPerson.following
         if self._initial_follows is not None:
             follower_counts: Dict[int, int] = defaultdict(int)
             for uid, followee_ids in self._initial_follows.items():
@@ -537,7 +537,7 @@ Use the available tools based on the agent's request."""
             if uid in self._persons:
                 liked = [int(x) for x in post_ids]
                 self._persons[uid].liked_post_ids = liked
-                # 同时更新 Post.liked_by
+                # 同時更新 Post.liked_by
                 for pid in liked:
                     if pid in self._posts:
                         if uid not in self._posts[pid].liked_by:
@@ -566,9 +566,9 @@ Use the available tools based on the agent's request."""
         )
         if has_initial:
             self._apply_initial_data()
-        # 未传初始数据时保持空状态，持久化由外部数据库负责
+        # 未傳初始資料時保持空狀態，持久化由外部資料庫負責
 
-        # 显式映射时：为 agent_id_name_pairs 中尚未存在的 id 创建对应用户
+        # 顯式對映時：為 agent_id_name_pairs 中尚未存在的 id 建立對應使用者
         if self._allowed_user_ids is not None:
             for aid in self._allowed_user_ids:
                 if aid not in self._persons:
@@ -576,7 +576,7 @@ Use the available tools based on the agent's request."""
                     self._persons[aid] = SocialMediaPerson(id=aid, username=name)
                     get_logger().info(f"Created user for agent {aid} (username={name})")
 
-        # 注册统一事件表
+        # 註冊統一事件表
         if self._replay_writer is not None:
             await self._register_event_table()
 
@@ -590,10 +590,10 @@ Use the available tools based on the agent's request."""
         """
         self.t = t
 
-        # 刷写 pending 事件到 replay DB
+        # 刷寫 pending 事件到 replay DB
         await self._flush_events()
 
-        # 写入 per-person 快照（声明式 _agent_state_columns）
+        # 寫入 per-person 快照（宣告式 _agent_state_columns）
         for person in self._persons.values():
             await self._write_agent_state(
                 agent_id=person.id,
@@ -608,7 +608,7 @@ Use the available tools based on the agent's request."""
 
     async def close(self):
         """Close the environment module. Data persistence is handled by external DB."""
-        # 刷写剩余事件
+        # 刷寫剩餘事件
         await self._flush_events()
         get_logger().info("SocialMediaSpace closed")
 
@@ -619,7 +619,7 @@ Use the available tools based on the agent's request."""
 
     def _dump_state(self) -> dict:
         """
-        Dump internal state（包含新增字段）
+        Dump internal state（包含新增欄位）
         """
         state = {
             "persons": {
@@ -648,7 +648,7 @@ Use the available tools based on the agent's request."""
 
     def _load_state(self, state: dict):
         """
-        Load internal state（包含新增字段）
+        Load internal state（包含新增欄位）
         """
         if not isinstance(state, dict):
             raise TypeError(f"State must be a dict, got {type(state).__name__}")
@@ -860,21 +860,21 @@ Use the available tools based on the agent's request."""
     @tool(readonly=True, kind="observe")
     async def observe_user(self, person_id: int) -> ObserveUserResponse:
         """
-        观察用户当前状态
+        觀察使用者當前狀態
 
-        用于 <observe> 指令，返回用户可见的社交媒体环境信息。
+        用於 <observe> 指令，返回使用者可見的社交媒體環境資訊。
 
         Args:
-            person_id: 用户ID
+            person_id: 使用者ID
 
         Returns:
-            ObserveUserResponse 响应模型，包含用户状态和可用行为
+            ObserveUserResponse 響應模型，包含使用者狀態和可用行為
         """
         user_id = person_id
         self._ensure_person_exists(user_id)
         user = self._persons[user_id]
 
-        # 获取最近的 Feed
+        # 獲取最近的 Feed
         candidate_posts = self._get_candidate_posts(user_id)
         if candidate_posts:
             if self._polarization_mode == "follow_community":
@@ -885,18 +885,18 @@ Use the available tools based on the agent's request."""
         else:
             recent_feed = []
 
-        # 可用行为列表
+        # 可用行為列表
         available_actions = [
-            "create_post(author_id, content, tags=[]) - 发布帖子",
-            "like_post(user_id, post_id) - 点赞帖子",
-            "unlike_post(user_id, post_id) - 取消点赞",
-            "follow_user(follower_id, followee_id) - 关注用户",
-            "unfollow_user(follower_id, followee_id) - 取消关注",
-            "view_post(user_id, post_id) - 查看帖子详情",
-            "comment_on_post(user_id, post_id, content) - 评论帖子",
-            "repost(user_id, post_id, comment='') - 转发帖子",
-            "refresh_feed(user_id, algorithm='chronological', limit=20) - 刷新Feed",
-            "search_posts(keyword, tags=[], limit=20) - 搜索帖子",
+            "create_post(author_id, content, tags=[]) - 釋出帖子",
+            "like_post(user_id, post_id) - 點贊帖子",
+            "unlike_post(user_id, post_id) - 取消點贊",
+            "follow_user(follower_id, followee_id) - 關注使用者",
+            "unfollow_user(follower_id, followee_id) - 取消關注",
+            "view_post(user_id, post_id) - 檢視帖子詳情",
+            "comment_on_post(user_id, post_id, content) - 評論帖子",
+            "repost(user_id, post_id, comment='') - 轉發帖子",
+            "refresh_feed(user_id, algorithm='chronological', limit=20) - 重新整理Feed",
+            "search_posts(keyword, tags=[], limit=20) - 搜尋帖子",
         ]
 
         return ObserveUserResponse(
@@ -921,12 +921,12 @@ Use the available tools based on the agent's request."""
         tags: List[str] = []
     ) -> CreatePostResponse:
         """
-        Create a new original post (支持话题标签)
+        Create a new original post (支援話題標籤)
 
         Args:
             author_id: ID of the author
             content: Content of the post
-            tags: 话题标签列表，例如 ["guncontrol", "politics"]
+            tags: 話題標籤列表，例如 ["guncontrol", "politics"]
 
         Returns:
             CreatePostResponse with post details
@@ -1280,28 +1280,28 @@ Use the available tools based on the agent's request."""
         limit: int = 20
     ) -> RefreshFeedResponse:
         """
-        刷新用户Feed流（贴文推荐流 Feed Recommendation）
+        重新整理使用者Feed流（貼文推薦流 Feed Recommendation）
 
-        **注意**: 这是贴文流推荐,不是物品推荐(Item Recommendation)
-        - 贴文推荐: 社交媒体的动态内容流(如Twitter/微博Timeline)
-        - 物品推荐: 电商/电影等静态物品推荐(应使用独立的API)
+        **注意**: 這是貼文流推薦,不是物品推薦(Item Recommendation)
+        - 貼文推薦: 社交媒體的動態內容流(如Twitter/微博Timeline)
+        - 物品推薦: 電商/電影等靜態物品推薦(應使用獨立的API)
 
         Args:
-            user_id: 用户ID
-            algorithm: 贴文推荐算法
-                - "chronological": 时间倒序
-                - "reddit_hot": Reddit热度排序
-                - "twitter_ranking": Twitter综合排序(考虑社交关系)
-                - "random": 随机推荐
-                - "mf" / "model": 预训练推荐模型（需在构造时传入 recommendation_model_path）
-            limit: 返回贴文数量
+            user_id: 使用者ID
+            algorithm: 貼文推薦演算法
+                - "chronological": 時間倒序
+                - "reddit_hot": Reddit熱度排序
+                - "twitter_ranking": Twitter綜合排序(考慮社交關係)
+                - "random": 隨機推薦
+                - "mf" / "model": 預訓練推薦模型（需在構造時傳入 recommendation_model_path）
+            limit: 返回貼文數量
 
         Returns:
-            (context_dict, answer_string) 元组
+            (context_dict, answer_string) 元組
         """
         self._ensure_person_exists(user_id)
 
-        # 按 feed_source 得到候选帖子（global=全站，following=关注+自己）
+        # 按 feed_source 得到候選帖子（global=全站，following=關注+自己）
         candidate_posts = self._get_candidate_posts(user_id)
 
         if not candidate_posts:
@@ -1312,10 +1312,10 @@ Use the available tools based on the agent's request."""
                 count=0
             )
 
-        # 极化混合：若 polarization_mode=="follow_community"，按 within_community_ratio 混合同/异阵营
+        # 極化混合：若 polarization_mode=="follow_community"，按 within_community_ratio 混合同/異陣營
         if self._polarization_mode == "follow_community":
             candidate_posts = self._apply_polarization_mix(user_id, candidate_posts, limit)
-            # 混合后已按时间倒序；若算法非 chronological 则再按该算法重排
+            # 混合後已按時間倒序；若演算法非 chronological 則再按該演算法重排
             if algorithm == "chronological":
                 recommended_posts = candidate_posts
             elif algorithm == "reddit_hot":
@@ -1343,7 +1343,7 @@ Use the available tools based on the agent's request."""
             else:
                 recommended_posts = candidate_posts
         else:
-            # 无极化：直接按算法排序
+            # 無極化：直接按演算法排序
             if algorithm == "chronological":
                 recommended_posts = self._rec_engine.chronological(
                     candidate_posts, user_id, limit
@@ -1369,7 +1369,7 @@ Use the available tools based on the agent's request."""
                         candidate_posts, user_id, limit
                     )
             elif algorithm in ("mf", "model") or algorithm == self._rec_engine.get_model_algorithm_name():
-                # 预训练推荐模型（如 MF）；未加载模型时 model_recommend 内部回退为时间序
+                # 預訓練推薦模型（如 MF）；未載入模型時 model_recommend 內部回退為時間序
                 recommended_posts = self._rec_engine.model_recommend(
                     candidate_posts, user_id, limit, exclude_post_ids=None
                 )
@@ -1399,40 +1399,40 @@ Use the available tools based on the agent's request."""
         sort_by: str = "time"  # "time", "relevance", "popularity"
     ) -> SearchPostsResponse:
         """
-        搜索贴文
+        搜尋貼文
 
         Args:
-            keyword: 关键词（在content和tags中搜索）
-            tags: 指定话题标签过滤
-            limit: 返回数量
+            keyword: 關鍵詞（在content和tags中搜尋）
+            tags: 指定話題標籤過濾
+            limit: 返回數量
             sort_by: 排序方式
-                - "time": 时间倒序（默认）
-                - "relevance": 相关度（关键词出现次数）
-                - "popularity": 热度（likes + comments + reposts）
+                - "time": 時間倒序（預設）
+                - "relevance": 相關度（關鍵詞出現次數）
+                - "popularity": 熱度（likes + comments + reposts）
 
         Returns:
-            匹配的贴文列表
+            匹配的貼文列表
         """
         keyword_lower = keyword.lower()
         matched_posts = []
 
-        # 搜索逻辑
+        # 搜尋邏輯
         for post in self._posts.values():
-            # 标签过滤
+            # 標籤過濾
             if tags and not any(tag in post.tags for tag in tags):
                 continue
 
-            # 关键词匹配
+            # 關鍵詞匹配
             in_content = keyword_lower in post.content.lower()
             in_tags = any(keyword_lower in tag.lower() for tag in post.tags)
 
             if in_content or in_tags:
-                # 计算相关度分数（用于排序）
+                # 計算相關度分數（用於排序）
                 relevance_score = 0
                 if in_content:
                     relevance_score += post.content.lower().count(keyword_lower)
                 if in_tags:
-                    relevance_score += 10  # 标签匹配权重高
+                    relevance_score += 10  # 標籤匹配權重高
 
                 matched_posts.append({
                     "post": post,
@@ -1448,7 +1448,7 @@ Use the available tools based on the agent's request."""
         elif sort_by == "popularity":
             matched_posts.sort(key=lambda x: x["popularity_score"], reverse=True)
 
-        # 限制数量
+        # 限制數量
         result_posts = [item["post"] for item in matched_posts[:limit]]
 
         get_logger().info(
@@ -1464,12 +1464,12 @@ Use the available tools based on the agent's request."""
             total_matched=len(matched_posts)
         )
 
-    # 一些辅助函数
+    # 一些輔助函式
 
     def _ensure_person_exists(self, user_id: int) -> None:
         """
-        若 user_id 不在当前用户集中则创建对应用户。
-        当初始化时传入了 agent_id_name_pairs 时，仅允许该集合内的 id；否则允许任意 id 并按需创建。
+        若 user_id 不在當前使用者集中則建立對應使用者。
+        當初始化時傳入了 agent_id_name_pairs 時，僅允許該集合內的 id；否則允許任意 id 並按需建立。
         """
         if self._allowed_user_ids is not None and user_id not in self._allowed_user_ids:
             raise ValueError(

@@ -1,22 +1,22 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""TEST_RUN 阶段处理器.
+"""TEST_RUN 階段處理器.
 
-职责：
-- 为每个测试用例并行创建两个子 Agent：
-    · with_skill：注入当前生成的 Skill 后执行用例
-    · baseline：不注入 Skill，作为对照组
-- 收集两组结果，写入 iteration-{N}/ 目录
-- 推送 TEST_PROGRESS 事件反馈进度
+職責：
+- 為每個測試用例並行建立兩個子 Agent：
+    · with_skill：注入當前生成的 Skill 後執行用例
+    · baseline：不注入 Skill，作為對照組
+- 收集兩組結果，寫入 iteration-{N}/ 目錄
+- 推送 TEST_PROGRESS 事件反饋進度
 
-这是整个 Pipeline 中技术复杂度最高的阶段，涉及：
-- 子 Agent 创建与 Skill 注入
-- 并行任务调度与结果收集
-- 文件系统隔离（每个测试用例独立目录）
+這是整個 Pipeline 中技術複雜度最高的階段，涉及：
+- 子 Agent 建立與 Skill 注入
+- 並行任務排程與結果收集
+- 檔案系統隔離（每個測試用例獨立目錄）
 
-扩展点：
-- 子 Agent 并行度可配置（默认与测试用例数相同）
-- with_skill / baseline 的执行逻辑封装在 SkillDevTestRunner 中（待独立模块实现）
+擴充套件點：
+- 子 Agent 並行度可配置（預設與測試用例數相同）
+- with_skill / baseline 的執行邏輯封裝在 SkillDevTestRunner 中（待獨立模組實現）
 """
 
 from __future__ import annotations
@@ -33,12 +33,12 @@ logger = logging.getLogger(__name__)
 
 
 class TestRunStageHandler(StageHandler):
-    """TEST_RUN 阶段：子 Agent 并行执行测试用例（with_skill vs baseline）."""
+    """TEST_RUN 階段：子 Agent 並行執行測試用例（with_skill vs baseline）."""
 
     async def execute(self, ctx: SkillDevContext) -> StageResult:
         evals = ctx.state.evals
         if not evals or not evals.get("evals"):
-            raise ValueError("TEST_RUN 阶段缺少测试用例，请先完成 TEST_DESIGN 阶段")
+            raise ValueError("TEST_RUN 階段缺少測試用例，請先完成 TEST_DESIGN 階段")
 
         eval_cases = evals["evals"]
         iteration = ctx.state.iteration
@@ -51,7 +51,7 @@ class TestRunStageHandler(StageHandler):
             {
                 "total": total_tasks,
                 "completed": 0,
-                "message": f"开始执行 {len(eval_cases)} 个测试用例...",
+                "message": f"開始執行 {len(eval_cases)} 個測試用例...",
             },
         )
 
@@ -62,7 +62,7 @@ class TestRunStageHandler(StageHandler):
             {
                 "total": total_tasks,
                 "completed": total_tasks,
-                "message": "测试执行完成",
+                "message": "測試執行完成",
             },
         )
 
@@ -71,11 +71,11 @@ class TestRunStageHandler(StageHandler):
     async def _run_all_evals(
         self, ctx: SkillDevContext, eval_cases: list[dict], iter_dir
     ) -> list[dict]:
-        """并行执行所有测试用例.
+        """並行執行所有測試用例.
 
-        待实现: 接入 SkillDevTestRunner，为每个用例创建 with_skill + baseline 子 Agent
+        待實現: 接入 SkillDevTestRunner，為每個用例建立 with_skill + baseline 子 Agent
         """
-        # 待实现:
+        # 待實現:
         # tasks = []
         # for case in eval_cases:
         #     case_dir = iter_dir / case["name"]
@@ -84,7 +84,7 @@ class TestRunStageHandler(StageHandler):
         # results = await asyncio.gather(*tasks, return_exceptions=True)
         # return results
 
-        logger.warning("[TestRunStage] _run_all_evals 尚未实现，写入占位结果")
+        logger.warning("[TestRunStage] _run_all_evals 尚未實現，寫入佔位結果")
         results = []
         for case in eval_cases:
             eval_name = case.get("name", f"eval-{case.get('id', 0)}")
@@ -92,7 +92,7 @@ class TestRunStageHandler(StageHandler):
             (case_dir / "with_skill").mkdir(parents=True, exist_ok=True)
             (case_dir / "baseline").mkdir(parents=True, exist_ok=True)
 
-            # 写入 eval_metadata.json（对齐官方格式）
+            # 寫入 eval_metadata.json（對齊官方格式）
             eval_metadata = {
                 "eval_id": case.get("id", 0),
                 "eval_name": eval_name,
@@ -104,7 +104,7 @@ class TestRunStageHandler(StageHandler):
                 encoding="utf-8",
             )
 
-            # 占位 timing.json（实际应从 subagent task notification 中捕获）
+            # 佔位 timing.json（實際應從 subagent task notification 中捕獲）
             timing_placeholder = {
                 "total_tokens": 0,
                 "duration_ms": 0,
@@ -113,7 +113,7 @@ class TestRunStageHandler(StageHandler):
             for config in ("with_skill", "baseline"):
                 config_dir = case_dir / config
                 (config_dir / "result.json").write_text(
-                    '{"status": "待实现", "output": "待实现"}', encoding="utf-8"
+                    '{"status": "待實現", "output": "待實現"}', encoding="utf-8"
                 )
                 (config_dir / "timing.json").write_text(
                     json.dumps(timing_placeholder, indent=2), encoding="utf-8"
@@ -123,7 +123,7 @@ class TestRunStageHandler(StageHandler):
             await ctx.emit(
                 SkillDevEventType.TEST_PROGRESS,
                 {
-                    "message": f"已完成（占位）：{eval_name}",
+                    "message": f"已完成（佔位）：{eval_name}",
                 },
             )
         return results
@@ -131,9 +131,9 @@ class TestRunStageHandler(StageHandler):
     async def _run_single_eval(
         self, ctx: SkillDevContext, case: dict, case_dir
     ) -> dict:
-        """为单个测试用例创建 with_skill + baseline 两组子 Agent 并行执行.
+        """為單個測試用例建立 with_skill + baseline 兩組子 Agent 並行執行.
 
-        待实现: 实现 SkillDevTestRunner.run(case, skill_dir, case_dir)
+        待實現: 實現 SkillDevTestRunner.run(case, skill_dir, case_dir)
         """
         # with_skill_result, baseline_result = await asyncio.gather(
         #     self._run_with_skill(ctx, case, case_dir / "with_skill"),

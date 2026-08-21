@@ -1,12 +1,12 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
-"""以 detached 方式启动 delayed_restart_app，供 bash 通过 skill 调用。
+"""以 detached 方式啟動 delayed_restart_app，供 bash 透過 skill 呼叫。
 
-本脚本会立即 spawn 子进程并退出，子进程与当前进程树脱离，因此当 app 被终止时
-子进程不会随之结束，可以正常完成延迟重启。
+本指令碼會立即 spawn 子程序並退出，子程序與當前程序樹脫離，因此當 app 被終止時
+子程序不會隨之結束，可以正常完成延遲重啟。
 
 用法:
     python launch_delayed_restart.py --pid <PID> [--delay 5]
-    （需在技能目录或指定脚本路径下执行）
+    （需在技能目錄或指定指令碼路徑下執行）
 """
 
 from __future__ import annotations
@@ -18,9 +18,9 @@ from pathlib import Path
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="以 detached 方式启动延迟重启")
-    parser.add_argument("--pid", type=int, required=True, help="要终止的 app 进程 PID")
-    parser.add_argument("--delay", type=float, default=5, help="延迟秒数（默认 5）")
+    parser = argparse.ArgumentParser(description="以 detached 方式啟動延遲重啟")
+    parser.add_argument("--pid", type=int, required=True, help="要終止的 app 程序 PID")
+    parser.add_argument("--delay", type=float, default=5, help="延遲秒數（預設 5）")
     args = parser.parse_args()
 
     try:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-从 rank*.pt 和 point_map.json 生成 Chrome Trace JSON。
-支持 64 位组合 ID 解析、B/E 配对、区间深度过滤。
+從 rank*.pt 和 point_map.json 生成 Chrome Trace JSON。
+支援 64 位組合 ID 解析、B/E 配對、區間深度過濾。
 """
 
 import glob

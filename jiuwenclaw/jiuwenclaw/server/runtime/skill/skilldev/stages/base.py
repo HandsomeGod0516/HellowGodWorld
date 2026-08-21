@@ -1,9 +1,9 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""StageHandler 基类和 StageResult.
+"""StageHandler 基類和 StageResult.
 
-每个阶段处理器继承 StageHandler，实现 execute() 方法。
-execute() 执行完成后返回 StageResult，告知 Pipeline 下一个跳转阶段。
+每個階段處理器繼承 StageHandler，實現 execute() 方法。
+execute() 執行完成後返回 StageResult，告知 Pipeline 下一個跳轉階段。
 """
 
 from __future__ import annotations
@@ -16,25 +16,25 @@ from jiuwenclaw.server.runtime.skill.skilldev.schema import SkillDevStage
 
 @dataclass
 class StageResult:
-    """阶段执行结果，由 Pipeline 读取以驱动状态跳转."""
+    """階段執行結果，由 Pipeline 讀取以驅動狀態跳轉."""
 
     next_stage: SkillDevStage
 
 
 class StageHandler(ABC):
-    """SkillDev Pipeline 阶段处理器基类.
+    """SkillDev Pipeline 階段處理器基類.
 
-    每个阶段独立实现，通过 execute() 与 Pipeline 交互。
-    处理器不应持有跨请求的状态——所有状态均通过 SkillDevContext 传入。
+    每個階段獨立實現，透過 execute() 與 Pipeline 互動。
+    處理器不應持有跨請求的狀態——所有狀態均透過 SkillDevContext 傳入。
     """
 
     @abstractmethod
     async def execute(self, ctx) -> StageResult:
-        """执行阶段逻辑.
+        """執行階段邏輯.
 
         Args:
             ctx: SkillDevContext，包含 state、workspace、emit、create_stage_agent 等
 
         Returns:
-            StageResult，Pipeline 据此跳转到下一阶段
+            StageResult，Pipeline 據此跳轉到下一階段
         """

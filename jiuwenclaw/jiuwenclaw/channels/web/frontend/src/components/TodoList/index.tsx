@@ -1,7 +1,7 @@
 /**
- * TodoList 组件
+ * TodoList 元件
  *
- * 显示任务列表，支持状态图标和实时更新
+ * 顯示任務列表，支援狀態圖示和實時更新
  */
 
 import { useTranslation } from 'react-i18next';
@@ -23,7 +23,7 @@ export function TodoList() {
     );
   }
 
-  // 按状态分组
+  // 按狀態分組
   const inProgress = todos.filter((t) => t.status === 'in_progress');
   const pending = todos.filter((t) => t.status === 'pending');
   const completed = todos.filter((t) => t.status === 'completed');
@@ -36,7 +36,7 @@ export function TodoList() {
       </h3>
 
       <div className="flex-1 overflow-y-auto space-y-4">
-        {/* 进行中 */}
+        {/* 進行中 */}
         {inProgress.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-medium text-info">
@@ -51,7 +51,7 @@ export function TodoList() {
           </div>
         )}
 
-        {/* 待处理 */}
+        {/* 待處理 */}
         {pending.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-medium text-text-muted">

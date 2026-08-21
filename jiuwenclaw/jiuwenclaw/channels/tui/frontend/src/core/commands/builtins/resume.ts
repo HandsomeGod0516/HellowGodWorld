@@ -75,8 +75,8 @@ export function createResumeCommand(): SlashCommand {
           ctx.clearEntries();
           ctx.addItem(addInfo(nextSessionId, `Resumed session ${nextSessionId}`, "r"));
           void ctx.restoreHistory(nextSessionId);
-          // 异步拉取被恢复会话的标题；在拿到结果前保留上一会话的 title 显示，
-          // 避免 "清空 -> 回填" 造成状态栏闪烁。成功后覆盖，失败不影响核心功能。
+          // 非同步拉取被恢復會話的標題；在拿到結果前保留上一會話的 title 顯示，
+          // 避免 "清空 -> 回填" 造成狀態列閃爍。成功後覆蓋，失敗不影響核心功能。
           void (async () => {
             try {
               const meta = await ctx.request<{ session_id: string; title: string }>(

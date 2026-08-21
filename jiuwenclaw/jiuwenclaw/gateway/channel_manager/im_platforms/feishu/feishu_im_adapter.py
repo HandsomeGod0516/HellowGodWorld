@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""飞书平台的 IMPlatformAdapter 实现，处理飞书特定的用户信息获取、历史消息加载和元数据构建."""
+"""飛書平臺的 IMPlatformAdapter 實現，處理飛書特定的使用者資訊獲取、歷史訊息載入和後設資料構建."""
 
 from __future__ import annotations
 
@@ -42,13 +42,13 @@ class FeishuIMPlatformAdapter:
 
     def get_user_name_by_open_id(self, open_id: str) -> str:
         """
-        根据 open_id 获取用户名。
+        根據 open_id 獲取使用者名稱。
 
         Args:
-            open_id: 用户 open_id
+            open_id: 使用者 open_id
 
         Returns:
-            str: 用户名，bot开头的返回"bot"，获取失败返回空字符串
+            str: 使用者名稱，bot開頭的返回"bot"，獲取失敗返回空字串
         """
         if not open_id:
             return ""
@@ -70,14 +70,14 @@ class FeishuIMPlatformAdapter:
             response = self._api_client.contact.v3.user.get(request)
             if not response.success():
                 logger.warning(
-                    f"获取用户信息失败: open_id={open_id}, code={response.code}, msg={response.msg}"
+                    f"獲取使用者資訊失敗: open_id={open_id}, code={response.code}, msg={response.msg}"
                 )
                 return ""
             user = response.data.user
             return getattr(user, "name", "") or ""
 
         except Exception as e:
-            logger.warning(f"获取用户名时发生异常: open_id={open_id}, error={e}")
+            logger.warning(f"獲取使用者名稱時發生異常: open_id={open_id}, error={e}")
             return ""
 
     def resolve_user_display_name(self, user_id: str) -> str:
@@ -160,7 +160,7 @@ class FeishuIMPlatformAdapter:
 
     @property
     def platform_name(self) -> str:
-        return "飞书"
+        return "飛書"
 
     @property
     def reply_user_id_key(self) -> str:
@@ -175,7 +175,7 @@ class FeishuIMPlatformAdapter:
         return str(metadata.get("reply_candidate_feishu_open_id") or "").strip()
 
     def resolve_user_id_by_name(self, name: str) -> str:
-        """根据用户名在群聊历史中查找对应的 open_id。"""
+        """根據使用者名稱在群聊歷史中查詢對應的 open_id。"""
         if not name or not self._api_client:
             return ""
         try:
@@ -190,8 +190,8 @@ class FeishuIMPlatformAdapter:
                         if uid:
                             return uid
                 except Exception as e:
-                    logger.debug("[FeishuIMAdapter] 解析交互文件 %s 失败: %s", fp, e)
+                    logger.debug("[FeishuIMAdapter] 解析互動檔案 %s 失敗: %s", fp, e)
                     continue
         except Exception as e:
-            logger.warning("[FeishuIMAdapter] resolve_user_id_by_name 失败: %s", e)
+            logger.warning("[FeishuIMAdapter] resolve_user_id_by_name 失敗: %s", e)
         return ""

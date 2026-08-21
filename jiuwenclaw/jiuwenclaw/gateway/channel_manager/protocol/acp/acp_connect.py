@@ -661,9 +661,9 @@ class AcpGatewayBridge:
 class AcpChannel(BaseChannel):
     """ACP stdio 通道。
 
-    - 入站：stdin 每行一个 JSON，支持 E2AEnvelope 或 ACP JSON-RPC 请求。
-    - 出站：stdout 每行一个 E2AResponse JSON。
-    - 语义：将 ``session/prompt`` 映射为内部 ``chat.send``。
+    - 入站：stdin 每行一個 JSON，支援 E2AEnvelope 或 ACP JSON-RPC 請求。
+    - 出站：stdout 每行一個 E2AResponse JSON。
+    - 語義：將 ``session/prompt`` 對映為內部 ``chat.send``。
     """
 
     name = "acp"
@@ -747,7 +747,7 @@ class AcpChannel(BaseChannel):
         await self._close_gateway_connection()
 
     async def _sweep_stale_pending(self) -> None:
-        """移除超时的 pending RPC 条目，防止永久堆积。"""
+        """移除超時的 pending RPC 條目，防止永久堆積。"""
         now = time.time()
         stale = [
             (jsonrpc_id, str(entry[0] or "").strip())
@@ -993,7 +993,7 @@ class AcpChannel(BaseChannel):
             )
 
         if msg.type == "event":
-            # 辅助事件先忽略，避免把 processing_status/tool_call/todo 等中间态误判为最终失败。
+            # 輔助事件先忽略，避免把 processing_status/tool_call/todo 等中間態誤判為最終失敗。
             return None
 
         ctx.sequence += 1
@@ -1337,7 +1337,7 @@ class AcpChannel(BaseChannel):
                 return False
             _mark_stream_activity(ctx)
             await self._write_acp_session_update(session_id, update)
-            # 如果 CHAT_DELTA 携带 usage，也发送 usage_update
+            # 如果 CHAT_DELTA 攜帶 usage，也傳送 usage_update
             usage_update = build_acp_usage_update(payload)
             if usage_update is not None:
                 await self._write_acp_session_update(session_id, usage_update)

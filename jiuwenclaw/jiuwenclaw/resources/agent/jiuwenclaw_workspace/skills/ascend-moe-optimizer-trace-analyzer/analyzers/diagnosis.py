@@ -100,13 +100,13 @@ def build_auto_diagnosis(inp: AutoDiagnosisInput) -> dict:
         findings.append(
             {
                 "severity": "high" if _num(top_phase.get("ratio_to_total_wall")) >= 0.5 else "medium",
-                "title": f"主耗时阶段是 {top_phase.get('phase')}",
+                "title": f"主耗時階段是 {top_phase.get('phase')}",
                 "detail": (
                     f"union={_fmt_us(top_phase.get('union_us'))}, "
-                    f"占 wall time {_fmt_ratio(top_phase.get('ratio_to_total_wall'))}, "
+                    f"佔 wall time {_fmt_ratio(top_phase.get('ratio_to_total_wall'))}, "
                     f"category={top_phase.get('category')}."
                 ),
-                "recommendation": "优先检查该阶段内部的 top raw names 和同 category 的等待/计算子阶段。",
+                "recommendation": "優先檢查該階段內部的 top raw names 和同 category 的等待/計運算元階段。",
             }
         )
 
@@ -115,12 +115,12 @@ def build_auto_diagnosis(inp: AutoDiagnosisInput) -> dict:
         category = top_category.get("category")
         finding = {
             "severity": "high" if _num(top_category.get("ratio_to_total_wall")) >= 0.5 else "medium",
-            "title": f"瓶颈类型倾向于 {category}",
+            "title": f"瓶頸型別傾向於 {category}",
             "detail": (
                 f"{category} union={_fmt_us(top_category.get('union_us'))}, "
-                f"占 wall time {_fmt_ratio(top_category.get('ratio_to_total_wall'))}."
+                f"佔 wall time {_fmt_ratio(top_category.get('ratio_to_total_wall'))}."
             ),
-            "recommendation": "若该类型是 wait/sync，优先看跨核信号与通信；若是 compute/epilogue，优先看矩阵维度、分块和核间负载。",
+            "recommendation": "若該型別是 wait/sync，優先看跨核訊號與通訊；若是 compute/epilogue，優先看矩陣維度、分塊和核間負載。",
         }
         findings.append(finding)
 
@@ -131,13 +131,13 @@ def build_auto_diagnosis(inp: AutoDiagnosisInput) -> dict:
         findings.append(
             {
                 "severity": "high" if _num(wait_category.get("ratio_to_total_wall")) >= 0.4 else "medium",
-                "title": "存在显著等待开销",
+                "title": "存在顯著等待開銷",
                 "detail": (
                     f"wait union={_fmt_us(wait_category.get('union_us'))}, "
-                    f"占 wall time {_fmt_ratio(wait_category.get('ratio_to_total_wall'))}; "
+                    f"佔 wall time {_fmt_ratio(wait_category.get('ratio_to_total_wall'))}; "
                     f"top wait={wait_names or 'N/A'}."
                 ),
-                "recommendation": "重点排查 token ready、combine status、shared expert 同步和 AIC/AIV pipeline 依赖。",
+                "recommendation": "重點排查 token ready、combine status、shared expert 同步和 AIC/AIV pipeline 依賴。",
             }
         )
 
@@ -151,15 +151,15 @@ def build_auto_diagnosis(inp: AutoDiagnosisInput) -> dict:
         findings.append(
             {
                 "severity": "high" if _num(top_wait_core.get("ratio_to_total_wall")) >= 0.4 else "medium",
-                "title": f"等待主要出现在 {top_wait_core.get('core_group')} 核组",
+                "title": f"等待主要出現在 {top_wait_core.get('core_group')} 核組",
                 "detail": (
                     f"{details}; "
-                    f"{top_wait_core.get('core_group')} 内 wait 覆盖该核组 "
+                    f"{top_wait_core.get('core_group')} 內 wait 覆蓋該核組 "
                     f"{_fmt_ratio(top_wait_core.get('ratio_to_core_group_wall'))}."
                 ),
                 "recommendation": (
-                    "分别查看 phase_core_group_summary.csv，确认是 cube 等 token，"
-                    "还是 vector_recv/vector_send 在等待 combine/status。"
+                    "分別檢視 phase_core_group_summary.csv，確認是 cube 等 token，"
+                    "還是 vector_recv/vector_send 在等待 combine/status。"
                 ),
             }
         )
@@ -175,9 +175,9 @@ def build_auto_diagnosis(inp: AutoDiagnosisInput) -> dict:
                 findings.append(
                     {
                         "severity": "medium",
-                        "title": f"未观察到 {core_group} 核组事件",
-                        "detail": f"trace 中没有 {core_group} 对应的已映射 phase instance。",
-                        "recommendation": "确认 trace_collector 是否按 1C2V 模式拆分，或者 profiling tensor 是否缺少该核组数据。",
+                        "title": f"未觀察到 {core_group} 核組事件",
+                        "detail": f"trace 中沒有 {core_group} 對應的已對映 phase instance。",
+                        "recommendation": "確認 trace_collector 是否按 1C2V 模式拆分，或者 profiling tensor 是否缺少該核組資料。",
                     }
                 )
 
@@ -186,23 +186,23 @@ def build_auto_diagnosis(inp: AutoDiagnosisInput) -> dict:
         overlap_min = _num(dispatch_gmm2.get("overlap_ratio_min"))
         if overlap_min < 0.2:
             severity = "high"
-            title = "dispatch_gmm1 与 gmm2_combine 基本串行"
-            action = "检查是否缺少跨阶段流水覆盖，或 gmm2 是否被 gmm1 的 token/quant 输出长时间阻塞。"
+            title = "dispatch_gmm1 與 gmm2_combine 基本序列"
+            action = "檢查是否缺少跨階段流水覆蓋，或 gmm2 是否被 gmm1 的 token/quant 輸出長時間阻塞。"
         elif overlap_min < 0.5:
             severity = "medium"
-            title = "dispatch_gmm1 与 gmm2_combine 流水覆盖偏弱"
-            action = "优先检查 gmm2 wait quant、combine wait status、gmm1 quant/sync 是否限制后半段启动。"
+            title = "dispatch_gmm1 與 gmm2_combine 流水覆蓋偏弱"
+            action = "優先檢查 gmm2 wait quant、combine wait status、gmm1 quant/sync 是否限制後半段啟動。"
         else:
             severity = "info"
-            title = "dispatch_gmm1 与 gmm2_combine 有一定流水覆盖"
-            action = "继续看各自内部 wait 和 epilogue 是否占主导。"
+            title = "dispatch_gmm1 與 gmm2_combine 有一定流水覆蓋"
+            action = "繼續看各自內部 wait 和 epilogue 是否佔主導。"
         findings.append(
             {
                 "severity": severity,
                 "title": title,
                 "detail": (
                     f"overlap={_fmt_us(dispatch_gmm2.get('overlap_us'))}, "
-                    f"相对较短阶段覆盖 {_fmt_ratio(overlap_min)}."
+                    f"相對較短階段覆蓋 {_fmt_ratio(overlap_min)}."
                 ),
                 "recommendation": action,
             }
@@ -214,13 +214,13 @@ def build_auto_diagnosis(inp: AutoDiagnosisInput) -> dict:
             findings.append(
                 {
                     "severity": "medium",
-                    "title": f"{top_bubble.get('parent_phase')} 内存在未被子阶段覆盖的空洞",
+                    "title": f"{top_bubble.get('parent_phase')} 記憶體在未被子階段覆蓋的空洞",
                     "detail": (
                         f"bubble={_fmt_us(top_bubble.get('bubble_us'))}, "
-                        f"占 parent {_fmt_ratio(top_bubble.get('bubble_ratio'))}, "
+                        f"佔 parent {_fmt_ratio(top_bubble.get('bubble_ratio'))}, "
                         f"max_gap={_fmt_us(top_bubble.get('max_gap_us'))}."
                     ),
-                    "recommendation": "结合低层 leaf trace 查看这段空洞是否来自未打点代码、跨核等待，还是 trace depth 过滤后的可见性缺口。",
+                    "recommendation": "結合低層 leaf trace 檢視這段空洞是否來自未打點程式碼、跨核等待，還是 trace depth 過濾後的可見性缺口。",
                 }
             )
 
@@ -228,9 +228,9 @@ def build_auto_diagnosis(inp: AutoDiagnosisInput) -> dict:
         findings.append(
             {
                 "severity": "info",
-                "title": "未发现明显单点瓶颈",
-                "detail": f"已解析 {overview.get('num_instances', 0)} 个 phase instance，total wall={_fmt_us(total_wall)}.",
-                "recommendation": "继续结合 phase_tid_summary.csv 检查不同 core 的长尾差异。",
+                "title": "未發現明顯單點瓶頸",
+                "detail": f"已解析 {overview.get('num_instances', 0)} 個 phase instance，total wall={_fmt_us(total_wall)}.",
+                "recommendation": "繼續結合 phase_tid_summary.csv 檢查不同 core 的長尾差異。",
             }
         )
 

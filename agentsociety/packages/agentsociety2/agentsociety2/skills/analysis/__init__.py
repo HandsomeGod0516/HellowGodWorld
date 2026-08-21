@@ -1,14 +1,14 @@
 """
-数据分析子智能体模块：实验结果分析与报告生成。
+資料分析子智慧體模組：實驗結果分析與報告生成。
 
-分层：编排（Analyzer / Synthesizer）、数据（DataReader / ContextLoader）、
-分析（`AnalysisAgent` 内嵌 LLM 流程；裁判类型见 models）、
-输出（ReportWriter / Reporter / AssetManager / EDAGenerator）、
-执行（CodeExecutor / ToolRegistry / AnalysisRunner）。
+分層：編排（Analyzer / Synthesizer）、資料（DataReader / ContextLoader）、
+分析（`AnalysisAgent` 內嵌 LLM 流程；裁判型別見 models）、
+輸出（ReportWriter / Reporter / AssetManager / EDAGenerator）、
+執行（CodeExecutor / ToolRegistry / AnalysisRunner）。
 
 入口：`run_analysis`、`run_analysis_many`、`run_analysis_workflow`、`run_synthesis`。
 
-人读文档见同目录 `README.md`（非扩展里的 `SKILL.md`）。
+人讀文件見同目錄 `README.md`（非擴充套件裡的 `SKILL.md`）。
 """
 
 from .models import (
@@ -27,7 +27,7 @@ from .models import (
     HypothesisSummary,
     ExperimentPaths,
     PresentationPaths,
-    # 路径常量
+    # 路徑常量
     DIR_HYPOTHESIS_PREFIX,
     DIR_EXPERIMENT_PREFIX,
     DIR_RUN,
@@ -48,7 +48,7 @@ from .models import (
     FILE_SYNTHESIS_REPORT_EN_SUFFIX,
 )
 
-# 数据层
+# 資料層
 from .data import (
     DataReader,
     ContextLoader,
@@ -57,7 +57,7 @@ from .data import (
     DataStats,
 )
 
-# 输出层
+# 輸出層
 from .output import (
     ReportWriter,
     AssetManager,
@@ -69,7 +69,7 @@ from .output import (
     ReportGenerationResult,
 )
 
-# 执行器层
+# 執行器層
 from .executor import (
     AnalysisRunner,
     CodeExecutor,
@@ -123,7 +123,7 @@ __all__ = [
     "HypothesisSummary",
     "ExperimentPaths",
     "PresentationPaths",
-    # 路径常量
+    # 路徑常量
     "DIR_HYPOTHESIS_PREFIX",
     "DIR_EXPERIMENT_PREFIX",
     "DIR_RUN",
@@ -142,13 +142,13 @@ __all__ = [
     "FILE_REPORT_EN_HTML",
     "FILE_SYNTHESIS_REPORT_ZH_SUFFIX",
     "FILE_SYNTHESIS_REPORT_EN_SUFFIX",
-    # 数据层
+    # 資料層
     "DataReader",
     "ContextLoader",
     "DataSummary",
     "DatabaseSchema",
     "DataStats",
-    # 输出层
+    # 輸出層
     "ReportWriter",
     "AssetManager",
     "AssetProcessor",
@@ -157,7 +157,7 @@ __all__ = [
     "ReportJudgment",
     "Reporter",
     "ReportGenerationResult",
-    # 执行器层
+    # 執行器層
     "AnalysisRunner",
     "CodeExecutor",
     "CodeExecutionJudgment",
@@ -165,7 +165,7 @@ __all__ = [
     "ExecutionResult",
     "ToolInfo",
     "ToolResult",
-    # 工具函数
+    # 工具函式
     "XmlParseError",
     "AnalysisSkillMeta",
     "parse_llm_xml_response",

@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'library']
 TARGET_INTERACTIONS = ['read_at_home', 'quiet_work']
 STATUS = 'handwriting'
 EMOTION = 'calm'
-SPEECH = '我慢慢写，确保内容清楚。'
+SPEECH = '我慢慢寫，確保內容清楚。'
 MEMORY_TEMPLATE = 'Used writing.hand: {summary} at {location_id}.'
 
 

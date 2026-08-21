@@ -1,11 +1,11 @@
 """
 Recommendation Module for SocialMediaSpace
 
-- RecommenderAlgorithm: 统一的算法接口
-- RatingMatrix: 统一的数据格式
-- MFRecommender: MF算法实现
-- RecommendationService: 核心推荐服务
-- IncrementalTrainer: 增量训练器 (可选)
+- RecommenderAlgorithm: 統一的演算法介面
+- RatingMatrix: 統一的資料格式
+- MFRecommender: MF演算法實現
+- RecommendationService: 核心推薦服務
+- IncrementalTrainer: 增量訓練器 (可選)
 """
 
 from .models import Item, Rating, UserPreference, FeedCache, RecommendationHistory
@@ -17,7 +17,7 @@ from .service import RecommendationService, ServiceConfig
 from .trainer import IncrementalTrainer, TrainerConfig
 
 __all__ = [
-    # 数据模型
+    # 資料模型
     "Item",
     "Rating",
     "UserPreference",

@@ -1,7 +1,7 @@
 """
-MF (矩阵分解) 推荐算法实现
+MF (矩陣分解) 推薦演算法實現
 
-基于 PyTorch 的矩阵分解算法,使用 SGD 优化
+基於 PyTorch 的矩陣分解演算法,使用 SGD 最佳化
 """
 
 import pickle
@@ -17,9 +17,9 @@ from .config import MFConfig
 
 class MFModel(nn.Module):
     """
-    PyTorch 矩阵分解模型
+    PyTorch 矩陣分解模型
 
-    使用用户和物品的 embedding 表示,通过点积预测评分
+    使用使用者和物品的 embedding 表示,透過點積預測評分
     """
 
     def __init__(self, n_users: int, n_items: int, n_factors: int):
@@ -33,41 +33,41 @@ class MFModel(nn.Module):
 
     def forward(self, users: torch.Tensor, items: torch.Tensor) -> torch.Tensor:
         """
-        前向传播: 计算用户-物品评分预测
+        前向傳播: 計算使用者-物品評分預測
 
         Args:
-            users: 用户索引张量 [batch_size]
-            items: 物品索引张量 [batch_size]
+            users: 使用者索引張量 [batch_size]
+            items: 物品索引張量 [batch_size]
 
         Returns:
-            预测评分张量 [batch_size]
+            預測評分張量 [batch_size]
         """
         user_emb = self.user_embedding(users)  # [batch_size, n_factors]
         item_emb = self.item_embedding(items)  # [batch_size, n_factors]
 
-        # 点积
+        # 點積
         return (user_emb * item_emb).sum(dim=-1)
 
 
 class MFRecommender(RecommenderAlgorithm):
     """
-    MF (矩阵分解) 推荐算法
+    MF (矩陣分解) 推薦演算法
 
-    直接实现 RecommenderAlgorithm 接口,不需要额外的 Adapter 层
+    直接實現 RecommenderAlgorithm 介面,不需要額外的 Adapter 層
 
     特性:
-    - PyTorch 实现,支持 GPU 加速
-    - SGD 优化 + L2 正则化
-    - 冷启动处理: 新用户返回热门物品,新物品返回默认评分
-    - 模型持久化: 支持保存/加载
+    - PyTorch 實現,支援 GPU 加速
+    - SGD 最佳化 + L2 正則化
+    - 冷啟動處理: 新使用者返回熱門物品,新物品返回預設評分
+    - 模型持久化: 支援儲存/載入
     """
 
     def __init__(self, config: MFConfig = MFConfig()):
         """
-        初始化 MF 推荐器
+        初始化 MF 推薦器
 
         Args:
-            config: MF 算法配置
+            config: MF 演算法配置
         """
         self.config = config
         self.model: Optional[MFModel] = None
@@ -83,21 +83,21 @@ class MFRecommender(RecommenderAlgorithm):
 
     def fit(self, data: RatingMatrix) -> None:
         """
-        训练 MF 模型
+        訓練 MF 模型
 
         Args:
-            data: 评分矩阵
+            data: 評分矩陣
         """
         get_logger().info(
-            f"开始训练 MF 模型: {data.get_user_count()} 用户, "
-            f"{data.get_item_count()} 物品, {data.get_rating_count()} 评分"
+            f"開始訓練 MF 模型: {data.get_user_count()} 使用者, "
+            f"{data.get_item_count()} 物品, {data.get_rating_count()} 評分"
         )
 
-        # 保存映射
+        # 儲存對映
         self._user_map = data.user_map.copy()
         self._item_map = data.item_map.copy()
 
-        # 构建 PyTorch 模型
+        # 構建 PyTorch 模型
         n_users = len(self._user_map)
         n_items = len(self._item_map)
 
@@ -107,7 +107,7 @@ class MFRecommender(RecommenderAlgorithm):
             n_factors=self.config.n_latent_factors
         )
 
-        # 准备训练数据
+        # 準備訓練資料
         user_indices = torch.tensor(
             [self._user_map[uid] for uid in data.user_ids],
             dtype=torch.long
@@ -118,26 +118,26 @@ class MFRecommender(RecommenderAlgorithm):
         )
         ratings = torch.tensor(data.ratings, dtype=torch.float32)
 
-        # 优化器 (SGD + L2正则化)
+        # 最佳化器 (SGD + L2正則化)
         optimizer = torch.optim.SGD(
             self.model.parameters(),
             lr=self.config.learning_rate,
             weight_decay=self.config.reg_param
         )
 
-        # 损失函数
+        # 損失函式
         criterion = nn.MSELoss()
 
-        # 训练循环
+        # 訓練迴圈
         self.model.train()
         for iteration in range(self.config.n_iterations):
-            # 前向传播
+            # 前向傳播
             predictions = self.model(user_indices, item_indices)
 
-            # 计算损失
+            # 計算損失
             loss = criterion(predictions, ratings)
 
-            # 反向传播
+            # 反向傳播
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -150,42 +150,42 @@ class MFRecommender(RecommenderAlgorithm):
 
         self.model.eval()
 
-        # 计算热门物品 (用于冷启动)
+        # 計算熱門物品 (用於冷啟動)
         self._compute_popular_items(data)
 
-        get_logger().info(f"MF 模型训练完成, 最终损失: {loss.item():.4f}")
+        get_logger().info(f"MF 模型訓練完成, 最終損失: {loss.item():.4f}")
 
     def predict(self, user_id: int, item_id: int) -> float:
         """
-        预测用户对物品的评分
+        預測使用者對物品的評分
 
         Args:
-            user_id: 用户ID
+            user_id: 使用者ID
             item_id: 物品ID
 
         Returns:
-            预测评分 (1.0-5.0)
+            預測評分 (1.0-5.0)
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,请先调用 fit()")
+            raise RuntimeError("模型尚未訓練,請先呼叫 fit()")
 
-        # 冷启动处理
+        # 冷啟動處理
         if user_id not in self._user_map:
-            return 2.5  # 新用户默认评分
+            return 2.5  # 新使用者預設評分
         if item_id not in self._item_map:
-            return 2.5  # 新物品默认评分
+            return 2.5  # 新物品預設評分
 
-        # 获取内部索引
+        # 獲取內部索引
         user_idx = self._user_map[user_id]
         item_idx = self._item_map[item_id]
 
-        # 预测
+        # 預測
         with torch.no_grad():
             user_tensor = torch.tensor([user_idx], dtype=torch.long)
             item_tensor = torch.tensor([item_idx], dtype=torch.long)
             prediction = self.model(user_tensor, item_tensor)
 
-        # 限制到 [1.0, 5.0] 范围
+        # 限制到 [1.0, 5.0] 範圍
         score = float(prediction.item())
         return max(1.0, min(5.0, score))
 
@@ -196,20 +196,20 @@ class MFRecommender(RecommenderAlgorithm):
         exclude_ids: Set[int]
     ) -> List[Tuple[int, float]]:
         """
-        为用户生成推荐列表
+        為使用者生成推薦列表
 
         Args:
-            user_id: 用户ID
-            n: 推荐数量
+            user_id: 使用者ID
+            n: 推薦數量
             exclude_ids: 要排除的物品ID集合
 
         Returns:
             [(item_id, score), ...] 按 score 降序排列
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,请先调用 fit()")
+            raise RuntimeError("模型尚未訓練,請先呼叫 fit()")
 
-        # 冷启动: 新用户返回热门物品
+        # 冷啟動: 新使用者返回熱門物品
         if user_id not in self._user_map:
             return [
                 (item_id, score)
@@ -217,7 +217,7 @@ class MFRecommender(RecommenderAlgorithm):
                 if item_id not in exclude_ids
             ][:n]
 
-        # 计算所有物品的预测评分
+        # 計算所有物品的預測評分
         user_idx = self._user_map[user_id]
         all_scores: List[Tuple[int, float]] = []
 
@@ -225,7 +225,7 @@ class MFRecommender(RecommenderAlgorithm):
             user_tensor = torch.tensor([user_idx], dtype=torch.long)
 
             for item_id, item_idx in self._item_map.items():
-                # 跳过要排除的物品
+                # 跳過要排除的物品
                 if item_id in exclude_ids:
                     continue
 
@@ -233,20 +233,20 @@ class MFRecommender(RecommenderAlgorithm):
                 score = self.model(user_tensor, item_tensor)
                 all_scores.append((item_id, float(score.item())))
 
-        # 按评分降序排序
+        # 按評分降序排序
         all_scores.sort(key=lambda x: x[1], reverse=True)
 
         return all_scores[:n]
 
     def save(self, path: str) -> None:
         """
-        保存模型到文件
+        儲存模型到檔案
 
         Args:
-            path: 模型保存路径
+            path: 模型儲存路徑
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,无法保存")
+            raise RuntimeError("模型尚未訓練,無法儲存")
 
         checkpoint = {
             'model_state_dict': self.model.state_dict(),
@@ -259,14 +259,14 @@ class MFRecommender(RecommenderAlgorithm):
         with open(path, 'wb') as f:
             pickle.dump(checkpoint, f)
 
-        get_logger().info(f"MF 模型已保存到 {path}")
+        get_logger().info(f"MF 模型已儲存到 {path}")
 
     def load(self, path: str) -> None:
         """
-        从文件加载模型
+        從檔案載入模型
 
         Args:
-            path: 模型文件路径
+            path: 模型檔案路徑
         """
         with open(path, 'rb') as f:
             checkpoint = pickle.load(f)
@@ -289,16 +289,16 @@ class MFRecommender(RecommenderAlgorithm):
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
 
-        get_logger().info(f"MF 模型已从 {path} 加载")
+        get_logger().info(f"MF 模型已從 {path} 載入")
 
     def _compute_popular_items(self, data: RatingMatrix) -> None:
         """
-        计算热门物品 (用于冷启动)
+        計算熱門物品 (用於冷啟動)
 
-        基于 平均评分 × log(评分数+1) 计算热门度
+        基於 平均評分 × log(評分數+1) 計算熱門度
 
         Args:
-            data: 评分矩阵
+            data: 評分矩陣
         """
         item_ratings: Dict[int, List[float]] = {}
 
@@ -311,14 +311,14 @@ class MFRecommender(RecommenderAlgorithm):
         for item_id, ratings in item_ratings.items():
             avg_rating = np.mean(ratings)
             count = len(ratings)
-            # 热门度 = 平均评分 × log(评分数+1)
+            # 熱門度 = 平均評分 × log(評分數+1)
             popularity = avg_rating * np.log(count + 1)
             popular_scores.append((item_id, popularity))
 
-        # 按热门度降序排序
+        # 按熱門度降序排序
         popular_scores.sort(key=lambda x: x[1], reverse=True)
 
-        # 归一化到 [1.0, 5.0]
+        # 歸一化到 [1.0, 5.0]
         if popular_scores:
             max_score = popular_scores[0][1]
             min_score = popular_scores[-1][1]
@@ -332,4 +332,4 @@ class MFRecommender(RecommenderAlgorithm):
         else:
             self._popular_items = []
 
-        get_logger().debug(f"计算了 {len(self._popular_items)} 个热门物品")
+        get_logger().debug(f"計算了 {len(self._popular_items)} 個熱門物品")

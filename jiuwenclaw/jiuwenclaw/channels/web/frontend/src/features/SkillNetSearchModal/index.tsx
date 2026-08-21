@@ -1,6 +1,6 @@
 /**
- * SkillNet 在线搜索弹窗
- * 从 SkillNet 检索并安装技能
+ * SkillNet 線上搜尋彈窗
+ * 從 SkillNet 檢索並安裝技能
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -9,12 +9,12 @@ import type { WebError } from "../../types/websocket";
 import { normalizeSkillNetUrl } from "../../utils/skillNetUrl";
 
 const SKILLNET_UPSTREAM_REPO_URL = "https://github.com/zjunlp/SkillNet";
-/** 同时进行的 SkillNet 安装任务上限（与后端 asyncio 能力匹配，避免前端狂点拖垮） */
+/** 同時進行的 SkillNet 安裝任務上限（與後端 asyncio 能力匹配，避免前端狂點拖垮） */
 const SKILLNET_MAX_CONCURRENT_INSTALLS = 5;
-/** SkillNet「评估」入口：暂时隐藏；后端 `skills.skillnet.evaluate` 仍可用，改回 true 即恢复按钮 */
+/** SkillNet「評估」入口：暫時隱藏；後端 `skills.skillnet.evaluate` 仍可用，改回 true 即恢復按鈕 */
 const SKILLNET_EVALUATE_BUTTON_ENABLED = false;
 
-/** 评估结果展示顺序（与 skillnet-ai 五维一致） */
+/** 評估結果展示順序（與 skillnet-ai 五維一致） */
 const EVAL_DIMENSION_KEYS = [
   "safety",
   "completeness",
@@ -37,7 +37,7 @@ function levelPillClass(level: string | undefined): string {
   if (
     l.includes("good") ||
     l.includes("excellent") ||
-    l.includes("优") ||
+    l.includes("優") ||
     l.includes("佳")
   ) {
     return "border-[color:var(--border-ok)] bg-ok-subtle text-ok";
@@ -80,7 +80,7 @@ type SkillNetItem = {
   category: string;
 };
 
-/** skillnet-ai evaluate 返回的五维结构 */
+/** skillnet-ai evaluate 返回的五維結構 */
 type SkillNetEvalDimension = {
   level?: string;
   reason?: string;
@@ -93,13 +93,13 @@ type LoadState = "idle" | "loading" | "success" | "error";
 interface SkillNetSearchModalProps {
   open: boolean;
   sessionId: string;
-  /** 当前已安装技能名（兜底，与列表插件判定一致） */
+  /** 當前已安裝技能名（兜底，與列表外掛判定一致） */
   installedSkillNames?: ReadonlySet<string>;
-  /** 已安装技能的来源 URL（规范化后），优先于 skill_name 匹配 SkillNet 结果 */
+  /** 已安裝技能的來源 URL（規範化後），優先於 skill_name 匹配 SkillNet 結果 */
   installedSkillOrigins?: ReadonlySet<string>;
   onClose: () => void;
   onInstalled?: (skillName: string) => void | Promise<void>;
-  /** 点击文案中的「配置页面」时：关闭弹窗并切换到应用内配置页 */
+  /** 點選文案中的「配置頁面」時：關閉彈窗並切換到應用內配置頁 */
   onNavigateToConfig?: () => void;
 }
 
@@ -117,21 +117,21 @@ export function SkillNetSearchModal({
   const [results, setResults] = useState<SkillNetItem[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [expandedUrl, setExpandedUrl] = useState<string | null>(null);
-  /** 正在安装中的 skill_url（可多路并发，上限见 SKILLNET_MAX_CONCURRENT_INSTALLS） */
+  /** 正在安裝中的 skill_url（可多路併發，上限見 SKILLNET_MAX_CONCURRENT_INSTALLS） */
   const [installingUrls, setInstallingUrls] = useState<Set<string>>(() => new Set());
   const installingUrlsRef = useRef<Set<string>>(new Set());
-  /** 顶部红条：搜索失败、或并发上限等（与按 URL 的安装失败分离） */
+  /** 頂部紅條：搜尋失敗、或併發上限等（與按 URL 的安裝失敗分離） */
   const [bannerError, setBannerError] = useState<string | null>(null);
-  /** 某 skill_url 安装失败时的说明（成功或重试开装时会清除该条） */
+  /** 某 skill_url 安裝失敗時的說明（成功或重試開裝時會清除該條） */
   const [installErrorByUrl, setInstallErrorByUrl] = useState<Record<string, string>>({});
   const [installedSuccess, setInstalledSuccess] = useState<string | null>(null);
   const installedSuccessTimerRef = useRef<number | null>(null);
-  /** 仅允许同时进行一条评估（SkillNet 会调 LLM，较慢） */
+  /** 僅允許同時進行一條評估（SkillNet 會調 LLM，較慢） */
   const [evaluatingUrl, setEvaluatingUrl] = useState<string | null>(null);
-  /** 评估过程与结果：独立叠层弹窗 */
+  /** 評估過程與結果：獨立疊層彈窗 */
   const [evaluateOverlay, setEvaluateOverlay] =
     useState<EvaluateOverlayState | null>(null);
-  /** 用于取消评估请求、避免关闭叠层后仍全局禁用「评估」按钮 */
+  /** 用於取消評估請求、避免關閉疊層後仍全域性禁用「評估」按鈕 */
   const evaluateSeqRef = useRef(0);
   const evaluateAbortRef = useRef<AbortController | null>(null);
 

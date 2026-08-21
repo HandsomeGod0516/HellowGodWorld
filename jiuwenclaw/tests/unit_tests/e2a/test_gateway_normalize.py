@@ -39,7 +39,7 @@ def test_message_to_e2a_or_fallback_basic():
 
 
 def test_envelope_from_dict_merges_metadata_when_channel_context_nonempty():
-    """telemetry 等先写入 channel_context 时，顶层 metadata 仍须并入，以便 AgentRequest.metadata 含 wecom_chat_id。"""
+    """telemetry 等先寫入 channel_context 時，頂層 metadata 仍須併入，以便 AgentRequest.metadata 含 wecom_chat_id。"""
     env = E2AEnvelope.from_dict(
         {
             "request_id": "r3",

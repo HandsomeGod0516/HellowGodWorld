@@ -23,9 +23,19 @@ const COLORS = {
     roomLabel: '#1f2f34',
     plazaLabel: '#1f2f34',
     playerRing: 0xffc24d,
+    hpTrack: 0x16232a,
+    hpHigh: 0x6fbd83,
+    hpMid: 0xe8a33f,
+    hpLow: 0xee7d83,
 };
 
-/** 六个房间各自一个淡色地板，方便一眼分辨。 */
+const HP_MAX = 100;
+const HP_BAR_WIDTH = 30;
+const HP_BAR_HEIGHT = 6;
+const HP_BAR_GAP = 7;
+const BUBBLE_GAP = 5;
+
+/** 六個房間各自一個淡色地板，方便一眼分辨。 */
 const ROOM_FLOOR_COLORS: Record<string, number> = {
     cafe: 0xf2ddc4,
     library: 0xd8dff2,
@@ -39,6 +49,7 @@ type ActorView = {
     sprite: Phaser.GameObjects.Sprite;
     label: Phaser.GameObjects.Text;
     bubble: Phaser.GameObjects.Text;
+    hpBar: Phaser.GameObjects.Graphics;
     ring?: Phaser.GameObjects.Graphics;
     targetX: number;
     targetY: number;
@@ -46,9 +57,9 @@ type ActorView = {
     moving: boolean;
 };
 
-/** 快照是 10Hz 的，画面按帧向目标位置追，走动才不会一格一格跳。 */
+/** 快照是 10Hz 的，畫面按幀向目標位置追，走動才不會一格一格跳。 */
 const SMOOTHING_MS = 90;
-/** 超过这个像素差直接吸附（出生、传送、重连）。 */
+/** 超過這個畫素差直接吸附（出生、傳送、重連）。 */
 const SNAP_DISTANCE_PX = 96;
 
 export class TownScene extends Phaser.Scene {
@@ -84,10 +95,11 @@ export class TownScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor(COLORS.void);
         this.cameras.main.setBounds(0, 0, width, height);
         this.drawMap();
+        this.drawFood();
         this.fitCamera();
         this.ready = true;
 
-        // RESIZE 模式下画布跟着容器变，没有跟随目标时重新把整张地图缩放到刚好铺满。
+        // RESIZE 模式下畫布跟著容器變，沒有跟隨目標時重新把整張地圖縮放到剛好鋪滿。
         this.scale.on('resize', () => {
             if (!this.followId) {
                 this.fitCamera();
@@ -109,7 +121,7 @@ export class TownScene extends Phaser.Scene {
         this.fillRect(floor, this.worldMap.plaza, COLORS.plaza);
         this.worldMap.rooms.forEach((room) => {
             this.fillRect(floor, room.interior, ROOM_FLOOR_COLORS[room.id] ?? COLORS.corridor);
-            // 门是墙上的开口，补一格地板让视觉连通。
+            // 門是牆上的開口，補一格地板讓視覺連通。
             this.fillRect(floor, { x: room.door.x, y: room.door.y, w: 1, h: 1 }, COLORS.corridor);
         });
 
@@ -142,7 +154,17 @@ export class TownScene extends Phaser.Scene {
             .setDepth(2);
     }
 
-    /** 无人跟随时把整张地图缩放到刚好铺满画布。 */
+    /** 廣場右上角的食物：血量低的居民會走過去站著回血。 */
+    private drawFood() {
+        const tile = this.worldMap.tile_size;
+        const { x, y } = this.worldMap.food;
+        this.add
+            .text((x + 0.5) * tile, (y + 0.5) * tile, '🍎', { fontSize: `${tile * 0.9}px` })
+            .setOrigin(0.5)
+            .setDepth(3);
+    }
+
+    /** 無人跟隨時把整張地圖縮放到剛好鋪滿畫布。 */
     fitCamera() {
         const tile = this.worldMap.tile_size;
         const width = this.worldMap.grid_w * tile;
@@ -227,16 +249,35 @@ export class TownScene extends Phaser.Scene {
             ring.strokeCircle(0, 0, 13);
         }
 
-        return {
+        const hpBar = this.add.graphics().setDepth(11);
+
+        const view: ActorView = {
             sprite,
             label,
             bubble,
+            hpBar,
             ring,
             targetX: sprite.x,
             targetY: sprite.y,
             facing: actor.facing,
             moving: false,
         };
+        this.drawHpBar(view, actor.hp);
+        return view;
+    }
+
+    /** 血條：綠/黃/紅三檔，畫在 (0,0) 為左上角的本地座標裡，擺放交給 setPosition。 */
+    private drawHpBar(view: ActorView, hp: number) {
+        const ratio = Math.max(0, Math.min(1, hp / HP_MAX));
+        const color = ratio > 0.5 ? COLORS.hpHigh : ratio > 0.25 ? COLORS.hpMid : COLORS.hpLow;
+        const g = view.hpBar;
+        g.clear();
+        g.fillStyle(COLORS.hpTrack, 0.65);
+        g.fillRoundedRect(-HP_BAR_WIDTH / 2 - 1, -1, HP_BAR_WIDTH + 2, HP_BAR_HEIGHT + 2, 3);
+        if (ratio > 0) {
+            g.fillStyle(color, 1);
+            g.fillRoundedRect(-HP_BAR_WIDTH / 2, 0, HP_BAR_WIDTH * ratio, HP_BAR_HEIGHT, 2);
+        }
     }
 
     update(_time: number, delta: number) {
@@ -255,10 +296,12 @@ export class TownScene extends Phaser.Scene {
             sprite.x += (view.targetX - sprite.x) * factor;
             sprite.y += (view.targetY - sprite.y) * factor;
             sprite.setDepth(10 + sprite.y / 10000);
-            view.label.setPosition(sprite.x, sprite.y - tile * 0.6);
+            const labelY = sprite.y - tile * 0.6;
+            view.label.setPosition(sprite.x, labelY);
             view.ring?.setPosition(sprite.x, sprite.y + 8);
+            view.hpBar.setPosition(sprite.x, sprite.y + tile * 0.5 + HP_BAR_GAP);
             if (view.bubble.visible) {
-                view.bubble.setPosition(sprite.x, sprite.y - tile * 0.6 - view.label.height - 4);
+                view.bubble.setPosition(sprite.x, labelY - view.label.height - BUBBLE_GAP);
             }
         });
     }
@@ -292,6 +335,7 @@ export class TownScene extends Phaser.Scene {
             view.label.setText(actor.name);
             view.moving = actor.moving;
             view.facing = actor.facing;
+            this.drawHpBar(view, actor.hp);
 
             if (actor.moving) {
                 view.sprite.anims.play(`${view.sprite.texture.key}-${actor.facing}`, true);
@@ -315,6 +359,7 @@ export class TownScene extends Phaser.Scene {
             view.sprite.destroy();
             view.label.destroy();
             view.bubble.destroy();
+            view.hpBar.destroy();
             view.ring?.destroy();
             this.views.delete(actorId);
         });

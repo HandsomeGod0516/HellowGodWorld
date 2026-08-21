@@ -1,16 +1,16 @@
-"""AgentSociety2 技能模块。
+"""AgentSociety2 技能模組。
 
-本模块包含各种研究工作流的核心业务逻辑，支持完整的科研流程：
+本模組包含各種研究工作流的核心業務邏輯，支援完整的科研流程：
 
 技能列表
 ========
 
-- **literature**: 学术文献搜索与管理，支持检索、索引和格式化
-- **experiment**: 实验配置与执行，支持参数生成和配置验证
-- **hypothesis**: 假设生成与管理，支持创建、读取、列表和删除
-- **web_research**: 使用 Miro MCP 服务进行网络研究
-- **paper**: 学术论文生成，支持 EasyPaper 工作流
-- **analysis**: 数据分析与报告生成，包含洞察智能体和数据探索智能体
+- **literature**: 學術文獻搜尋與管理，支援檢索、索引和格式化
+- **experiment**: 實驗配置與執行，支援引數生成和配置驗證
+- **hypothesis**: 假設生成與管理，支援建立、讀取、列表和刪除
+- **web_research**: 使用 Miro MCP 服務進行網路研究
+- **paper**: 學術論文生成，支援 EasyPaper 工作流
+- **analysis**: 資料分析與報告生成，包含洞察智慧體和資料探索智慧體
 
 使用示例
 ========
@@ -19,16 +19,16 @@
 
     from agentsociety2.skills import literature, hypothesis, analysis
 
-    # 文献检索
+    # 文獻檢索
     results = await literature.search_literature("machine learning")
 
-    # 创建假设
+    # 建立假設
     hypothesis.add_hypothesis(
         workspace_path=Path("./workspace"),
-        hypothesis="社会网络密度影响信息传播速度"
+        hypothesis="社會網路密度影響資訊傳播速度"
     )
 
-    # 分析实验结果
+    # 分析實驗結果
     await analysis.run_analysis(
         workspace_path=Path("./workspace"),
         hypothesis_id="1",

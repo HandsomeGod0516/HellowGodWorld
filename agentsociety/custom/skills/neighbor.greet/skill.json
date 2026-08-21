@@ -23,7 +23,7 @@
   ],
   "status": "greeting",
   "emotion": "warm",
-  "speech": "我顺路问候一下，看看大家今天过得怎么样。",
+  "speech": "我順路問候一下，看看大家今天過得怎麼樣。",
   "memory_template": "Used neighbor.greet: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

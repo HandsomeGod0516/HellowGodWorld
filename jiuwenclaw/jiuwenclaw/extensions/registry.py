@@ -27,7 +27,7 @@ class ExtensionRegistry:
     @classmethod
     def get_instance(cls) -> "ExtensionRegistry":
         if cls._instance is None:
-            raise RuntimeError("ExtensionRegistry 尚未初始化，请先调用 create_instance()")
+            raise RuntimeError("ExtensionRegistry 尚未初始化，請先呼叫 create_instance()")
         return cls._instance
 
     @classmethod
@@ -38,7 +38,7 @@ class ExtensionRegistry:
         logger: Any,
     ) -> "ExtensionRegistry":
         if cls._instance is not None:
-            raise RuntimeError("ExtensionRegistry 已初始化，请勿重复调用 create_instance()")
+            raise RuntimeError("ExtensionRegistry 已初始化，請勿重複呼叫 create_instance()")
         cls._instance = cls(
             callback_framework=callback_framework,
             config=config,
@@ -83,7 +83,7 @@ class ExtensionRegistry:
         unregister_callback_sync(self.callback_framework, event, handler)
 
     async def trigger(self, event: str, context: Any | None = None, **kwargs: Any) -> None:
-        """触发事件。约定由调用方传入的 context 承载回调副作用"""
+        """觸發事件。約定由呼叫方傳入的 context 承載回撥副作用"""
         if context is None and not kwargs:
             await self.callback_framework.trigger(event)
         elif context is not None:

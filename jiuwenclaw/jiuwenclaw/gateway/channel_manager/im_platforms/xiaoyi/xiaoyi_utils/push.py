@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""XiaoYi Push Message Service - 主动推送消息服务."""
+"""XiaoYi Push Message Service - 主動推送訊息服務."""
 
 import logging
 import base64
@@ -21,7 +21,7 @@ PUSH_URL = "https://hag.cloud.huawei.com/open-ability-agent/v1/agent-webhook"
 
 @dataclass
 class PushConfig:
-    """Push 消息配置."""
+    """Push 訊息配置."""
     mode: str = ""
     api_id: str = ""
     push_id: str = ""
@@ -34,8 +34,8 @@ class PushConfig:
 
 class XiaoYiPushService:
     """
-    华为小艺主动推送服务.
-    通过 HTTP Webhook API 向用户设备发送推送通知.
+    華為小藝主動推送服務.
+    透過 HTTP Webhook API 向使用者裝置傳送推送通知.
     """
     def __init__(self, config: PushConfig):
         self.config = config
@@ -46,7 +46,7 @@ class XiaoYiPushService:
         return str(uuid.uuid4())
 
     def _generate_signature(self, timestamp: str) -> str:
-        """生成 HMAC-SHA256 签名 (Base64 编码)."""
+        """生成 HMAC-SHA256 簽名 (Base64 編碼)."""
         h = hmac.new(
             self.config.sk.encode("utf-8"),
             timestamp.encode("utf-8"),
@@ -56,14 +56,14 @@ class XiaoYiPushService:
 
     async def send_push(self, text: str, push_text: str) -> bool:
         """
-        发送推送通知.
+        傳送推送通知.
 
         Args:
-            text: 摘要文本 (如前30个字符)
-            push_text: 推送通知文本 (如"任务已完成：xxx...")
+            text: 摘要文字 (如前30個字元)
+            push_text: 推送通知文字 (如"任務已完成：xxx...")
 
         Returns:
-            bool: 是否发送成功
+            bool: 是否傳送成功
         """
 
         try:

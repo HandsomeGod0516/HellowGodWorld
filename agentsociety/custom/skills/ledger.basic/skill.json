@@ -21,7 +21,7 @@
   ],
   "status": "ledgering",
   "emotion": "focused",
-  "speech": "我把收支和物资变动记下来。",
+  "speech": "我把收支和物資變動記下來。",
   "memory_template": "Used ledger.basic: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

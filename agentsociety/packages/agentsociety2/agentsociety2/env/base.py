@@ -1,17 +1,17 @@
-"""环境模块基类。
+"""環境模組基類。
 
-本模块提供环境模块的基类 :class:`EnvBase` 和工具注册装饰器 :func:`tool`。
+本模組提供環境模組的基類 :class:`EnvBase` 和工具註冊裝飾器 :func:`tool`。
 
-环境模块定义智能体可执行的操作和可观察的状态。通过 ``@tool`` 装饰器
-注册方法为可调用工具，供 Router 调用执行。
+環境模組定義智慧體可執行的操作和可觀察的狀態。透過 ``@tool`` 裝飾器
+註冊方法為可呼叫工具，供 Router 呼叫執行。
 
-工具类型
+工具型別
 ========
 
-- **常规工具**: ``@tool(readonly=False)`` — 可修改环境状态
-- **只读工具**: ``@tool(readonly=True)`` — 仅查询，不修改状态
-- **观察工具**: ``@tool(readonly=True, kind="observe")`` — 每个 step 自动调用
-- **统计工具**: ``@tool(readonly=True, kind="statistics")`` — 统计信息
+- **常規工具**: ``@tool(readonly=False)`` — 可修改環境狀態
+- **只讀工具**: ``@tool(readonly=True)`` — 僅查詢，不修改狀態
+- **觀察工具**: ``@tool(readonly=True, kind="observe")`` — 每個 step 自動呼叫
+- **統計工具**: ``@tool(readonly=True, kind="statistics")`` — 統計資訊
 
 Example::
 
@@ -20,12 +20,12 @@ Example::
     class MyEnv(EnvBase):
         @tool(readonly=True, kind="observe")
         def get_location(self, agent_id: int) -> str:
-            '''获取 Agent 当前位置'''
+            '''獲取 Agent 當前位置'''
             return self._locations.get(agent_id, "unknown")
 
         @tool(readonly=False)
         def move(self, agent_id: int, destination: str) -> str:
-            '''移动 Agent 到指定位置'''
+            '''移動 Agent 到指定位置'''
             self._locations[agent_id] = destination
             return f"Moved to {destination}"
 """
@@ -72,9 +72,9 @@ _constraints_logger = get_logger()
 
 @dataclass(frozen=True)
 class PersonStepConstraints:
-    """单仿真步内对 PersonAgent 可见技能与工具白名单的约束。
+    """單模擬步內對 PersonAgent 可見技能與工具白名單的約束。
 
-    环境可实现 :meth:`EnvBase.person_step_constraints` 返回本结构；PersonAgent 合并后执行，不绑定单一实验。
+    環境可實現 :meth:`EnvBase.person_step_constraints` 返回本結構；PersonAgent 合併後執行，不繫結單一實驗。
     """
 
     hide_skills: frozenset[str] = frozenset()
@@ -85,7 +85,7 @@ class PersonStepConstraints:
 def merge_person_step_constraints(
     env_modules: list[Any],
 ) -> PersonStepConstraints | None:
-    """合并路由器上所有环境模块返回的约束（并集/冲突检测）。"""
+    """合併路由器上所有環境模組返回的約束（並集/衝突檢測）。"""
     hide: set[str] = set()
     forbid: set[str] = set()
     pin: str | None = None
@@ -150,19 +150,19 @@ def tool(
     description: str | None = None,
     kind: Literal["observe", "statistics"] | None = None,
 ) -> Callable[[F], F]:
-    """将环境方法注册为可调用工具（供 Router/LLM 调用）。
+    """將環境方法註冊為可呼叫工具（供 Router/LLM 呼叫）。
 
-    :param readonly: 是否只读。
-        当 ``kind`` 为 ``observe`` 或 ``statistics`` 时必须为 ``True``（运行时强校验）。
-    :param name: 可选。工具名（默认使用函数名）。
-    :param description: 可选。工具描述（用于模型函数调用 schema）。
-    :param kind: 可选。工具类型：
+    :param readonly: 是否只讀。
+        當 ``kind`` 為 ``observe`` 或 ``statistics`` 時必須為 ``True``（執行時強校驗）。
+    :param name: 可選。工具名（預設使用函式名）。
+    :param description: 可選。工具描述（用於模型函式呼叫 schema）。
+    :param kind: 可選。工具型別：
 
-        - ``observe``：观测工具（通常每步自动调用），除 ``self`` 外最多 1 个参数
-        - ``statistics``：统计工具，除 ``self`` 外不能有参数
+        - ``observe``：觀測工具（通常每步自動呼叫），除 ``self`` 外最多 1 個引數
+        - ``statistics``：統計工具，除 ``self`` 外不能有引數
         - ``None``：普通工具
-    :returns: 装饰器函数。
-    :raises ValueError: ``kind`` 与 ``readonly``/参数签名不匹配时抛出。
+    :returns: 裝飾器函式。
+    :raises ValueError: ``kind`` 與 ``readonly``/引數簽名不匹配時丟擲。
     """
 
     def tool_decorator(func: F) -> F:
@@ -370,7 +370,7 @@ def _serialize_to_literal(value: Any) -> Any:
 
 
 class EnvMeta(type):
-    """元类：收集 ``@tool`` 装饰的方法并注册到 tool_manager。"""
+    """元類：收集 ``@tool`` 裝飾的方法並註冊到 tool_manager。"""
 
     def __new__(cls, name, bases, namespace, **kwargs):
         new_class = super().__new__(cls, name, bases, namespace, **kwargs)
@@ -395,29 +395,29 @@ class EnvMeta(type):
 
 
 class EnvBase(metaclass=EnvMeta):
-    """环境模块基类。
+    """環境模組基類。
 
-    环境模块定义 Agent 可执行的操作和可观察的状态。通过 ``@tool`` 装饰器
-    注册方法为可调用工具，供 Router 调用。
+    環境模組定義 Agent 可執行的操作和可觀察的狀態。透過 ``@tool`` 裝飾器
+    註冊方法為可呼叫工具，供 Router 呼叫。
 
-    工具类型：
-        - **常规工具**: ``@tool(readonly=False)`` — 可修改环境状态
-        - **只读工具**: ``@tool(readonly=True)`` — 仅查询，不修改状态
-        - **观察工具**: ``@tool(readonly=True, kind="observe")`` — 自动调用
-        - **统计工具**: ``@tool(readonly=True, kind="statistics")`` — 统计信息
+    工具型別：
+        - **常規工具**: ``@tool(readonly=False)`` — 可修改環境狀態
+        - **只讀工具**: ``@tool(readonly=True)`` — 僅查詢，不修改狀態
+        - **觀察工具**: ``@tool(readonly=True, kind="observe")`` — 自動呼叫
+        - **統計工具**: ``@tool(readonly=True, kind="statistics")`` — 統計資訊
 
-    子类应实现：
-        - 使用 ``@tool`` 装饰器定义可执行操作
-        - 可选：实现 ``observe()`` 方法（默认收集 kind="observe" 的工具）
+    子類應實現：
+        - 使用 ``@tool`` 裝飾器定義可執行操作
+        - 可選：實現 ``observe()`` 方法（預設收集 kind="observe" 的工具）
     """
 
-    # 声明式状态持久化：子类覆盖以自动创建 replay 表
+    # 宣告式狀態持久化：子類覆蓋以自動建立 replay 表
     _agent_state_columns: ClassVar[list] = []
     _env_state_columns: ClassVar[list] = []
 
     @classmethod
     def _state_table_prefix_from_class(cls) -> str:
-        """从类名推导表名前缀（PascalCase -> snake_case，去常见后缀）"""
+        """從類名推導表名字首（PascalCase -> snake_case，去常見字尾）"""
         name = cls.__name__
         for suffix in ("Space", "Env", "Module"):
             if name.endswith(suffix) and len(name) > len(suffix):
@@ -610,11 +610,11 @@ It contains no functions or methods.
         return None
 
     def person_step_constraints(self) -> Optional["PersonStepConstraints"]:
-        """可选：返回本步对 PersonAgent 的通用约束（隐藏技能、钉住 allowed-tools 等）。
+        """可選：返回本步對 PersonAgent 的通用約束（隱藏技能、釘住 allowed-tools 等）。
 
-        默认无约束。需要「专用默认 skill 独占一步」类行为的环境应返回
+        預設無約束。需要「專用預設 skill 獨佔一步」類行為的環境應返回
         :class:`PersonStepConstraints`，
-        由 PersonAgent 与具体实验/玩法解耦。
+        由 PersonAgent 與具體實驗/玩法解耦。
 
         Returns:
             PersonStepConstraints | None
@@ -622,38 +622,38 @@ It contains no functions or methods.
         return None
 
     async def init(self, start_datetime: datetime):
-        """初始化环境模块。
+        """初始化環境模組。
 
-        :param start_datetime: 仿真起始时间。
+        :param start_datetime: 模擬起始時間。
         """
         self.t = start_datetime
 
     async def step(self, tick: int, t: datetime):
-        """推进环境模块一个仿真步。
+        """推進環境模組一個模擬步。
 
-        :param tick: 本步时间跨度（秒）。
-        :param t: 本步结束后的仿真时间。
-        :raises NotImplementedError: 基类不提供默认实现。
+        :param tick: 本步時間跨度（秒）。
+        :param t: 本步結束後的模擬時間。
+        :raises NotImplementedError: 基類不提供預設實現。
         """
         raise NotImplementedError
 
     async def close(self):
-        """关闭环境模块并释放资源（可选重写）。"""
+        """關閉環境模組並釋放資源（可選重寫）。"""
         ...
 
     # ---- Dump & Load ----
     def _dump_state(self) -> dict:
-        """子类钩子：导出内部状态（如需持久化请重写）。"""
+        """子類鉤子：匯出內部狀態（如需持久化請重寫）。"""
         return {}
 
     def _load_state(self, state: dict):
-        """子类钩子：加载内部状态（与 :meth:`_dump_state` 配对）。"""
+        """子類鉤子：載入內部狀態（與 :meth:`_dump_state` 配對）。"""
         return None
 
     async def dump(self) -> dict:
-        """序列化环境模块状态。
+        """序列化環境模組狀態。
 
-        :returns: 可序列化字典，包含 ``name``、``t`` 与 ``state``。
+        :returns: 可序列化字典，包含 ``name``、``t`` 與 ``state``。
         """
         return {
             "name": self.name,
@@ -662,9 +662,9 @@ It contains no functions or methods.
         }
 
     async def load(self, dump_data: dict):
-        """从 :meth:`dump` 的输出恢复环境模块状态。
+        """從 :meth:`dump` 的輸出恢復環境模組狀態。
 
-        :param dump_data: 由 :meth:`dump` 产生的字典。
+        :param dump_data: 由 :meth:`dump` 產生的字典。
         """
         try:
             t_str = dump_data.get("t")
@@ -680,23 +680,23 @@ It contains no functions or methods.
             self._load_state(state)
 
     def get_tool_call_history(self) -> list[dict[str, Any]]:
-        """获取工具调用历史（浅拷贝）。
+        """獲取工具呼叫歷史（淺複製）。
 
-        :returns: 调用记录列表。每条包含 ``function_name``、``kwargs``、``return_value``、
+        :returns: 呼叫記錄列表。每條包含 ``function_name``、``kwargs``、``return_value``、
             ``exception_occurred``、``exception_info``、``timestamp``。
         """
         return self._tool_call_history.copy()
 
     def reset_tool_call_history(self):
-        """清空工具调用历史。"""
+        """清空工具呼叫歷史。"""
         self._tool_call_history.clear()
 
     # ==================== Replay Data Methods ====================
 
     def set_replay_writer(self, writer: "ReplayWriter") -> None:
-        """设置回放写入器（用于自动建表与写入状态）。
+        """設定回放寫入器（用於自動建表與寫入狀態）。
 
-        :param writer: :class:`~agentsociety2.storage.ReplayWriter` 实例。
+        :param writer: :class:`~agentsociety2.storage.ReplayWriter` 例項。
         """
         self._replay_writer = writer
         if writer is not None and (
@@ -707,7 +707,7 @@ It contains no functions or methods.
                 task = loop.create_task(self._register_state_tables())
                 task.add_done_callback(self._on_register_state_tables_done)
             except RuntimeError:
-                # 没有运行中的事件循环，首次写入时惰性注册
+                # 沒有執行中的事件迴圈，首次寫入時惰性註冊
                 pass
 
     @staticmethod
@@ -725,11 +725,11 @@ It contains no functions or methods.
 
     @property
     def _state_table_prefix(self) -> str:
-        """从类名推导表名前缀（PascalCase → snake_case，去常见后缀）"""
+        """從類名推導表名字首（PascalCase → snake_case，去常見字尾）"""
         return type(self)._state_table_prefix_from_class()
 
     async def _register_state_tables(self) -> None:
-        """根据 _agent_state_columns / _env_state_columns 声明自动注册 replay 表"""
+        """根據 _agent_state_columns / _env_state_columns 宣告自動註冊 replay 表"""
         if self._replay_writer is None or self._state_tables_registered:
             return
 
@@ -850,13 +850,13 @@ It contains no functions or methods.
     async def _write_agent_state(
         self, agent_id: int, step: int, t: datetime, **data: Any
     ) -> None:
-        """写入 per-agent 交互状态到 {prefix}_agent_state 表
+        """寫入 per-agent 互動狀態到 {prefix}_agent_state 表
 
         Args:
             agent_id: Agent ID
-            step: 当前步数
-            t: 当前模拟时间
-            **data: 模块自定义字段（需与 _agent_state_columns 声明匹配）
+            step: 當前步數
+            t: 當前模擬時間
+            **data: 模組自定義欄位（需與 _agent_state_columns 宣告匹配）
         """
         if self._replay_writer is None:
             return
@@ -870,12 +870,12 @@ It contains no functions or methods.
     async def _write_agent_state_batch(
         self, step: int, t: datetime, records: list[dict[str, Any]]
     ) -> None:
-        """批量写入 per-agent 交互状态
+        """批次寫入 per-agent 互動狀態
 
         Args:
-            step: 当前步数
-            t: 当前模拟时间
-            records: 记录列表，每条需包含 agent_id 和模块自定义字段
+            step: 當前步數
+            t: 當前模擬時間
+            records: 記錄列表，每條需包含 agent_id 和模組自定義欄位
         """
         if self._replay_writer is None or not records:
             return
@@ -886,12 +886,12 @@ It contains no functions or methods.
         await self._replay_writer.write_batch(table_name, rows)
 
     async def _write_env_state(self, step: int, t: datetime, **data: Any) -> None:
-        """写入环境全局状态到 {prefix}_env_state 表
+        """寫入環境全域性狀態到 {prefix}_env_state 表
 
         Args:
-            step: 当前步数
-            t: 当前模拟时间
-            **data: 模块自定义字段（需与 _env_state_columns 声明匹配）
+            step: 當前步數
+            t: 當前模擬時間
+            **data: 模組自定義欄位（需與 _env_state_columns 宣告匹配）
         """
         if self._replay_writer is None:
             return

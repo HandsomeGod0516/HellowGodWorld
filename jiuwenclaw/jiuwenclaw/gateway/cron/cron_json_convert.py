@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CLI 工具：把 cron JSON 在「扁平结构」与「OpenClaw 嵌套结构」之间互转。
+CLI 工具：把 cron JSON 在「扁平結構」與「OpenClaw 巢狀結構」之間互轉。
 
-扁平结构（内部 CronJobStore 使用）示例：
+扁平結構（內部 CronJobStore 使用）示例：
 {
   "version": 1,
   "jobs": [
@@ -19,7 +19,7 @@ CLI 工具：把 cron JSON 在「扁平结构」与「OpenClaw 嵌套结构」�
   ]
 }
 
-OpenClaw 嵌套结构示例（schedule/payload/delivery）：
+OpenClaw 巢狀結構示例（schedule/payload/delivery）：
 {
   "version": 1,
   "jobs": [
@@ -49,18 +49,18 @@ from jiuwenclaw.gateway.cron.cron_expr import iso_to_seven_field_cron
 
 
 _EXTERNAL_TO_INTERNAL_CHANNELS: dict[str, str] = {
-    # OpenClaw 侧叫 webchat；内部 cron 以 web 表示
+    # OpenClaw 側叫 webchat；內部 cron 以 web 表示
     "webchat": "web",
 }
 
 _INTERNAL_TO_EXTERNAL_CHANNELS: dict[str, str] = {
-    # 反向保持文件尽量使用OpenClaw 名称
+    # 反向保持檔案儘量使用OpenClaw 名稱
     "web": "webchat",
 }
 
 
 def _read_json(path: Path) -> dict[str, Any]:
-    # utf-8-sig 自动跳过 BOM
+    # utf-8-sig 自動跳過 BOM
     raw = path.read_text(encoding="utf-8-sig")
     data = json.loads(raw) if raw.strip() else {}
     if not isinstance(data, dict):
@@ -80,9 +80,9 @@ def _write_json(path: Path, data: dict[str, Any]) -> None:
 
 def convert_cron_job_dict_to_flat(data: dict[str, Any]) -> dict[str, Any]:
     """
-    把 OpenClaw 嵌套 job（schedule/payload/delivery）转成内部 CronJob 所需的扁平字段。
+    把 OpenClaw 巢狀 job（schedule/payload/delivery）轉成內部 CronJob 所需的扁平欄位。
 
-    若输入本身就是扁平结构（包含 cron_expr + timezone），则原样返回。
+    若輸入本身就是扁平結構（包含 cron_expr + timezone），則原樣返回。
     """
 
     if not isinstance(data, dict):
@@ -105,7 +105,7 @@ def convert_cron_job_dict_to_flat(data: dict[str, Any]) -> dict[str, Any]:
         expr = str(sched.get("expr") or "").strip()
         tz = str(sched.get("tz") or "").strip()
     elif kind == "at":
-        # one-shot：使用 croniter 的 7 段表达式固定到指定年份
+        # one-shot：使用 croniter 的 7 段表示式固定到指定年份
         at_raw = str(sched.get("at") or "").strip()
         if not at_raw:
             return data
@@ -117,7 +117,7 @@ def convert_cron_job_dict_to_flat(data: dict[str, Any]) -> dict[str, Any]:
     else:
         return data
 
-    # 你的偏好：不管 OpenClaw 里 wakeMode 是什么，转换到 jiuwenclaw 时都统一写成 60s
+    # 你的偏好：不管 OpenClaw 裡 wakeMode 是什麼，轉換到 jiuwenclaw 時都統一寫成 60s
     wake_offset_seconds = 300
 
     desc = str(data.get("description") or data.get("name") or "")
@@ -134,7 +134,7 @@ def convert_cron_job_dict_to_flat(data: dict[str, Any]) -> dict[str, Any]:
     if not targets:
         targets = str(data.get("targets") or "").strip()
 
-    # 显式通道别名：OpenClaw(webchat) -> 内部(web)
+    # 顯式通道別名：OpenClaw(webchat) -> 內部(web)
     targets = _EXTERNAL_TO_INTERNAL_CHANNELS.get(targets, targets)
 
     created_at: float | None = None
@@ -171,13 +171,13 @@ def convert_cron_job_dict_to_flat(data: dict[str, Any]) -> dict[str, Any]:
 
 def convert_flat_cron_job_to_openclaw_dict(flat_job: dict[str, Any]) -> dict[str, Any]:
     """
-    将内部扁平 CronJob 字段写回到 OpenClaw 嵌套 job 格式。
+    將內部扁平 CronJob 欄位寫回到 OpenClaw 巢狀 job 格式。
     """
 
     channel = str(flat_job.get("targets") or "").strip()
     external_channel = _INTERNAL_TO_EXTERNAL_CHANNELS.get(channel, channel)
 
-    # 你的偏好：不管 jiuwenclaw 里 wake_offset_seconds 是多少，转换到 OpenClaw 时都统一写成 now
+    # 你的偏好：不管 jiuwenclaw 裡 wake_offset_seconds 是多少，轉換到 OpenClaw 時都統一寫成 now
     wake_mode = "now"
 
     created_at = flat_job.get("created_at")
@@ -232,7 +232,7 @@ def convert_file(input_path: Path, output_path: Path, to_format: str) -> None:
             flat_job = convert_cron_job_dict_to_flat(job)
             out_jobs.append(flat_job)
         elif to_format == "openclaw":
-            # 可能输入就是扁平，也可能是嵌套；统一先转成内部结构再写回 openclaw
+            # 可能輸入就是扁平，也可能是巢狀；統一先轉成內部結構再寫回 openclaw
             flat_job = convert_cron_job_dict_to_flat(job)
             out_jobs.append(convert_flat_cron_job_to_openclaw_dict(flat_job))
         else:

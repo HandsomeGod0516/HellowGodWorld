@@ -1,16 +1,16 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
 
-"""JiuWenClaw Code Adapter — code 模式配置驱动适配器.
+"""JiuWenClaw Code Adapter — code 模式配置驅動介面卡.
 
-继承 JiuWenClawDeepAdapter，重写 create_instance() 和 rails/tools 注册方法。
-从 config.yaml::modes.code.rails/tools 读取配置列表，
-通过名字映射查找构建方法来注册。
-统一使用 create_deep_agent()，不再使用 create_code_agent()。
+繼承 JiuWenClawDeepAdapter，重寫 create_instance() 和 rails/tools 註冊方法。
+從 config.yaml::modes.code.rails/tools 讀取配置列表，
+透過名字對映查詢構建方法來註冊。
+統一使用 create_deep_agent()，不再使用 create_code_agent()。
 
-Code 模式独占逻辑全部收敛于此：
-- LspRail、ProjectMemoryRail、CodingMemoryRail 等 code 专属 rail
+Code 模式獨佔邏輯全部收斂於此：
+- LspRail、ProjectMemoryRail、CodingMemoryRail 等 code 專屬 rail
 - code_agent / explore_agent subagent 配置
-- code 模式下 rail 生命周期（保留 SubagentRail、补充 ProjectMemoryRail 等）
+- code 模式下 rail 生命週期（保留 SubagentRail、補充 ProjectMemoryRail 等）
 """
 
 from __future__ import annotations
@@ -60,10 +60,10 @@ from jiuwenclaw.common.utils import get_agent_workspace_dir
 logger = logging.getLogger(__name__)
 
 
-# 名字 → 构建方法映射（rail/tool 名字与类方法名对照）
+# 名字 → 構建方法對映（rail/tool 名字與類方法名對照）
 _RAIL_BUILD_NAMES: dict[str, str] = {
     "SysOperationRail": "_build_filesystem_rail",
-    "FileSystemRail": "_build_filesystem_rail",     # 别名映射
+    "FileSystemRail": "_build_filesystem_rail",     # 別名對映
     "SkillUseRail": "_build_skill_rail_via_config",
     "LspRail": "_build_lsp_rail_via_config",
     "HeartbeatRail": "_build_heartbeat_rail",
@@ -88,7 +88,7 @@ _TOOL_BUILD_NAMES: dict[str, str] = {
 
 @dataclass
 class _RailBuildInfo:
-    """Rail 构建信息 — 统一固定和动态 Rails 的构建流程."""
+    """Rail 構建資訊 — 統一固定和動態 Rails 的構建流程."""
     attr_name: str
     build_func: Callable
     params: dict = None
@@ -98,18 +98,18 @@ class _RailBuildInfo:
 
 
 class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
-    """Code 模式适配器 — 配置驱动注册 rails/tools.
+    """Code 模式介面卡 — 配置驅動註冊 rails/tools.
 
-    继承 JiuWenClawDeepAdapter，只重写：
-    - create_instance(): 统一使用 create_deep_agent()，不传多模态/上下文引擎参数
-    - _build_agent_rails(): 固定 Rails (含 LspRail/ProjectMemoryRail/CodingMemoryRail) + 从 config.yaml 读取动态 Rails
-    - _get_tool_cards(): 从 config.yaml 读取动态 Tools
-    - _build_configured_subagents(): 固定 explore_agent/plan_agent + 按配置启用 code_agent/browser_agent
-    - _update_rails_for_mode(): code 模式 rail 生命周期
-    - _update_runtime_config(): 保留 ProjectMemoryRail 语言同步
+    繼承 JiuWenClawDeepAdapter，只重寫：
+    - create_instance(): 統一使用 create_deep_agent()，不傳多模態/上下文引擎引數
+    - _build_agent_rails(): 固定 Rails (含 LspRail/ProjectMemoryRail/CodingMemoryRail) + 從 config.yaml 讀取動態 Rails
+    - _get_tool_cards(): 從 config.yaml 讀取動態 Tools
+    - _build_configured_subagents(): 固定 explore_agent/plan_agent + 按配置啟用 code_agent/browser_agent
+    - _update_rails_for_mode(): code 模式 rail 生命週期
+    - _update_runtime_config(): 保留 ProjectMemoryRail 語言同步
     """
 
-    # 固定 Rails 名字集合 — 用于动态 Rails 去重
+    # 固定 Rails 名字集合 — 用於動態 Rails 去重
     _FIXED_RAIL_NAMES = frozenset({
         "RuntimePromptRail", "ResponsePromptRail",
         "JiuClawStreamEventRail", "SecurityRail",
@@ -117,12 +117,12 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         "ContextProcessorRail",
         "SysOperationRail", "CodingMemoryRail",
         "AgentModeRail", "StructuredAskUserRail", "ConfirmInterruptRail",
-        "FileSystemRail",  # 别名
+        "FileSystemRail",  # 別名
     })
 
     def __init__(self) -> None:
         super().__init__()
-        # Code 模式专属 rails — 父类不定义这些属性
+        # Code 模式專屬 rails — 父類不定義這些屬性
         self._lsp_rail: LspRail | None = None
         self._project_memory_rail: ProjectMemoryRail | None = None
         self._coding_memory_rail: CodingMemoryRail | None = None
@@ -131,9 +131,9 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
 
     async def create_instance(self, config: dict[str, Any] | None = None, *,
                               mode: str = "code", sub_mode: str = None) -> None:
-        """初始化 DeepAgent 实例（code 模式）.
+        """初始化 DeepAgent 例項（code 模式）.
 
-        统一使用 create_deep_agent()，不传 vision_model_config /
+        統一使用 create_deep_agent()，不傳 vision_model_config /
         audio_model_config / context_engine_config / completion_timeout。
         """
         await self.set_checkpoint()
@@ -157,8 +157,8 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         tool_cards = await self._get_tool_cards(agent_card.id)
         self._tool_cards = tool_cards
 
-        # 权限护栏由 openjiuwen PermissionInterruptRail + ToolPermissionHost 接管；
-        # 无需初始化 jiuwenclaw 内置 PermissionEngine（已弃用）。
+        # 許可權護欄由 openjiuwen PermissionInterruptRail + ToolPermissionHost 接管；
+        # 無需初始化 jiuwenclaw 內建 PermissionEngine（已棄用）。
 
         rails_list = self._build_agent_rails(config, config_base, mode="code")
 
@@ -195,7 +195,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             auto_create_workspace=False
         )
 
-        # code 模式不传: vision_model_config, audio_model_config,
+        # code 模式不傳: vision_model_config, audio_model_config,
         # context_engine_config, completion_timeout
 
         self._registered_mcp_server_ids.clear()
@@ -205,7 +205,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
 
         await self.load_user_rails()
 
-    # ─── Rails 构建 ──────────────────────────
+    # ─── Rails 構建 ──────────────────────────
 
     def _build_agent_rails(
             self,
@@ -249,8 +249,8 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             _RailBuildInfo("_context_processor_rail", self._build_context_processor_rail),
         ]
 
-        # 动态 Rails — 从 config.yaml::modes.code.rails 读取
-        # 跳过已在固定列表中的 rail，避免重复注册
+        # 動態 Rails — 從 config.yaml::modes.code.rails 讀取
+        # 跳過已在固定列表中的 rail，避免重複註冊
         mode_config = config_base.get("modes", {}).get("code", {})
         configured_rails = mode_config.get("rails") or []
 
@@ -288,7 +288,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
                 rail_name,
             )
 
-        # 统一构建并注册
+        # 統一構建並註冊
         rails_list = []
         for info in rail_infos:
             logger.info(
@@ -315,10 +315,10 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         )
         return rails_list
 
-    # ─── Code 专属 Rail 构建 ────────────────
+    # ─── Code 專屬 Rail 構建 ────────────────
 
     def _build_filesystem_rail(self) -> SysOperationRail | None:
-        """构建 SysOperationRail（FileSystemRail）."""
+        """構建 SysOperationRail（FileSystemRail）."""
         try:
             fs_rail = SysOperationRail()
             logger.info("[JiuwenClawCodeAdapter] SysOperationRail create success")
@@ -328,7 +328,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             return None
 
     def _build_agent_mode_rail(self) -> AgentModeRail | None:
-        """构建 AgentModeRail."""
+        """構建 AgentModeRail."""
         try:
             return AgentModeRail()
         except Exception as exc:
@@ -336,7 +336,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             return None
 
     def _build_structured_ask_user_rail(self) -> StructuredAskUserRail | None:
-        """构建 StructuredAskUserRail."""
+        """構建 StructuredAskUserRail."""
         try:
             return StructuredAskUserRail()
         except Exception as exc:
@@ -344,7 +344,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             return None
 
     def _build_confirm_interrupt_rail(self, tool_names: list[str] | None = None) -> ConfirmInterruptRail | None:
-        """构建 ConfirmInterruptRail."""
+        """構建 ConfirmInterruptRail."""
         try:
             return ConfirmInterruptRail(tool_names=tool_names or ["switch_mode"])
         except Exception as exc:
@@ -352,7 +352,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             return None
 
     def _build_lsp_rail_via_config(self) -> Any:
-        """构建 LspRail（带 project_dir 参数）."""
+        """構建 LspRail（帶 project_dir 引數）."""
         logger.info(
             "[JiuwenClawCodeAdapter] Building LspRail with project_dir=%s",
             self._project_dir,
@@ -360,7 +360,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         return self._build_lsp_rail(workspace_dir=self._project_dir)
 
     def _build_lsp_rail(self, workspace_dir: str | None = None) -> LspRail | None:
-        """Build LspRail（code 模式专属）."""
+        """Build LspRail（code 模式專屬）."""
         try:
             lsp_rail = LspRail(InitializeOptions(cwd=workspace_dir))
             logger.info("[JiuwenClawCodeAdapter] LspRail create success")
@@ -370,11 +370,11 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         return lsp_rail
 
     def _build_coding_memory_rail(self) -> CodingMemoryRail | None:
-        """构建 CodingMemoryRail（主 Agent 和 code_agent subagent 共用）.
+        """構建 CodingMemoryRail（主 Agent 和 code_agent subagent 共用）.
 
-        通过 self._coding_memory_rail 缓存避免重复构建。
+        透過 self._coding_memory_rail 快取避免重複構建。
         """
-        # 单例保护：如果已构建，直接返回缓存实例
+        # 單例保護：如果已構建，直接返回快取例項
         if self._coding_memory_rail is not None:
             logger.info("[JiuwenClawCodeAdapter] CodingMemoryRail reuse cached instance")
             return self._coding_memory_rail
@@ -403,7 +403,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
                 ),
                 language="cn" if language == "zh" else "en",
             )
-            # 缓存实例，供 code_agent 复用
+            # 快取例項，供 code_agent 複用
             self._coding_memory_rail = coding_memory_rail
             logger.info("[JiuwenClawCodeAdapter] CodingMemoryRail create success")
             return coding_memory_rail
@@ -415,8 +415,8 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
     def _build_project_memory_rail(self) -> ProjectMemoryRail | None:
         """Build ProjectMemoryRail to auto-load JIUWENCLAW.md / CLAUDE.md etc.
 
-        Code 模式专属 — 始终挂载。
-        确保能检索到 /init 命令创建 JIUWENCLAW.md 的目录（当前工作目录）。
+        Code 模式專屬 — 始終掛載。
+        確保能檢索到 /init 命令建立 JIUWENCLAW.md 的目錄（當前工作目錄）。
         """
         try:
             workspace = self._project_dir or self._workspace_dir or "./"
@@ -462,10 +462,10 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             )
             return None
 
-    # ─── 配置驱动的 Rail/Tool 构建代理 ──────────
+    # ─── 配置驅動的 Rail/Tool 構建代理 ──────────
 
     def _build_skill_rail_via_config(self) -> Any:
-        """构建 SkillUseRail（从 config 读取参数）."""
+        """構建 SkillUseRail（從 config 讀取引數）."""
         include_tools = not self._is_acp_tool_profile(self._instance_overrides)
         return self._build_skill_rail(
             self._config_cache,
@@ -473,23 +473,23 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         )
 
     def _build_context_assemble_rail(self) -> Any:
-        """构建 ContextEngineeringRail."""
+        """構建 ContextEngineeringRail."""
         return ContextAssembleRail()
 
     def _build_context_processor_rail(self) -> Any:
-        """构建 ContextProcessorRail — 复用父类逻辑."""
+        """構建 ContextProcessorRail — 複用父類邏輯."""
         from jiuwenclaw.server.runtime.agent_adapter.interface_deep import _build_context_processor_rail
         return _build_context_processor_rail(self._config_cache)
 
     def _build_skill_evolution_rail_via_config(self) -> Any:
-        """构建 SkillEvolutionRail."""
+        """構建 SkillEvolutionRail."""
         return self._build_skill_evolution_rail(get_config())
 
     # ─── Subagent 配置 ──────────────────────────
 
     @staticmethod
     def _subagent_list_has_name(subagents: list, name: str) -> bool:
-        """检查 subagents 列表中是否已包含指定名字的 subagent."""
+        """檢查 subagents 列表中是否已包含指定名字的 subagent."""
         for spec in subagents:
             if isinstance(spec, SubAgentConfig):
                 if spec.agent_card.name == name:
@@ -508,8 +508,8 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
     ) -> list[Any] | None:
         """Build subagents for code mode: explore_agent + plan_agent + code_agent + browser_agent.
 
-        explore_agent / plan_agent 固定挂载（Code 模式核心子代理）。
-        code_agent / browser_agent 按配置启用。
+        explore_agent / plan_agent 固定掛載（Code 模式核心子代理）。
+        code_agent / browser_agent 按配置啟用。
         """
         react_cfg = config if isinstance(config, dict) else {}
         subagents_cfg = react_cfg.get("subagents")
@@ -518,7 +518,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         workspace = self._workspace_dir or "./"
         subagents: list[Any] = []
 
-        # ── 固定挂载：explore_agent（Code 模式核心子代理，始终启用）──
+        # ── 固定掛載：explore_agent（Code 模式核心子代理，始終啟用）──
         if not self._subagent_list_has_name(subagents, "explore_agent"):
             explore_agent_cfg = subagents_cfg.get("explore_agent") if isinstance(subagents_cfg, dict) else None
             subagents.append(
@@ -533,7 +533,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
                 )
             )
 
-        # ── 固定挂载：plan_agent（Code 模式核心子代理，始终启用）──
+        # ── 固定掛載：plan_agent（Code 模式核心子代理，始終啟用）──
         if not self._subagent_list_has_name(subagents, "plan_agent"):
             plan_agent_cfg = subagents_cfg.get("plan_agent") if isinstance(subagents_cfg, dict) else None
             subagents.append(
@@ -549,11 +549,11 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             )
 
         if isinstance(subagents_cfg, dict):
-            # code_agent subagent — 按配置启用
+            # code_agent subagent — 按配置啟用
             code_agent_cfg = subagents_cfg.get("code_agent")
             if self._is_subagent_enabled(code_agent_cfg):
                 code_agent_rails = None
-                # 复用主 Agent 已构建的 CodingMemoryRail
+                # 複用主 Agent 已構建的 CodingMemoryRail
                 coding_memory_rail = self._coding_memory_rail
                 if coding_memory_rail is not None:
                     # SysOperationRail is default rail for code_agent;
@@ -604,18 +604,18 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
 
         return subagents or None
 
-    # ─── Rail 生命周期(mode切换) ───────────────────
+    # ─── Rail 生命週期(mode切換) ───────────────────
 
     async def _update_rails_for_mode(self, mode: str) -> None:
-        """Code 模式下的 rail 生命周期管理.
+        """Code 模式下的 rail 生命週期管理.
 
         code.normal / code.plan 等模式：
-        - 保留 SubagentRail（主 Agent 通过 task_tool 派发 explore/plan 子代理）
-        - 保留 ProjectMemoryRail（code 模式始终挂载）
-        - 保留 CodingMemoryRail（code 模式始终挂载）
-        - 卸载 TaskPlanningRail、SkillEvolutionRail
+        - 保留 SubagentRail（主 Agent 透過 task_tool 派發 explore/plan 子代理）
+        - 保留 ProjectMemoryRail（code 模式始終掛載）
+        - 保留 CodingMemoryRail（code 模式始終掛載）
+        - 解除安裝 TaskPlanningRail、SkillEvolutionRail
         """
-        # 卸载非 code 专属 rails
+        # 解除安裝非 code 專屬 rails
         rail_specs = (
             ("_task_planning_rail", "TaskPlanningRail"),
             ("_skill_evolution_rail", "SkillEvolutionRail"),
@@ -631,7 +631,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
                     label, mode,
                 )
 
-        # code 模式保留 SubagentRail；若缺失则补充注册
+        # code 模式保留 SubagentRail；若缺失則補充註冊
         if self._subagent_rail is None:
             self._subagent_rail = self._build_subagent_rail()
             if self._subagent_rail is not None:
@@ -641,7 +641,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
                     mode,
                 )
 
-        # code 模式保留 ProjectMemoryRail；若缺失则补充注册
+        # code 模式保留 ProjectMemoryRail；若缺失則補充註冊
         if self._project_memory_rail is None:
             self._project_memory_rail = self._build_project_memory_rail()
             if self._project_memory_rail is not None:
@@ -651,11 +651,11 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
                     mode,
                 )
 
-        # code 模式保留 CodingMemoryRail；若缺失则补充注册
+        # code 模式保留 CodingMemoryRail；若缺失則補充註冊
         if self._coding_memory_rail is None:
             coding_memory_rail = self._build_coding_memory_rail()
             if coding_memory_rail is not None:
-                # _build_coding_memory_rail 已缓存到 self._coding_memory_rail
+                # _build_coding_memory_rail 已快取到 self._coding_memory_rail
                 await self._instance.register_rail(coding_memory_rail)
                 logger.info(
                     "[JiuwenClawCodeAdapter] CodingMemoryRail (re)registered for %s",
@@ -665,9 +665,9 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
     # ─── Runtime config ──────────────────────────
 
     async def _update_runtime_config(self, runtime_config: "JiuWenClawDeepAdapter._RuntimeConfig") -> None:
-        """Code 模式 runtime config: ProjectMemoryRail 语言同步 + rail 模式切换."""
+        """Code 模式 runtime config: ProjectMemoryRail 語言同步 + rail 模式切換."""
         if self._instance is None:
-            raise RuntimeError("JiuwenClawCodeAdapter 未初始化，请先调用 create_instance()")
+            raise RuntimeError("JiuwenClawCodeAdapter 未初始化，請先呼叫 create_instance()")
 
         resolved_language = self._resolve_runtime_language()
         resolved_channel = str(runtime_config.channel_id or
@@ -678,17 +678,17 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             self._runtime_prompt_rail.set_trusted_dirs(runtime_config.trusted_dirs)
         self._write_runtime_state(mode=runtime_config.mode, language=resolved_language, channel=resolved_channel)
 
-        # ProjectMemoryRail 语言同步 + trusted_dirs 注入
+        # ProjectMemoryRail 語言同步 + trusted_dirs 注入
         if self._project_memory_rail is not None:
             self._project_memory_rail.set_language(resolved_language)
-            # trusted_dirs 来自 CLI 端的 trusted_dirs / workspace-dir，
-            # 包含用户项目目录（即 /init 写 JIUWENCLAW.md 的目录）
+            # trusted_dirs 來自 CLI 端的 trusted_dirs / workspace-dir，
+            # 包含使用者專案目錄（即 /init 寫 JIUWENCLAW.md 的目錄）
             if runtime_config.trusted_dirs:
                 self._project_memory_rail.set_additional_directories(
                     runtime_config.trusted_dirs,
                 )
 
-        # code 模式始终走 _update_rails_for_mode 的 code 逻辑
+        # code 模式始終走 _update_rails_for_mode 的 code 邏輯
         await self._update_rails_for_mode(runtime_config.mode)
         await self._update_tools_for_mode(runtime_config.mode, runtime_config.session_id, runtime_config.request_id)
         await self._update_session_tools(
@@ -704,7 +704,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         )
         self._update_prompt_for_mode(runtime_config.mode, resolved_language)
 
-    # ─── Tools 构建 ──────────────────────────
+    # ─── Tools 構建 ──────────────────────────
 
     async def _get_tool_cards(self, agent_id: str) -> list[Any]:
         """Get tool cards for code mode — from config.yaml::modes.code.tools."""
@@ -740,7 +740,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         return tool_cards
 
     def _get_tool_build_func(self, tool_name: str, agent_id: str) -> Any | None:
-        """根据 tool 名字调用对应构建方法."""
+        """根據 tool 名字呼叫對應構建方法."""
         method_name = _TOOL_BUILD_NAMES.get(tool_name)
         if method_name is None:
             logger.warning(
@@ -754,19 +754,19 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         return method(agent_id)
 
     def _build_web_free_search_tool(self, agent_id: str) -> Any:
-        """构建 web_free_search 工具."""
+        """構建 web_free_search 工具."""
         return WebFreeSearchTool(
             language=self._resolve_runtime_language(), agent_id=agent_id
         )
 
     def _build_web_fetch_webpage_tool(self, agent_id: str) -> Any:
-        """构建 web_fetch_webpage 工具."""
+        """構建 web_fetch_webpage 工具."""
         return WebFetchWebpageTool(
             language=self._resolve_runtime_language(), agent_id=agent_id
         )
 
     def _build_paid_search_tool(self, agent_id: str) -> WebPaidSearchTool | None:
-        """条件注册付费搜索工具：有任意一个付费 API Key 才注册."""
+        """條件註冊付費搜尋工具：有任意一個付費 API Key 才註冊."""
         if not any(
             os.environ.get(key)
             for key in ("BOCHA_API_KEY", "PERPLEXITY_API_KEY", "SERPER_API_KEY", "JINA_API_KEY")
@@ -781,7 +781,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
         return tool
 
     def _build_user_todos_tool(self, agent_id: str) -> list[Any] | None:
-        """注册 user_todos 工具."""
+        """註冊 user_todos 工具."""
         try:
             from jiuwenclaw.agents.harness.common.tools.user_todo_tool import (
                 get_decorated_tools as _get_user_todo_tools,
@@ -797,7 +797,7 @@ class JiuwenClawCodeAdapter(JiuWenClawDeepAdapter):
             return None
 
     def _build_skill_toolkit(self, agent_id: str) -> list[Any] | None:
-        """构建 SkillToolkit 工具（不注册到 Runner，由 _get_tool_cards 统一注册）."""
+        """構建 SkillToolkit 工具（不註冊到 Runner，由 _get_tool_cards 統一註冊）."""
         try:
             skill_toolkit = SkillToolkit(manager=self._skill_manager)
             logger.info(

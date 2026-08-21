@@ -1,8 +1,8 @@
-"""按 Agent 独立配置的 LLM 客户端。
+"""按 Agent 獨立配置的 LLM 客戶端。
 
-刻意不走 ``agentsociety2.config.get_llm_router``：那是进程级单例 Router，
-并且强制校验全局 API key，无法让每个小人各自指向不同的 ollama / OpenAI 兼容端点。
-这里直接用 httpx 打 HTTP，配置随 Agent 走，可随时增删。
+刻意不走 ``agentsociety2.config.get_llm_router``：那是程序級單例 Router，
+並且強制校驗全域性 API key，無法讓每個小人各自指向不同的 ollama / OpenAI 相容端點。
+這裡直接用 httpx 打 HTTP，配置隨 Agent 走，可隨時增刪。
 """
 
 from __future__ import annotations
@@ -22,10 +22,10 @@ PROBE_MAX_TOKENS = 8
 
 
 class LLMEndpoint(BaseModel):
-    """一个小人的模型端点配置。"""
+    """一個小人的模型端點配置。"""
 
     provider: Provider = "ollama"
-    base_url: str = Field("http://localhost:11434", description="ollama 根地址或 OpenAI 兼容的 /v1 地址")
+    base_url: str = Field("http://localhost:11434", description="ollama 根地址或 OpenAI 相容的 /v1 地址")
     model: str = Field(..., min_length=1)
     api_key: str | None = None
     temperature: float = Field(0.8, ge=0.0, le=2.0)
@@ -55,9 +55,9 @@ def _describe_error(error: Exception) -> str:
         detail = body[:300] if body else error.response.reason_phrase
         return f"HTTP {error.response.status_code}: {detail}"
     if isinstance(error, httpx.ConnectError):
-        return f"无法连接：{error}"
+        return f"無法連線：{error}"
     if isinstance(error, httpx.TimeoutException):
-        return f"请求超时：{error}"
+        return f"請求超時：{error}"
     return f"{type(error).__name__}: {error}"
 
 
@@ -69,7 +69,7 @@ async def chat(
     max_tokens: int | None = None,
     client: httpx.AsyncClient | None = None,
 ) -> str:
-    """发一轮对话，返回助手回复的纯文本。异常直接抛出，由调用方处理。"""
+    """發一輪對話，返回助手回覆的純文字。異常直接丟擲，由呼叫方處理。"""
     owns_client = client is None
     http = client or httpx.AsyncClient(timeout=timeout)
     try:
@@ -118,7 +118,7 @@ async def chat(
 
 
 async def list_models(endpoint: LLMEndpoint, *, timeout: float = PROBE_TIMEOUT_SECONDS) -> list[str]:
-    """探测端点上可用的模型名。失败时抛出。"""
+    """探測端點上可用的模型名。失敗時丟擲。"""
     async with httpx.AsyncClient(timeout=timeout) as http:
         if endpoint.provider == "ollama":
             response = await http.get(
@@ -139,22 +139,22 @@ async def list_models(endpoint: LLMEndpoint, *, timeout: float = PROBE_TIMEOUT_S
 
 
 async def test_endpoint(endpoint: LLMEndpoint) -> EndpointTestResult:
-    """先列模型确认端点活着，再发一次极短对话确认模型真能回话。"""
+    """先列模型確認端點活著，再發一次極短對話確認模型真能回話。"""
     started = time.monotonic()
     models: list[str] = []
     try:
         models = await list_models(endpoint)
-    except Exception as error:  # noqa: BLE001 - 面向用户的连通性检查
+    except Exception as error:  # noqa: BLE001 - 面向使用者的連通性檢查
         return EndpointTestResult(ok=False, models=[], error=_describe_error(error))
 
     if models and endpoint.model not in models:
-        # ollama 的 tag 可能带 :latest 后缀，宽松匹配一次再判定。
+        # ollama 的 tag 可能帶 :latest 字尾，寬鬆匹配一次再判定。
         loose = {name.split(":", 1)[0] for name in models}
         if endpoint.model.split(":", 1)[0] not in loose:
             return EndpointTestResult(
                 ok=False,
                 models=models,
-                error=f"端点上没有模型 {endpoint.model}；可用：{', '.join(models[:10])}",
+                error=f"端點上沒有模型 {endpoint.model}；可用：{', '.join(models[:10])}",
             )
 
     try:
@@ -172,7 +172,7 @@ async def test_endpoint(endpoint: LLMEndpoint) -> EndpointTestResult:
 
 
 def extract_json_object(text: str) -> dict[str, Any] | None:
-    """从模型回复里抠出第一个 JSON 对象；小模型常会包在 ``` 或废话里。"""
+    """從模型回覆裡摳出第一個 JSON 物件；小模型常會包在 ``` 或廢話裡。"""
     if not text:
         return None
     start = text.find("{")

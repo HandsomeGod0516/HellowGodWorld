@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Channel 模块 - 客户端连接抽象."""
+"""Channel 模組 - 客戶端連線抽象."""
 
 from jiuwenclaw.gateway.channel_manager.base import BaseChannel, ChannelMetadata
 from jiuwenclaw.gateway.channel_manager.channel_manager import ChannelManager

@@ -19,7 +19,7 @@ _WORKER_LOCK = threading.Lock()
 
 
 def _serialize_value(obj: Any) -> Any:
-    """将对象转换为 JSON 可序列化的格式."""
+    """將物件轉換為 JSON 可序列化的格式."""
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
     if isinstance(obj, datetime.date):
@@ -43,7 +43,7 @@ def _read_history(path: Path) -> list[dict[str, Any]]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:  # noqa: BLE001
-        logger.warning("读取 history.json 失败，已忽略并重建: %s", exc)
+        logger.warning("讀取 history.json 失敗，已忽略並重建: %s", exc)
         return []
     if isinstance(data, list):
         return data
@@ -75,7 +75,7 @@ def _ensure_worker_started() -> None:
                 try:
                     _write_item(sid, item)
                 except Exception as exc:  # noqa: BLE001
-                    logger.warning("history 异步写入失败: %s", exc)
+                    logger.warning("history 非同步寫入失敗: %s", exc)
                 finally:
                     _WRITE_QUEUE.task_done()
 
@@ -97,7 +97,7 @@ def append_history_record(
     channel_metadata: dict[str, Any] | None = None,
     mode: str | None = None,
 ) -> None:
-    """向指定 session 的 history.json 异步追加一条记录."""
+    """向指定 session 的 history.json 非同步追加一條記錄."""
     sid = (session_id or "default").strip() or "default"
     rid = str(request_id or "").strip()
     cid = str(channel_id or "").strip()
@@ -123,10 +123,10 @@ def append_history_record(
     try:
         _WRITE_QUEUE.put_nowait((sid, item))
     except queue.Full:
-        # 队列满时退化为同步写，避免丢历史记录。
+        # 佇列滿時退化為同步寫，避免丟歷史記錄。
         _write_item(sid, item)
 
-    # 更新会话元数据
+    # 更新會話後設資料
     try:
         from jiuwenclaw.server.runtime.session.session_metadata import (
             set_session_delivery_context,
@@ -136,9 +136,9 @@ def append_history_record(
             session_id=sid,
             channel_id=cid,
             increment_message_count=True,
-            # 传入用户消息内容,用于自动生成标题
+            # 傳入使用者訊息內容,用於自動生成標題
             user_content=content_text if role_norm == "user" else None,
-            # 传入渠道元数据,首次写入时持久化
+            # 傳入渠道後設資料,首次寫入時持久化
             channel_metadata=channel_metadata,
             mode=mode,
         )
@@ -150,4 +150,4 @@ def append_history_record(
                 route_metadata=channel_metadata,
             )
     except Exception as exc:
-        logger.warning("更新会话元数据失败: %s", exc)
+        logger.warning("更新會話後設資料失敗: %s", exc)

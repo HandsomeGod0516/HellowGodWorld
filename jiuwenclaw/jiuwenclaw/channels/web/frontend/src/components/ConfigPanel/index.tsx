@@ -53,20 +53,20 @@ interface ConfigPanelProps {
   config: Record<string, unknown> | null;
   isConnected: boolean;
   onSaveConfig: (updates: Record<string, string>) => Promise<void>;
-  /** 校验默认模型配置（api_base / api_key / model / model_provider）能否完成一次最小 LLM 请求 */
+  /** 校驗預設模型配置（api_base / api_key / model / model_provider）能否完成一次最小 LLM 請求 */
   onValidateModel?: (fields: {
     api_base: string;
     api_key: string;
     model: string;
     model_provider: string;
   }) => Promise<void>;
-  /** 首次进入配置页时展开的分组 tag（如 third_party_api）；离开配置页时由 App 清空 */
+  /** 首次進入配置頁時展開的分組 tag（如 third_party_api）；離開配置頁時由 App 清空 */
   initialExpandGroupTag?: string | null;
-  /** 一次性原子提交完整模型列表，覆盖增删改重排 */
+  /** 一次性原子提交完整模型列表，覆蓋增刪改重排 */
   onModelsReplaceAll?: (models: ModelEntry[]) => Promise<void>;
   onModelValidate?: (fields: { api_base: string; api_key: string; model: string; model_provider: string }) => Promise<void>;
   onModelsRefresh?: () => Promise<void>;
-  /** 多Agent和Teams操作回调 */
+  /** 多Agent和Teams操作回撥 */
   onAgentsTeamsSave?: (payload: {
     agents: Record<string, {
       model: { provider: string; api_base: string; api_key: string; model: string };
@@ -237,7 +237,7 @@ function getGroupToneClass(tag: string): string {
   return "text-text-muted bg-secondary/70 border-border";
 }
 
-/** 模型子分组的嵌套样式：左侧色条 + 淡色底，与整体一致、易区分 */
+/** 模型子分組的巢狀樣式：左側色條 + 淡色底，與整體一致、易區分 */
 function getNestedModelStyle(tag: string): string {
   if (tag === "model_default") return "border-l-2 border-l-blue-500/60 bg-blue-500/[0.06]";
   if (tag === "model_video") return "border-l-2 border-l-violet-500/60 bg-violet-500/[0.06]";
@@ -328,8 +328,8 @@ function isProviderKey(key: string): boolean {
   return key.endsWith("_provider");
 }
 
-/** 表格列显示用：video_api_base -> api_base，避免与分组标题重复 */
-/** i18n 键名映射：字段名 -> 翻译 key（显示名 / placeholder） */
+/** 表格列顯示用：video_api_base -> api_base，避免與分組標題重複 */
+/** i18n 鍵名對映：欄位名 -> 翻譯 key（顯示名 / placeholder） */
 const KEY_DISPLAY_I18N: Record<string, string> = {
   memory_forbidden_enabled: "config.keys.memoryForbiddenEnabled",
   memory_forbidden_description: "config.keys.memoryForbiddenDescription",
@@ -346,7 +346,7 @@ const KEY_LABEL_HINT_I18N: Record<string, string> = {
   skill_create: "config.keyHelp.skillCreate",
 };
 
-/** 组内字段排序优先级，数字越小越靠前 */
+/** 組內欄位排序優先順序，數字越小越靠前 */
 const KEY_SORT_PRIORITY: Record<string, number> = {
   evolution_auto_scan: 0,
   skill_create: 1,
@@ -572,7 +572,7 @@ function GroupSection({
 
 const MODEL_PROVIDER_OPTIONS = ["OpenAI", "DashScope", "SiliconFlow", "InferenceAffinity", "DeepSeek"] as const;
 
-/** 多默认模型管理（受控组件，编辑状态由父组件持有） */
+/** 多預設模型管理（受控元件，編輯狀態由父元件持有） */
 function MultiModelSection({
   models,
   onModelsChange,
@@ -634,7 +634,7 @@ function MultiModelSection({
     copy[idx] = { ...copy[idx], [field]: value };
     if (field === "model_name" && value !== models[idx].model_name) {
       if (idx === 0) {
-        // 主对话默认换组：成为新组的组内默认，新组原默认让位
+        // 主對話預設換組：成為新組的組內預設，新組原預設讓位
         copy[0] = { ...copy[0], is_default: true };
         for (let i = 1; i < copy.length; i++) {
           if (copy[i].model_name === value && copy[i].is_default) {
@@ -642,7 +642,7 @@ function MultiModelSection({
           }
         }
       } else if (copy[idx].is_default) {
-        // 非主对话默认换组：以新组原组内默认为准，自身让位
+        // 非主對話預設換組：以新組原組內預設為準，自身讓位
         copy[idx] = { ...copy[idx], is_default: false };
       }
     }
@@ -656,7 +656,7 @@ function MultiModelSection({
     }
     setLocalError(null);
     const next = models.filter((_, i) => i !== idx);
-    // 维持不变量：主对话默认（首位）必须是其所在组的组内默认
+    // 維持不變數：主對話預設（首位）必須是其所在組的組內預設
     if (next.length > 0) {
       const headName = next[0].model_name;
       if (!next[0].is_default) {
@@ -669,7 +669,7 @@ function MultiModelSection({
       }
     }
     onModelsChange(next);
-    // 调整展开索引：删除项在展开项之前则前移，删除的正是展开项则收起
+    // 調整展開索引：刪除項在展開項之前則前移，刪除的正是展開項則收起
     setExpandedIdx((prev) => {
       if (prev === null) return null;
       if (idx === prev) return null;
@@ -679,11 +679,11 @@ function MultiModelSection({
   };
 
   const handleSetActive = (idx: number) => {
-    // 将目标条目移到列表首位，作为主对话默认模型
+    // 將目標條目移到列表首位，作為主對話預設模型
     if (idx === 0) return;
     const copy = [...models];
     const [target] = copy.splice(idx, 1);
-    // 主对话默认一定是组内默认：将目标设为 is_default=true，同组其他条目置 false
+    // 主對話預設一定是組內預設：將目標設為 is_default=true，同組其他條目置 false
     const targetName = target.model_name;
     target.is_default = true;
     for (const m of copy) {
@@ -704,7 +704,7 @@ function MultiModelSection({
   const handleToggleDefault = (idx: number) => {
     const model = models[idx];
     const sameNameCount = models.filter((m) => m.model_name === model.model_name).length;
-    // 同名组仅一个条目时不可取消
+    // 同名組僅一個條目時不可取消
     if (sameNameCount <= 1) return;
     const copy = [...models];
     const newDefault = !copy[idx].is_default;
@@ -712,7 +712,7 @@ function MultiModelSection({
     let newDefaultIdx = -1;
 
     if (newDefault) {
-      // 设为组内默认：同组其他条目取消默认
+      // 設為組內預設：同組其他條目取消預設
       for (let i = 0; i < copy.length; i++) {
         if (copy[i].model_name === model.model_name) {
           copy[i] = { ...copy[i], is_default: i === idx };
@@ -720,7 +720,7 @@ function MultiModelSection({
       }
       newDefaultIdx = idx;
     } else {
-      // 取消默认：同组第一个其他条目自动成为默认
+      // 取消預設：同組第一個其他條目自動成為預設
       copy[idx] = { ...copy[idx], is_default: false };
       const fallbackIdx = copy.findIndex((m, i) => i !== idx && m.model_name === model.model_name);
       if (fallbackIdx >= 0) {
@@ -728,8 +728,8 @@ function MultiModelSection({
         newDefaultIdx = fallbackIdx;
       }
     }
-    // 不变量：主对话默认（首位）必须是组内默认。当切换发生在主对话默认所在组时，
-    // 新的组内默认条目同步成为主对话默认（移到首位）。
+    // 不變數：主對話預設（首位）必須是組內預設。當切換髮生在主對話預設所在組時，
+    // 新的組內預設條目同步成為主對話預設（移到首位）。
     if (isPrimaryGroup && newDefaultIdx > 0) {
       const [newPrimary] = copy.splice(newDefaultIdx, 1);
       copy.unshift(newPrimary);
@@ -759,11 +759,11 @@ function MultiModelSection({
       }
     }
     setLocalError(null);
-    // 新增条目：同名组已有条目时 is_default=false，否则 is_default=true
+    // 新增條目：同名組已有條目時 is_default=false，否則 is_default=true
     const sameNameExists = models.some((m) => m.model_name === name);
     const entry: ModelEntry = { ...newModel, model_name: name, is_default: !sameNameExists };
     onModelsChange([...models, entry]);
-    setExpandedIdx(models.length); // 自动展开新增的条目
+    setExpandedIdx(models.length); // 自動展開新增的條目
     setAddingNew(false);
     setNewModel({ model_name: "", api_base: "", api_key: "", model_provider: "OpenAI", alias: "" });
   };
@@ -798,7 +798,7 @@ function MultiModelSection({
         const vr = validateResults[model.model_name];
         const isDefault = model.is_default !== false;
         const isPrimaryDefault = idx === 0;
-        // 同名模型计数，用于区分显示
+        // 同名模型計數，用於區分顯示
         const sameNameIndices = models.reduce<number[]>((acc, m, i) => {
           if (m.model_name === model.model_name) acc.push(i);
           return acc;
@@ -895,7 +895,7 @@ function MultiModelSection({
                     )}
                   </div>
                 ))}
-                {/* is_default 勾选框 */}
+                {/* is_default 勾選框 */}
                 <div className="flex items-center gap-2 text-xs">
                   <label className="w-28 text-text-muted shrink-0">{t("config.modelList.isDefault")}</label>
                   <input
@@ -960,7 +960,7 @@ function MultiModelSection({
   );
 }
 
-/** 多Agent管理（受控组件，编辑状态由父组件持有） */
+/** 多Agent管理（受控元件，編輯狀態由父元件持有） */
 function MultiAgentSection({
   agents,
   onAgentsChange,
@@ -981,9 +981,9 @@ function MultiAgentSection({
     max_iterations: 0,
     completion_timeout: 0,
   });
-  // 临时保存 skills 输入框的原始值，支持中英文逗号
+  // 臨時儲存 skills 輸入框的原始值，支援中英文逗號
   const [skillsInputValues, setSkillsInputValues] = useState<Record<number, string>>({});
-  // 新建 agent 时的 skills 临时输入值
+  // 新建 agent 時的 skills 臨時輸入值
   const [newAgentSkillsInput, setNewAgentSkillsInput] = useState("");
 
   const updateAgentField = (idx: number, field: keyof AgentEntry, value: string | number) => {
@@ -994,7 +994,7 @@ function MultiAgentSection({
   };
 
   const handleModelSelect = (idx: number, modelKey: string) => {
-    // modelKey 格式为 "model_name#index"，从中解析 index
+    // modelKey 格式為 "model_name#index"，從中解析 index
     const sepIdx = modelKey.lastIndexOf("#");
     let selectedModel: ModelEntry | undefined;
     if (sepIdx >= 0) {
@@ -1004,7 +1004,7 @@ function MultiAgentSection({
       }
     }
     if (!selectedModel) {
-      // 回退：按 model_name 查找
+      // 回退：按 model_name 查詢
       const modelName = sepIdx >= 0 ? modelKey.slice(0, sepIdx) : modelKey;
       selectedModel = availableModels.find((m) => m.model_name === modelName);
     }
@@ -1088,7 +1088,7 @@ function MultiAgentSection({
                   <label className="w-28 text-text-muted shrink-0">{t("config.keys.agentModel")}</label>
                   <select
                     value={(() => {
-                      // 根据 agent 当前 model 配置反查 availableModels 中的 index
+                      // 根據 agent 當前 model 配置反查 availableModels 中的 index
                       const matchIdx = availableModels.findIndex(
                         (m) => m.model_name === agent.model.model
                           && (m.model_provider || "") === (agent.model.provider || "")
@@ -1289,7 +1289,7 @@ function MultiAgentSection({
   );
 }
 
-/** TeamItem：单个Team的配置 */
+/** TeamItem：單個Team的配置 */
 function TeamItemSection({
   team,
   onTeamChange,
@@ -1368,7 +1368,7 @@ function TeamItemSection({
 
   return (
     <div className="space-y-3">
-      {/* 基础配置 */}
+      {/* 基礎配置 */}
       <div className="space-y-2">
         {teamStringFields.map((field) => (
           <div key={field} className="flex items-center gap-2 text-xs">
@@ -1593,7 +1593,7 @@ function TeamItemSection({
   );
 }
 
-/** TeamsSection：管理多个Team配置 */
+/** TeamsSection：管理多個Team配置 */
 function TeamsSection({
   teams,
   onTeamsChange,
@@ -1721,7 +1721,7 @@ function TeamsSection({
   );
 }
 
-/** 模型配置父级：把默认/视频/音频/视觉四个子分组收拢在「模型配置」下 */
+/** 模型配置父級：把預設/影片/音訊/視覺四個子分組收攏在「模型配置」下 */
 function ModelConfigSection({
   modelGroups,
   draftValues,
@@ -1775,7 +1775,7 @@ function ModelConfigSection({
       </button>
       {open && (
         <div className="border-t border-border px-2 pb-2 pt-1 space-y-2">
-          {/* 多默认模型管理（替代原 model_default 单组） */}
+          {/* 多預設模型管理（替代原 model_default 單組） */}
           <div className="rounded-lg border border-border bg-secondary/10 px-3 py-2">
             <div className="text-xs font-medium text-text mb-2">{t("config.groups.modelDefault.label")}</div>
             <MultiModelSection
@@ -1786,7 +1786,7 @@ function ModelConfigSection({
               t={t}
             />
           </div>
-          {/* 视频/音频/视觉模型保持原有 GroupSection */}
+          {/* 影片/音訊/視覺模型保持原有 GroupSection */}
           {modelGroups.filter((g) => g.tag !== "model_default").map((group) => (
             <GroupSection
               key={group.tag}
@@ -1828,7 +1828,7 @@ export function ConfigPanel({
   });
   const [draftModels, setDraftModels] = useState<ModelEntry[]>(() => storeAvailableModels.map((m) => ({ ...m })));
   
-  // 从 localStorage 加载缓存的 agents 和 teams
+  // 從 localStorage 載入快取的 agents 和 teams
   const loadCachedAgentsTeams = (): { agents: AgentEntry[]; teams: TeamEntry[] } | null => {
     try {
       const cached = localStorage.getItem('jiuwenclaw_agents_teams_cache');
@@ -1841,7 +1841,7 @@ export function ConfigPanel({
     return null;
   };
 
-  // 保存到 localStorage
+  // 儲存到 localStorage
   const saveCachedAgentsTeams = (agents: AgentEntry[], teams: TeamEntry[]) => {
     try {
       localStorage.setItem('jiuwenclaw_agents_teams_cache', JSON.stringify({ agents, teams }));
@@ -1936,11 +1936,11 @@ export function ConfigPanel({
   }, [normalizedConfig]);
 
   useEffect(() => {
-    // 优先从后端加载数据，如果后端有数据则使用后端数据
+    // 優先從後端載入資料，如果後端有資料則使用後端資料
     if (agentsFromConfig.length > 0) {
       setDraftAgents(agentsFromConfig);
     } else if (draftAgents.length === 0) {
-      // 后端没有数据且草稿也为空时才使用缓存
+      // 後端沒有資料且草稿也為空時才使用快取
       const cached = loadCachedAgentsTeams();
       if (cached?.agents) {
         setDraftAgents(cached.agents);
@@ -1949,11 +1949,11 @@ export function ConfigPanel({
   }, [agentsFromConfig]);
 
   useEffect(() => {
-    // 优先从后端加载数据，如果后端有数据则使用后端数据
+    // 優先從後端載入資料，如果後端有資料則使用後端資料
     if (teamsFromConfig.length > 0) {
       setDraftTeams(teamsFromConfig);
     } else if (draftTeams.length === 0) {
-      // 后端没有数据且草稿也为空时才使用缓存
+      // 後端沒有資料且草稿也為空時才使用快取
       const cached = loadCachedAgentsTeams();
       if (cached?.teams) {
         setDraftTeams(cached.teams);
@@ -1961,7 +1961,7 @@ export function ConfigPanel({
     }
   }, [teamsFromConfig]);
 
-  // 自动保存 agents 和 teams 到 localStorage
+  // 自動儲存 agents 和 teams 到 localStorage
   useEffect(() => {
     if (draftAgents.length > 0 || draftTeams.length > 0) {
       saveCachedAgentsTeams(draftAgents, draftTeams);
@@ -1974,9 +1974,9 @@ export function ConfigPanel({
     for (const [key, value] of Object.entries(normalizedConfig)) {
       if (HIDDEN_CONFIG_KEYS.has(key)) continue;
       const tag = classifyKey(key);
-      // 临时注释：先隐藏邮件配置，后续需要时可恢复。
+      // 臨時註釋：先隱藏郵件配置，後續需要時可恢復。
       if (tag === "email") continue;
-      // 飞书配置已迁移到 ChannelsPanel 管理，这里不再展示。
+      // 飛書配置已遷移到 ChannelsPanel 管理，這裡不再展示。
       if (tag === "feishu") continue;
       (buckets[tag] ??= []).push([key, value]);
     }
@@ -2073,7 +2073,7 @@ export function ConfigPanel({
       setError(t('config.modelList.apiKeyRequired'));
       return;
     }
-    // alias 唯一性校验
+    // alias 唯一性校驗
     const aliasSeen = new Map<string, string>();
     for (const m of draftModels) {
       const a = (m.alias || "").trim();
@@ -2091,14 +2091,14 @@ export function ConfigPanel({
     setSaving(true);
     setError(null);
     try {
-      // 先保存多模型变更——若此步骤失败，后续成功弹窗不会弹出
+      // 先儲存多模型變更——若此步驟失敗，後續成功彈窗不會彈出
       // 走 replace_all 一次性原子提交完整列表：避免按 model_name/index 多步 save+remove
-      // 在同 model_name 多条目场景下出现位置错位、漏删、覆写等问题
+      // 在同 model_name 多條目場景下出現位置錯位、漏刪、覆寫等問題
       if (hasModelChanges && onModelsReplaceAll) {
         await onModelsReplaceAll(draftModels);
         if (onModelsRefresh) await onModelsRefresh();
       }
-      // 保存 agents 和 teams
+      // 儲存 agents 和 teams
       if (hasAgentsTeamsChanges && onAgentsTeamsSave) {
         const agentsPayload: Record<string, {
           model: { provider: string; api_base: string; api_key: string; model: string };
@@ -2119,7 +2119,7 @@ export function ConfigPanel({
           agents: agentsPayload,
           team: draftTeams.map((t) => ({ ...t })),
         });
-        // 保存成功后清除 localStorage 缓存
+        // 儲存成功後清除 localStorage 快取
         try {
           localStorage.removeItem('jiuwenclaw_agents_teams_cache');
         } catch (e) {
@@ -2127,7 +2127,7 @@ export function ConfigPanel({
         }
         setAgentsTeamsEdited(false);
       }
-      // 模型保存全部成功后，再保存非模型配置（视频/音频/embed/第三方等）并触发成功弹窗
+      // 模型儲存全部成功後，再儲存非模型配置（影片/音訊/embed/第三方等）並觸發成功彈窗
       await onSaveConfig(draftValues);
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : t('config.errors.saveFailed');

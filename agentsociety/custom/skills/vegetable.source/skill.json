@@ -21,7 +21,7 @@
   ],
   "status": "sourcing_vegetables",
   "emotion": "practical",
-  "speech": "我先看今天哪些菜新鲜、数量够不够。",
+  "speech": "我先看今天哪些菜新鮮、數量夠不夠。",
   "memory_template": "Used vegetable.source: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

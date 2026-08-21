@@ -1,4 +1,4 @@
-"""会话元数据管理模块"""
+"""會話後設資料管理模組"""
 from __future__ import annotations
 
 import copy
@@ -15,39 +15,39 @@ from jiuwenclaw.common.utils import get_agent_sessions_dir
 
 logger = logging.getLogger(__name__)
 
-# ---------- 异步写入队列(与 session_history 保持一致的模式) ----------
+# ---------- 非同步寫入佇列(與 session_history 保持一致的模式) ----------
 _METADATA_QUEUE: queue.Queue[tuple[str, dict[str, Any]]] = queue.Queue(maxsize=5000)
 _WORKER_STARTED = False
 _WORKER_LOCK = threading.Lock()
 _FILE_LOCK = threading.Lock()
 
-# 内存缓存: 解决异步写入时读取到陈旧磁盘数据的竞态条件
+# 記憶體快取: 解決非同步寫入時讀取到陳舊磁碟資料的競態條件
 _METADATA_CACHE: dict[str, dict[str, Any]] = {}
 _CACHE_LOCK = threading.Lock()
 
-# 会话标题自动生成的截取长度
+# 會話標題自動生成的擷取長度
 _TITLE_MAX_LEN = 50
 _DELIVERY_KIND_SERVER_PUSH = "server_push"
 
 
 def _current_timestamp() -> float:
-    """返回显式使用 UTC 时区的当前时间戳"""
+    """返回顯式使用 UTC 時區的當前時間戳"""
     return datetime.now(timezone.utc).timestamp()
 
 
 def _metadata_file(session_id: str) -> Path:
-    """获取会话元数据文件路径"""
+    """獲取會話後設資料檔案路徑"""
     session_dir = get_agent_sessions_dir() / session_id
     session_dir.mkdir(parents=True, exist_ok=True)
     return session_dir / "metadata.json"
 
 
 def _read_metadata(session_id: str) -> dict[str, Any]:
-    """读取会话元数据(优先从内存缓存读取,避免异步写入未落盘时读到陈旧数据)
+    """讀取會話後設資料(優先從記憶體快取讀取,避免非同步寫入未落盤時讀到陳舊資料)
 
-    读路径不应产生副作用：即便 session 目录不存在，也不触发 mkdir，
-    否则会导致仅查询(session.rename 无 title 参数时)隐式创建空 session 目录，
-    污染 session.list 结果。
+    讀路徑不應產生副作用：即便 session 目錄不存在，也不觸發 mkdir，
+    否則會導致僅查詢(session.rename 無 title 引數時)隱式建立空 session 目錄，
+    汙染 session.list 結果。
     """
     with _CACHE_LOCK:
         cached = _METADATA_CACHE.get(session_id)
@@ -61,16 +61,16 @@ def _read_metadata(session_id: str) -> dict[str, Any]:
         if isinstance(data, dict):
             return data
     except Exception as exc:
-        logger.warning("读取 metadata.json 失败: %s", exc)
+        logger.warning("讀取 metadata.json 失敗: %s", exc)
     return {}
 
 
 def _write_metadata_sync(session_id: str, metadata: dict[str, Any]) -> None:
-    """同步写入会话元数据(由后台 worker 或 fallback 调用)
+    """同步寫入會話後設資料(由後臺 worker 或 fallback 呼叫)
 
-    注意: 不更新 _METADATA_CACHE。缓存仅由 _enqueue_write 维护,
-    避免 gateway 进程的 init_session_metadata 污染缓存导致后续
-    读取不到 agentserver 进程写入的最新数据。
+    注意: 不更新 _METADATA_CACHE。快取僅由 _enqueue_write 維護,
+    避免 gateway 程序的 init_session_metadata 汙染快取導致後續
+    讀取不到 agentserver 程序寫入的最新資料。
     """
     fpath = _metadata_file(session_id)
     with _FILE_LOCK:
@@ -94,7 +94,7 @@ def _ensure_worker_started() -> None:
                 try:
                     _write_metadata_sync(sid, metadata)
                 except Exception as exc:  # noqa: BLE001
-                    logger.warning("metadata 异步写入失败: %s", exc)
+                    logger.warning("metadata 非同步寫入失敗: %s", exc)
                 finally:
                     _METADATA_QUEUE.task_done()
 
@@ -104,8 +104,8 @@ def _ensure_worker_started() -> None:
 
 
 def _enqueue_write(session_id: str, metadata: dict[str, Any]) -> None:
-    """将写入操作放入异步队列,队列满时退化为同步写"""
-    # 立即更新缓存,确保后续读取能看到最新状态
+    """將寫入操作放入非同步佇列,佇列滿時退化為同步寫"""
+    # 立即更新快取,確保後續讀取能看到最新狀態
     with _CACHE_LOCK:
         _METADATA_CACHE[session_id] = metadata.copy()
     _ensure_worker_started()
@@ -116,7 +116,7 @@ def _enqueue_write(session_id: str, metadata: dict[str, Any]) -> None:
 
 
 def _auto_title(content: str) -> str:
-    """从首条用户消息自动生成会话标题"""
+    """從首條使用者訊息自動生成會話標題"""
     title = content.strip().replace("\n", " ")
     if len(title) > _TITLE_MAX_LEN:
         title = title[:_TITLE_MAX_LEN] + "..."
@@ -131,7 +131,7 @@ def init_session_metadata(
     title: str = "",
     mode: str = "unknown",
 ) -> None:
-    """初始化会话元数据(同步写,确保创建后立即可读)"""
+    """初始化會話後設資料(同步寫,確保建立後立即可讀)"""
     metadata = {
         "session_id": session_id,
         "channel_id": channel_id,
@@ -157,19 +157,19 @@ def update_session_metadata(
     channel_metadata: dict[str, Any] | None = None,
     mode: str | None = None,
 ) -> None:
-    """更新会话元数据(异步写入,不阻塞调用方)
+    """更新會話後設資料(非同步寫入,不阻塞呼叫方)
 
-    title 语义(保持历史防御契约)：
-      - title=None  → 不修改（默认）
-      - title="x"   → 设置为 "x"
-      - title=""    → 忽略（防御意外空值覆盖已有标题）
-      - 若需显式清除标题，请设置 clear_title=True
+    title 語義(保持歷史防禦契約)：
+      - title=None  → 不修改（預設）
+      - title="x"   → 設定為 "x"
+      - title=""    → 忽略（防禦意外空值覆蓋已有標題）
+      - 若需顯式清除標題，請設定 clear_title=True
     """
     metadata = _read_metadata(session_id)
 
     if not metadata:
-        # 如果元数据不存在,创建新的(外部渠道隐式创建 session 的兜底)
-        # 自动生成标题: 当 title 为空且提供了用户消息内容时
+        # 如果後設資料不存在,建立新的(外部渠道隱式建立 session 的兜底)
+        # 自動生成標題: 當 title 為空且提供了使用者訊息內容時
         auto_title = ""
         if not title and user_content:
             auto_title = _auto_title(user_content)
@@ -183,18 +183,18 @@ def update_session_metadata(
             "message_count": 1 if increment_message_count else 0,
             "mode": mode if mode is not None else "unknown",
         }
-        # 首次创建时写入 channel_metadata
+        # 首次建立時寫入 channel_metadata
         if channel_metadata:
             metadata["channel_metadata"] = channel_metadata
     else:
-        # 更新现有元数据
+        # 更新現有後設資料
         if channel_id is not None:
             metadata["channel_id"] = channel_id
         if user_id is not None:
             metadata["user_id"] = user_id
         if mode is not None:
             metadata["mode"] = mode
-        # 显式清除优先级高于 title 入参
+        # 顯式清除優先順序高於 title 入參
         if clear_title:
             metadata["title"] = ""
         elif title:
@@ -202,22 +202,22 @@ def update_session_metadata(
         if increment_message_count:
             metadata["message_count"] = metadata.get("message_count", 0) + 1
 
-        # 自动生成标题: 当 title 为空且提供了用户消息内容时
+        # 自動生成標題: 當 title 為空且提供了使用者訊息內容時
         if not metadata.get("title") and user_content:
             metadata["title"] = _auto_title(user_content)
 
-        # channel_metadata 仅在首次为空时补充写入（不覆盖）
+        # channel_metadata 僅在首次為空時補充寫入（不覆蓋）
         if channel_metadata and not metadata.get("channel_metadata"):
             metadata["channel_metadata"] = channel_metadata
 
-        # 总是更新最后消息时间
+        # 總是更新最後訊息時間
         metadata["last_message_at"] = _current_timestamp()
 
     _enqueue_write(session_id, metadata)
 
 
 def get_session_metadata(session_id: str) -> dict[str, Any]:
-    """获取会话元数据"""
+    """獲取會話後設資料"""
     return _read_metadata(session_id)
 
 
@@ -229,7 +229,7 @@ def set_session_delivery_context(
     route_metadata: dict[str, Any] | None,
     delivery_kind: str = _DELIVERY_KIND_SERVER_PUSH,
 ) -> dict[str, Any]:
-    """刷新 session 级 delivery context，供异步 server_push 恢复路由上下文。"""
+    """重新整理 session 級 delivery context，供非同步 server_push 恢復路由上下文。"""
     metadata = _read_metadata(session_id)
     current_context_raw = metadata.get("delivery_context")
     current_context = (
@@ -291,7 +291,7 @@ def set_session_delivery_context(
 
 
 def get_session_delivery_context(session_id: str) -> dict[str, Any] | None:
-    """读取 session 级 delivery context。"""
+    """讀取 session 級 delivery context。"""
     metadata = _read_metadata(session_id)
     context = metadata.get("delivery_context")
     if not isinstance(context, dict):
@@ -306,7 +306,7 @@ def build_server_push_message(
     payload: dict[str, Any],
     fallback_channel_id: str | None = None,
 ) -> dict[str, Any]:
-    """基于 session delivery context 构造 evolution watcher 的 server_push 消息。"""
+    """基於 session delivery context 構造 evolution watcher 的 server_push 訊息。"""
     delivery_context = get_session_delivery_context(session_id) or {}
     route_metadata = delivery_context.get("route_metadata")
     channel_id = str(
@@ -325,7 +325,7 @@ def build_server_push_message(
 
 
 def remove_team_mode_session_dirs_at_startup() -> None:
-    """agentserver 启动时删除 metadata.json 中 mode 为 team 的会话目录。"""
+    """agentserver 啟動時刪除 metadata.json 中 mode 為 team 的會話目錄。"""
     sessions_dir = get_agent_sessions_dir()
     if not sessions_dir.is_dir():
         return
@@ -340,7 +340,7 @@ def remove_team_mode_session_dirs_at_startup() -> None:
         try:
             raw = json.loads(meta_path.read_text(encoding="utf-8"))
         except Exception as exc:  # noqa: BLE001
-            logger.warning("启动清理跳过会话 %s: 读取 metadata.json 失败: %s", session_dir.name, exc)
+            logger.warning("啟動清理跳過會話 %s: 讀取 metadata.json 失敗: %s", session_dir.name, exc)
             continue
         if not isinstance(raw, dict) or raw.get("mode") != "team":
             continue
@@ -352,10 +352,10 @@ def remove_team_mode_session_dirs_at_startup() -> None:
                 _METADATA_CACHE.pop(session_id, None)
             removed += 1
         except Exception as exc:  # noqa: BLE001
-            logger.warning("启动清理删除 team 会话目录失败 %s: %s", session_id, exc)
+            logger.warning("啟動清理刪除 team 會話目錄失敗 %s: %s", session_id, exc)
 
     if removed:
-        logger.info("启动清理: 已删除 %d 个 team 模式会话目录", removed)
+        logger.info("啟動清理: 已刪除 %d 個 team 模式會話目錄", removed)
 
 
 def get_all_sessions_metadata(
@@ -363,10 +363,10 @@ def get_all_sessions_metadata(
     offset: int = 0,
 ) -> tuple[list[dict[str, Any]], int]:
     """
-    获取所有会话的元数据。
+    獲取所有會話的後設資料。
 
     Returns:
-        (sessions, total): 当前页的会话列表 和 会话总数
+        (sessions, total): 當前頁的會話列表 和 會話總數
     """
     sessions_dir = get_agent_sessions_dir()
     if not sessions_dir.exists() or not sessions_dir.is_dir():
@@ -381,8 +381,8 @@ def get_all_sessions_metadata(
         metadata = _read_metadata(session_id)
 
         if not metadata:
-            # 没有 metadata.json 的旧会话: 只构造最小信息,不读取 history.json
-            # (避免大量旧会话导致接口变慢,完整推断由启动迁移负责)
+            # 沒有 metadata.json 的舊會話: 只構造最小資訊,不讀取 history.json
+            # (避免大量舊會話導致介面變慢,完整推斷由啟動遷移負責)
             metadata = {
                 "session_id": session_id,
                 "channel_id": "",
@@ -396,7 +396,7 @@ def get_all_sessions_metadata(
 
         sessions.append(metadata)
 
-    # 按最后消息时间倒序排序
+    # 按最後訊息時間倒序排序
     sessions.sort(key=lambda x: x.get("last_message_at", 0), reverse=True)
 
     total = len(sessions)

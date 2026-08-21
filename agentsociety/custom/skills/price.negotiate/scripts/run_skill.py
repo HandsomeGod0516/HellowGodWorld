@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['market']
 TARGET_INTERACTIONS = ['haggle_price', 'buy_food']
 STATUS = 'negotiating'
 EMOTION = 'sharp'
-SPEECH = '我先问清价格和数量，再试着谈一个双方都能接受的价。'
+SPEECH = '我先問清價格和數量，再試著談一個雙方都能接受的價。'
 MEMORY_TEMPLATE = 'Used price.negotiate: {summary} at {location_id}.'
 
 

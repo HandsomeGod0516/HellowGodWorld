@@ -196,7 +196,7 @@ async def _run_live_capture(
     config_base = deepcopy(get_config())
     config_base.setdefault("react", {})["skill_mode"] = skill_mode
 
-    query = "只回复 PONG。不要调用任何工具。不要解释。"
+    query = "只回復 PONG。不要呼叫任何工具。不要解釋。"
     lang = config_base.get("preferred_language", "zh")
     _sync_prompt_workspace_templates(lang)
     channel = "web"
@@ -265,41 +265,41 @@ async def _run_live_capture(
     result["captured_events"] = prompt_capture.events
     _write_outputs(result, stem=output_stem)
 
-    assert result["error"] is None, f"运行时出错: {result['error']}"
-    assert len(prompt_capture.events) >= 1, "未捕获到任何 LLM_INPUT 事件"
+    assert result["error"] is None, f"執行時出錯: {result['error']}"
+    assert len(prompt_capture.events) >= 1, "未捕獲到任何 LLM_INPUT 事件"
     first_event = prompt_capture.events[0]
-    assert len(first_event["system_messages"]) > 0, "system messages 为空"
+    assert len(first_event["system_messages"]) > 0, "system messages 為空"
     first_system_prompt = "\n\n".join(first_event["system_messages"])
     return result, first_system_prompt
 
 
 def _assert_common_prompt_structure(first_system_prompt: str) -> None:
-    assert "# 安全原则" in first_system_prompt
+    assert "# 安全原則" in first_system_prompt
     assert "# 可用工具" in first_system_prompt
-    assert "- bash: 执行 Shell 命令" in first_system_prompt
-    assert "- code: 执行 Python 或 JavaScript 代码" in first_system_prompt
-    assert "## bash 使用原则" in first_system_prompt
-    assert "## task_tool 使用原则" in first_system_prompt
-    assert "## task_tool 用于创建临时子代理" not in first_system_prompt
+    assert "- bash: 執行 Shell 命令" in first_system_prompt
+    assert "- code: 執行 Python 或 JavaScript 程式碼" in first_system_prompt
+    assert "## bash 使用原則" in first_system_prompt
+    assert "## task_tool 使用原則" in first_system_prompt
+    assert "## task_tool 用於建立臨時子代理" not in first_system_prompt
     assert "- bash / code:" not in first_system_prompt
     assert '- "code_agent":' in first_system_prompt
     assert '- "research_agent":' in first_system_prompt
     assert '- "browser_agent":' in first_system_prompt
     assert "# 技能" in first_system_prompt
-    assert "# 持久化存储体系" in first_system_prompt
-    assert "# 消息说明" in first_system_prompt
-    assert "# 工作空间" in first_system_prompt
-    assert "# 项目上下文" in first_system_prompt
+    assert "# 持久化儲存體系" in first_system_prompt
+    assert "# 訊息說明" in first_system_prompt
+    assert "# 工作空間" in first_system_prompt
+    assert "# 專案上下文" in first_system_prompt
     assert "使用 todo 工具（todo_create、todo_modify、todo_list）" in first_system_prompt
-    assert "# 上下文压缩" in first_system_prompt
-    assert "# 当前日期与时间" in first_system_prompt
-    assert "# 运行时" in first_system_prompt
+    assert "# 上下文壓縮" in first_system_prompt
+    assert "# 當前日期與時間" in first_system_prompt
+    assert "# 執行時" in first_system_prompt
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
     os.environ.get("RUN_LIVE_LLM_TESTS", "").lower() not in ("1", "true", "yes"),
-    reason="需要真实大模型，设置 RUN_LIVE_LLM_TESTS=1 手动运行",
+    reason="需要真實大模型，設定 RUN_LIVE_LLM_TESTS=1 手動執行",
 )
 async def test_live_capture_system_prompt(prompt_capture: PromptCapture):
     """Live-capture the full system prompt for explicit auto_list mode."""
@@ -314,20 +314,20 @@ async def test_live_capture_system_prompt(prompt_capture: PromptCapture):
     assert result["request"]["mode"] == "agent.plan"
     assert result["request"]["skill_mode"] == "auto_list"
     assert "- list_skill: 列出可用技能" in first_system_prompt
-    assert "需要时先调用 list_skill 查看可用技能" in first_system_prompt
+    assert "需要時先呼叫 list_skill 檢視可用技能" in first_system_prompt
 
-    logger.info("捕获到 %d 个 model call 事件", len(prompt_capture.events))
+    logger.info("捕獲到 %d 個 model call 事件", len(prompt_capture.events))
     logger.info(
-        "第一个事件的 system message 长度: %d 字符",
+        "第一個事件的 system message 長度: %d 字元",
         sum(len(m) for m in prompt_capture.events[0]["system_messages"]),
     )
-    logger.info("输出文件: %s", OUTPUT_DIR / "system_prompt_live_capture.txt")
+    logger.info("輸出檔案: %s", OUTPUT_DIR / "system_prompt_live_capture.txt")
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
     os.environ.get("RUN_LIVE_LLM_TESTS", "").lower() not in ("1", "true", "yes"),
-    reason="需要真实大模型，设置 RUN_LIVE_LLM_TESTS=1 手动运行",
+    reason="需要真實大模型，設定 RUN_LIVE_LLM_TESTS=1 手動執行",
 )
 async def test_live_capture_system_prompt_skill_mode_all(prompt_capture: PromptCapture):
     """Live-capture the full system prompt for explicit all mode."""
@@ -342,18 +342,18 @@ async def test_live_capture_system_prompt_skill_mode_all(prompt_capture: PromptC
     assert result["request"]["mode"] == "agent.plan"
     assert result["request"]["skill_mode"] == "all"
     assert "- list_skill: 列出可用技能" not in first_system_prompt
-    assert "需要时先调用 list_skill 查看可用技能" not in first_system_prompt
-    assert "执行前先用 read_file 阅读相关 SKILL.md。" in first_system_prompt
+    assert "需要時先呼叫 list_skill 檢視可用技能" not in first_system_prompt
+    assert "執行前先用 read_file 閱讀相關 SKILL.md。" in first_system_prompt
     assert "可用技能：" in first_system_prompt
     assert re.search(r"\n\d+\.\s+.+?: .+", first_system_prompt)
     assert "Path: " in first_system_prompt
 
-    logger.info("捕获到 %d 个 model call 事件", len(prompt_capture.events))
+    logger.info("捕獲到 %d 個 model call 事件", len(prompt_capture.events))
     logger.info(
-        "第一个事件的 system message 长度: %d 字符",
+        "第一個事件的 system message 長度: %d 字元",
         sum(len(m) for m in prompt_capture.events[0]["system_messages"]),
     )
     logger.info(
-        "输出文件: %s",
+        "輸出檔案: %s",
         OUTPUT_DIR / "system_prompt_live_capture_skill_mode_all.txt",
     )

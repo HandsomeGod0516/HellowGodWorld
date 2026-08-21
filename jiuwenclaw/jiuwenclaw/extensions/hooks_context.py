@@ -12,11 +12,11 @@ class MemoryHookContext:
     agent_name: str
     workspace_dir: str
     assistant_message: str | None = None
-    # 输入扩展
+    # 輸入擴充套件
     extra: dict[str, Any] = field(default_factory=dict)
-    # 记忆内容（before_chat 扩展写入，宿主从本字段读取拼接结果）
+    # 記憶內容（before_chat 擴充套件寫入，宿主從本欄位讀取拼接結果）
     memory_blocks: list[str] = field(default_factory=list)
-    # 输出扩展
+    # 輸出擴充套件
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -29,7 +29,7 @@ class GatewayChatHookContext:
     channel_id: str
     session_id: str | None
     req_method: str | None
-    # 扩展可直接原地修改 params，Gateway 会将其继续传给 AgentRequest.params
+    # 擴充套件可直接原地修改 params，Gateway 會將其繼續傳給 AgentRequest.params
     params: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -42,7 +42,7 @@ class AgentServerChatHookContext:
     channel_id: str
     session_id: str | None
     req_method: str | None
-    # 扩展可直接原地修改 params，AgentServer 后续逻辑会继续使用 request.params
+    # 擴充套件可直接原地修改 params，AgentServer 後續邏輯會繼續使用 request.params
     params: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -51,9 +51,9 @@ class AgentServerChatHookContext:
 
 @dataclass
 class SystemPromptHookContext:
-    # 扩展可设置此目录，用于覆盖默认的 home_dir
+    # 擴充套件可設定此目錄，用於覆蓋預設的 home_dir
     home_dir: str | None = None
-    # 扩展可设置此目录，用于扩展默认的 skill_dir
+    # 擴充套件可設定此目錄，用於擴充套件預設的 skill_dir
     skill_dir: str | None = None
 
     def to_dict(self) -> dict[str, Any]:

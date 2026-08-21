@@ -35,7 +35,7 @@ def _resolve_env_vars(value: Any) -> Any:
 
 
 def get_memory_mode(config: Optional[Dict[str, Any]] = None) -> str:
-    """读取 ``memory.mode``：``cloud`` 或 ``local``（默认）。"""
+    """讀取 ``memory.mode``：``cloud`` 或 ``local``（預設）。"""
     memory_cfg = (config or {}).get("memory", {})
     mode = str(memory_cfg.get("mode") or "local").strip().lower()
     return "cloud" if mode == "cloud" else "local"
@@ -45,7 +45,7 @@ def is_memory_enabled(config: Optional[Dict[str, Any]] = None) -> bool:
     """Check if memory is enabled.
     
     Args:
-        config: 配置字典，如果为None则默认为启用
+        config: 配置字典，如果為None則預設為啟用
     """
     if config is None:
         return True

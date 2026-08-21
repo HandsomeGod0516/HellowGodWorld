@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['school', 'cafe', 'park']
 TARGET_INTERACTIONS = ['study_after_class', 'casual_meetup', 'meet_friend']
 STATUS = 'peer_talking'
 EMOTION = 'open'
-SPEECH = '我用同龄人能接受的方式把话说开。'
+SPEECH = '我用同齡人能接受的方式把話說開。'
 MEMORY_TEMPLATE = 'Used peer.communicate: {summary} at {location_id}.'
 
 

@@ -1,9 +1,9 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Push result tool - 查看推送记录工具.
+"""Push result tool - 檢視推送記錄工具.
 
 包含：
-- view_push_result: 查看定时任务或推送消息的执行结果
+- view_push_result: 檢視定時任務或推送訊息的執行結果
 """
 
 from __future__ import annotations
@@ -20,56 +20,56 @@ from .pushdata_manager import search_push_data, get_all_push_data
 
 @tool(
     name="view_push_result",
-    description="""查看定时任务或推送消息的执行结果。当用户说"查看我xxx的定时任务执行结果"、"查看我的xxxx的推送消息"或类似语料时调用此工具。
+    description="""檢視定時任務或推送訊息的執行結果。當使用者說"檢視我xxx的定時任務執行結果"、"檢視我的xxxx的推送訊息"或類似語料時呼叫此工具。
 
-功能说明：
-- 支持关键词搜索：如果用户提到具体任务名称或内容，可以按关键词筛选
-- 无关键词时：返回最近的推送记录（默认10条）
-- 返回内容包括：推送ID、时间、内容摘要
+功能說明：
+- 支援關鍵詞搜尋：如果使用者提到具體任務名稱或內容，可以按關鍵詞篩選
+- 無關鍵詞時：返回最近的推送記錄（預設10條）
+- 返回內容包括：推送ID、時間、內容摘要
 
-使用场景：
-- "查看我昨天的定时任务执行结果"
-- "帮我看看天气推送消息"
-- "查看最近的推送记录"
-- "我的提醒任务执行了吗" """,
+使用場景：
+- "檢視我昨天的定時任務執行結果"
+- "幫我看看天氣推送訊息"
+- "檢視最近的推送記錄"
+- "我的提醒任務執行了嗎" """,
 )
 def view_push_result(
     keywords: Optional[str] = None,
     limit: Optional[int] = None,
 ) -> Dict[str, Any]:
-    """查看推送记录（与 xy_channel view-push-result-tool.ts 对齐）.
+    """檢視推送記錄（與 xy_channel view-push-result-tool.ts 對齊）.
 
     Args:
-        keywords: 可选的搜索关键词，用于筛选推送记录
-        limit: 返回的最大记录数，默认10条，最多50条
+        keywords: 可選的搜尋關鍵詞，用於篩選推送記錄
+        limit: 返回的最大記錄數，預設10條，最多50條
 
     Returns:
-        content[0].text: JSON 字符串（success, count, items, message）
+        content[0].text: JSON 字串（success, count, items, message）
     """
     try:
         effective_limit = min(limit or 10, 50)
         kw = keywords.strip() if keywords and isinstance(keywords, str) else None
         logger.info(
-            "[VIEW_PUSH_RESULT_TOOL] 开始查询 keywords=%s limit=%s",
+            "[VIEW_PUSH_RESULT_TOOL] 開始查詢 keywords=%s limit=%s",
             kw, effective_limit,
         )
 
-        # 根据是否有关键词决定调用哪个方法
+        # 根據是否有關鍵詞決定呼叫哪個方法
         results = search_push_data(kw) if kw else get_all_push_data()
         logger.info(
-            "[VIEW_PUSH_RESULT_TOOL] 数据源返回 %d 条记录, 查询方式=%s",
-            len(results), "关键词搜索" if kw else "全量查询",
+            "[VIEW_PUSH_RESULT_TOOL] 資料來源返回 %d 條記錄, 查詢方式=%s",
+            len(results), "關鍵詞搜尋" if kw else "全量查詢",
         )
 
-        # 按时间倒序排序（最新的在前）
+        # 按時間倒序排序（最新的在前）
         results.sort(key=lambda x: x.get("time", ""), reverse=True)
 
-        # 限制返回条数
+        # 限制返回條數
         results = results[:effective_limit]
-        logger.info("[VIEW_PUSH_RESULT_TOOL] 截取后返回 %d 条记录", len(results))
+        logger.info("[VIEW_PUSH_RESULT_TOOL] 擷取後返回 %d 條記錄", len(results))
 
         if not results:
-            logger.info("[VIEW_PUSH_RESULT_TOOL] 无匹配记录, keywords=%s", kw)
+            logger.info("[VIEW_PUSH_RESULT_TOOL] 無匹配記錄, keywords=%s", kw)
             return {
                 "content": [
                     {
@@ -80,9 +80,9 @@ def view_push_result(
                                 "count": 0,
                                 "items": [],
                                 "message": (
-                                    f'未找到包含关键词"{kw}"的推送记录'
+                                    f'未找到包含關鍵詞"{kw}"的推送記錄'
                                     if kw
-                                    else "暂无推送记录"
+                                    else "暫無推送記錄"
                                 ),
                             },
                             ensure_ascii=False,
@@ -91,7 +91,7 @@ def view_push_result(
                 ]
             }
 
-        # 格式化返回结果
+        # 格式化返回結果
         formatted_items = []
         for item in results:
             detail = item.get("dataDetail", "")
@@ -108,7 +108,7 @@ def view_push_result(
             )
 
         logger.info(
-            "[VIEW_PUSH_RESULT_TOOL] 查询完成, 返回 %d 条记录",
+            "[VIEW_PUSH_RESULT_TOOL] 查詢完成, 返回 %d 條記錄",
             len(formatted_items),
         )
         return {
@@ -122,9 +122,9 @@ def view_push_result(
                             "totalMatched": len(results),
                             "items": formatted_items,
                             "message": (
-                                f'找到 {len(formatted_items)} 条包含"{kw}"的推送记录'
+                                f'找到 {len(formatted_items)} 條包含"{kw}"的推送記錄'
                                 if kw
-                                else f"返回最近 {len(formatted_items)} 条推送记录"
+                                else f"返回最近 {len(formatted_items)} 條推送記錄"
                             ),
                         },
                         ensure_ascii=False,
@@ -143,7 +143,7 @@ def view_push_result(
                         {
                             "success": False,
                             "error": str(e),
-                            "message": "查询推送记录失败",
+                            "message": "查詢推送記錄失敗",
                         },
                         ensure_ascii=False,
                     ),

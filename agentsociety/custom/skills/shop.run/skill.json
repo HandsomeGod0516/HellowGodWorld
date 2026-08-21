@@ -21,7 +21,7 @@
   ],
   "status": "shop_working",
   "emotion": "attentive",
-  "speech": "我先把顾客和货架都照看好。",
+  "speech": "我先把顧客和貨架都照看好。",
   "memory_template": "Used shop.run: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

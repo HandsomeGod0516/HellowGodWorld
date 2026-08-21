@@ -5,7 +5,7 @@
 #     where '*' represents values that cannot be determined beforehand
 
 instructions:
-  # ========== 类别1: 使用MobilitySpace中的一个接口即可完成的 ==========
+  # ========== 類別1: 使用MobilitySpace中的一個介面即可完成的 ==========
   - category: 1
     instruction: "Check my current location and movement status"
     expected_calls:
@@ -31,7 +31,7 @@ instructions:
     expected_calls:
       - ["MobilitySpace", "get_person", {"person_id": "@"}]
 
-  # ========== 类别2: 使用EventSpace中的一个接口即可完成的 ==========
+  # ========== 類別2: 使用EventSpace中的一個介面即可完成的 ==========
   - category: 2
     instruction: "Start cooking breakfast at home for 30 minutes"
     expected_calls:
@@ -57,7 +57,7 @@ instructions:
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
 
-  # ========== 类别3: 使用MobilitySpace中两个及以上的接口可完成的 ==========
+  # ========== 類別3: 使用MobilitySpace中兩個及以上的介面可完成的 ==========
   - category: 3
     instruction: "Find nearby cafés within 1km"
     expected_calls:
@@ -90,7 +90,7 @@ instructions:
       - ["MobilitySpace", "find_nearby_pois", {"x": "*", "y": "*", "category": "outdoor_activity", "radius": 1000}]
       - ["MobilitySpace", "get_poi", {"poi_id": "*"}]
 
-  # ========== 类别5: 需要同时使用MobilitySpace和EventSpace ==========
+  # ========== 類別5: 需要同時使用MobilitySpace和EventSpace ==========
   - category: 5
     instruction: "Find nearby cafés within 1km and start having coffee at the nearest one for 30 minutes"
     expected_calls:

@@ -23,7 +23,7 @@
   ],
   "status": "routing",
   "emotion": "alert",
-  "speech": "我按本地路线选一个最顺的走法。",
+  "speech": "我按本地路線選一個最順的走法。",
   "memory_template": "Used route.localmap: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

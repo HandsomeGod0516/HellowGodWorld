@@ -42,7 +42,7 @@ def dict2pb(d: dict, pb: T) -> T:
 
 class Map:
     """
-    地图API
+    地圖API
     Map API
     """
 
@@ -52,7 +52,7 @@ class Map:
     ):
         """
         Args:
-        - pb_path (str): pb文件路径. pb file path.
+        - pb_path (str): pb檔案路徑. pb file path.
         """
         logging.debug("Map init")
         map_data = None
@@ -96,86 +96,86 @@ class Map:
 
         self.header: dict = map_data["header"]
         """
-        地图元数据，包含如下属性:
+        地圖後設資料，包含如下屬性:
         Map metadata, including the following attributes:
-        - name (string): 城市道路名称，供标识数据集合的语义。Map name, to identify the semantics of data collections.
-        - date (string): 城市道路数据的创建时间。Map data creation time.
-        - north (float): 道路数据的北边界坐标。The coordinate of the northern boundary of the Map data.
-        - south (float): 道路数据的南边界坐标。The coordinate of the southern boundary of the Map data.
-        - east (float): 道路数据的东边界坐标。The coordinate of the eastern boundary of the Map data.
-        - west (float): 道路数据的西边界坐标。The coordinate of the western boundary of the Map data.
-        - projection (string): PROJ.4 投影字符串，用以支持xy坐标到其他坐标系的转换。PROJ.4 projection string to support the conversion of xy coordinates to other coordinate systems.
+        - name (string): 城市道路名稱，供標識資料集合的語義。Map name, to identify the semantics of data collections.
+        - date (string): 城市道路資料的建立時間。Map data creation time.
+        - north (float): 道路資料的北邊界座標。The coordinate of the northern boundary of the Map data.
+        - south (float): 道路資料的南邊界座標。The coordinate of the southern boundary of the Map data.
+        - east (float): 道路資料的東邊界座標。The coordinate of the eastern boundary of the Map data.
+        - west (float): 道路資料的西邊界座標。The coordinate of the western boundary of the Map data.
+        - projection (string): PROJ.4 投影字串，用以支援xy座標到其他座標系的轉換。PROJ.4 projection string to support the conversion of xy coordinates to other coordinate systems.
         """
 
         self.juncs: Dict[int, dict] = map_data["juncs"]
         """
-        地图中的路口集合（junction），字典的值包含如下属性:
+        地圖中的路口集合（junction），字典的值包含如下屬性:
         The intersection collection (junction) in the map, the value of the dictionary contains the following attributes:
-        - id (int): 路口编号。Junction ID.
-        - lane_ids (list[int]): 属于该路口的所有车道和人行道编号。IDs of all driving and pedestrian lanes belonging to this junction.
-        - center (Dict[str, float]): 路口的大致中心点。The approximate center of the junction. example: {'x': 5983.14, 'y': 1807.73}
+        - id (int): 路口編號。Junction ID.
+        - lane_ids (list[int]): 屬於該路口的所有車道和人行道編號。IDs of all driving and pedestrian lanes belonging to this junction.
+        - center (Dict[str, float]): 路口的大致中心點。The approximate center of the junction. example: {'x': 5983.14, 'y': 1807.73}
         """
 
         self.lanes: Dict[int, dict] = map_data["lanes"]
         """
-        地图中的车道集合（lane），字典的值包含如下属性:
+        地圖中的車道集合（lane），字典的值包含如下屬性:
         The lane collection (lane) in the map. The value of the dictionary contains the following attributes:
-        - id (int): 车道编号。Lane ID.
-        - type (int): 车道类型 (1:行车|2:步行)。Lane type (1: Driving | 2: Pedestrian).
-        - turn (int): 转向类型 (1:直行|2:左转|3: 右转|4: 掉头)。Turn type (1: straight | 2: left | 3: right | 4: around).
-        - max_speed (float): 最大速度限制(单位: m/s)。Maximum speed limit (m/s).
-        - length (float): 车道中心线的长度(单位: m)。Length of lane centerline (m).
-        - width (float): 车道的宽度(单位: m)。Lane width.
-        - center_line (list[XYPosition]): 车道中心线的形状。Lane centerline shape.
-        - predecessors (list[LaneConnection]): 前驱车道编号和连接类型。对于路口内的车道，最多只有一个前驱车道。对于 LANE_TYPE_DRIVING，连接类型必须是 LANE_CONNECTION_TYPE_TAIL。对于 LANE_TYPE_WALKING，两种连接类型都可能。ID and connection type of predecessor lanes. For lanes within a junction, there is at most one predecessor lane. For LANE_TYPE_DRIVING, the connection type must be LANE_CONNECTION_TYPE_TAIL. For LANE_TYPE_WALKING, both connection types are possible.
-        - successors (list[LaneConnection]): 后继车道编号和连接类型。对于路口内的车道，最多只有一个后继车道。对于 LANE_TYPE_DRIVING，连接类型必须是 LANE_CONNECTION_TYPE_HEAD。对于 LANE_TYPE_WALKING，两种连接类型都可能。ID and connection type of successor lanes. For lanes within a junction, there is at most one successor lane. For LANE_TYPE_DRIVING, the connection type must be LANE_CONNECTION_TYPE_HEAD. For LANE_TYPE_WALKING, both connection types are possible.
-        - left_lane_ids (list[int]): 左侧相邻车道的车道编号，从最近到最远排列。Lane IDs of the adjacent lanes on the left, arranged from closest to furthest.
-        - right_lane_ids (list[int]): 右侧相邻车道的车道编号，从最近到最远排列。Lane IDs of the adjacent lanes on the right, arranged from closest to furthest.
-        - parent_id (int): 车道所属的道路/路口编号。The road/intersection ID to which the lane belongs.
-        - aoi_ids (list[int]): 与车道连接的 AOI 编号。AOI IDs connected to the lane.
-        - shapely_xy (shapely.geometry.LineString): 车道中心线的形状（xy坐标系）。Shape of lane centerline (in xy coordinates).
-        - shapely_lnglat (shapely.geometry.LineString): 车道中心线的形状（经纬度坐标系）Shape of lane centerline (in latitude and longitude).
+        - id (int): 車道編號。Lane ID.
+        - type (int): 車道型別 (1:行車|2:步行)。Lane type (1: Driving | 2: Pedestrian).
+        - turn (int): 轉向型別 (1:直行|2:左轉|3: 右轉|4: 掉頭)。Turn type (1: straight | 2: left | 3: right | 4: around).
+        - max_speed (float): 最大速度限制(單位: m/s)。Maximum speed limit (m/s).
+        - length (float): 車道中心線的長度(單位: m)。Length of lane centerline (m).
+        - width (float): 車道的寬度(單位: m)。Lane width.
+        - center_line (list[XYPosition]): 車道中心線的形狀。Lane centerline shape.
+        - predecessors (list[LaneConnection]): 前驅車道編號和連線型別。對於路口內的車道，最多隻有一個前驅車道。對於 LANE_TYPE_DRIVING，連線型別必須是 LANE_CONNECTION_TYPE_TAIL。對於 LANE_TYPE_WALKING，兩種連線型別都可能。ID and connection type of predecessor lanes. For lanes within a junction, there is at most one predecessor lane. For LANE_TYPE_DRIVING, the connection type must be LANE_CONNECTION_TYPE_TAIL. For LANE_TYPE_WALKING, both connection types are possible.
+        - successors (list[LaneConnection]): 後繼車道編號和連線型別。對於路口內的車道，最多隻有一個後繼車道。對於 LANE_TYPE_DRIVING，連線型別必須是 LANE_CONNECTION_TYPE_HEAD。對於 LANE_TYPE_WALKING，兩種連線型別都可能。ID and connection type of successor lanes. For lanes within a junction, there is at most one successor lane. For LANE_TYPE_DRIVING, the connection type must be LANE_CONNECTION_TYPE_HEAD. For LANE_TYPE_WALKING, both connection types are possible.
+        - left_lane_ids (list[int]): 左側相鄰車道的車道編號，從最近到最遠排列。Lane IDs of the adjacent lanes on the left, arranged from closest to furthest.
+        - right_lane_ids (list[int]): 右側相鄰車道的車道編號，從最近到最遠排列。Lane IDs of the adjacent lanes on the right, arranged from closest to furthest.
+        - parent_id (int): 車道所屬的道路/路口編號。The road/intersection ID to which the lane belongs.
+        - aoi_ids (list[int]): 與車道連線的 AOI 編號。AOI IDs connected to the lane.
+        - shapely_xy (shapely.geometry.LineString): 車道中心線的形狀（xy座標系）。Shape of lane centerline (in xy coordinates).
+        - shapely_lnglat (shapely.geometry.LineString): 車道中心線的形狀（經緯度座標系）Shape of lane centerline (in latitude and longitude).
         """
 
         self.roads: Dict[int, dict] = map_data["roads"]
         """
-        地图中的道路集合（road），字典的值包含如下属性:
+        地圖中的道路集合（road），字典的值包含如下屬性:
         The road collection (road) in the map, the value of the dictionary contains the following attributes:
-        - id (int): 道路编号。Road ID.
-        - lane_ids (list[int]): 道路所包含的车道和人行道编号。Driving and pedestrian lane IDs that the road contains.
+        - id (int): 道路編號。Road ID.
+        - lane_ids (list[int]): 道路所包含的車道和人行道編號。Driving and pedestrian lane IDs that the road contains.
         """
 
         self.aois: Dict[int, dict] = map_data["aois"]
         """
-        地图中的AOI集合（aoi），字典的值包含如下属性:
+        地圖中的AOI集合（aoi），字典的值包含如下屬性:
         AOI collection (aoi) in the map, the value of the dictionary contains the following attributes:
-        - id (int): AOI编号。AOI ID.
-        - positions (list[XYPosition]): 多边形空间范围。Shape of polygon.
-        - area (float): 面积(单位: m2)。Area.
-        - driving_positions (list[LanePosition]): 和道路网中行车道的连接点。Connection points to driving lanes.
-        - walking_positions (list[LanePosition]): 和道路网中人行道的连接点。Connection points to pedestrian lanes.
-        - driving_gates (list[XYPosition]): 和道路网中行车道的连接点对应的AOI边界上的位置。Position on the AOI boundary corresponding to the connection point to driving lanes.
-        - walking_gates (list[XYPosition]): 和道路网中人行道的连接点对应的AOI边界上的位置。Position on the AOI boundary corresponding to the connection point to pedestrian lanes.
-        - urban_land_use (Optional[str]): 城市建设用地分类，参照执行标准GB 50137-2011（https://www.planning.org.cn/law/uploads/2013/1383993139.pdf） Urban Land use type, refer to the national standard GB 50137-2011.
+        - id (int): AOI編號。AOI ID.
+        - positions (list[XYPosition]): 多邊形空間範圍。Shape of polygon.
+        - area (float): 面積(單位: m2)。Area.
+        - driving_positions (list[LanePosition]): 和道路網中行車道的連線點。Connection points to driving lanes.
+        - walking_positions (list[LanePosition]): 和道路網中人行道的連線點。Connection points to pedestrian lanes.
+        - driving_gates (list[XYPosition]): 和道路網中行車道的連線點對應的AOI邊界上的位置。Position on the AOI boundary corresponding to the connection point to driving lanes.
+        - walking_gates (list[XYPosition]): 和道路網中人行道的連線點對應的AOI邊界上的位置。Position on the AOI boundary corresponding to the connection point to pedestrian lanes.
+        - urban_land_use (Optional[str]): 城市建設用地分類，參照執行標準GB 50137-2011（https://www.planning.org.cn/law/uploads/2013/1383993139.pdf） Urban Land use type, refer to the national standard GB 50137-2011.
         - poi_ids (list[int]): 包含的POI列表。Contained POI IDs.
-        - shapely_xy (shapely.geometry.Polygon): AOI的形状（xy坐标系）。Shape of polygon (in xy coordinates).
-        - shapely_lnglat (shapely.geometry.Polygon): AOI的形状（经纬度坐标系）。Shape of polygon (in latitude and longitude).
+        - shapely_xy (shapely.geometry.Polygon): AOI的形狀（xy座標系）。Shape of polygon (in xy coordinates).
+        - shapely_lnglat (shapely.geometry.Polygon): AOI的形狀（經緯度座標系）。Shape of polygon (in latitude and longitude).
         """
 
         self.pois: Dict[int, dict] = map_data["pois"]
         """
-        地图中的POI集合（poi），字典的值包含如下属性:
+        地圖中的POI集合（poi），字典的值包含如下屬性:
         POI collection (poi) in the map, the value of the dictionary contains the following attributes:
-        - id (int): POI编号。POI ID.
-        - name (string): POI名称。POI name.
-        - category (list[string]): POI类别。POI category.
+        - id (int): POI編號。POI ID.
+        - name (string): POI名稱。POI name.
+        - category (list[string]): POI類別。POI category.
         - position (XYPosition): POI位置。POI position.
-        - aoi_id (int): POI所属的AOI编号。AOI ID to which the POI belongs.
+        - aoi_id (int): POI所屬的AOI編號。AOI ID to which the POI belongs.
         """
 
         self.projector: pyproj.Proj = map_data["projector"]
         """
-        采用PROJ.4投影字符串创建的转换器，用以支持xy坐标到WGS84坐标系的转换
+        採用PROJ.4投影字串建立的轉換器，用以支援xy座標到WGS84座標系的轉換
         Converter created using PROJ.4 projection string to support conversion of xy coordinates to WGS84 coordinate system
         """
         (
@@ -221,7 +221,7 @@ class Map:
         assert header is not None, "header is None"
         logging.debug("Finish parse map data - classify")
         projector = pyproj.Proj(header["projection"])  # type: ignore
-        # 处理lane的Geos
+        # 處理lane的Geos
         logging.debug("Start process lane geos")
         for lane in lanes.values():
             nodes = np.array(
@@ -231,7 +231,7 @@ class Map:
             lngs, lats = projector(nodes[:, 0], nodes[:, 1], inverse=True)
             lane["shapely_lnglat"] = LineString(list(zip(lngs, lats)))
         logging.debug("Finish process lane geos")
-        # 处理road的Geos和其他属性
+        # 處理road的Geos和其他屬性
         logging.debug("Start process road geos")
         for road in roads.values():
             lane_ids = road["lane_ids"]
@@ -244,11 +244,11 @@ class Map:
             road["shapely_xy"] = center_lane["shapely_xy"]
             road["shapely_lnglat"] = center_lane["shapely_lnglat"]
         logging.debug("Finish process road geos")
-        # 处理Aoi的Geos
+        # 處理Aoi的Geos
         logging.debug("Start process aoi geos")
         for aoi in aois.values():
             if "area" not in aoi:
-                # 不是多边形aoi
+                # 不是多邊形aoi
                 aoi["shapely_xy"] = Point(
                     aoi["positions"][0]["x"], aoi["positions"][0]["y"]
                 )
@@ -264,7 +264,7 @@ class Map:
             else:
                 aoi["shapely_lnglat"] = Polygon(lnglat_positions)
         logging.debug("Finish process aoi geos")
-        # 处理Poi的Geos
+        # 處理Poi的Geos
         logging.debug("Start process poi geos")
         for poi in pois.values():
             poi["category"] = poi["category"].split("|")
@@ -273,7 +273,7 @@ class Map:
             lng, lat = projector(point.x, point.y, inverse=True)
             poi["shapely_lnglat"] = Point([lng, lat])
         logging.debug("Finish process poi geos")
-        # 为junction解算大致的中心点
+        # 為junction解算大致的中心點
         logging.debug("Start calculate junction center")
         for junc in juncs.values():
             lane_shapelys = [
@@ -282,7 +282,7 @@ class Map:
             geos = unary_union(lane_shapelys)
             center = geos.centroid
             junc["center"] = {"x": center.x, "y": center.y}
-            # 计算中心点的经纬度坐标
+            # 計算中心點的經緯度座標
             lng, lat = projector(center.x, center.y, inverse=True)
             junc["center_lnglat"] = {"lng": lng, "lat": lat}
         logging.debug("Finish calculate junction center")
@@ -301,7 +301,7 @@ class Map:
         # poi:
         # {
         #     "id": 700000000,
-        #     "name": "天翼(互联网手机卖场)",
+        #     "name": "天翼(網際網路手機賣場)",
         #     "category": "131300",
         #     "position": {
         #       "x": 448802.148620172,
@@ -340,10 +340,10 @@ class Map:
 
     def _get_lane_s(self, position: geo_pb2.Position, lane_id: int) -> float:
         """
-        解算position对应的在lane_id上的s值
+        解算position對應的在lane_id上的s值
         Solve the s value corresponding to position on lane_id
         """
-        # 处理起点处的截断
+        # 處理起點處的截斷
         if position.HasField("aoi_position"):
             aoi_id = position.aoi_position.aoi_id
             aoi = self.aois[aoi_id]
@@ -361,7 +361,7 @@ class Map:
 
     def _get_driving_geo(self, road_id: int):
         """
-        根据道路ID获取几何信息对应的Lane ID和Lane的几何信息
+        根據道路ID獲取幾何資訊對應的Lane ID和Lane的幾何資訊
         Obtain the Lane ID and Lane's geometric information corresponding to the geometric information based on the road ID.
         """
         road = self.roads[road_id]
@@ -371,7 +371,7 @@ class Map:
 
     def _get_walking_geo(self, segment: routing_pb2.WalkingRouteSegment):
         """
-        根据步行路段（导航结果）获取几何信息对应的Lane ID和Lane的几何信息
+        根據步行路段（導航結果）獲取幾何資訊對應的Lane ID和Lane的幾何資訊
         Obtain the Lane ID and Lane's geometric information corresponding to the geometric information based on the walking path (navigation result).
         """
         lane_id = segment.lane_id
@@ -383,29 +383,29 @@ class Map:
 
     def lnglat2xy(self, lng: float, lat: float) -> Tuple[float, float]:
         """
-        经纬度转xy坐标
+        經緯度轉xy座標
         Convert latitude and longitude to xy coordinates
 
         Args:
-        - lng (float): 经度。longitude.
-        - lat (float): 纬度。latitude.
+        - lng (float): 經度。longitude.
+        - lat (float): 緯度。latitude.
 
         Returns:
-        - Tuple[float, float]: xy坐标。xy coordinates.
+        - Tuple[float, float]: xy座標。xy coordinates.
         """
         return self.projector(lng, lat)
 
     def xy2lnglat(self, x: float, y: float) -> Tuple[float, float]:
         """
-        xy坐标转经纬度
+        xy座標轉經緯度
         xy coordinates to longitude and latitude
 
         Args:
-        - x (float): x坐标。x coordinate.
-        - y (float): y坐标。y coordinate.
+        - x (float): x座標。x coordinate.
+        - y (float): y座標。y coordinate.
 
         Returns:
-        - Tuple[float, float]: 经纬度。Longitude and latitude.
+        - Tuple[float, float]: 經緯度。Longitude and latitude.
 
         """
         return self.projector(x, y, inverse=True)
@@ -414,17 +414,17 @@ class Map:
         self, position: Union[geo_pb2.Position, Dict[str, Any]]
     ) -> Tuple[float, float]:
         """
-        将position转换为xy坐标
+        將position轉換為xy座標
         Convert position to xy coordinates
         """
 
-        # 如果position是dict，则转换为geo_pb2.Position
+        # 如果position是dict，則轉換為geo_pb2.Position
         if isinstance(position, dict):
             position = dict2pb(position, geo_pb2.Position())
         if position.HasField("aoi_position"):
             aoi_id = position.aoi_position.aoi_id
             aoi = self.aois[aoi_id]
-            # 计算aoi的中心点
+            # 計算aoi的中心點
             center = aoi["shapely_xy"].centroid
             return center.x, center.y
         elif position.HasField("lane_position"):
@@ -438,22 +438,22 @@ class Map:
 
     def get_header(self):
         """
-        查询header
+        查詢header
         query header
         """
         return self.header
 
     def get_aoi(self, id: int, include_unused: bool = False) -> Optional[Any]:
         """
-        查询AOI
+        查詢AOI
         query AOI
 
         Args:
         - id (int): AOI id
-        - include_unused (bool, optional): 是否包含未使用或无效的AOI属性. Defaults to False. Whether contains unused or invalid AOI attributes. Defaults to False.
+        - include_unused (bool, optional): 是否包含未使用或無效的AOI屬性. Defaults to False. Whether contains unused or invalid AOI attributes. Defaults to False.
 
         Returns:
-        - Optional[Any]: AOI（经过复制后的dict）。AOI (copied dict).
+        - Optional[Any]: AOI（經過複製後的dict）。AOI (copied dict).
         """
         doc = self.aois.get(id)
         if doc is None:
@@ -474,15 +474,15 @@ class Map:
 
     def get_poi(self, id: int, include_unused: bool = False) -> Optional[Any]:
         """
-        查询poi
+        查詢poi
         query poi
 
         Args:
         - id (int): poi id
-        - include_unused (bool, optional): 是否包含未使用或无效的poi属性. Defaults to False. Whether contains unused or invalid POI attributes. Defaults to False.
+        - include_unused (bool, optional): 是否包含未使用或無效的poi屬性. Defaults to False. Whether contains unused or invalid POI attributes. Defaults to False.
 
         Returns:
-        - Optional[Any]: poi（经过复制后的dict）。POI (copied dict).
+        - Optional[Any]: poi（經過複製後的dict）。POI (copied dict).
         """
         doc = self.pois.get(id)
         if doc is None:
@@ -494,15 +494,15 @@ class Map:
 
     def get_lane(self, id: int, include_unused: bool = False) -> Optional[Any]:
         """
-        查询lane
+        查詢lane
         query lane
 
         Args:
         - id (int): lane id
-        - include_unused (bool, optional): 是否包含未使用或无效的lane属性. Defaults to False. Whether contains unused or invalid lane attributes. Defaults to False.
+        - include_unused (bool, optional): 是否包含未使用或無效的lane屬性. Defaults to False. Whether contains unused or invalid lane attributes. Defaults to False.
 
         Returns:
-        - Optional[Any]: lane（经过复制后的dict）。Lane (copied dict).
+        - Optional[Any]: lane（經過複製後的dict）。Lane (copied dict).
         """
         doc = self.lanes.get(id)
         if doc is None:
@@ -519,15 +519,15 @@ class Map:
 
     def get_road(self, id: int, include_unused: bool = False) -> Optional[Any]:
         """
-        查询road
+        查詢road
         query road
 
         Args:
         - id (int): road id
-        - include_unused (bool, optional): 是否包含未使用或无效的road属性. Defaults to False. Whether contains unused or invalid road attributes. Defaults to False.
+        - include_unused (bool, optional): 是否包含未使用或無效的road屬性. Defaults to False. Whether contains unused or invalid road attributes. Defaults to False.
 
         Returns:
-        - Optional[Any]: road（经过复制后的dict）。Road (copied dict).
+        - Optional[Any]: road（經過複製後的dict）。Road (copied dict).
         """
         doc = self.roads.get(id)
         if doc is None:
@@ -539,15 +539,15 @@ class Map:
 
     def get_junction(self, id: int, include_unused: bool = False) -> Optional[Any]:
         """
-        查询junction
+        查詢junction
         query junction
 
         Args:
         - id (int): junction id
-        - include_unused (bool, optional): 是否包含未使用或无效的junction属性. Defaults to False.  Whether contains unused or invalid junction attributes. Defaults to False.
+        - include_unused (bool, optional): 是否包含未使用或無效的junction屬性. Defaults to False.  Whether contains unused or invalid junction attributes. Defaults to False.
 
         Returns:
-        - Optional[Any]: junction（经过复制后的dict）。Junction (copied dict).
+        - Optional[Any]: junction（經過複製後的dict）。Junction (copied dict).
         """
         doc = self.juncs.get(id)
         if doc is None:
@@ -566,12 +566,12 @@ class Map:
         properties: Union[Dict[str, Any], Literal["auto"]] = "auto",
     ) -> dict:
         """
-        导出aoi中心点为geojson
+        匯出aoi中心點為geojson
         Export aoi center point as geojson
 
         Args:
         - id (int): aoi id
-        - properties (Dict[str, Any] | str, optional): geojson的properties, 设置为"auto"时包含aoi类别与所含的poi列表. Defaults to {}. Geojson's properties, when set to "auto", the properties include aoi category and the list of contained poi. Defaults to {}.
+        - properties (Dict[str, Any] | str, optional): geojson的properties, 設定為"auto"時包含aoi類別與所含的poi列表. Defaults to {}. Geojson's properties, when set to "auto", the properties include aoi category and the list of contained poi. Defaults to {}.
 
         Returns:
         - dict: geojson格式的dict。dict in geojson format.
@@ -593,12 +593,12 @@ class Map:
         self, id: int, properties: Union[Dict[str, Any], Literal["auto"]] = "auto"
     ) -> dict:
         """
-        导出aoi为geojson
+        匯出aoi為geojson
         Export aoi as geojson
 
         Args:
         - id (int): aoi id
-        - properties (Dict[str, Any] | str, optional): geojson的properties, 设置为"auto"时包含aoi类别与所含的poi列表. Defaults to {}. Geojson's properties, when set to "auto", the properties include aoi category and the list of contained poi. Defaults to {}.
+        - properties (Dict[str, Any] | str, optional): geojson的properties, 設定為"auto"時包含aoi類別與所含的poi列表. Defaults to {}. Geojson's properties, when set to "auto", the properties include aoi category and the list of contained poi. Defaults to {}.
 
         Returns:
         - dict: geojson格式的dict。dict in geojson format.
@@ -618,12 +618,12 @@ class Map:
         self, id: int, properties: Union[Dict[str, Any], Literal["auto"]] = "auto"
     ) -> dict:
         """
-        导出poi为geojson
+        匯出poi為geojson
         Export poi as geojson
 
         Args:
         - id (int): poi id
-        - properties (Dict[str, Any] | str, optional): geojson的properties, 设置为"auto"时包含poi类别、名称. Defaults to "auto". Geojson's properties, when set to "auto", the properties include poi category and name. Defaults to "auto".
+        - properties (Dict[str, Any] | str, optional): geojson的properties, 設定為"auto"時包含poi類別、名稱. Defaults to "auto". Geojson's properties, when set to "auto", the properties include poi category and name. Defaults to "auto".
 
         Returns:
         - dict: geojson格式的dict. dict in geojson format.
@@ -646,12 +646,12 @@ class Map:
         self, id: int, properties: Union[Dict[str, Any], Literal["auto"]] = "auto"
     ) -> dict:
         """
-        导出lane为geojson
+        匯出lane為geojson
         geojson的properties. Defaults to {}.
 
         Args:
         - id (int): lane id
-        - properties (Dict[str, Any], optional): geojson的properties. Defaults to "auto"（含lane的类别、转向类别、父对象ID、最大车速）. geojson properties. Defaults to {}. (including lane type, turn type, parent object ID, maximum vehicle speed).
+        - properties (Dict[str, Any], optional): geojson的properties. Defaults to "auto"（含lane的類別、轉向類別、父物件ID、最大車速）. geojson properties. Defaults to {}. (including lane type, turn type, parent object ID, maximum vehicle speed).
 
         Returns:
         - dict: geojson格式的dict。dict in geojson format.
@@ -672,7 +672,7 @@ class Map:
 
     def export_road_as_geojson(self, id: int, properties: Dict[str, Any] = {}) -> dict:
         """
-        导出road为geojson
+        匯出road為geojson
         Export road as geojson
 
         Args:
@@ -708,7 +708,7 @@ class Map:
                 assert journey.type == routing_pb2.JOURNEY_TYPE_WALKING
             else:
                 assert journey.type == routing_pb2.JOURNEY_TYPE_DRIVING
-            # 处理起点处的截断
+            # 處理起點處的截斷
             lane_id, geo = (
                 self._get_walking_geo(journey.walking.route[0])
                 if is_walk
@@ -721,7 +721,7 @@ class Map:
             else:
                 geo = substring(geo, start_s, geo.length)
             coordinates += list(geo.coords)
-            # 处理中间的路段
+            # 處理中間的路段
             if is_walk:
                 for route in journey.walking.route[1:-1]:
                     _, geo = self._get_walking_geo(route)
@@ -731,7 +731,7 @@ class Map:
                     _, geo = self._get_driving_geo(road_id)
                     coordinates += list(geo.coords)
             if len(journey.walking.route) > 1:
-                # 处理终点处的截断
+                # 處理終點處的截斷
                 lane_id, geo = (
                     self._get_walking_geo(journey.walking.route[-1])
                     if is_walk
@@ -760,12 +760,12 @@ class Map:
         properties: dict = {},
     ) -> dict:
         """
-        导出route为geojson
+        匯出route為geojson
         Export route as geojson
 
         Args:
-        - route_req (routing_service.GetRouteRequest): 请求导航的输入参数。Input parameters for request navigation.
-        - route_res (routing_service.GetRouteResponse): 请求导航的输出结果。Output results for request navigation.
+        - route_req (routing_service.GetRouteRequest): 請求導航的輸入引數。Input parameters for request navigation.
+        - route_res (routing_service.GetRouteResponse): 請求導航的輸出結果。Output results for request navigation.
         - properties (dict, optional): geojson的properties. Defaults to {}. geojson properties. Defaults to {}.
 
         Returns:
@@ -789,16 +789,16 @@ class Map:
         route_res: Union[routing_service.GetRouteResponse, dict],
     ) -> float:
         """
-        估算导航路线的时间
+        估算導航路線的時間
         Estimate navigation route time
 
         Args:
-        - route_req (routing_service.GetRouteRequest): 请求导航的输入参数。Input parameters for request navigation.
-        - route_res (routing_service.GetRouteResponse): 请求导航的输出结果。Output results for request navigation.
-        - walking_speed (float, optional): 步行速度（单位：m/s）. Defaults to 1.1. Walking speed (unit: m/s). Defaults to 1.1.
+        - route_req (routing_service.GetRouteRequest): 請求導航的輸入引數。Input parameters for request navigation.
+        - route_res (routing_service.GetRouteResponse): 請求導航的輸出結果。Output results for request navigation.
+        - walking_speed (float, optional): 步行速度（單位：m/s）. Defaults to 1.1. Walking speed (unit: m/s). Defaults to 1.1.
 
         Returns:
-        - float: 估算的时间（单位：s）。Estimated time (unit: s).
+        - float: 估算的時間（單位：s）。Estimated time (unit: s).
         """
         if not isinstance(route_req, routing_service.GetRouteRequest):
             route_req = ParseDict(route_req, routing_service.GetRouteRequest())
@@ -819,16 +819,16 @@ class Map:
         limit: Optional[int] = None,
     ) -> List[Tuple[Any, float]]:
         """
-        查询center点指定半径内类别满足前缀的poi（按距离排序）。Query the POIs whose categories satisfy the prefix within the specified radius of the center point (sorted by distance).
+        查詢center點指定半徑內類別滿足字首的poi（按距離排序）。Query the POIs whose categories satisfy the prefix within the specified radius of the center point (sorted by distance).
 
         Args:
-        - center (x, y): 中心点（xy坐标系）。Center point (xy coordinate system).
-        - radius (float, optional): 半径（单位：m）。如果不提供则返回所有的poi。Radius (unit: m).If not provided, all pois within the map will be returned.
-        - category (str, optional): 类别要素，如实际类别为`('amenity', 'arts_centre')`，那么匹配的可以为`'amenity'`或`'arts_centre'`。Category, if the actual category is `('amenity', 'arts_centre')`, then the matching can be `'amenity'` or `'arts_centre'`.
-        - limit (int, optional): 最多返回的poi数量，按距离排序，近的优先（默认None）. The maximum number of POIs returned, sorted by distance, closest ones first (default to None).
+        - center (x, y): 中心點（xy座標系）。Center point (xy coordinate system).
+        - radius (float, optional): 半徑（單位：m）。如果不提供則返回所有的poi。Radius (unit: m).If not provided, all pois within the map will be returned.
+        - category (str, optional): 類別要素，如實際類別為`('amenity', 'arts_centre')`，那麼匹配的可以為`'amenity'`或`'arts_centre'`。Category, if the actual category is `('amenity', 'arts_centre')`, then the matching can be `'amenity'` or `'arts_centre'`.
+        - limit (int, optional): 最多返回的poi數量，按距離排序，近的優先（預設None）. The maximum number of POIs returned, sorted by distance, closest ones first (default to None).
 
         Returns:
-        - Union[List[Tuple[Any, float]],List[Any]]: poi列表，每个元素为（poi, 距离）或者poi。poi list, each element is (poi, distance) or poi.
+        - Union[List[Tuple[Any, float]],List[Any]]: poi列表，每個元素為（poi, 距離）或者poi。poi list, each element is (poi, distance) or poi.
         """
         if not isinstance(center, Point):
             center = Point(center)
@@ -843,7 +843,7 @@ class Map:
             if category is None or category in poi["category"]:
                 distance = center.distance(poi["shapely_xy"])
                 pois.append((poi, distance))
-        # 按照距离排序
+        # 按照距離排序
         pois = sorted(pois, key=lambda x: x[1])
         if limit is not None:
             pois = pois[:limit]
@@ -857,23 +857,23 @@ class Map:
         limit: Optional[int] = None,
     ) -> List[Tuple[Any, float]]:
         """
-        查询center点指定半径内城市用地满足条件的aoi（按距离排序）。Query the AOIs whose urban land use within the specified radius of the center point meets the conditions (sorted by distance).
+        查詢center點指定半徑內城市用地滿足條件的aoi（按距離排序）。Query the AOIs whose urban land use within the specified radius of the center point meets the conditions (sorted by distance).
 
         Args:
-        - center (x, y): 中心点（xy坐标系）。Center point (xy coordinate system).
-        - radius (float): 半径（单位：m）。Radius (unit: m).
-        - urban_land_uses (List[str], optional): 城市用地分类列表，参照执行标准GB 50137-2011（https://www.planning.org.cn/law/uploads/2013/1383993139.pdf）. Urban land use classification list, refer to the national standard GB 50137-2011.
-        - limit (int, optional): 最多返回的aoi数量，按距离排序，近的优先（默认None）. The maximum number of AOIs returned, sorted by distance, closest ones first (default to None).
+        - center (x, y): 中心點（xy座標系）。Center point (xy coordinate system).
+        - radius (float): 半徑（單位：m）。Radius (unit: m).
+        - urban_land_uses (List[str], optional): 城市用地分類列表，參照執行標準GB 50137-2011（https://www.planning.org.cn/law/uploads/2013/1383993139.pdf）. Urban land use classification list, refer to the national standard GB 50137-2011.
+        - limit (int, optional): 最多返回的aoi數量，按距離排序，近的優先（預設None）. The maximum number of AOIs returned, sorted by distance, closest ones first (default to None).
 
         Returns:
-        - List[Tuple[Any, float]]: aoi列表，每个元素为（aoi, 距离）。aoi list, each element is (aoi, distance).
+        - List[Tuple[Any, float]]: aoi列表，每個元素為（aoi, 距離）。aoi list, each element is (aoi, distance).
         """
 
         if not isinstance(center, Point):
             center = Point(center)
-        # 获取半径内的aoi
+        # 獲取半徑內的aoi
         indices = self._aoi_tree.query(center.buffer(radius))
-        # 过滤掉不满足城市用地条件的aoi
+        # 過濾掉不滿足城市用地條件的aoi
         aois = []
         for index in indices:
             aoi = self._aoi_list[index]
@@ -884,7 +884,7 @@ class Map:
                 continue
             distance = center.distance(aoi["shapely_xy"])
             aois.append((aoi, distance))
-        # 按照距离排序
+        # 按照距離排序
         aois = sorted(aois, key=lambda x: x[1])
         if limit is not None:
             aois = aois[:limit]
@@ -897,16 +897,16 @@ class Map:
         lane_type: int = 1,
     ):
         """
-        查询xy点指定半径内的lane和s坐标
+        查詢xy點指定半徑內的lane和s座標
         Query the lane and s coordinates within the specified radius of the xy point.
 
         Args:
-        - xy (x, y): 中心点（xy坐标系）。Center point (xy coordinate system).
-        - radius (float): 半径（单位：m），超出半径则返回空列表。Radius (unit: m), if the radius is exceeded, an empty list will be returned.
-        - lane_type (int): 车道类型（1:行车，默认|2:步行）。Lane type (1: driving, default | 2: walking).
+        - xy (x, y): 中心點（xy座標系）。Center point (xy coordinate system).
+        - radius (float): 半徑（單位：m），超出半徑則返回空列表。Radius (unit: m), if the radius is exceeded, an empty list will be returned.
+        - lane_type (int): 車道型別（1:行車，預設|2:步行）。Lane type (1: driving, default | 2: walking).
 
         Returns:
-        - List[Tuple[Any, float, float]]: lane列表，每个元素为（lane, s, 距离）。lane list, each element is (lane, s, distance).
+        - List[Tuple[Any, float, float]]: lane列表，每個元素為（lane, s, 距離）。lane list, each element is (lane, s, distance).
         """
 
         if not isinstance(xy, Point):
@@ -920,14 +920,14 @@ class Map:
         else:
             raise ValueError(f"lane_type {lane_type} not supported")
         result = []  # (lane, s, distance)
-        # 计算距离和s坐标
+        # 計算距離和s座標
         for lane in lanes:
             distance = xy.distance(lane["shapely_xy"])
             if distance > radius:
                 continue
             s = lane["shapely_xy"].project(xy)
             result.append((lane, s, distance))
-        # 按距离排序
+        # 按距離排序
         result = sorted(result, key=lambda x: x[2])
 
         return result

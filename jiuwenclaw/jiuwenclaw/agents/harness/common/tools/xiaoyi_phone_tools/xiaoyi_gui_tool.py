@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""小艺 GUI 自动化（xiaoyi_gui_agent）：通过 InvokeJarvisGUIAgent 与设备协同完成屏幕操作."""
+"""小藝 GUI 自動化（xiaoyi_gui_agent）：透過 InvokeJarvisGUIAgent 與裝置協同完成螢幕操作."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ def _get_gui_tool_async_lock(channel: Any) -> asyncio.Lock:
 
 
 def _payload_is_gui_final(payload: Dict[str, Any]) -> bool:
-    """兼容设备 isFinal 为 bool / 1 / \"true\" 等."""
+    """相容裝置 isFinal 為 bool / 1 / \"true\" 等."""
     v = payload.get("isFinal")
     if v is True:
         return True
@@ -43,21 +43,21 @@ def _payload_is_gui_final(payload: Dict[str, Any]) -> bool:
 @tool(
     name="xiaoyi_gui_agent",
     description=(
-        "通过模拟手机屏幕交互（点击、滑动、输入等）完成仅能在 App 内完成的操作。\n\n"
-        "注意：超时约 3 分钟；执行期间勿并行调用其他工具；备忘录/日程请用专用工具而非写入 query。"
-        "参数 query：自然语言操作指令与期望结果。"
+        "透過模擬手機螢幕互動（點選、滑動、輸入等）完成僅能在 App 內完成的操作。\n\n"
+        "注意：超時約 3 分鐘；執行期間勿並行呼叫其他工具；備忘錄/日程請用專用工具而非寫入 query。"
+        "引數 query：自然語言操作指令與期望結果。"
     ),
 )
 async def xiaoyi_gui_agent(query: str) -> Dict[str, Any]:
-    """执行 GUI Agent 指令."""
+    """執行 GUI Agent 指令."""
     if not query or not isinstance(query, str) or not query.strip():
-        raise ToolInputError("缺少有效参数 query（非空字符串）")
+        raise ToolInputError("缺少有效引數 query（非空字串）")
 
     query = query.strip()
     channel = get_xiaoyi_channel()
     if channel is None:
         raise RuntimeError(
-            "无活跃小艺会话，xiaoyi_gui_agent 仅能在小艺会话活跃时使用。"
+            "無活躍小藝會話，xiaoyi_gui_agent 僅能在小藝會話活躍時使用。"
         )
 
     session_id = ""
@@ -72,16 +72,16 @@ async def xiaoyi_gui_agent(query: str) -> Dict[str, Any]:
         task_id = (xiaoyi_conf.get("last_task_id") or "").strip()
         last_message_id = (xiaoyi_conf.get("last_message_id") or "").strip()
     except Exception as e:
-        logger.warning("[XIAOYI_GUI_TOOL] 读取会话配置失败: %s", e)
+        logger.warning("[XIAOYI_GUI_TOOL] 讀取會話配置失敗: %s", e)
 
     if not session_id:
         raise RuntimeError(
-            "无活跃小艺会话，xiaoyi_gui_agent 仅能在小艺会话活跃时使用。"
+            "無活躍小藝會話，xiaoyi_gui_agent 僅能在小藝會話活躍時使用。"
         )
 
-    # 与 TS xiaoyi-gui-tool 一致：优先 taskId；空则回退 sessionId，避免 interactionId 为空
+    # 與 TS xiaoyi-gui-tool 一致：優先 taskId；空則回退 sessionId，避免 interactionId 為空
     interaction_id = task_id if task_id else session_id
-    # JSON-RPC id 与当前用户轮次对齐（见 XiaoyiChannel message/stream 写入的配置）
+    # JSON-RPC id 與當前使用者輪次對齊（見 XiaoyiChannel message/stream 寫入的配置）
     message_id = last_message_id or f"gui_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
 
     logger.info(
@@ -101,26 +101,26 @@ async def xiaoyi_gui_agent(query: str) -> Dict[str, Any]:
             if riid is not None and str(riid).strip() != "":
                 if str(riid).strip() != str(interaction_id).strip():
                     logger.debug(
-                        "[XIAOYI_GUI_TOOL] 忽略非本单回包 interactionId=%r expected=%r",
+                        "[XIAOYI_GUI_TOOL] 忽略非本單回包 interactionId=%r expected=%r",
                         riid,
                         interaction_id,
                     )
                     return
             if not _payload_is_gui_final(payload):
-                logger.debug("[XIAOYI_GUI_TOOL] 非终帧，继续等待 isFinal")
+                logger.debug("[XIAOYI_GUI_TOOL] 非終幀，繼續等待 isFinal")
                 return
             sc = (payload.get("streamInfo") or {}).get("streamContent")
             if sc:
                 result_holder["streamContent"] = sc
             else:
-                result_holder["error"] = "GUI 响应缺少 streamContent"
+                result_holder["error"] = "GUI 響應缺少 streamContent"
             done.set()
         except Exception as ex:
-            logger.warning("[XIAOYI_GUI_TOOL] on_gui 异常（已隔离）: %s", ex, exc_info=True)
-            result_holder["error"] = f"GUI 回调异常: {ex}"
+            logger.warning("[XIAOYI_GUI_TOOL] on_gui 異常（已隔離）: %s", ex, exc_info=True)
+            result_holder["error"] = f"GUI 回撥異常: {ex}"
             done.set()
 
-    # 与 channel 层锁配合：同一时间仅一单 GUI，避免多 handler 共收同一 WS 帧
+    # 與 channel 層鎖配合：同一時間僅一單 GUI，避免多 handler 共收同一 WS 幀
     async with _get_gui_tool_async_lock(channel):
         channel.register_gui_agent_handler(on_gui)
         try:
@@ -143,7 +143,7 @@ async def xiaoyi_gui_agent(query: str) -> Dict[str, Any]:
                 command=command,
             )
             if not sent:
-                raise RuntimeError("发送 GUI 指令失败，WebSocket 未连接")
+                raise RuntimeError("傳送 GUI 指令失敗，WebSocket 未連線")
 
             await asyncio.wait_for(done.wait(), timeout=180.0)
 
@@ -156,7 +156,7 @@ async def xiaoyi_gui_agent(query: str) -> Dict[str, Any]:
                 "GUI 操作完成",
             )
         except asyncio.TimeoutError as e:
-            raise RuntimeError("小艺 GUI Agent 操作超时（3 分钟）") from e
+            raise RuntimeError("小藝 GUI Agent 操作超時（3 分鐘）") from e
         finally:
             try:
                 channel.unregister_gui_agent_handler(on_gui)

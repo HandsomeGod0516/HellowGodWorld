@@ -21,7 +21,7 @@
   ],
   "status": "relaying",
   "emotion": "attentive",
-  "speech": "我会先听完整，再转述给该知道的人。",
+  "speech": "我會先聽完整，再轉述給該知道的人。",
   "memory_template": "Used listen.relay: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

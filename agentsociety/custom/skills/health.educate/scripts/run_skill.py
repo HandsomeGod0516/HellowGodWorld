@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['pharmacy', 'school']
 TARGET_INTERACTIONS = ['pharmacy_consultation', 'hold_office_hours']
 STATUS = 'health_teaching'
 EMOTION = 'warm'
-SPEECH = '我会把健康提醒说得清楚一点，方便对方照做。'
+SPEECH = '我會把健康提醒說得清楚一點，方便對方照做。'
 MEMORY_TEMPLATE = 'Used health.educate: {summary} at {location_id}.'
 
 

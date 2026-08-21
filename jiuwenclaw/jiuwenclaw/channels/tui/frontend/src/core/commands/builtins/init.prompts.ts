@@ -25,7 +25,7 @@ export interface BuildInitPromptArgs {
 // ---------------------------------------------------------------------------
 
 export function resolveLanguage(_ctx: CommandContext): "zh" | "en" {
-  // 当前方案：best-effort from LANG env; 后续可读 config.
+  // 當前方案：best-effort from LANG env; 後續可讀 config.
   const lang =
     typeof process !== "undefined" ? (process.env.LANG ?? "") : "";
   return /^zh/i.test(lang) || /CN$/i.test(lang) ? "zh" : "en";
@@ -218,69 +218,69 @@ Then suggest optimizations as a short checklist, only those relevant to this rep
 
 function buildInitPromptZh({ rootDir, scopeKey, existing }: BuildInitPromptArgs): string {
   const scopeLine = SCOPE_DESCRIPTION_ZH[scopeKey];
-  return `为本仓库生成一份最小可用的 JIUWENCLAW.md（团队共享）与可选的 JIUWENCLAW.local.md（个人私有）。
-这些文件会被 ProjectMemoryRail 自动注入到每一轮 coding 模式会话的 system prompt，因此必须**精简** —— 只写"不写就会出错"的信息。
+  return `為本倉庫生成一份最小可用的 JIUWENCLAW.md（團隊共享）與可選的 JIUWENCLAW.local.md（個人私有）。
+這些檔案會被 ProjectMemoryRail 自動注入到每一輪 coding 模式會話的 system prompt，因此必須**精簡** —— 只寫"不寫就會出錯"的資訊。
 
-## 关键约束（必读，不可违反）
+## 關鍵約束（必讀，不可違反）
 
-1. **所有文件操作必须使用绝对路径，根为：\`${rootDir}\`**
-   永远不要用相对路径。写入或编辑时总是构造 \`${rootDir}/<文件名>\`。
-2. **禁止使用 \`coding_memory_read\` / \`coding_memory_write\` / \`coding_memory_edit\` 工具。** 那是会话级自动记忆，和 /init 是两套系统。/init 只通过文件写入工具产出静态项目文档。
-3. **工作区根目录现有文件（已预探测）**：
-   - JIUWENCLAW.md：${yesNoZh(existing.jiuwenclawMd)} ${existing.jiuwenclawMd ? "—— 必须先读取、生成 diff，然后用 \`ask_user\` 的 \`questions\` 参数让用户选择。示例：\`ask_user(query='更新 JIUWENCLAW.md？', questions=[{question: 'JIUWENCLAW.md 已存在，你想怎么处理？', header: '更新', options: [{label: '应用更新', description: '把提议的变更合并到现有文件'}, {label: '跳过（保留当前）', description: '保持文件不变，继续后续步骤'}], multi_select: false}])\`。若用户选「应用更新」，用 Edit 执行 diff；若选「跳过」，保持文件不变继续。严禁静默覆盖。" : ""}
-   - JIUWENCLAW.local.md：${yesNoZh(existing.jiuwenclawLocalMd)} ${existing.jiuwenclawLocalMd ? "— 只能通过 Edit 追加，不要覆盖。" : ""}
-   - 遗留参考文件（不要删改，可用 markdown 链接引用）：CLAUDE.md=${yesNoZh(existing.claudeMd)}, CLAUDE.local.md=${yesNoZh(existing.claudeLocalMd)}, AGENTS.md=${yesNoZh(existing.agentsMd)}, OPENJIUWEN.md=${yesNoZh(existing.openjiuwenMd)}, .cursorrules=${yesNoZh(existing.cursorRules)}, .github/copilot-instructions.md=${yesNoZh(existing.copilotInstructions)}
-4. **子代理 bash 命令必须加前缀**：\`cd ${rootDir} && ...\` 或用 \`git -C ${rootDir}\`，因为子代理的 CWD 不保证等于 \`${rootDir}\`。
-5. **只要可用，始终优先使用 \`task_tool\` 且 \`subagent_type: "explore_agent"\`。** 若本轮工具列表里没有 \`task_tool\`，就静默降级为用 \`glob\` / \`grep\` / \`read_file\` / \`bash\` 自行探索。
-6. **默认只发起一次 \`task_tool\` / \`explore_agent\` 调用。** 若仓库明显较大、为 monorepo，或单次探索信息不足，可按需拆分多个 explore 子代理；只有在确有收益时才并发，避免重复扫描与结果合并噪音。
+1. **所有檔案操作必須使用絕對路徑，根為：\`${rootDir}\`**
+   永遠不要用相對路徑。寫入或編輯時總是構造 \`${rootDir}/<檔名>\`。
+2. **禁止使用 \`coding_memory_read\` / \`coding_memory_write\` / \`coding_memory_edit\` 工具。** 那是會話級自動記憶，和 /init 是兩套系統。/init 只透過檔案寫入工具產出靜態專案文件。
+3. **工作區根目錄現有檔案（已預探測）**：
+   - JIUWENCLAW.md：${yesNoZh(existing.jiuwenclawMd)} ${existing.jiuwenclawMd ? "—— 必須先讀取、生成 diff，然後用 \`ask_user\` 的 \`questions\` 引數讓使用者選擇。示例：\`ask_user(query='更新 JIUWENCLAW.md？', questions=[{question: 'JIUWENCLAW.md 已存在，你想怎麼處理？', header: '更新', options: [{label: '應用更新', description: '把提議的變更合併到現有檔案'}, {label: '跳過（保留當前）', description: '保持檔案不變，繼續後續步驟'}], multi_select: false}])\`。若使用者選「應用更新」，用 Edit 執行 diff；若選「跳過」，保持檔案不變繼續。嚴禁靜默覆蓋。" : ""}
+   - JIUWENCLAW.local.md：${yesNoZh(existing.jiuwenclawLocalMd)} ${existing.jiuwenclawLocalMd ? "— 只能透過 Edit 追加，不要覆蓋。" : ""}
+   - 遺留參考檔案（不要刪改，可用 markdown 連結引用）：CLAUDE.md=${yesNoZh(existing.claudeMd)}, CLAUDE.local.md=${yesNoZh(existing.claudeLocalMd)}, AGENTS.md=${yesNoZh(existing.agentsMd)}, OPENJIUWEN.md=${yesNoZh(existing.openjiuwenMd)}, .cursorrules=${yesNoZh(existing.cursorRules)}, .github/copilot-instructions.md=${yesNoZh(existing.copilotInstructions)}
+4. **子代理 bash 命令必須加字首**：\`cd ${rootDir} && ...\` 或用 \`git -C ${rootDir}\`，因為子代理的 CWD 不保證等於 \`${rootDir}\`。
+5. **只要可用，始終優先使用 \`task_tool\` 且 \`subagent_type: "explore_agent"\`。** 若本輪工具列表裡沒有 \`task_tool\`，就靜默降級為用 \`glob\` / \`grep\` / \`read_file\` / \`bash\` 自行探索。
+6. **預設只發起一次 \`task_tool\` / \`explore_agent\` 呼叫。** 若倉庫明顯較大、為 monorepo，或單次探索資訊不足，可按需拆分多個 explore 子代理；只有在確有收益時才併發，避免重複掃描與結果合併噪音。
 
-## 步骤 1：范围（已确定）
+## 步驟 1：範圍（已確定）
 
-用户选择：**${scopeKey}** — ${scopeLine}
+使用者選擇：**${scopeKey}** — ${scopeLine}
 
-## 步骤 2：探索代码库
+## 步驟 2：探索程式碼庫
 
-首选：调用 \`task_tool\`，参数：
+首選：呼叫 \`task_tool\`，引數：
 \`\`\`
 subagent_type: "explore_agent"
 task_description: |
-  彻底探索仓库 ${rootDir}，请求 "very thorough" 级别。
-  若存在请读取（用绝对路径）：
-    - 清单：package.json, Cargo.toml, pyproject.toml, go.mod, pom.xml, build.gradle*, setup.py
-    - 文档：README.*, CONTRIBUTING.*, ARCHITECTURE.*, docs/
-    - 构建/CI：Makefile, justfile, .github/workflows/*, .gitlab-ci.yml, azure-pipelines.yml
+  徹底探索倉庫 ${rootDir}，請求 "very thorough" 級別。
+  若存在請讀取（用絕對路徑）：
+    - 清單：package.json, Cargo.toml, pyproject.toml, go.mod, pom.xml, build.gradle*, setup.py
+    - 文件：README.*, CONTRIBUTING.*, ARCHITECTURE.*, docs/
+    - 構建/CI：Makefile, justfile, .github/workflows/*, .gitlab-ci.yml, azure-pipelines.yml
     - AI 配置：JIUWENCLAW.md, CLAUDE.md, AGENTS.md, OPENJIUWEN.md,
               .jiuwen/rules/*, .claude/rules/*, .cursor/rules/*,
               .cursorrules, .github/copilot-instructions.md,
               .windsurfrules, .clinerules, .mcp.json
-    - 配置：.jiuwen/settings*.json（只读，不要重写）
-  简洁地汇报以下内容：
-    - 构建/测试/lint/format 命令（特别是非标准的）
-    - 主要语言、框架、包管理器
-    - 项目结构（monorepo / 多模块 / 单包）
-    - 与语言默认不同的代码风格规则
-    - 不易察觉的坑、必需环境变量、工作流习惯
-    - 分支 / PR / commit message 约定
-    - 执行 \`git -C ${rootDir} worktree list\`，若有多 worktree 请说明
-  对于从代码无法推断的问题，记录下来作为后续的访谈问题。
+    - 配置：.jiuwen/settings*.json（只讀，不要重寫）
+  簡潔地彙報以下內容：
+    - 構建/測試/lint/format 命令（特別是非標準的）
+    - 主要語言、框架、包管理器
+    - 專案結構（monorepo / 多模組 / 單包）
+    - 與語言預設不同的程式碼風格規則
+    - 不易察覺的坑、必需環境變數、工作流習慣
+    - 分支 / PR / commit message 約定
+    - 執行 \`git -C ${rootDir} worktree list\`，若有多 worktree 請說明
+  對於從程式碼無法推斷的問題，記錄下來作為後續的訪談問題。
 \`\`\`
 
-无 task_tool 时的兜底：用 \`glob\` + \`read_file\` 自己做同样的事，先看清单和 README，再看 Makefile / CI 配置。
+無 task_tool 時的兜底：用 \`glob\` + \`read_file\` 自己做同樣的事，先看清單和 README，再看 Makefile / CI 配置。
 
-## 步骤 3：补齐信息 + 生成提案
+## 步驟 3：補齊資訊 + 生成提案
 
-收集代码无法回答的问题。用 \`ask_user\` 工具的 \`questions\` 参数提供可选项：
+收集程式碼無法回答的問題。用 \`ask_user\` 工具的 \`questions\` 引數提供可選項：
 
 \`\`\`
 ask_user(
-  query="简要说明你在问什么",
+  query="簡要說明你在問什麼",
   questions=[
     {
-      question: "完整的问题文本",
-      header: "短标签",
+      question: "完整的問題文字",
+      header: "短標籤",
       options: [
-        {label: "选项 A", description: "选项 A 的含义"},
-        {label: "选项 B", description: "选项 B 的含义"},
+        {label: "選項 A", description: "選項 A 的含義"},
+        {label: "選項 B", description: "選項 B 的含義"},
       ],
       multi_select: false,
     }
@@ -288,98 +288,98 @@ ask_user(
 )
 \`\`\`
 
-根据问题性质选择选项式提问或直接输入式提问；用户始终可以选择「其他」进行自定义输入。
+根據問題性質選擇選項式提問或直接輸入式提問；使用者始終可以選擇「其他」進行自定義輸入。
 
-对 \`project\` / \`both\` 范围：询问团队实践 —
-  非显而易见的命令、分支 / PR 约定、环境初始化、测试习惯、常见坑位。
-  README 或清单里已经写清楚的就别问。**不要**给任何选项标记"推荐" —— 这是团队实际做法，不是建议。
+對 \`project\` / \`both\` 範圍：詢問團隊實踐 —
+  非顯而易見的命令、分支 / PR 約定、環境初始化、測試習慣、常見坑位。
+  README 或清單裡已經寫清楚的就別問。**不要**給任何選項標記"推薦" —— 這是團隊實際做法，不是建議。
 
-对 \`personal\` / \`both\` 范围：询问用户 —
-  角色、对本仓库的熟悉度、沙箱 URL / 账号、沟通偏好、本机工具链特殊设置。
+對 \`personal\` / \`both\` 範圍：詢問使用者 —
+  角色、對本倉庫的熟悉度、沙箱 URL / 賬號、溝通偏好、本機工具鏈特殊設定。
 
-**合成提案**：把步骤 2 的发现和步骤 3 的回答整合。当前方案不支持 Skills 和 Hooks，所有条目一律归为 JIUWENCLAW.md（团队）或 JIUWENCLAW.local.md（个人）的记录项。用纯文本列表呈现，按目标文件分组。请求用户确认后再写文件。
+**合成提案**：把步驟 2 的發現和步驟 3 的回答整合。當前方案不支援 Skills 和 Hooks，所有條目一律歸為 JIUWENCLAW.md（團隊）或 JIUWENCLAW.local.md（個人）的記錄項。用純文字列表呈現，按目標檔案分組。請求使用者確認後再寫檔案。
 
-**构造偏好队列**：
+**構造偏好佇列**：
 \`[{type: "note", target: "JIUWENCLAW.md" | "JIUWENCLAW.local.md", content: "..."}]\`
-后续写文件步骤会消费此队列。
+後續寫檔案步驟會消費此佇列。
 
-## 步骤 4：写 JIUWENCLAW.md（当范围是 project 或 both）
+## 步驟 4：寫 JIUWENCLAW.md（當範圍是 project 或 both）
 
-目标：\`${rootDir}/JIUWENCLAW.md\`
+目標：\`${rootDir}/JIUWENCLAW.md\`
 
-${existing.jiuwenclawMd ? "文件已存在 —— 先读取，生成合并 diff，用 \`ask_user\` 的 \`questions\` 参数获取用户确认（选项：「应用更新」 / 「跳过（保留当前）」），确认后用 Edit 应用。绝不要用 Write 静默覆盖。" : "文件不存在 —— 用 Write 创建。"}
+${existing.jiuwenclawMd ? "檔案已存在 —— 先讀取，生成合並 diff，用 \`ask_user\` 的 \`questions\` 引數獲取使用者確認（選項：「應用更新」 / 「跳過（保留當前）」），確認後用 Edit 應用。絕不要用 Write 靜默覆蓋。" : "檔案不存在 —— 用 Write 建立。"}
 
-消费队列中 \`target == "JIUWENCLAW.md"\` 的条目。
+消費佇列中 \`target == "JIUWENCLAW.md"\` 的條目。
 
-**内容筛选测试**：对每行候选，自问"去掉这行会不会让助手犯错？" 不会就删掉。
+**內容篩選測試**：對每行候選，自問"去掉這行會不會讓助手犯錯？" 不會就刪掉。
 
-**应包含**：
-- 助手猜不出的构建 / 测试 / lint / format 命令
-- 偏离语言默认的代码风格规则
-- 测试习惯（例如"用 \`pytest -k 'x'\` 跑单测"）
-- 仓库规矩（分支命名、PR 约定、commit message 风格）
-- 必需环境变量、初始化步骤
-- 从已有的 AI 工具配置文件中提取重要内容（CLAUDE.md、AGENTS.md、.cursorrules、.github/copilot-instructions.md、.windsurfrules、.clinerules 等） —— 提取关键规则，而非只留链接引用
-- 不易察觉的坑、值得知道的架构决策
-- 简短的 **See also** 段落。短引用可用普通 markdown 链接；若希望保留长文档作为权威来源，可用 \`@path/to/file\` 引用：
+**應包含**：
+- 助手猜不出的構建 / 測試 / lint / format 命令
+- 偏離語言預設的程式碼風格規則
+- 測試習慣（例如"用 \`pytest -k 'x'\` 跑單測"）
+- 倉庫規矩（分支命名、PR 約定、commit message 風格）
+- 必需環境變數、初始化步驟
+- 從已有的 AI 工具配置檔案中提取重要內容（CLAUDE.md、AGENTS.md、.cursorrules、.github/copilot-instructions.md、.windsurfrules、.clinerules 等） —— 提取關鍵規則，而非只留連結引用
+- 不易察覺的坑、值得知道的架構決策
+- 簡短的 **See also** 段落。短引用可用普通 markdown 連結；若希望保留長文件作為權威來源，可用 \`@path/to/file\` 引用：
     ${legacyIncludesZh(existing)}
 
-**不应包含**：
-- 逐文件 / 逐组件的结构清单（助手可以自己发现）
-- 语言的标准约定（助手已经知道）
-- 通用 AI 礼仪 / prompt 工程建议
-- 长篇参考材料 —— 用链接引用而非内联
-- 清单中显而易见的命令（比如"npm test"）
-- 频繁变化的信息 —— 用 \`@path/to/doc.md\` 引用源头，确保每次加载的都是最新版本
-- 通用建议如"写干净代码"或"处理好错误" —— 只写具体、可执行的规则
+**不應包含**：
+- 逐檔案 / 逐元件的結構清單（助手可以自己發現）
+- 語言的標準約定（助手已經知道）
+- 通用 AI 禮儀 / prompt 工程建議
+- 長篇參考材料 —— 用連結引用而非內聯
+- 清單中顯而易見的命令（比如"npm test"）
+- 頻繁變化的資訊 —— 用 \`@path/to/doc.md\` 引用源頭，確保每次載入的都是最新版本
+- 通用建議如"寫乾淨程式碼"或"處理好錯誤" —— 只寫具體、可執行的規則
 
-**具体性原则**："TypeScript 用 2 空格缩进"比"代码要格式规范"好。
+**具體性原則**："TypeScript 用 2 空格縮排"比"程式碼要格式規範"好。
 
-**禁止虚构段落**：不要自创"常见开发任务"或"开发技巧"之类的标题 —— 只收录你从文件中实际读到的信息。
+**禁止虛構段落**：不要自創"常見開發任務"或"開發技巧"之類的標題 —— 只收錄你從檔案中實際讀到的資訊。
 
-**文件开头**统一加：
+**檔案開頭**統一加：
 \`\`\`
 # JIUWENCLAW.md
 
 This file provides guidance to JiuwenClaw (and any compatible AI coding assistant) when working with code in this repository.
 \`\`\`
 
-对 monorepo：说明支持子目录放独立的 \`JIUWENCLAW.md\` —— ProjectMemoryRail 从 cwd 向上遍历加载。
+對 monorepo：說明支援子目錄放獨立的 \`JIUWENCLAW.md\` —— ProjectMemoryRail 從 cwd 向上遍歷載入。
 
-对团队规模较大的项目：建议把按主题拆分的规则放到 \`.jiuwen/rules/<topic>.md\` —— 当前运行时会自动加载这些规则，并支持用 \`paths:\` frontmatter 按当前工作目录 / workspace 所在子树限定作用域。
+對團隊規模較大的專案：建議把按主題拆分的規則放到 \`.jiuwen/rules/<topic>.md\` —— 當前執行時會自動載入這些規則，並支援用 \`paths:\` frontmatter 按當前工作目錄 / workspace 所在子樹限定作用域。
 
-## 步骤 5：写 JIUWENCLAW.local.md（当范围是 personal 或 both）
+## 步驟 5：寫 JIUWENCLAW.local.md（當範圍是 personal 或 both）
 
-目标：\`${rootDir}/JIUWENCLAW.local.md\`
+目標：\`${rootDir}/JIUWENCLAW.local.md\`
 
-${existing.jiuwenclawLocalMd ? "文件已存在 —— 通过 Edit 追加内容，不要覆盖。" : "文件不存在 —— 用 Write 创建。"}
+${existing.jiuwenclawLocalMd ? "檔案已存在 —— 透過 Edit 追加內容，不要覆蓋。" : "檔案不存在 —— 用 Write 建立。"}
 
-消费队列中 \`target == "JIUWENCLAW.local.md"\` 的条目。
+消費佇列中 \`target == "JIUWENCLAW.local.md"\` 的條目。
 
-包含：用户的角色、对仓库的熟悉程度、个人 URL / 账号、沟通偏好、本机特有工具链配置。
+包含：使用者的角色、對倉庫的熟悉程度、個人 URL / 賬號、溝通偏好、本機特有工具鏈配置。
 
-**写完后幂等更新** \`${rootDir}/.gitignore\`：
-  1. 若 \`.gitignore\` 存在先读取（用绝对路径）；
-  2. 检查下面两行是否已存在（整行精确匹配）；
-  3. 仅追加缺失的：
+**寫完後冪等更新** \`${rootDir}/.gitignore\`：
+  1. 若 \`.gitignore\` 存在先讀取（用絕對路徑）；
+  2. 檢查下面兩行是否已存在（整行精確匹配）；
+  3. 僅追加缺失的：
        - \`JIUWENCLAW.local.md\`
        - \`.jiuwen/settings.local.json\`
-  4. 若 \`.gitignore\` 不存在，就创建并写入这两行。
+  4. 若 \`.gitignore\` 不存在，就建立並寫入這兩行。
 
-## 步骤 6：总结
+## 步驟 6：總結
 
-简要回顾写了哪些文件，每个文件里 3-5 条最重要的内容。
+簡要回顧寫了哪些檔案，每個檔案裡 3-5 條最重要的內容。
 
-提醒用户：
-- 这些文件会被 ProjectMemoryRail 自动加载到每一轮 coding 会话。
-- 是起点 —— 可以手工编辑，下一轮就生效。
-- 随时可以再跑 \`/init\` 基于新发现重新生成。
+提醒使用者：
+- 這些檔案會被 ProjectMemoryRail 自動載入到每一輪 coding 會話。
+- 是起點 —— 可以手工編輯，下一輪就生效。
+- 隨時可以再跑 \`/init\` 基於新發現重新生成。
 
-然后给一个短清单（只写与当前仓库相关的）：
-- 若测试缺失 / 稀疏：建议引入测试框架，助手才能自证修改。
-- 若没有 formatter / lint 配置：建议添加，并说明一行理由。
-- 若步骤 2 发现了 JIUWENCLAW.md 中未引用的遗留 AI 配置文件（CLAUDE.md、AGENTS.md 等）：建议以普通链接方式提示用户后续合并。
-- **总是包含**："检查完后运行 \`/compact\` 可把这段初始化会话从历史中精简掉。"
+然後給一個短清單（只寫與當前倉庫相關的）：
+- 若測試缺失 / 稀疏：建議引入測試框架，助手才能自證修改。
+- 若沒有 formatter / lint 配置：建議新增，並說明一行理由。
+- 若步驟 2 發現了 JIUWENCLAW.md 中未引用的遺留 AI 配置檔案（CLAUDE.md、AGENTS.md 等）：建議以普通連結方式提示使用者後續合併。
+- **總是包含**："檢查完後執行 \`/compact\` 可把這段初始化會話從歷史中精簡掉。"
 `;
 }
 
@@ -394,9 +394,9 @@ const SCOPE_DESCRIPTION_EN: Record<ScopeKey, string> = {
 };
 
 const SCOPE_DESCRIPTION_ZH: Record<ScopeKey, string> = {
-  project: "只写 JIUWENCLAW.md（执行步骤 4）。",
-  personal: "只写 JIUWENCLAW.local.md（执行步骤 5）。",
-  both: "两份都写（步骤 4 和步骤 5 都执行）。",
+  project: "只寫 JIUWENCLAW.md（執行步驟 4）。",
+  personal: "只寫 JIUWENCLAW.local.md（執行步驟 5）。",
+  both: "兩份都寫（步驟 4 和步驟 5 都執行）。",
 };
 
 function yesNo(b: boolean): string {
@@ -408,7 +408,7 @@ function yesNoZh(b: boolean): string {
 }
 
 function legacyIncludesEn(existing: ExistingFiles): string {
-  // 当前方案：不用 @path 展开；写普通 markdown 链接
+  // 當前方案：不用 @path 展開；寫普通 markdown 連結
   const parts: string[] = [];
   if (existing.claudeMd) parts.push("[CLAUDE.md](./CLAUDE.md)");
   if (existing.agentsMd) parts.push("[AGENTS.md](./AGENTS.md)");
@@ -434,6 +434,6 @@ function legacyIncludesZh(existing: ExistingFiles): string {
       "[.github/copilot-instructions.md](./.github/copilot-instructions.md)",
     );
   return parts.length
-    ? `"另见：${parts.join("、")}。"`
-    : `"（未探测到遗留 AI 配置文件。）"`;
+    ? `"另見：${parts.join("、")}。"`
+    : `"（未探測到遺留 AI 配置檔案。）"`;
 }

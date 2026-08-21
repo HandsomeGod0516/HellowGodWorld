@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['pharmacy', 'home']
 TARGET_INTERACTIONS = ['blood_pressure_check', 'home_visit_prep']
 STATUS = 'caring'
 EMOTION = 'attentive'
-SPEECH = '我先确认身体状况，再提醒对方下一步怎么照顾自己。'
+SPEECH = '我先確認身體狀況，再提醒對方下一步怎麼照顧自己。'
 MEMORY_TEMPLATE = 'Used care.basic: {summary} at {location_id}.'
 
 

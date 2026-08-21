@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['cafe', 'home', 'market']
 TARGET_INTERACTIONS = ['eat_light_meal', 'cook_meal', 'buy_food']
 STATUS = 'preparing_food'
 EMOTION = 'content'
-SPEECH = '我去准备一点简单但合适的吃的。'
+SPEECH = '我去準備一點簡單但合適的吃的。'
 MEMORY_TEMPLATE = 'Used cooking.lightmeal: {summary} at {location_id}.'
 
 

@@ -206,7 +206,7 @@ def _build_leader_spec(team_raw: dict[str, Any]) -> dict[str, Any]:
         "member_name": leader_raw.get("member_name", "team_leader"),
         "display_name": leader_raw.get("display_name", "Team Leader"),
         "name": leader_name,
-        "persona": leader_raw.get("persona", "天才项目管理专家"),
+        "persona": leader_raw.get("persona", "天才專案管理專家"),
     }
 
 

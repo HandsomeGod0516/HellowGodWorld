@@ -1,24 +1,24 @@
 ---
 name: ui_e2e
-description: 运行 JiuwenClaw Web UI 端到端测试并收集截图、日志、report.md、report.json。用于验证 Todo 和 Cron Web UI 流程、复现浏览器交互问题、选择运行解释器、准备 Playwright 环境，或返回可操作的失败证据时。
+description: 執行 JiuwenClaw Web UI 端到端測試並收集截圖、日誌、report.md、report.json。用於驗證 Todo 和 Cron Web UI 流程、復現瀏覽器互動問題、選擇執行直譯器、準備 Playwright 環境，或返回可操作的失敗證據時。
 ---
 
 # UI E2E
 
-复用本目录现成脚本，不要临时重写浏览器测试流程。
+複用本目錄現成指令碼，不要臨時重寫瀏覽器測試流程。
 
-## 使用脚本
+## 使用指令碼
 
-- `todo_ui_report.py`：验证待办创建、状态更新、Tool Panel 展示。
-- `cron_ui_report.py`：验证定时任务面板、结构化提醒、预览、立即执行、开关、删除。
-- `run_suite.py`：顺序执行多个场景并汇总结果。
+- `todo_ui_report.py`：驗證待辦建立、狀態更新、Tool Panel 展示。
+- `cron_ui_report.py`：驗證定時任務面板、結構化提醒、預覽、立即執行、開關、刪除。
+- `run_suite.py`：順序執行多個場景並彙總結果。
 
-## 准备环境
+## 準備環境
 
-- 选择用于启动 `jiuwenclaw.app` 和 `jiuwenclaw.app_web` 的 Python 解释器。
-- 在该解释器里安装项目依赖和 `.[e2e]`。
-- 确保 `jiuwenclaw/channels/web/frontend` 已安装前端依赖。
-- 确保本机可用 Chrome/Chromium；没有时再安装 Playwright 浏览器。
+- 選擇用於啟動 `jiuwenclaw.app` 和 `jiuwenclaw.app_web` 的 Python 直譯器。
+- 在該直譯器裡安裝專案依賴和 `.[e2e]`。
+- 確保 `jiuwenclaw/channels/web/frontend` 已安裝前端依賴。
+- 確保本機可用 Chrome/Chromium；沒有時再安裝 Playwright 瀏覽器。
 
 常用命令：
 
@@ -28,31 +28,31 @@ export JIUWENCLAW_E2E_PYTHON=.venv/bin/python
 "$JIUWENCLAW_E2E_PYTHON" -m playwright install chromium
 ```
 
-## 解释器选择
+## 直譯器選擇
 
 1. `--runtime-python`
-2. 环境变量 `JIUWENCLAW_E2E_PYTHON`
+2. 環境變數 `JIUWENCLAW_E2E_PYTHON`
 3. `./.venv/bin/python`
-4. 当前解释器
+4. 當前直譯器
 
-优先使用仓库自己的虚拟环境，不要硬编码个人机器路径。
+優先使用倉庫自己的虛擬環境，不要硬編碼個人機器路徑。
 
-## 执行
+## 執行
 
-运行完整套件：
+執行完整套件：
 
 ```bash
 python3 -m tests.ui_e2e.run_suite --build
 ```
 
-运行单个场景：
+執行單個場景：
 
 ```bash
 python3 tests/ui_e2e/todo_ui_report.py --build
 python3 tests/ui_e2e/cron_ui_report.py --build
 ```
 
-指定解释器或输出目录时，显式传参：
+指定直譯器或輸出目錄時，顯式傳參：
 
 ```bash
 python3 -m tests.ui_e2e.run_suite \
@@ -68,28 +68,28 @@ python3 tests/ui_e2e/cron_ui_report.py \
   --report-dir /tmp/cron-ui-report
 ```
 
-默认使用临时 `HOME` 做冒烟验证；只有确认真实工作区行为时，再显式传入真实 `--home`。
+預設使用臨時 `HOME` 做冒煙驗證；只有確認真實工作區行為時，再顯式傳入真實 `--home`。
 
-## 产物
+## 產物
 
 - `report.md`
 - `report.json`
 - `backend.log`
 - `ui.log`
-- 若干截图
+- 若干截圖
 
-默认产物目录在 `tests/ui_e2e/artifacts/`。
+預設產物目錄在 `tests/ui_e2e/artifacts/`。
 
-## 场景
+## 場景
 
-- `todo_ui_report.py`：启动真实 `jiuwenclaw.app`，验证待办工具链和 Tool Panel。
-- `cron_ui_report.py`：启动真实 `jiuwenclaw.app`，验证 Cron 面板和结构化提醒。
+- `todo_ui_report.py`：啟動真實 `jiuwenclaw.app`，驗證待辦工具鏈和 Tool Panel。
+- `cron_ui_report.py`：啟動真實 `jiuwenclaw.app`，驗證 Cron 面板和結構化提醒。
 
-## 输出结论
+## 輸出結論
 
-- 实际执行的命令
-- 使用的运行时解释器
-- 报告目录
-- 每个场景的通过或失败状态
-- 第一处可操作的失败信息
-- 对应证据文件名，例如截图或日志
+- 實際執行的命令
+- 使用的執行時直譯器
+- 報告目錄
+- 每個場景的透過或失敗狀態
+- 第一處可操作的失敗資訊
+- 對應證據檔名，例如截圖或日誌

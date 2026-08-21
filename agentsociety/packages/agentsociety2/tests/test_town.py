@@ -23,14 +23,14 @@ from agentsociety2.town.pathfind import astar, nearest_walkable
 from agentsociety2.town.world import WorldEngine
 
 
-# ---------- 地图 ----------
+# ---------- 地圖 ----------
 
 
 def test_every_room_reaches_the_plaza():
     walkable = walkable_tiles()
     for room in all_rooms():
         path = astar(room["anchor"], PLAZA_CENTER, walkable)
-        assert path is not None, f"{room['id']} 走不到广场"
+        assert path is not None, f"{room['id']} 走不到廣場"
         assert path[0] == room["anchor"]
         assert path[-1] == PLAZA_CENTER
 
@@ -55,7 +55,7 @@ def test_walls_are_not_walkable():
         assert (wall["x"], wall["y"]) not in walkable
 
 
-# ---------- 寻路 ----------
+# ---------- 尋路 ----------
 
 
 def test_astar_walks_around_a_wall():
@@ -75,7 +75,7 @@ def test_nearest_walkable_snaps_outside_tiles():
     assert nearest_walkable((2, 3), walkable) == (3, 3)
 
 
-# ---------- 模型端点 ----------
+# ---------- 模型端點 ----------
 
 
 def _endpoint(provider: str) -> LLMEndpoint:
@@ -138,7 +138,7 @@ def test_endpoint_reports_connection_failure(monkeypatch):
     _patch_transport(monkeypatch, handler)
     result = asyncio.run(llm_client.test_endpoint(_endpoint("ollama")))
     assert not result.ok
-    assert "无法连接" in (result.error or "")
+    assert "無法連線" in (result.error or "")
 
 
 @pytest.mark.parametrize(
@@ -146,9 +146,9 @@ def test_endpoint_reports_connection_failure(monkeypatch):
     [
         ('{"action":"idle"}', {"action": "idle"}),
         ('```json\n{"action":"say","text":"hi"}\n```', {"action": "say", "text": "hi"}),
-        ('好的，我决定：{"action":"goto","room":"cafe"} 就这样', {"action": "goto", "room": "cafe"}),
-        ('{"text":"含 } 的字符串","action":"say"}', {"text": "含 } 的字符串", "action": "say"}),
-        ("没有 JSON", None),
+        ('好的，我決定：{"action":"goto","room":"cafe"} 就這樣', {"action": "goto", "room": "cafe"}),
+        ('{"text":"含 } 的字串","action":"say"}', {"text": "含 } 的字串", "action": "say"}),
+        ("沒有 JSON", None),
     ],
 )
 def test_extract_json_object(raw, expected):
@@ -161,8 +161,8 @@ def test_extract_json_object(raw, expected):
 def _config(agent_id: str = "a1", room_id: str = "plaza") -> TownAgentConfig:
     return TownAgentConfig(
         id=agent_id,
-        name="测试居民",
-        persona="喜欢到处走。",
+        name="測試居民",
+        persona="喜歡到處走。",
         room_id=room_id,
         llm=_endpoint("ollama"),
     )
@@ -187,19 +187,19 @@ def test_goto_builds_a_path_and_arrival_clears_it():
 def test_human_input_respects_walls():
     world = WorldEngine()
     actor = world.add_human("玩家")
-    actor.x, actor.y = 18.0, 12.0  # 广场左上角内侧
+    actor.x, actor.y = 18.0, 12.0  # 廣場左上角內側
     world.set_input(actor.id, "up")
     for _ in range(200):
         world._advance(actor, 1 / 20.0)
-    assert actor.tile() in world.walkable, "不该走进墙格"
-    assert actor.tile()[1] == 12, "应该被广场上方的边界挡住"
+    assert actor.tile() in world.walkable, "不該走進牆格"
+    assert actor.tile()[1] == 12, "應該被廣場上方的邊界擋住"
 
 
 def test_say_is_only_heard_nearby():
     world = WorldEngine()
-    speaker = world.add_human("说话的人")
-    listener = world.add_human("旁边的人")
-    far = world.add_human("远处的人")
+    speaker = world.add_human("說話的人")
+    listener = world.add_human("旁邊的人")
+    far = world.add_human("遠處的人")
     listener.x, listener.y = speaker.x + 2, speaker.y
     far.x, far.y = speaker.x + 30, speaker.y
 
@@ -242,7 +242,7 @@ def test_unknown_room_in_decision_falls_back_to_wandering():
     actor = world.add_human("玩家")
     apply_decision(world, actor, {"action": "goto", "room": "nonexistent"})
     assert actor.last_error is not None
-    assert actor.target_room is not None, "兜底应该给它挑一个真实房间"
+    assert actor.target_room is not None, "兜底應該給它挑一個真實房間"
 
 
 def test_say_decision_without_text_is_ignored():

@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['cafe', 'market']
 TARGET_INTERACTIONS = ['chat_over_coffee', 'chat_with_regular']
 STATUS = 'filtering_news'
 EMOTION = 'curious'
-SPEECH = '我会听听大家在说什么，只留下真正有用的信息。'
+SPEECH = '我會聽聽大家在說什麼，只留下真正有用的資訊。'
 MEMORY_TEMPLATE = 'Used gossip.filter: {summary} at {location_id}.'
 
 

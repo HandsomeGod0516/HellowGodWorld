@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""集成测试：验证从 Channel 到 AgentServer 的 Chat ID 传递链路."""
+"""整合測試：驗證從 Channel 到 AgentServer 的 Chat ID 傳遞鏈路."""
 
 import time
 
@@ -12,8 +12,8 @@ from jiuwenclaw.common.schema.message import Message, ReqMethod
 
 
 def test_feishu_channel_to_agentserver_chat_id():
-    """测试飞书 Channel → Gateway → AgentServer 的 Chat ID 传递"""
-    # 1. 模拟飞书 Channel 创建 Message
+    """測試飛書 Channel → Gateway → AgentServer 的 Chat ID 傳遞"""
+    # 1. 模擬飛書 Channel 建立 Message
     msg = Message(
         id="feishu_msg_123",
         type="req",
@@ -23,7 +23,7 @@ def test_feishu_channel_to_agentserver_chat_id():
         timestamp=time.time(),
         ok=True,
         provider="feishu",
-        chat_id="oc_aaaaaaa",  # 飞书 Chat ID
+        chat_id="oc_aaaaaaa",  # 飛書 Chat ID
         user_id="ou_xxxxxxx",
         bot_id="cli_xxxxxxx",
         req_method=ReqMethod.CHAT_SEND,
@@ -50,14 +50,14 @@ def test_feishu_channel_to_agentserver_chat_id():
     assert request.channel_id == "feishu"
     assert request.chat_id == "oc_aaaaaaa"
 
-    # 4. 验证 get_chat_id() 能正确获取
+    # 4. 驗證 get_chat_id() 能正確獲取
     chat_id = get_chat_id(request)
     assert chat_id == "oc_aaaaaaa"
 
 
 def test_wecom_channel_to_agentserver_chat_id():
-    """测试企微 Channel → Gateway → AgentServer 的 Chat ID 传递"""
-    # 1. 模拟企微 Channel 创建 Message
+    """測試企微 Channel → Gateway → AgentServer 的 Chat ID 傳遞"""
+    # 1. 模擬企微 Channel 建立 Message
     msg = Message(
         id="wecom_msg_456",
         type="req",
@@ -87,14 +87,14 @@ def test_wecom_channel_to_agentserver_chat_id():
     assert request.channel_id == "wecom"
     assert request.chat_id == "wecom_chatid"
 
-    # 4. 验证 get_chat_id() 能正确获取
+    # 4. 驗證 get_chat_id() 能正確獲取
     chat_id = get_chat_id(request)
     assert chat_id == "wecom_chatid"
 
 
 def test_dingtalk_channel_to_agentserver_chat_id():
-    """测试钉钉 Channel → Gateway → AgentServer 的 Chat ID 传递"""
-    # 1. 模拟钉钉 Channel 创建 Message
+    """測試釘釘 Channel → Gateway → AgentServer 的 Chat ID 傳遞"""
+    # 1. 模擬釘釘 Channel 建立 Message
     msg = Message(
         id="dingtalk_msg_789",
         type="req",
@@ -104,13 +104,13 @@ def test_dingtalk_channel_to_agentserver_chat_id():
         timestamp=time.time(),
         ok=True,
         req_method=ReqMethod.CHAT_SEND,
-        chat_id="dingtalk_conversation_id",  # 钉钉 Chat ID
+        chat_id="dingtalk_conversation_id",  # 釘釘 Chat ID
         metadata={
             "conversation_id": "dingtalk_conversation_id",
             "conversation_type": "1",
             "dingtalk_chat_id": "dingtalk_conversation_id",
             "dingtalk_sender_id": "dingtalk_sender_id",
-            "sender_name": "张三",
+            "sender_name": "張三",
         },
     )
 
@@ -126,25 +126,25 @@ def test_dingtalk_channel_to_agentserver_chat_id():
     assert request.channel_id == "dingtalk"
     assert request.chat_id == "dingtalk_conversation_id"
 
-    # 4. 验证 get_chat_id() 能正确获取
+    # 4. 驗證 get_chat_id() 能正確獲取
     chat_id = get_chat_id(request)
     assert chat_id == "dingtalk_conversation_id"
 
 
 def test_xiaoyi_channel_to_agentserver_chat_id():
-    """测试小艺 Channel → Gateway → AgentServer 的 Chat ID 传递"""
-    # 1. 模拟小艺 Channel 创建 Message
+    """測試小藝 Channel → Gateway → AgentServer 的 Chat ID 傳遞"""
+    # 1. 模擬小藝 Channel 建立 Message
     msg = Message(
         id="xiaoyi_msg_012",
         type="req",
         channel_id="xiaoyi",
         session_id="xiaoyi_session_id",
-        params={"query": "帮我查天气"},
+        params={"query": "幫我查天氣"},
         timestamp=time.time(),
         is_stream=True,
         ok=True,
         req_method=ReqMethod.CHAT_SEND,
-        chat_id="xiaoyi_session_id",  # 小艺 Chat ID
+        chat_id="xiaoyi_session_id",  # 小藝 Chat ID
         metadata={
             "method": "message/stream",
             "xiaoyi_session_id": "xiaoyi_session_id",
@@ -164,14 +164,14 @@ def test_xiaoyi_channel_to_agentserver_chat_id():
     assert request.channel_id == "xiaoyi"
     assert request.chat_id == "xiaoyi_session_id"
 
-    # 4. 验证 get_chat_id() 能正确获取
+    # 4. 驗證 get_chat_id() 能正確獲取
     chat_id = get_chat_id(request)
     assert chat_id == "xiaoyi_session_id"
 
 
 def test_all_channels_chat_id_unified_interface():
-    """测试所有平台通过统一接口 get_chat_id() 获取 Chat ID"""
-    # 构建四个平台的 AgentRequest
+    """測試所有平臺透過統一介面 get_chat_id() 獲取 Chat ID"""
+    # 構建四個平臺的 AgentRequest
     requests = {
         "feishu": AgentRequest(
             request_id="feishu",
@@ -207,7 +207,7 @@ def test_all_channels_chat_id_unified_interface():
         ),
     }
 
-    # 验证所有平台都能通过统一接口获取 Chat ID
+    # 驗證所有平臺都能透過統一介面獲取 Chat ID
     expected = {
         "feishu": "oc_feishu",
         "wecom": "wecom_chat",
@@ -217,37 +217,37 @@ def test_all_channels_chat_id_unified_interface():
 
     for platform, request in requests.items():
         chat_id = get_chat_id(request)
-        assert chat_id == expected.get(platform), f"{platform} 的 Chat ID 不正确"
+        assert chat_id == expected.get(platform), f"{platform} 的 Chat ID 不正確"
 
 
 def test_metadata_fallback_when_chat_id_missing():
-    """测试顶层 chat_id 缺失时，能正确从 metadata 获取"""
-    # 测试场景：只有 metadata，没有顶层 chat_id
+    """測試頂層 chat_id 缺失時，能正確從 metadata 獲取"""
+    # 測試場景：只有 metadata，沒有頂層 chat_id
     request = AgentRequest(
         request_id="fallback_test",
         channel_id="wecom",
         session_id="s1",
-        chat_id=None,  # 顶层字段为空
+        chat_id=None,  # 頂層欄位為空
         req_method=ReqMethod.CHAT_SEND,
         metadata={"wecom_chat_id": "fallback_chatid"},
     )
 
-    # 应该从 metadata 获取
+    # 應該從 metadata 獲取
     chat_id = get_chat_id(request)
     assert chat_id == "fallback_chatid"
 
 
 def test_top_level_priority_over_metadata():
-    """测试顶层 chat_id 优先于 metadata"""
+    """測試頂層 chat_id 優先於 metadata"""
     request = AgentRequest(
         request_id="priority_test",
         channel_id="feishu",
         session_id="s1",
-        chat_id="top_level_id",  # 顶层字段
+        chat_id="top_level_id",  # 頂層欄位
         req_method=ReqMethod.CHAT_SEND,
         metadata={"feishu_chat_id": "metadata_id"},  # metadata
     )
 
-    # 应该优先使用顶层字段
+    # 應該優先使用頂層欄位
     chat_id = get_chat_id(request)
     assert chat_id == "top_level_id"

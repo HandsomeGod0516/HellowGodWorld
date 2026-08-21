@@ -2,7 +2,7 @@
 
 """JiuWenClaw Rails for DeepAgent integration.
 
-注意：工具权限护栏已切换为 openjiuwen 实现；此处保留同名导出以维持兼容。
+注意：工具許可權護欄已切換為 openjiuwen 實現；此處保留同名匯出以維持相容。
 """
 
 from openjiuwen.harness.rails.security.tool_security_rail import PermissionInterruptRail

@@ -1,22 +1,22 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""SkillDevService — 无状态请求处理器.
+"""SkillDevService — 無狀態請求處理器.
 
-设计要点：
-- 无状态：不持有 Pipeline 对象，不做 Pipeline 生命周期管理
-- 每次请求：StateStore 加载状态 → 创建 Pipeline → 执行 → checkpoint → 释放
-- 路由层（Gateway）保证同一 task_id 的请求路由到同一实例，Service 无需关心
+設計要點：
+- 無狀態：不持有 Pipeline 物件，不做 Pipeline 生命週期管理
+- 每次請求：StateStore 載入狀態 → 建立 Pipeline → 執行 → checkpoint → 釋放
+- 路由層（Gateway）保證同一 task_id 的請求路由到同一例項，Service 無需關心
 
-对外只暴露一个入口：handle(request) → AsyncIterator[AgentResponseChunk]
+對外只暴露一個入口：handle(request) → AsyncIterator[AgentResponseChunk]
 
-前端只需 5 个 method：
-- skilldev.start     → 发起新任务
-- skilldev.respond   → 统一确认（后端根据 task_id 当前阶段自动路由）
-- skilldev.status    → 查状态 / 列任务
-- skilldev.download  → 下载产物
-- skilldev.cancel    → 取消任务
-- skilldev.file.list → 获取文件树
-- skilldev.file.read → 读取文件内容
+前端只需 5 個 method：
+- skilldev.start     → 發起新任務
+- skilldev.respond   → 統一確認（後端根據 task_id 當前階段自動路由）
+- skilldev.status    → 查狀態 / 列任務
+- skilldev.download  → 下載產物
+- skilldev.cancel    → 取消任務
+- skilldev.file.list → 獲取檔案樹
+- skilldev.file.read → 讀取檔案內容
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ from jiuwenclaw.server.runtime.skill.skilldev.schema import (
 
 logger = logging.getLogger(__name__)
 
-# method → handler 映射，避免 if/elif 链
+# method → handler 對映，避免 if/elif 鏈
 _METHOD_DISPATCH = {
     ReqMethod.SKILLDEV_START: "_handle_start",
     ReqMethod.SKILLDEV_RESPOND: "_handle_respond",
@@ -53,17 +53,17 @@ _METHOD_DISPATCH = {
 
 
 class SkillDevService:
-    """SkillDev 模式的服务入口（无状态）."""
+    """SkillDev 模式的服務入口（無狀態）."""
 
     def __init__(self, deps: SkillDevDeps) -> None:
         self._deps = deps
 
     # ------------------------------------------------------------------
-    # 统一入口
+    # 統一入口
     # ------------------------------------------------------------------
 
     async def handle(self, request: AgentRequest) -> AsyncIterator[AgentResponseChunk]:
-        """根据 ReqMethod 分发到具体处理函数."""
+        """根據 ReqMethod 分發到具體處理函式."""
         handler_name = _METHOD_DISPATCH.get(request.req_method)
         if handler_name is None:
             yield self._error_chunk(
@@ -83,7 +83,7 @@ class SkillDevService:
             yield result
 
     # ------------------------------------------------------------------
-    # skilldev.start — 发起新任务
+    # skilldev.start — 發起新任務
     # ------------------------------------------------------------------
 
     async def _handle_start(
@@ -123,8 +123,8 @@ class SkillDevService:
         )
 
     # ------------------------------------------------------------------
-    # skilldev.respond — 统一确认入口
-    # 前端只管发 {task_id, action, ...}，后端根据当前阶段自动路由
+    # skilldev.respond — 統一確認入口
+    # 前端只管發 {task_id, action, ...}，後端根據當前階段自動路由
     # ------------------------------------------------------------------
 
     async def _handle_respond(
@@ -132,19 +132,19 @@ class SkillDevService:
     ) -> AsyncIterator[AgentResponseChunk]:
         task_id = params.get("task_id")
         if not task_id:
-            yield self._error_chunk(request_id, channel_id, "缺少 task_id 参数")
+            yield self._error_chunk(request_id, channel_id, "缺少 task_id 引數")
             return
 
         state = await self._deps.state_store.load_state(task_id)
         if state is None:
-            yield self._error_chunk(request_id, channel_id, f"任务 {task_id} 不存在")
+            yield self._error_chunk(request_id, channel_id, f"任務 {task_id} 不存在")
             return
 
         if state.stage not in SUSPENSION_POINTS:
             yield self._error_chunk(
                 request_id,
                 channel_id,
-                f"任务 {task_id} 当前阶段 {state.stage.value} 不是挂起点，无法 respond",
+                f"任務 {task_id} 當前階段 {state.stage.value} 不是掛起點，無法 respond",
             )
             return
 
@@ -166,8 +166,8 @@ class SkillDevService:
         )
 
     # ------------------------------------------------------------------
-    # skilldev.status — 查状态 / 列任务
-    # 传 task_id → 返回单个任务状态；不传 → 返回任务列表
+    # skilldev.status — 查狀態 / 列任務
+    # 傳 task_id → 返回單個任務狀態；不傳 → 返回任務列表
     # ------------------------------------------------------------------
 
     def _handle_status(
@@ -185,7 +185,7 @@ class SkillDevService:
 
         state = self._deps.state_store.load_state_sync(task_id)
         payload = (
-            state.to_status_dict() if state else {"error": f"任务 {task_id} 不存在"}
+            state.to_status_dict() if state else {"error": f"任務 {task_id} 不存在"}
         )
         return AgentResponseChunk(
             request_id=request_id,
@@ -195,7 +195,7 @@ class SkillDevService:
         )
 
     # ------------------------------------------------------------------
-    # skilldev.download — 下载产物
+    # skilldev.download — 下載產物
     # ------------------------------------------------------------------
 
     def _handle_download(
@@ -203,17 +203,17 @@ class SkillDevService:
     ) -> AgentResponseChunk:
         task_id = params.get("task_id")
         if not task_id:
-            return self._error_chunk(request_id, channel_id, "缺少 task_id 参数")
+            return self._error_chunk(request_id, channel_id, "缺少 task_id 引數")
 
         state = self._deps.state_store.load_state_sync(task_id)
         if state is None or not state.zip_path:
             return self._error_chunk(
-                request_id, channel_id, f"任务 {task_id} 尚未完成打包"
+                request_id, channel_id, f"任務 {task_id} 尚未完成打包"
             )
 
         zip_path = Path(state.zip_path)
         if not zip_path.exists():
-            return self._error_chunk(request_id, channel_id, "产物文件不存在")
+            return self._error_chunk(request_id, channel_id, "產物檔案不存在")
 
         content_b64 = base64.b64encode(zip_path.read_bytes()).decode()
         return AgentResponseChunk(
@@ -229,21 +229,21 @@ class SkillDevService:
         )
 
     # ------------------------------------------------------------------
-    # skilldev.cancel — 取消任务
+    # skilldev.cancel — 取消任務
     # ------------------------------------------------------------------
     @staticmethod
     async def _handle_cancel(params: dict, request_id: str, channel_id: str) -> AgentResponseChunk:
         task_id = params.get("task_id", "")
-        # 待实现: 实现取消逻辑（中断正在运行的 Pipeline）
-        logger.warning("[SkillDevService] cancel 尚未实现: task_id=%s", task_id)
+        # 待實現: 實現取消邏輯（中斷正在執行的 Pipeline）
+        logger.warning("[SkillDevService] cancel 尚未實現: task_id=%s", task_id)
         return await AgentResponseChunk(
             request_id=request_id,
             channel_id=channel_id,
-            payload={"ok": True, "message": "取消请求已接收（实现待完善）"},
+            payload={"ok": True, "message": "取消請求已接收（實現待完善）"},
             is_complete=True,)
 
     # ------------------------------------------------------------------
-    # skilldev.file.list — 获取工作区文件树（供产物弹窗浏览）
+    # skilldev.file.list — 獲取工作區檔案樹（供產物彈窗瀏覽）
     # ------------------------------------------------------------------
 
     def _handle_file_list(
@@ -251,7 +251,7 @@ class SkillDevService:
     ) -> AgentResponseChunk:
         task_id = params.get("task_id")
         if not task_id:
-            return self._error_chunk(request_id, channel_id, "缺少 task_id 参数")
+            return self._error_chunk(request_id, channel_id, "缺少 task_id 引數")
 
         workspace = self._deps.workspace_provider.get_local_path(task_id)
         skill_dir = workspace / "skill"
@@ -272,7 +272,7 @@ class SkillDevService:
         )
 
     # ------------------------------------------------------------------
-    # skilldev.file.read — 读取工作区文件内容
+    # skilldev.file.read — 讀取工作區檔案內容
     # ------------------------------------------------------------------
 
     def _handle_file_read(
@@ -282,7 +282,7 @@ class SkillDevService:
         file_path = params.get("path", "")
         if not task_id or not file_path:
             return self._error_chunk(
-                request_id, channel_id, "缺少 task_id 或 path 参数"
+                request_id, channel_id, "缺少 task_id 或 path 引數"
             )
 
         workspace = self._deps.workspace_provider.get_local_path(task_id)
@@ -291,16 +291,16 @@ class SkillDevService:
 
         if not str(full_path).startswith(str(skill_dir.resolve())):
             return self._error_chunk(
-                request_id, channel_id, "路径非法：不能访问工作区外的文件"
+                request_id, channel_id, "路徑非法：不能訪問工作區外的檔案"
             )
 
         if not full_path.exists() or not full_path.is_file():
-            return self._error_chunk(request_id, channel_id, f"文件不存在: {file_path}")
+            return self._error_chunk(request_id, channel_id, f"檔案不存在: {file_path}")
 
         try:
             content = full_path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
-            content = f"[二进制文件，大小 {full_path.stat().st_size} bytes]"
+            content = f"[二進位制檔案，大小 {full_path.stat().st_size} bytes]"
 
         return AgentResponseChunk(
             request_id=request_id,
@@ -310,7 +310,7 @@ class SkillDevService:
         )
 
     # ------------------------------------------------------------------
-    # 工具函数
+    # 工具函式
     # ------------------------------------------------------------------
 
     @staticmethod
@@ -337,7 +337,7 @@ class SkillDevService:
 
     @staticmethod
     def _build_file_tree(directory: Path, root: Path) -> list[dict]:
-        """递归构建文件树."""
+        """遞迴構建檔案樹."""
         result: list[dict] = []
         try:
             entries = sorted(

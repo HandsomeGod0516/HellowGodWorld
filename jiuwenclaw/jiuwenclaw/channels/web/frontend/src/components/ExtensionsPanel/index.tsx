@@ -66,7 +66,7 @@ export function ExtensionsPanel({ isConnected }: ExtensionsPanelProps) {
 
       if (extension) {
         setExtensions((prev) => [...prev, extension]);
-        setFolderPath(''); // 清空输入框
+        setFolderPath(''); // 清空輸入框
       } else {
         throw new Error(t('extensions.importFailed'));
       }
@@ -100,11 +100,11 @@ export function ExtensionsPanel({ isConnected }: ExtensionsPanelProps) {
 
   const handleToggle = useCallback(
     async (name: string, enabled: boolean) => {
-      // 先在本地临时更新 UI，提升响应速度
+      // 先在本地臨時更新 UI，提升響應速度
       const previousState = extensions.find(ext => ext.name === name);
       if (!previousState) return;
 
-      // 立即更新 UI 状态
+      // 立即更新 UI 狀態
       setExtensions(prev =>
         prev.map(ext => (ext.name === name ? { ...ext, enabled } : ext))
       );
@@ -123,7 +123,7 @@ export function ExtensionsPanel({ isConnected }: ExtensionsPanelProps) {
           throw new Error(t('extensions.toggleFailed'));
         }
       } catch (err) {
-        // 发生错误，回滚到之前的状态
+        // 發生錯誤，回滾到之前的狀態
         setError(err instanceof Error ? err.message : String(err));
         setExtensions(prev =>
           prev.map(ext => (ext.name === name ? previousState : ext))
@@ -150,7 +150,7 @@ export function ExtensionsPanel({ isConnected }: ExtensionsPanelProps) {
         </div>
       )}
 
-      {/* 导入区域 */}
+      {/* 匯入區域 */}
       <div className="extensions-panel__import-section">
         <h3 className="extensions-panel__import-title">
           {t('extensions.importTitle')}
@@ -185,7 +185,7 @@ export function ExtensionsPanel({ isConnected }: ExtensionsPanelProps) {
         </div>
       </div>
 
-      {/* 扩展列表 */}
+      {/* 擴充套件列表 */}
       <div className="extensions-panel__list">
         {loading && extensions.length === 0 && (
           <div className="extensions-panel__loading">
@@ -220,7 +220,7 @@ export function ExtensionsPanel({ isConnected }: ExtensionsPanelProps) {
                 </div>
 
                 <div className="extensions-panel__item-actions">
-                  {/* 启用/禁用切换 */}
+                  {/* 啟用/禁用切換 */}
                   <label className="extensions-panel__toggle">
                     <input
                       type="checkbox"
@@ -240,7 +240,7 @@ export function ExtensionsPanel({ isConnected }: ExtensionsPanelProps) {
                     </div>
                   </label>
 
-                  {/* 删除按钮 */}
+                  {/* 刪除按鈕 */}
                   <button
                     onClick={() => handleDelete(ext.name)}
                     disabled={loading || !isConnected}
@@ -255,7 +255,7 @@ export function ExtensionsPanel({ isConnected }: ExtensionsPanelProps) {
         )}
       </div>
 
-      {/* 帮助提示 */}
+      {/* 幫助提示 */}
       <div className="extensions-panel__help">
         <h4 className="extensions-panel__help-title">
           {t('extensions.helpTitle')}

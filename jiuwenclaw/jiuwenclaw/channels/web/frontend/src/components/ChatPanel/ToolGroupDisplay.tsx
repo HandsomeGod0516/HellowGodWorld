@@ -1,7 +1,7 @@
 /**
- * ToolGroupDisplay 组件
+ * ToolGroupDisplay 元件
  *
- * 展示工具执行实体：call 可单独显示，result 仅回填显示。
+ * 展示工具執行實體：call 可單獨顯示，result 僅回填顯示。
  */
 
 import {
@@ -20,9 +20,9 @@ interface ToolGroupDisplayProps {
 }
 
 /**
- * 工具详情弹窗组件
+ * 工具詳情彈窗元件
  *
- * 以弹窗形式完整展示工具调用的参数和结果
+ * 以彈窗形式完整展示工具呼叫的引數和結果
  */
 interface ToolDetailModalProps {
   execution: ToolExecution;
@@ -39,7 +39,7 @@ function ToolDetailModal({ execution, onClose }: ToolDetailModalProps) {
   const isFailed = hasResult && !isSuccess && !isTimeout;
 
   
-  // ESC 键关闭
+  // ESC 鍵關閉
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -52,13 +52,13 @@ function ToolDetailModal({ execution, onClose }: ToolDetailModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* 背景遮罩 - 点击关闭 */}
+      {/* 背景遮罩 - 點選關閉 */}
       <div
         className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
 
-      {/* 弹窗内容 */}
+      {/* 彈窗內容 */}
       <div
         className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-xl animate-rise"
         style={{
@@ -66,7 +66,7 @@ function ToolDetailModal({ execution, onClose }: ToolDetailModalProps) {
           boxShadow: 'var(--shadow-xl)',
         }}
       >
-        {/* 标题栏 */}
+        {/* 標題欄 */}
         <div
           className="px-6 py-4 flex items-center justify-between"
           style={{
@@ -115,7 +115,7 @@ function ToolDetailModal({ execution, onClose }: ToolDetailModalProps) {
             </div>
           </div>
 
-          {/* 关闭按钮 */}
+          {/* 關閉按鈕 */}
           <button
             onClick={onClose}
             className="p-2 rounded-lg transition-colors"
@@ -135,12 +135,12 @@ function ToolDetailModal({ execution, onClose }: ToolDetailModalProps) {
           </button>
         </div>
 
-        {/* 内容区域 */}
+        {/* 內容區域 */}
         <div
           className="px-6 py-5 overflow-y-auto"
           style={{ maxHeight: '60vh' }}
         >
-          {/* 工具参数 */}
+          {/* 工具引數 */}
           {Object.keys(toolCall.arguments).length > 0 && (
             <div className="mb-6">
               <div
@@ -169,7 +169,7 @@ function ToolDetailModal({ execution, onClose }: ToolDetailModalProps) {
             </div>
           )}
 
-          {/* 工具结果 */}
+          {/* 工具結果 */}
           {result && (
             <div>
               <div
@@ -215,7 +215,7 @@ function ToolDetailModal({ execution, onClose }: ToolDetailModalProps) {
             </div>
           )}
 
-          {/* 超时状态 */}
+          {/* 超時狀態 */}
           {!result && isTimeout && (
             <div
               className="flex items-center gap-3 p-4 rounded-lg"
@@ -232,7 +232,7 @@ function ToolDetailModal({ execution, onClose }: ToolDetailModalProps) {
             </div>
           )}
 
-          {/* 等待状态 */}
+          {/* 等待狀態 */}
           {!result && !isTimeout && (
             <div
               className="flex items-center gap-3 p-4 rounded-lg"
@@ -324,7 +324,7 @@ export function ToolExecutionItem({ execution }: { execution: ToolExecution }) {
         </div>
       </div>
 
-      {/* 弹窗 */}
+      {/* 彈窗 */}
       {showModal && (
         <ToolDetailModal execution={execution} onClose={() => setShowModal(false)} />
       )}
@@ -372,7 +372,7 @@ export function ToolGroupDisplay({ executions }: ToolGroupDisplayProps) {
 
   useEffect(() => {
     if (!userScrolled) {
-      // 自动跟随新增工具项时使用即时滚动，避免出现从顶部滑下的视觉效果
+      // 自動跟隨新增工具項時使用即時滾動，避免出現從頂部滑下的視覺效果
       scrollInner(false);
     }
   }, [executions.length, userScrolled, scrollInner]);

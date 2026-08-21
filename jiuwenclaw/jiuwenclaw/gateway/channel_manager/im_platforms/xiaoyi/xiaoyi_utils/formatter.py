@@ -1,7 +1,7 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""XiaoYi Formatter - 消息格式化和发送模块。
-基于 TypeScript formatter.ts 实现。
+"""XiaoYi Formatter - 訊息格式化和傳送模組。
+基於 TypeScript formatter.ts 實現。
 """
 
 import json
@@ -17,7 +17,7 @@ from jiuwenclaw.common.schema.message import EventType, Message
 
 @dataclass
 class FileInfo:
-    """文件信息."""
+    """檔案資訊."""
     file_name: str
     file_type: str
     file_id: str
@@ -32,16 +32,16 @@ def _build_agent_response_wrapper(
     response_body: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    构建 agent_response 包装消息（A2A 格式）。
+    構建 agent_response 包裝訊息（A2A 格式）。
 
     Args:
         agent_id: Agent ID
         session_id: Session ID
         task_id: Task ID
-        response_body: JSON-RPC 响应体
+        response_body: JSON-RPC 響應體
 
     Returns:
-        dict: agent_response 包装的消息
+        dict: agent_response 包裝的訊息
     """
     return {
         "msgType": "agent_response",
@@ -57,14 +57,14 @@ def _build_json_rpc_response(
     result: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    构建 JSON-RPC 2.0 响应。
+    構建 JSON-RPC 2.0 響應。
 
     Args:
-        message_id: 消息 ID
-        result: 结果对象
+        message_id: 訊息 ID
+        result: 結果物件
 
     Returns:
-        dict: JSON-RPC 2.0 响应
+        dict: JSON-RPC 2.0 響應
     """
     return {
         "jsonrpc": "2.0",
@@ -79,12 +79,12 @@ def build_status_update_response(
     state: str,
 ) -> dict[str, Any]:
     """
-    构建 A2A status-update 事件。
+    構建 A2A status-update 事件。
 
     Args:
         task_id: Task ID
-        text: 状态文本
-        state: 状态值
+        text: 狀態文字
+        state: 狀態值
 
     Returns:
         dict: status-update 事件
@@ -110,10 +110,10 @@ def build_status_update_response(
 
 def build_clear_context_response() -> dict[str, Any]:
     """
-    构建 clearContext 响应。
+    構建 clearContext 響應。
 
     Returns:
-        dict: clearContext 响应
+        dict: clearContext 響應
     """
     return {
         "status": {
@@ -128,13 +128,13 @@ def build_clear_context_response() -> dict[str, Any]:
 
 def build_tasks_cancel_response(task_id: str) -> dict[str, Any]:
     """
-    构建 tasks/cancel 响应。
+    構建 tasks/cancel 響應。
 
     Args:
         task_id: Task ID
 
     Returns:
-        dict: tasks/cancel 响应
+        dict: tasks/cancel 響應
     """
     return {
         "id": task_id,
@@ -152,13 +152,13 @@ def build_tasks_cancel_response(task_id: str) -> dict[str, Any]:
 
 def build_text_part(text: str) -> dict[str, Any]:
     """
-    构建文本消息部分。
+    構建文字訊息部分。
 
     Args:
-        text: 文本内容
+        text: 文字內容
 
     Returns:
-        dict: 文本消息部分
+        dict: 文字訊息部分
     """
     return {
         "kind": "text",
@@ -168,13 +168,13 @@ def build_text_part(text: str) -> dict[str, Any]:
 
 def build_reasoning_text_part(text: str) -> dict[str, Any]:
     """
-    构建推理文本消息部分（reasoningText）。
+    構建推理文字訊息部分（reasoningText）。
 
     Args:
-        text: 推理文本内容
+        text: 推理文字內容
 
     Returns:
-        dict: 推理文本消息部分
+        dict: 推理文字訊息部分
     """
     return {
         "kind": "reasoningText",
@@ -184,13 +184,13 @@ def build_reasoning_text_part(text: str) -> dict[str, Any]:
 
 def build_file_part(files: list[FileInfo]) -> dict[str, Any]:
     """
-    构建文件消息部分。
+    構建檔案訊息部分。
 
     Args:
-        files: 文件信息列表
+        files: 檔案資訊列表
 
     Returns:
-        dict: 文件消息部分
+        dict: 檔案訊息部分
     """
     return {
         "kind": "data",
@@ -209,13 +209,13 @@ def build_file_part(files: list[FileInfo]) -> dict[str, Any]:
 
 def build_command_part(command: dict[str, Any]) -> dict[str, Any]:
     """
-    构建命令消息部分。
+    構建命令訊息部分。
 
     Args:
-        command: 命令对象
+        command: 命令物件
 
     Returns:
-        dict: 命令消息部分
+        dict: 命令訊息部分
     """
     return {
         "kind": "data",
@@ -228,7 +228,7 @@ def build_command_part(command: dict[str, Any]) -> dict[str, Any]:
 # ==================== Main Formatter Functions ====================
 
 class MessageFormatter:
-    """消息格式化器，用于将 JiuwenClaw 消息转换为 A2A 格式。"""
+    """訊息格式化器，用於將 JiuwenClaw 訊息轉換為 A2A 格式。"""
 
     def __init__(self, agent_id: str):
         self.agent_id = agent_id
@@ -237,7 +237,7 @@ class MessageFormatter:
 
     @staticmethod
     def get_message_id(self) -> str:
-        """生成消息 ID。"""
+        """生成訊息 ID。"""
         return f"msg_{int(time.time() * 1000)}"
 
     @staticmethod
@@ -246,28 +246,28 @@ class MessageFormatter:
         return str(uuid.uuid4())
 
     def get_accumulated_text(self, session_id: str) -> str:
-        """获取累积的文本。"""
+        """獲取累積的文字。"""
         return self._accumulated_texts.get(session_id, "")
 
     def update_accumulated_text(self, session_id: str, text: str) -> None:
-        """更新累积的文本。"""
+        """更新累積的文字。"""
         self._accumulated_texts[session_id] = text
 
     def clear_accumulated_text(self, session_id: str) -> None:
-        """清除累积的文本。"""
+        """清除累積的文字。"""
         self._accumulated_texts.pop(session_id, None)
         self._last_text_lengths.pop(session_id, None)
 
     def calculate_delta_text(self, session_id: str, current_text: str) -> str:
         """
-        计算增量文本。
+        計算增量文字。
 
         Args:
             session_id: Session ID
-            current_text: 当前完整文本
+            current_text: 當前完整文字
 
         Returns:
-            str: 增量文本
+            str: 增量文字
         """
         previous_text = self._accumulated_texts.get(session_id, "")
         self._accumulated_texts[session_id] = current_text
@@ -275,7 +275,7 @@ class MessageFormatter:
         if current_text.startswith(previous_text):
             return current_text[len(previous_text):]
         else:
-            # 如果不是追加模式，返回完整文本
+            # 如果不是追加模式，返回完整文字
             return current_text
 
     def format_text_response(
@@ -291,27 +291,27 @@ class MessageFormatter:
         artifact_id: str | None = None,
     ) -> dict[str, Any]:
         """
-        格式化文本响应（A2A artifact-update）。
+        格式化文字響應（A2A artifact-update）。
 
         Args:
             session_id: Session ID
             task_id: Task ID
-            text: 文本内容
+            text: 文字內容
             append: 是否追加
-            last_chunk: 是否为最后一块
-            is_final: 是否为最终消息
-            message_id: 消息 ID（可选，默认自动生成）
-            artifact_id: Artifact ID（可选，默认自动生成）
+            last_chunk: 是否為最後一塊
+            is_final: 是否為最終訊息
+            message_id: 訊息 ID（可選，預設自動生成）
+            artifact_id: Artifact ID（可選，預設自動生成）
 
         Returns:
-            dict: agent_response 包装的消息
+            dict: agent_response 包裝的訊息
         """
         if message_id is None:
             message_id = self.get_message_id()
         if artifact_id is None:
             artifact_id = self.get_artifact_id()
 
-        # 根据 last_chunk 选择使用 text 或 reasoningText
+        # 根據 last_chunk 選擇使用 text 或 reasoningText
         if last_chunk:
             data_part = build_text_part(text)
         else:
@@ -348,17 +348,17 @@ class MessageFormatter:
         message_id: str | None = None,
     ) -> dict[str, Any]:
         """
-        格式化状态更新（A2A status-update）。
+        格式化狀態更新（A2A status-update）。
 
         Args:
             session_id: Session ID
             task_id: Task ID
-            text: 状态文本
-            state: 状态值
-            message_id: 消息 ID（可选，默认自动生成）
+            text: 狀態文字
+            state: 狀態值
+            message_id: 訊息 ID（可選，預設自動生成）
 
         Returns:
-            dict: agent_response 包装的消息
+            dict: agent_response 包裝的訊息
         """
         if message_id is None:
             message_id = self.get_message_id()
@@ -388,12 +388,12 @@ class MessageFormatter:
         Args:
             session_id: Session ID
             task_id: Task ID
-            command: 命令对象
-            message_id: 消息 ID（可选，默认自动生成）
-            artifact_id: Artifact ID（可选，默认自动生成）
+            command: 命令物件
+            message_id: 訊息 ID（可選，預設自動生成）
+            artifact_id: Artifact ID（可選，預設自動生成）
 
         Returns:
-            dict: agent_response 包装的消息
+            dict: agent_response 包裝的訊息
         """
         if message_id is None:
             message_id = self.get_message_id()
@@ -427,14 +427,14 @@ class MessageFormatter:
         message_id: str | None = None,
     ) -> dict[str, Any]:
         """
-        格式化 clearContext 响应。
+        格式化 clearContext 響應。
 
         Args:
             session_id: Session ID
-            message_id: 消息 ID（可选，默认自动生成）
+            message_id: 訊息 ID（可選，預設自動生成）
 
         Returns:
-            dict: agent_response 包装的消息
+            dict: agent_response 包裝的訊息
         """
         if message_id is None:
             message_id = self.get_message_id()
@@ -456,15 +456,15 @@ class MessageFormatter:
         message_id: str | None = None,
     ) -> dict[str, Any]:
         """
-        格式化 tasks/cancel 响应。
+        格式化 tasks/cancel 響應。
 
         Args:
             session_id: Session ID
             task_id: Task ID
-            message_id: 消息 ID（可选，默认自动生成）
+            message_id: 訊息 ID（可選，預設自動生成）
 
         Returns:
-            dict: agent_response 包装的消息
+            dict: agent_response 包裝的訊息
         """
         if message_id is None:
             message_id = self.get_message_id()
@@ -484,22 +484,22 @@ class MessageFormatter:
 
 def should_send_as_reasoning_text(event_type: EventType | None) -> bool:
     """
-    判断是否应该将消息作为 reasoningText 发送。
+    判斷是否應該將訊息作為 reasoningText 傳送。
 
     Args:
-        event_type: 事件类型
+        event_type: 事件型別
 
     Returns:
-        bool: 是否应该作为 reasoningText 发送
+        bool: 是否應該作為 reasoningText 傳送
     """
     if event_type is None:
         return False
 
-    # Reasoning text 用于以下事件：
-    # - CHAT_DELTA: 流式输出中的增量文本
-    # - CHAT_TOOL_RESULT: 工具结果
-    # - CHAT_SUBTASK_UPDATE: 子任务更新
-    # - CHAT_PROCESSING_STATUS: 处理状态
+    # Reasoning text 用於以下事件：
+    # - CHAT_DELTA: 流式輸出中的增量文字
+    # - CHAT_TOOL_RESULT: 工具結果
+    # - CHAT_SUBTASK_UPDATE: 子任務更新
+    # - CHAT_PROCESSING_STATUS: 處理狀態
     reasoning_text_events = {
         EventType.CHAT_DELTA,
         EventType.CHAT_SUBTASK_UPDATE,
@@ -511,22 +511,22 @@ def should_send_as_reasoning_text(event_type: EventType | None) -> bool:
 
 def should_send_as_text(event_type: EventType | None) -> bool:
     """
-    判断是否应该将消息作为 text 发送。
+    判斷是否應該將訊息作為 text 傳送。
 
     Args:
-        event_type: 事件类型
+        event_type: 事件型別
 
     Returns:
-        bool: 是否应该作为 text 发送
+        bool: 是否應該作為 text 傳送
     """
     if event_type is None:
         return True  # Default to text
 
-    # Text 用于以下事件：
-    # - CHAT_FINAL: 最终完整回复
-    # - CHAT_MEDIA: 媒体消息
-    # - CHAT_ERROR: 错误消息
-    # - CHAT_INTERRUPT_RESULT: 中断结果
+    # Text 用於以下事件：
+    # - CHAT_FINAL: 最終完整回覆
+    # - CHAT_MEDIA: 媒體訊息
+    # - CHAT_ERROR: 錯誤訊息
+    # - CHAT_INTERRUPT_RESULT: 中斷結果
     text_events = {
         EventType.CHAT_FINAL,
         EventType.CHAT_MEDIA,
@@ -539,21 +539,21 @@ def should_send_as_text(event_type: EventType | None) -> bool:
 
 def should_send_as_status_update(event_type: EventType | None) -> bool:
     """
-    判断是否应该作为 status update 发送。
+    判斷是否應該作為 status update 傳送。
 
     Args:
-        event_type: 事件类型
+        event_type: 事件型別
 
     Returns:
-        bool: 是否应该作为 status update 发送
+        bool: 是否應該作為 status update 傳送
     """
     if event_type is None:
         return False
 
-    # Status update 用于以下事件：
-    # - CHAT_TOOL_CALL: 工具调用
-    # - CHAT_TOOL_RESULT: 工具结果
-    # - CHAT_PROCESSING_STATUS: 处理状态
+    # Status update 用於以下事件：
+    # - CHAT_TOOL_CALL: 工具呼叫
+    # - CHAT_TOOL_RESULT: 工具結果
+    # - CHAT_PROCESSING_STATUS: 處理狀態
     status_events = {
         EventType.CHAT_TOOL_CALL,
         EventType.CHAT_TOOL_RESULT
@@ -564,14 +564,14 @@ def should_send_as_status_update(event_type: EventType | None) -> bool:
 
 def get_status_state_for_event(event_type: EventType | None, payload: dict | None = None) -> str:
     """
-    根据事件类型获取状态值。
+    根據事件型別獲取狀態值。
 
     Args:
-        event_type: 事件类型
-        payload: 消息载荷
+        event_type: 事件型別
+        payload: 訊息載荷
 
     Returns:
-        str: 状态值
+        str: 狀態值
     """
     if event_type is None:
         return "unknown"
@@ -594,17 +594,17 @@ def get_status_state_for_event(event_type: EventType | None, payload: dict | Non
 
 def get_status_text_for_event(event_type: EventType | None, payload: dict | None = None) -> str:
     """
-    根据事件类型获取状态文本。
+    根據事件型別獲取狀態文字。
 
     Args:
-        event_type: 事件类型
-        payload: 消息载荷
+        event_type: 事件型別
+        payload: 訊息載荷
 
     Returns:
-        str: 状态文本
+        str: 狀態文字
     """
     if event_type is None:
-        return "处理中"
+        return "處理中"
 
     if payload and isinstance(payload, dict):
         if event_type == EventType.CHAT_TOOL_CALL:
@@ -617,33 +617,33 @@ def get_status_text_for_event(event_type: EventType | None, payload: dict | None
         if event_type == EventType.CHAT_TOOL_RESULT:
             tool_name = payload.get("tool_name", "")
             if tool_name:
-                return f"工具 {tool_name} 执行完成"
-            return "工具执行完成"
+                return f"工具 {tool_name} 執行完成"
+            return "工具執行完成"
         if event_type == EventType.CHAT_PROCESSING_STATUS:
             is_processing = payload.get("is_processing", True)
             if is_processing:
-                return "任务正在处理中，请稍后~"
-            return "任务处理已完成~"
+                return "任務正在處理中，請稍後~"
+            return "任務處理已完成~"
         content = payload.get("content", "")
         if isinstance(content, str) and content:
             return content
         if isinstance(content, dict):
-            return content.get("output", "处理中")
+            return content.get("output", "處理中")
 
     status_text_map = {
         EventType.CHAT_TOOL_CALL: "正在使用工具...",
-        EventType.CHAT_TOOL_RESULT: "工具执行完成",
-        EventType.CHAT_PROCESSING_STATUS: "任务正在处理中",
-        EventType.CHAT_FINAL: "任务已完成",
-        EventType.CHAT_ERROR: "处理失败，请稍后重试",
-        EventType.CHAT_INTERRUPT_RESULT: "任务已中断",
+        EventType.CHAT_TOOL_RESULT: "工具執行完成",
+        EventType.CHAT_PROCESSING_STATUS: "任務正在處理中",
+        EventType.CHAT_FINAL: "任務已完成",
+        EventType.CHAT_ERROR: "處理失敗，請稍後重試",
+        EventType.CHAT_INTERRUPT_RESULT: "任務已中斷",
     }
 
-    return status_text_map.get(event_type, "处理中")
+    return status_text_map.get(event_type, "處理中")
 
 
 def extract_msg_content(msg: Message) -> str:
-    """提取msg 信息"""
+    """提取msg 資訊"""
     content = ""
     payload = msg.payload if msg.payload else {}
     if not isinstance(payload, dict):

@@ -194,7 +194,7 @@ export function HeartbeatPanel() {
         setError(t('heartbeat.errors.invalidActiveHours'));
         return;
       }
-      // 验证结束时间大于开始时间
+      // 驗證結束時間大於開始時間
       if (endInput <= startInput) {
         setError(t('heartbeat.errors.invalidRange'));
         return;
@@ -214,7 +214,7 @@ export function HeartbeatPanel() {
           end: endInput.trim(),
         };
       } else {
-        // 约定传空对象用于清除 active_hours，表示全天生效
+        // 約定傳空物件用於清除 active_hours，表示全天生效
         params.active_hours = {};
       }
       const payload = await webRequest<Record<string, unknown>>('heartbeat.set_conf', params);

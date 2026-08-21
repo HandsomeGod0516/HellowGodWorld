@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class ChannelType(str, Enum):
-    """Channel 类型枚举."""
+    """Channel 型別列舉."""
     ACP = "acp"
     WEB = "web"
     FEISHU = "feishu"
@@ -33,7 +33,7 @@ class ChannelType(str, Enum):
 
 @dataclass
 class ChannelMetadata:
-    """Channel 元数据."""
+    """Channel 後設資料."""
 
     channel_id: str
     source: str
@@ -42,7 +42,7 @@ class ChannelMetadata:
 
 
 class RobotMessageRouter:
-    """管理整个系统的入站（从通道到机器人）和出站（从机器人到通道）消息队列，并提供出站消息的订阅/分发机制。"""
+    """管理整個系統的入站（從通道到機器人）和出站（從機器人到通道）訊息佇列，並提供出站訊息的訂閱/分發機制。"""
     def __init__(self):
         self._user_messages: asyncio.Queue[Message] = asyncio.Queue()
         self._robot_messages: asyncio.Queue[Message] = asyncio.Queue()
@@ -50,19 +50,19 @@ class RobotMessageRouter:
         self._is_active = False
 
     async def route_user_message(self, msg: Message) -> None:
-        """将接收到的消息放入user_messages队列，等待机器人处理。"""
+        """將接收到的訊息放入user_messages佇列，等待機器人處理。"""
         await self._user_messages.put(msg)
 
     async def wait_for_user_message(self) -> Message:
-        """阻塞地从user_messages队列中取出一条消息进行处理。"""
+        """阻塞地從user_messages佇列中取出一條訊息進行處理。"""
         return await self._user_messages.get()
 
     async def queue_robot_message(self, msg: Message) -> None:
-        """将生成的回复消息放入robot_messages队列。"""
+        """將生成的回覆訊息放入robot_messages佇列。"""
         await self._robot_messages.put(msg)
 
     async def wait_for_robot_message(self) -> Message:
-        """阻塞地从robot_messages队列取消息，主要用于调试或直接消费（但框架通常使用订阅分发机制）。"""
+        """阻塞地從robot_messages佇列取訊息，主要用於除錯或直接消費（但框架通常使用訂閱分發機制）。"""
         return await self._robot_messages.get()
 
     def register_channel_subscription(
@@ -70,14 +70,14 @@ class RobotMessageRouter:
         channel: str,
         callback: Callable[[Message], Awaitable[None]]
     ) -> None:
-        """允许通道（或其他组件）注册一个异步回调函数，专门接收目标为特定通道ID的出站消息。"""
+        """允許通道（或其他元件）註冊一個非同步回撥函式，專門接收目標為特定通道ID的出站訊息。"""
         if channel not in self._channel_subscriptions:
             self._channel_subscriptions[channel] = []
         self._channel_subscriptions[channel].append(callback)
 
     async def dispatch_robot_messages(self) -> None:
         """
-        持续监听robot_messages队列，将每条消息分发给对应通道的订阅回调。
+        持續監聽robot_messages佇列，將每條訊息分發給對應通道的訂閱回撥。
         """
         self._is_active = True
         while self._is_active:
@@ -98,21 +98,21 @@ class RobotMessageRouter:
 
     @property
     def pending_incoming_count(self) -> int:
-        """待处理的入站消息数量"""
+        """待處理的入站訊息數量"""
         return self._user_messages.qsize()
 
     @property
     def pending_outgoing_count(self) -> int:
-        """待发送的出站消息数量"""
+        """待傳送的出站訊息數量"""
         return self._robot_messages.qsize()
 
 
 class BaseChannel(ABC):
     """
-    Channel实现的抽象基类。
+    Channel實現的抽象基類。
 
-    每个Channel都应该实现这个接口
-    以集成到纳米机器人消息总线中。
+    每個Channel都應該實現這個介面
+    以整合到奈米機器人訊息匯流排中。
     """
 
     name: str = "base"
@@ -128,30 +128,30 @@ class BaseChannel(ABC):
     @abstractmethod
     async def start(self) -> None:
         """
-        启动Channel并开始监听消息
+        啟動Channel並開始監聽訊息
 
-        一个长期运行的异步任务，需要：
-        1. 连接到聊天平台
-        2. 监听传入消息
-        3. 通过_handle_message()将消息转发到总线
+        一個長期執行的非同步任務，需要：
+        1. 連線到聊天平臺
+        2. 監聽傳入訊息
+        3. 透過_handle_message()將訊息轉發到匯流排
         """
         pass
 
     @abstractmethod
     async def stop(self) -> None:
-        """停止Channel并清理资源"""
+        """停止Channel並清理資源"""
         pass
 
     @abstractmethod
     async def send(self, msg: Message) -> None:
         """
-        通过Channel发送消息
+        透過Channel傳送訊息
         """
         pass
 
     def is_allowed(self, sender_id: str) -> bool:
         """
-        检查发送者是否被允许使用此机器人
+        檢查傳送者是否被允許使用此機器人
         """
         allow_list = getattr(self.config, "allow_from", [])
 

@@ -18,25 +18,25 @@ logger = logging.getLogger(__name__)
 
 
 class DiffService:
-    """提供 turn-based diff 查询服务."""
+    """提供 turn-based diff 查詢服務."""
 
     def __init__(self) -> None:
         self._agent_id = "jiuwenclaw"
 
     def get_turn_diffs(self, session_id: str) -> list[dict[str, Any]]:
-        """获取 session 的所有 turn diff（完整信息）.
+        """獲取 session 的所有 turn diff（完整資訊）.
 
         Args:
-            session_id: 会话 ID
+            session_id: 會話 ID
 
         Returns:
-            turn diff 列表，按时间倒序排列（most recent first）
+            turn diff 列表，按時間倒序排列（most recent first）
         """
         turns = self._compute_turn_diffs(session_id)
         return list(reversed(turns))
 
     def _compute_turn_diffs(self, session_id: str) -> list[dict[str, Any]]:
-        """计算 turn-based diffs."""
+        """計算 turn-based diffs."""
         history = self._read_history(session_id)
         agent_history = self._read_agent_history()
 
@@ -129,7 +129,7 @@ class DiffService:
 
     @staticmethod
     def _is_turn_end(record: dict[str, Any]) -> bool:
-        """判断一条记录是否是 turn 的结束."""
+        """判斷一條記錄是否是 turn 的結束."""
         event_type = record.get("event_type")
         if event_type == "chat.final":
             return True
@@ -141,7 +141,7 @@ class DiffService:
     def _find_next_user_time(
         history: list[dict[str, Any]], user_index: int
     ) -> float | None:
-        """查找下次用户消息时间."""
+        """查詢下次使用者訊息時間."""
         for j in range(user_index + 1, len(history)):
             if history[j]["role"] == "user":
                 return history[j]["timestamp"]
@@ -149,7 +149,7 @@ class DiffService:
 
     @staticmethod
     def _read_history(session_id: str) -> list[dict[str, Any]]:
-        """读取 session history."""
+        """讀取 session history."""
         history_file = get_agent_sessions_dir() / session_id / "history.json"
         if not history_file.exists():
             return []
@@ -159,7 +159,7 @@ class DiffService:
             return []
 
     def _read_agent_history(self) -> dict[str, Any]:
-        """读取 .agent_history（同时读取两个可能的位置并合并）."""
+        """讀取 .agent_history（同時讀取兩個可能的位置併合並）."""
         result: dict[str, Any] = {}
 
         paths = [
@@ -186,9 +186,9 @@ class DiffService:
         start_time: float,
         end_time: float | None,
     ) -> dict[str, dict[str, Any]]:
-        """根据时间范围查找文件编辑记录.
+        """根據時間範圍查詢檔案編輯記錄.
 
-        时间区间：[start_time, end_time) 左闭右开
+        時間區間：[start_time, end_time) 左閉右開
         """
         file_edits: dict[str, dict[str, Any]] = {}
 
@@ -214,13 +214,13 @@ class DiffService:
 
     @staticmethod
     def _iso_to_timestamp(iso_str: str) -> float:
-        """将 ISO 8601 字符串转换为 Unix timestamp."""
+        """將 ISO 8601 字串轉換為 Unix timestamp."""
         dt = datetime.fromisoformat(iso_str)
         return dt.timestamp()
 
     @staticmethod
     def _timestamp_to_iso(timestamp: float) -> str:
-        """将 Unix timestamp 转换为 ISO 8601 字符串."""
+        """將 Unix timestamp 轉換為 ISO 8601 字串."""
         dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
         return dt.isoformat()
 
@@ -229,7 +229,7 @@ class DiffService:
         old_content: str | None,
         new_content: str,
     ) -> list[dict[str, Any]]:
-        """计算结构化 diff hunks."""
+        """計算結構化 diff hunks."""
         if old_content is None:
             lines = new_content.splitlines()
             return [{
@@ -278,7 +278,7 @@ class DiffService:
 
     @staticmethod
     def _finalize_turn(turn: dict[str, Any]) -> None:
-        """完成 turn 的统计信息计算."""
+        """完成 turn 的統計資訊計算."""
         turn["stats"]["filesChanged"] = len(turn["files"])
         turn["stats"]["linesAdded"] = sum(
             f["linesAdded"] for f in turn["files"].values()
@@ -292,7 +292,7 @@ _diff_service: DiffService | None = None
 
 
 def get_diff_service() -> DiffService:
-    """获取 DiffService 单例实例."""
+    """獲取 DiffService 單例例項."""
     global _diff_service
     if _diff_service is None:
         _diff_service = DiffService()

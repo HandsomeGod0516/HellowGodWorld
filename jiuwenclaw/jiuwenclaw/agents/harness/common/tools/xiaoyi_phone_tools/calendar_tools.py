@@ -1,10 +1,10 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Calendar tools - 日历工具.
+"""Calendar tools - 日曆工具.
 
 包含：
-- create_calendar_event: 创建日程
-- search_calendar_event: 检索日程
+- create_calendar_event: 建立日程
+- search_calendar_event: 檢索日程
 """
 
 from __future__ import annotations
@@ -25,13 +25,13 @@ from .utils import (
 
 
 def _format_timestamp_to_datetime(timestamp_ms: int) -> str:
-    """将毫秒时间戳转换为 yyyy-mm-dd hh:mm:ss 格式.
+    """將毫秒時間戳轉換為 yyyy-mm-dd hh:mm:ss 格式.
 
     Args:
-        timestamp_ms: 毫秒时间戳
+        timestamp_ms: 毫秒時間戳
 
     Returns:
-        格式化的日期时间字符串
+        格式化的日期時間字串
     """
     if not timestamp_ms:
         return ""
@@ -40,13 +40,13 @@ def _format_timestamp_to_datetime(timestamp_ms: int) -> str:
 
 
 def _convert_event_timestamps(event: Dict[str, Any]) -> Dict[str, Any]:
-    """将事件中的时间戳转换为可读格式.
+    """將事件中的時間戳轉換為可讀格式.
 
     Args:
         event: 日程事件字典
 
     Returns:
-        转换后的事件字典
+        轉換後的事件字典
     """
     result = dict(event)
     if "dtStart" in result and result["dtStart"]:
@@ -57,7 +57,7 @@ def _convert_event_timestamps(event: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _parse_time_string_ymd_hhmmss(time_str: str) -> int:
-    """解析 YYYYMMDD hhmmss 格式为毫秒时间戳."""
+    """解析 YYYYMMDD hhmmss 格式為毫秒時間戳."""
     cleaned = " ".join(time_str.strip().split())
     parts = cleaned.split(" ")
     if len(parts) != 2:
@@ -82,10 +82,10 @@ def _parse_time_string_ymd_hhmmss(time_str: str) -> int:
 @tool(
     name="create_calendar_event",
     description=(
-        "在用户设备上创建日程。需要提供日程标题、开始时间和结束时间。"
-        "时间格式必须为：yyyy-mm-dd hh:mm:ss（例如：2024-01-15 14:30:00）。"
-        "注意：该工具执行时间较长（最多60秒），请勿重复调用，超时或失败时最多重试一次。\n"
-        "  注意事项：使用该工具之前需获取当前真实时间\n"
+        "在使用者裝置上建立日程。需要提供日程標題、開始時間和結束時間。"
+        "時間格式必須為：yyyy-mm-dd hh:mm:ss（例如：2024-01-15 14:30:00）。"
+        "注意：該工具執行時間較長（最多60秒），請勿重複呼叫，超時或失敗時最多重試一次。\n"
+        "  注意事項：使用該工具之前需獲取當前真實時間\n"
     ),
 )
 async def create_calendar_event(
@@ -93,15 +93,15 @@ async def create_calendar_event(
     dt_start: str,
     dt_end: str,
 ) -> Dict[str, Any]:
-    """创建日程.
+    """建立日程.
 
     Args:
-        title: 日程标题/名称，必填
-        dt_start: 开始时间，格式 yyyy-mm-dd hh:mm:ss
-        dt_end: 结束时间，格式 yyyy-mm-dd hh:mm:ss
+        title: 日程標題/名稱，必填
+        dt_start: 開始時間，格式 yyyy-mm-dd hh:mm:ss
+        dt_end: 結束時間，格式 yyyy-mm-dd hh:mm:ss
 
     Returns:
-        包含创建结果的响应字典
+        包含建立結果的響應字典
     """
     try:
         logger.info(
@@ -109,15 +109,15 @@ async def create_calendar_event(
             f"dt_start: {dt_start}, dt_end: {dt_end}"
         )
 
-        # 验证参数
+        # 驗證引數
         if not title:
-            raise ToolInputError("缺少必填参数 title（日程标题）")
+            raise ToolInputError("缺少必填引數 title（日程標題）")
         if not dt_start:
-            raise ToolInputError("缺少必填参数 dt_start（开始时间）")
+            raise ToolInputError("缺少必填引數 dt_start（開始時間）")
         if not dt_end:
-            raise ToolInputError("缺少必填参数 dt_end（结束时间）")
+            raise ToolInputError("缺少必填引數 dt_end（結束時間）")
 
-        # 转换时间字符串为时间戳
+        # 轉換時間字串為時間戳
         try:
             start_dt = datetime.strptime(dt_start, "%Y-%m-%d %H:%M:%S")
             end_dt = datetime.strptime(dt_end, "%Y-%m-%d %H:%M:%S")
@@ -125,7 +125,7 @@ async def create_calendar_event(
             dt_end_ms = int(end_dt.timestamp() * 1000)
         except ValueError:
             raise ToolInputError(
-                "时间格式错误。必须使用：yyyy-mm-dd hh:mm:ss（例如：2024-01-15 14:30:00）"
+                "時間格式錯誤。必須使用：yyyy-mm-dd hh:mm:ss（例如：2024-01-15 14:30:00）"
             ) from ValueError
 
         intent_param = {
@@ -160,39 +160,39 @@ async def create_calendar_event(
             },
         }
 
-        # 执行命令
+        # 執行命令
         result = await execute_device_command("CreateCalendarEvent", command)
 
         if isinstance(result, dict):
-            raise_if_device_error(result, "创建日程失败")
+            raise_if_device_error(result, "建立日程失敗")
 
         logger.info("[CALENDAR_TOOL] Calendar event created successfully")
         return format_success_response(
             {"title": title, "dt_start": dt_start, "dt_end": dt_end, "result": result},
-            f"日程 '{title}' 创建成功",
+            f"日程 '{title}' 建立成功",
         )
 
     except ToolInputError:
         raise
     except Exception as e:
         logger.error(f"[CALENDAR_TOOL] Failed to create calendar event: {e}")
-        raise RuntimeError(f"创建日程失败: {str(e)}") from e
+        raise RuntimeError(f"建立日程失敗: {str(e)}") from e
 
 
 @tool(
     name="search_calendar_event",
-    description="""检索用户日历中的日程安排。根据时间范围和可选的日程标题进行检索。时间格式必须为：YYYYMMDD hhmmss（例如：20240115 143000）。
+    description="""檢索使用者日曆中的日程安排。根據時間範圍和可選的日程標題進行檢索。時間格式必須為：YYYYMMDD hhmmss（例如：20240115 143000）。
 
-时间范围说明：
-- 查询某一天的日程：使用该天的 00:00:00 到 23:59:59（例如：20240115 000000 到 20240115 235959）
-- 查询上午的日程：使用 06:00:00 到 12:00:00
-- 查询下午的日程：使用 12:00:00 到 18:00:00
-- 查询晚上的日程：使用 18:00:00 到 23:59:59
-- 查询某个时刻附近的日程：使用该时刻前后1小时的区间（例如：查询3点左右的日程，使用 14:00:00 到 16:00:00）
+時間範圍說明：
+- 查詢某一天的日程：使用該天的 00:00:00 到 23:59:59（例如：20240115 000000 到 20240115 235959）
+- 查詢上午的日程：使用 06:00:00 到 12:00:00
+- 查詢下午的日程：使用 12:00:00 到 18:00:00
+- 查詢晚上的日程：使用 18:00:00 到 23:59:59
+- 查詢某個時刻附近的日程：使用該時刻前後1小時的區間（例如：查詢3點左右的日程，使用 14:00:00 到 16:00:00）
 
 注意：
-a. 该工具执行时间较长（最多60秒），请勿重复调用，超时或失败时最多重试一次。
-b. 使用该工具之前需获取当前真实时间
+a. 該工具執行時間較長（最多60秒），請勿重複呼叫，超時或失敗時最多重試一次。
+b. 使用該工具之前需獲取當前真實時間
 """,
 )
 async def search_calendar_event(
@@ -200,15 +200,15 @@ async def search_calendar_event(
     end_time: str,
     title: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """检索日程.
+    """檢索日程.
 
     Args:
-        start_time: 起始时间，格式 YYYYMMDD hhmmss
-        end_time: 结束时间，格式 YYYYMMDD hhmmss
-        title: 日程标题过滤（可选）
+        start_time: 起始時間，格式 YYYYMMDD hhmmss
+        end_time: 結束時間，格式 YYYYMMDD hhmmss
+        title: 日程標題過濾（可選）
 
     Returns:
-        包含日程列表的响应字典
+        包含日程列表的響應字典
     """
     try:
         logger.info(
@@ -217,14 +217,14 @@ async def search_calendar_event(
         )
 
         if not start_time or not end_time:
-            raise ToolInputError("缺少必填参数 start_time 与 end_time")
+            raise ToolInputError("缺少必填引數 start_time 與 end_time")
 
         try:
             start_time_ms = _parse_time_string_ymd_hhmmss(start_time)
             end_time_ms = _parse_time_string_ymd_hhmmss(end_time)
         except ValueError as e:
             raise ToolInputError(
-                "时间格式错误。必须使用：YYYYMMDD hhmmss（例如：20240115 143000）。"
+                "時間格式錯誤。必須使用：YYYYMMDD hhmmss（例如：20240115 143000）。"
                 f" {e}"
             ) from e
 
@@ -261,27 +261,27 @@ async def search_calendar_event(
             },
         }
 
-        # 执行命令
+        # 執行命令
         outputs = await execute_device_command("SearchCalendarEvent", command)
 
-        raise_if_device_error(outputs, "检索日程失败")
+        raise_if_device_error(outputs, "檢索日程失敗")
 
-        # 获取结果
+        # 獲取結果
         result = outputs.get("result", {})
         items = result.get("items", []) if isinstance(result, dict) else []
 
-        # 转换时间戳为可读格式
+        # 轉換時間戳為可讀格式
         formatted_items = [_convert_event_timestamps(item) for item in items]
 
         logger.info(f"[SEARCH_CALENDAR_TOOL] Found {len(formatted_items)} events")
 
         return format_success_response(
             {"events": formatted_items, "count": len(formatted_items)},
-            f"搜索到 {len(formatted_items)} 条日程",
+            f"搜尋到 {len(formatted_items)} 條日程",
         )
 
     except ToolInputError:
         raise
     except Exception as e:
         logger.error(f"[SEARCH_CALENDAR_TOOL] Failed to search calendar: {e}")
-        raise RuntimeError(f"搜索日程失败: {str(e)}") from e
+        raise RuntimeError(f"搜尋日程失敗: {str(e)}") from e

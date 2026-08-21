@@ -29,7 +29,7 @@ def test_build_identity_prompt_contains_identity_section_only():
     prompt = build_identity_prompt(mode="agent.fast", language="zh", channel="web")
 
     assert "# 你的家" in prompt
-    assert "# 消息说明" not in prompt
+    assert "# 訊息說明" not in prompt
 
 
 @pytest.mark.asyncio
@@ -37,7 +37,7 @@ async def test_runtime_time_section_participates_in_priority_order():
     builder = SystemPromptBuilder(language="cn")
     builder.add_section(PromptSection(name="identity", content={"cn": "identity"}, priority=10))
     builder.add_section(PromptSection(name="tools", content={"cn": "# 可用工具"}, priority=30))
-    builder.add_section(PromptSection(name="workspace", content={"cn": "# 工作空间"}, priority=70))
+    builder.add_section(PromptSection(name="workspace", content={"cn": "# 工作空間"}, priority=70))
 
     runtime_rail = RuntimePromptRail(
         language="cn",
@@ -52,13 +52,13 @@ async def test_runtime_time_section_participates_in_priority_order():
     ordered_markers = [
         "identity",
         "# 可用工具",
-        "# 工作空间",
-        "# 当前日期与时间",
-        "# 运行时状态",
+        "# 工作空間",
+        "# 當前日期與時間",
+        "# 執行時狀態",
     ]
     positions = [prompt.index(marker) for marker in ordered_markers]
     assert positions == sorted(positions)
-    assert "当前模型" in prompt
+    assert "當前模型" in prompt
 
 
 def test_resolve_skill_mode_accepts_all_and_auto_list():

@@ -1,5 +1,5 @@
 /**
- * 消息类型定义
+ * 訊息型別定義
  */
 
 export type MessageRole = 'user' | 'assistant' | 'system' | 'tool';
@@ -29,10 +29,10 @@ export interface Message {
   audioBase64?: string;
   audioMime?: string;
   mediaItems?: MediaItem[];
-  // 工具调用相关
+  // 工具呼叫相關
   toolCall?: ToolCall;
   toolResult?: ToolResult;
-  // 是否正在流式输出
+  // 是否正在流式輸出
   isStreaming?: boolean;
   usageSummary?: UsageSummary;
 }
@@ -41,8 +41,8 @@ export interface ToolCall {
   id: string;
   name: string;
   arguments: Record<string, unknown>;
-  description?: string;  // 操作描述，如 "创建 3 个任务"
-  formatted_args?: string;  // 格式化参数摘要
+  description?: string;  // 操作描述，如 "建立 3 個任務"
+  formatted_args?: string;  // 格式化引數摘要
 }
 
 export interface ToolResult {
@@ -50,7 +50,7 @@ export interface ToolResult {
   result: string;
   success: boolean;
   toolCallId?: string;
-  summary?: string;  // 结果摘要
+  summary?: string;  // 結果摘要
 }
 
 export type ToolExecutionStatus = 'pending' | 'timeout' | 'completed' | 'error';

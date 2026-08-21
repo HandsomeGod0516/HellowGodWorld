@@ -1,22 +1,22 @@
-与 AgentSociety 交互
+與 AgentSociety 互動
 ==============================
 
-本指南介绍如何在实验期间与 AgentSociety 2 交互。
+本指南介紹如何在實驗期間與 AgentSociety 2 互動。
 
 概述
 --------
 
-AgentSociety 2 提供两种主要的交互模式：
+AgentSociety 2 提供兩種主要的互動模式：
 
-1. **查询模式** (只读): 提问而不修改模拟状态
-2. **干预模式** (读写): 修改智能体状态或环境变量
+1. **查詢模式** (只讀): 提問而不修改模擬狀態
+2. **干預模式** (讀寫): 修改智慧體狀態或環境變數
 
-这些交互可以在以下时间执行：
+這些互動可以在以下時間執行：
 
-* **模拟期间**: 在步骤之间或特定时间点
-* **模拟后**: 查询最终状态或收集调查数据
+* **模擬期間**: 在步驟之間或特定時間點
+* **模擬後**: 查詢最終狀態或收集調查資料
 
-交互模式对比
+互動模式對比
 ~~~~~~~~~~~~~~~~~
 
 .. graphviz::
@@ -30,21 +30,21 @@ AgentSociety 2 提供两种主要的交互模式：
        Intervene [label="intervene() 方法", shape=ellipse];
 
        subgraph cluster_ask {
-           label = "查询模式";
+           label = "查詢模式";
            style=filled;
            color=lightgreen;
-           Query [label="查询状态"];
-           Read [label="只读操作"];
-           NoModify [label="不修改环境"];
+           Query [label="查詢狀態"];
+           Read [label="只讀操作"];
+           NoModify [label="不修改環境"];
        }
 
        subgraph cluster_intervene {
-           label = "干预模式";
+           label = "干預模式";
            style=filled;
            color=lightcoral;
-           Modify [label="修改状态"];
-           Write [label="读写操作"];
-           Change [label="改变环境"];
+           Modify [label="修改狀態"];
+           Write [label="讀寫操作"];
+           Change [label="改變環境"];
        }
 
        Society -> Ask;
@@ -57,13 +57,13 @@ AgentSociety 2 提供两种主要的交互模式：
        Intervene -> Change;
    }
 
-基本交互模式
+基本互動模式
 ---------------------------
 
-ask() 方法 - 只读查询
+ask() 方法 - 只讀查詢
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-使用 ``society.ask()`` 进行不修改模拟的只读查询：
+使用 ``society.ask()`` 進行不修改模擬的只讀查詢：
 
 .. code-block:: python
 
@@ -76,10 +76,10 @@ ask() 方法 - 只读查询
    # Query about multiple agents
    response = await society.ask("List all agents who are unhappy")
 
-intervene() 方法 - 读写修改
+intervene() 方法 - 讀寫修改
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-使用 ``society.intervene()`` 对模拟进行更改：
+使用 ``society.intervene()`` 對模擬進行更改：
 
 .. code-block:: python
 
@@ -98,10 +98,10 @@ intervene() 方法 - 读写修改
        "Set all agents' happiness to 0.8"
    )
 
-模拟工作流程
+模擬工作流程
 -------------------
 
-使用逐步控制运行
+使用逐步控制執行
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -131,10 +131,10 @@ intervene() 方法 - 读写修改
 
    await society.close()
 
-数据收集
+資料收集
 ---------------
 
-收集智能体响应
+收集智慧體響應
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -158,7 +158,7 @@ intervene() 方法 - 读写修改
            answer = await society.ask(f"Agent {agent.id}: {question}")
            # Save answer to database or file
 
-使用 ReplayWriter 进行环境数据收集
+使用 ReplayWriter 進行環境資料收集
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -185,10 +185,10 @@ intervene() 方法 - 读写修改
 
    await society.close()
 
-常见交互场景
+常見互動場景
 -----------------------------
 
-场景 1: 事件干预
+場景 1: 事件干預
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -208,7 +208,7 @@ intervene() 方法 - 读写修改
    impact = await society.ask("How did the hurricane affect everyone?")
    print(impact)
 
-场景 2: 政策实验
+場景 2: 政策實驗
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -235,7 +235,7 @@ intervene() 方法 - 读写修改
    control_outcome = await control_society.ask("What's the average happiness?")
    treatment_outcome = await treatment_society.ask("What's the average happiness?")
 
-场景 3: 多个时间点收集数据
+場景 3: 多個時間點收集資料
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
@@ -256,15 +256,15 @@ intervene() 方法 - 读写修改
 
    # Analyze change over time
 
-最佳实践
+最佳實踐
 --------------
 
-1. **对查询使用 ask()**: 只需要信息时始终使用 ``ask()``
+1. **對查詢使用 ask()**: 只需要資訊時始終使用 ``ask()``
 
-2. **对更改使用 intervene()**: 只在想修改状态时使用 ``intervene()``
+2. **對更改使用 intervene()**: 只在想修改狀態時使用 ``intervene()``
 
-3. **结合 ReplayWriter**: 用环境 replay dataset 做实验分析；agent 本地调试则查看 ``run/agents/agent_xxxx/`` 下的 workspace 文件
+3. **結合 ReplayWriter**: 用環境 replay dataset 做實驗分析；agent 本地除錯則檢視 ``run/agents/agent_xxxx/`` 下的 workspace 檔案
 
-4. **查询特定智能体**: 向特定智能体提问以获得有针对性的响应
+4. **查詢特定智慧體**: 向特定智慧體提問以獲得有針對性的響應
 
-5. **适时干预**: 在适当的模拟时间进行干预以获得现实效果
+5. **適時干預**: 在適當的模擬時間進行干預以獲得現實效果

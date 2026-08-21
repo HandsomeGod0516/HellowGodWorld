@@ -93,9 +93,9 @@ class PhaseMapper:
 
     def map_event_name(self, event_name: str) -> Optional[str]:
         """
-        选择最具体的匹配：
-        - 所有命中的规则里，优先选择 pattern 字符串更长的
-        - 若长度相同，保留先出现的
+        選擇最具體的匹配：
+        - 所有命中的規則裡，優先選擇 pattern 字串更長的
+        - 若長度相同，保留先出現的
         """
         best_phase = None
         best_pattern_len = -1

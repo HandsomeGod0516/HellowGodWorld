@@ -1,11 +1,11 @@
 # coding: utf-8
 """
-多模态工具配置管理模块
+多模態工具配置管理模組
 
-配置优先级:
+配置優先順序:
 1. models.{audio/vision/video}.model_config
 2. embed.{audio_model/video_model/vision_model} 和 embed.embed_api_key/embed_api_base
-3. 环境变量 MODEL_NAME, API_KEY, API_BASE
+3. 環境變數 MODEL_NAME, API_KEY, API_BASE
 """
 import os
 from typing import Any
@@ -27,11 +27,11 @@ def _get_embed_config(config_base: dict[str, Any]) -> dict[str, Any]:
 
 def _get_model_config(config_base: dict[str, Any], model_type: str) -> dict[str, Any]:
     """
-    从 config.yaml 中读取指定类型的模型配置
+    從 config.yaml 中讀取指定型別的模型配置
 
     Args:
         config_base: 配置字典
-        model_type: 模型类型，如 'audio', 'vision', 'video'
+        model_type: 模型型別，如 'audio', 'vision', 'video'
 
     Returns:
         模型配置字典
@@ -74,10 +74,10 @@ def dedicated_multimodal_model_configured(
 ) -> bool:
     """Whether ``models.{model_type}`` has its own non-empty ``api_key`` (after YAML env resolution).
 
-    Used to gate image / video / **audio** tools (含 ``audio_metadata`` 与 LLM 音频能力)，在未配置
-    ``models.{type}.model_config`` 独立 ``api_key`` 时不挂载，避免仅存在主对话 ``API_KEY`` 时误注册。
-    （``apply_*_model_config_from_yaml`` 仍可能回落到 embed / 主 API 写环境变量，与是否注册工具无关。）
-    与 ``get_mcp_tools`` 在无付费搜索 key 时不注册 ``mcp_paid_search`` 同理。
+    Used to gate image / video / **audio** tools (含 ``audio_metadata`` 與 LLM 音訊能力)，在未配置
+    ``models.{type}.model_config`` 獨立 ``api_key`` 時不掛載，避免僅存在主對話 ``API_KEY`` 時誤註冊。
+    （``apply_*_model_config_from_yaml`` 仍可能回落到 embed / 主 API 寫環境變數，與是否註冊工具無關。）
+    與 ``get_mcp_tools`` 在無付費搜尋 key 時不註冊 ``mcp_paid_search`` 同理。
     """
     if model_type not in ("audio", "vision", "video"):
         return False
@@ -90,14 +90,14 @@ def dedicated_multimodal_model_configured(
 
 def _get_embed_model_name(embed_cfg: dict[str, Any], model_type: str) -> str:
     """
-    从 embed 配置中获取指定类型的模型名称
+    從 embed 配置中獲取指定型別的模型名稱
 
     Args:
         embed_cfg: embed 配置字典
-        model_type: 模型类型，如 'audio', 'vision', 'video'
+        model_type: 模型型別，如 'audio', 'vision', 'video'
 
     Returns:
-        模型名称字符串
+        模型名稱字串
     """
     key = _EMBED_MODEL_KEY_MAP.get(model_type)
     if key and isinstance(embed_cfg, dict):
@@ -107,12 +107,12 @@ def _get_embed_model_name(embed_cfg: dict[str, Any], model_type: str) -> str:
 
 def apply_audio_model_config_from_yaml(config_base: dict[str, Any] | None) -> None:
     """
-    从 config.yaml 读取音频模型配置并设置环境变量
+    從 config.yaml 讀取音訊模型配置並設定環境變數
 
-    配置优先级:
+    配置優先順序:
     1. models.audio.model_config
     2. embed.audio_model + embed.embed_api_key/embed_api_base
-    3. 环境变量 MODEL_NAME, API_KEY, API_BASE
+    3. 環境變數 MODEL_NAME, API_KEY, API_BASE
     """
     if not isinstance(config_base, dict):
         return
@@ -155,12 +155,12 @@ def apply_audio_model_config_from_yaml(config_base: dict[str, Any] | None) -> No
 
 def apply_vision_model_config_from_yaml(config_base: dict[str, Any] | None) -> None:
     """
-    从 config.yaml 读取图像模型配置并设置环境变量
+    從 config.yaml 讀取影象模型配置並設定環境變數
 
-    配置优先级:
+    配置優先順序:
     1. models.vision.model_config
     2. embed.vision_model + embed.embed_api_key/embed_api_base
-    3. 环境变量 MODEL_NAME, API_KEY, API_BASE
+    3. 環境變數 MODEL_NAME, API_KEY, API_BASE
     """
     if not isinstance(config_base, dict):
         return
@@ -203,12 +203,12 @@ def apply_vision_model_config_from_yaml(config_base: dict[str, Any] | None) -> N
 
 def apply_video_model_config_from_yaml(config_base: dict[str, Any] | None) -> None:
     """
-    从 config.yaml 读取视频模型配置并设置环境变量
+    從 config.yaml 讀取影片模型配置並設定環境變數
 
-    配置优先级:
+    配置優先順序:
     1. models.video.model_config
     2. embed.video_model + embed.embed_api_key/embed_api_base
-    3. 环境变量 MODEL_NAME, API_KEY, API_BASE
+    3. 環境變數 MODEL_NAME, API_KEY, API_BASE
     """
     if not isinstance(config_base, dict):
         os.environ.pop("VIDEO_UNDERSTANDING_STRICT", None)
@@ -255,12 +255,12 @@ def apply_video_model_config_from_yaml(config_base: dict[str, Any] | None) -> No
 
 def apply_image_gen_model_config_from_yaml(config_base: dict[str, Any] | None) -> None:
     """
-    从 config.yaml 读取文生图模型配置并设置环境变量
+    從 config.yaml 讀取文生圖模型配置並設定環境變數
 
-    配置优先级:
+    配置優先順序:
     1. models.image_gen.model_config
     2. embed.image_gen_model + embed.embed_api_key/embed_api_base
-    3. 环境变量 MODEL_NAME, API_KEY, API_BASE
+    3. 環境變數 MODEL_NAME, API_KEY, API_BASE
 
     Default provider: DashScope
     Default api_base: https://dashscope.aliyuncs.com/api/v1

@@ -1,23 +1,23 @@
-"""Agent 技能运行时（workspace + skill 执行）。
+"""Agent 技能執行時（workspace + skill 執行）。
 
-该模块提供 :class:`~agentsociety2.agent.skills.runtime.AgentSkillRuntime`，用于把 PersonAgent 的
-"工作目录隔离、文件读写、thread/tool 日志、skill 激活与执行"等细节集中在一个组件内，
-避免 agent 主体过度膨胀。
+該模組提供 :class:`~agentsociety2.agent.skills.runtime.AgentSkillRuntime`，用於把 PersonAgent 的
+"工作目錄隔離、檔案讀寫、thread/tool 日誌、skill 啟用與執行"等細節集中在一個元件內，
+避免 agent 主體過度膨脹。
 
-模块功能
+模組功能
 ========
 
-- **Workspace 管理**: 独立工作区、文件读写、路径安全检查
-- **Skill 执行**: 技能激活、读取、执行
-- **日志管理**: Thread 消息、工具调用、会话状态持久化
-- **上下文维护**: AGENT.md 自动更新、状态同步
-- **行为追踪**: 仿真行为事件记录与统计
-- **文件发现**: 在 AGENT.md 中自动维护文件索引
+- **Workspace 管理**: 獨立工作區、檔案讀寫、路徑安全檢查
+- **Skill 執行**: 技能啟用、讀取、執行
+- **日誌管理**: Thread 訊息、工具呼叫、會話狀態持久化
+- **上下文維護**: AGENT.md 自動更新、狀態同步
+- **行為追蹤**: 模擬行為事件記錄與統計
+- **檔案發現**: 在 AGENT.md 中自動維護檔案索引
 
-类结构
+類結構
 ======
 
-- :class:`AgentSkillRuntime`: 主运行时类
+- :class:`AgentSkillRuntime`: 主執行時類
 
 示例
 ====
@@ -33,14 +33,14 @@
     runtime = AgentSkillRuntime(agent_id=1, registry=registry)
     runtime.ensure_agent_work_dir(env_router)
 
-    # 文件操作
+    # 檔案操作
     runtime.workspace_write("state/test.json", '{"key": "value"}')
     content = runtime.workspace_read("state/test.json")
 
-    # 状态同步
+    # 狀態同步
     runtime.sync_state_to_context()
 
-    # 文件清单
+    # 檔案清單
     runtime.write_file_manifest()
 """
 
@@ -64,14 +64,14 @@ FILE_INDEX_END = "<!-- AGENT_FILE_INDEX_END -->"
 
 
 class AgentSkillRuntime:
-    """独立的 Skill 运行时组件。
+    """獨立的 Skill 執行時元件。
 
-    PersonAgent 仅通过组合使用该组件，避免把 skill/workspace 执行细节堆在 agent 主体里。
+    PersonAgent 僅透過組合使用該元件，避免把 skill/workspace 執行細節堆在 agent 主體裡。
 
     :ivar _agent_id: Agent ID。
-    :ivar _registry: Skill 注册表。
-    :ivar _agent_work_dir: Agent 工作目录。
-    :ivar _state_config: 状态文件配置（可选）。
+    :ivar _registry: Skill 登錄檔。
+    :ivar _agent_work_dir: Agent 工作目錄。
+    :ivar _state_config: 狀態檔案配置（可選）。
     """
 
     def __init__(
@@ -80,11 +80,11 @@ class AgentSkillRuntime:
         registry: SkillRegistry,
         state_config: Any = None,
     ) -> None:
-        """初始化运行时。
+        """初始化執行時。
 
         :param agent_id: Agent ID。
-        :param registry: Skill 注册表。
-        :param state_config: 状态文件配置（StateConfig 实例）。
+        :param registry: Skill 登錄檔。
+        :param state_config: 狀態檔案配置（StateConfig 例項）。
         """
         self._agent_id = agent_id
         self._registry = registry
@@ -92,16 +92,16 @@ class AgentSkillRuntime:
         self._state_config = state_config
 
     def ensure_agent_work_dir(self, env_obj: Any) -> Path:
-        """确保 agent 工作目录已初始化并返回其路径。
+        """確保 agent 工作目錄已初始化並返回其路徑。
 
-        :param env_obj: 通常为 env_router；若其包含 ``run_dir`` 属性则以其为基准目录，
-            否则退化为当前工作目录。
-        :returns: agent 工作目录路径（形如 ``<run_dir>/agents/agent_0001``）。
+        :param env_obj: 通常為 env_router；若其包含 ``run_dir`` 屬性則以其為基準目錄，
+            否則退化為當前工作目錄。
+        :returns: agent 工作目錄路徑（形如 ``<run_dir>/agents/agent_0001``）。
         """
         if self._agent_work_dir is not None:
             return self._agent_work_dir
 
-        # 优先从 env_router 获取 run_dir
+        # 優先從 env_router 獲取 run_dir
         run_dir = getattr(env_obj, "run_dir", None)
         if run_dir is not None:
             base_path = Path(run_dir)
@@ -115,14 +115,14 @@ class AgentSkillRuntime:
         return self._agent_work_dir
 
     def ensure_standard_workspace_dirs(self) -> None:
-        """确保 workspace 标准目录结构存在。
+        """確保 workspace 標準目錄結構存在。
 
-        创建以下目录：
-        - ``state/`` - Skills 状态文件
-        - ``memory/`` - 长期记忆
-        - ``input/`` - 外部输入
-        - ``custom/skills/`` - 自定义技能
-        - ``.runtime/logs/`` - 运行时日志
+        建立以下目錄：
+        - ``state/`` - Skills 狀態檔案
+        - ``memory/`` - 長期記憶
+        - ``input/`` - 外部輸入
+        - ``custom/skills/`` - 自定義技能
+        - ``.runtime/logs/`` - 執行時日誌
         """
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
@@ -138,7 +138,7 @@ class AgentSkillRuntime:
                 )
 
     def _resolve_workspace_path(self, relative_path: str) -> Path:
-        """将相对路径解析到 workspace 内并做越界保护。"""
+        """將相對路徑解析到 workspace 內並做越界保護。"""
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
         work_dir = self._agent_work_dir
@@ -148,16 +148,16 @@ class AgentSkillRuntime:
         return target
 
     def workspace_root(self) -> Path:
-        """:returns: workspace 根目录路径。"""
+        """:returns: workspace 根目錄路徑。"""
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
         return self._agent_work_dir
 
     def workspace_read(self, relative_path: str) -> str:
-        """读取 workspace 内文件内容。
+        """讀取 workspace 內檔案內容。
 
-        :param relative_path: 相对 workspace 的路径。
-        :returns: 文件文本内容；若文件不存在则返回空字符串。
+        :param relative_path: 相對 workspace 的路徑。
+        :returns: 檔案文字內容；若檔案不存在則返回空字串。
         """
         target = self._resolve_workspace_path(relative_path)
         if not target.exists() or not target.is_file():
@@ -165,11 +165,11 @@ class AgentSkillRuntime:
         return target.read_text(encoding="utf-8")
 
     def workspace_write(self, relative_path: str, content: str) -> str:
-        """写入 workspace 内文件（UTF-8）。
+        """寫入 workspace 內檔案（UTF-8）。
 
-        :param relative_path: 相对 workspace 的路径。
-        :param content: 写入内容。
-        :returns: 实际写入的绝对路径字符串。
+        :param relative_path: 相對 workspace 的路徑。
+        :param content: 寫入內容。
+        :returns: 實際寫入的絕對路徑字串。
         """
         target = self._resolve_workspace_path(relative_path)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -177,12 +177,12 @@ class AgentSkillRuntime:
         return str(target)
 
     def workspace_exists(self, relative_path: str) -> bool:
-        """:returns: workspace 内路径是否存在。"""
+        """:returns: workspace 內路徑是否存在。"""
         target = self._resolve_workspace_path(relative_path)
         return target.exists()
 
     def workspace_delete(self, relative_path: str) -> bool:
-        """删除 workspace 内文件（仅文件，目录不删除）。"""
+        """刪除 workspace 內檔案（僅檔案，目錄不刪除）。"""
         target = self._resolve_workspace_path(relative_path)
         if not target.exists() or target.is_dir():
             return False
@@ -190,10 +190,10 @@ class AgentSkillRuntime:
         return True
 
     def workspace_list(self, relative_path: str = ".") -> list[str]:
-        """列出 workspace 内文件（递归）。
+        """列出 workspace 內檔案（遞迴）。
 
-        :param relative_path: 相对 workspace 的根路径。
-        :returns: 文件相对路径列表（相对 workspace 根）。
+        :param relative_path: 相對 workspace 的根路徑。
+        :returns: 檔案相對路徑列表（相對 workspace 根）。
         """
         work_dir = self.workspace_root()  # raises RuntimeError if not initialized
         root = self._resolve_workspace_path(relative_path)
@@ -222,13 +222,13 @@ class AgentSkillRuntime:
             Callable[[dict[str, Any]], Awaitable[dict[str, Any]]] | None
         ) = None,
     ) -> dict[str, Any]:
-        """执行某个 skill（转发到 registry）。
+        """執行某個 skill（轉發到 registry）。
 
-        :param skill_name: skill 名称。
-        :param args: 执行参数（由 skill 脚本/协议自行定义）。
-        :param codegen_executor: 可选。用于把 skill 内部的 codegen 调度回 env 的执行器。
-        :returns: 执行结果字典（由 :class:`~agentsociety2.agent.skills.SkillRegistry` 约定）。
-        :raises RuntimeError: workspace 未初始化时抛出。
+        :param skill_name: skill 名稱。
+        :param args: 執行引數（由 skill 指令碼/協議自行定義）。
+        :param codegen_executor: 可選。用於把 skill 內部的 codegen 排程回 env 的執行器。
+        :returns: 執行結果字典（由 :class:`~agentsociety2.agent.skills.SkillRegistry` 約定）。
+        :raises RuntimeError: workspace 未初始化時丟擲。
         """
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
@@ -249,14 +249,14 @@ class AgentSkillRuntime:
         token_usage: dict[str, Any] | None = None,
         runtime_snapshot: dict[str, Any] | None = None,
     ) -> None:
-        """落地当前会话状态到 workspace，并追加到历史记录。
+        """落地當前會話狀態到 workspace，並追加到歷史記錄。
 
-        :param tick: 当前 tick。
-        :param t: 当前仿真时间。
-        :param selected_skills: 本步可见/可选技能集合。
-        :param activated_skills: 可选。已激活技能集合。
-        :param token_usage: 可选。按模型统计的累计 token 使用量。
-        :param runtime_snapshot: 可选。面向调试/前端展示的完整 agent 快照。
+        :param tick: 當前 tick。
+        :param t: 當前模擬時間。
+        :param selected_skills: 本步可見/可選技能集合。
+        :param activated_skills: 可選。已啟用技能集合。
+        :param token_usage: 可選。按模型統計的累計 token 使用量。
+        :param runtime_snapshot: 可選。面向除錯/前端展示的完整 agent 快照。
         """
         state = {
             "agent_id": self._agent_id,
@@ -288,7 +288,7 @@ class AgentSkillRuntime:
         self.append_session_state_event(state)
 
     def append_session_state_event(self, state: dict[str, Any]) -> None:
-        """追加 session_state 事件到 runtime 日志。"""
+        """追加 session_state 事件到 runtime 日誌。"""
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
         path = self._agent_work_dir / RUNTIME_LOG_DIR / "session_state_history.jsonl"
@@ -297,7 +297,7 @@ class AgentSkillRuntime:
             f.write(jr_dumps(state, indent=None) + "\n")
 
     def append_tool_log(self, entry: dict[str, Any]) -> None:
-        """追加单条工具调用日志（jsonl）。"""
+        """追加單條工具呼叫日誌（jsonl）。"""
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
         log_path = self._agent_work_dir / RUNTIME_LOG_DIR / "tool_calls.jsonl"
@@ -312,7 +312,7 @@ class AgentSkillRuntime:
         selected_skills: set[str],
         tool_history: list[dict[str, Any]],
     ) -> None:
-        """追加 step 回放记录（jsonl）。"""
+        """追加 step 回放記錄（jsonl）。"""
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
         replay_path = self._agent_work_dir / RUNTIME_LOG_DIR / "step_replay.jsonl"
@@ -327,14 +327,14 @@ class AgentSkillRuntime:
             f.write(jr_dumps(record, indent=None) + "\n")
 
     def read_json(self, relative_path: str, default: Any) -> Any:
-        """读取工作目录中的 JSON 文件；空内容返回 default。"""
+        """讀取工作目錄中的 JSON 檔案；空內容返回 default。"""
         raw = self.workspace_read(relative_path)
         if not raw:
             return default
         return jr_parse(raw)
 
     def read_recent_tool_logs(self, limit: int = 20) -> list[dict[str, Any]]:
-        """读取最近 N 条工具调用日志。"""
+        """讀取最近 N 條工具呼叫日誌。"""
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
         path = self._agent_work_dir / RUNTIME_LOG_DIR / "tool_calls.jsonl"
@@ -361,10 +361,10 @@ class AgentSkillRuntime:
         *,
         tool_result_full: Optional[dict[str, Any]] = None,
     ) -> None:
-        """追加 thread 消息到 runtime thread 日志。
+        """追加 thread 訊息到 runtime thread 日誌。
 
-        ``content`` 为喂给 LLM 的文本；若提供 ``tool_result_full``，则同条记录落盘完整工具结果
-        （读取 thread 时仍只用 ``content`` 构造 messages）。
+        ``content`` 為餵給 LLM 的文字；若提供 ``tool_result_full``，則同條記錄落盤完整工具結果
+        （讀取 thread 時仍只用 ``content`` 構造 messages）。
         """
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
@@ -382,7 +382,7 @@ class AgentSkillRuntime:
             f.write(jr_dumps(entry, indent=None) + "\n")
 
     def read_recent_thread_messages(self, limit: int = 40) -> list[dict[str, str]]:
-        """读取最近 N 条 thread 消息并转换为 LLM messages 结构。"""
+        """讀取最近 N 條 thread 訊息並轉換為 LLM messages 結構。"""
         if self._agent_work_dir is None:
             raise RuntimeError("Agent workspace is not initialized")
         path = self._agent_work_dir / RUNTIME_LOG_DIR / "thread_messages.jsonl"
@@ -410,12 +410,12 @@ class AgentSkillRuntime:
         return messages
 
     def build_workspace_structure_prompt(self) -> str:
-        """构建 workspace 结构说明（Claude/Cursor 风格：极简 + 动态发现）。
+        """構建 workspace 結構說明（Claude/Cursor 風格：極簡 + 動態發現）。
 
-        不维护复杂的 manifest/registry，只提供目录约定，让 Agent 自己探索。
-        状态文件示例从配置或实际文件动态生成。
+        不維護複雜的 manifest/registry，只提供目錄約定，讓 Agent 自己探索。
+        狀態檔案示例從配置或實際檔案動態生成。
 
-        :returns: workspace 结构说明文本。
+        :returns: workspace 結構說明文字。
         """
         lines = [
             "## Workspace Structure",
@@ -440,7 +440,7 @@ class AgentSkillRuntime:
             "Let the agent discover what it needs dynamically.",
         ]
 
-        # 动态添加当前存在的 state 文件
+        # 動態新增當前存在的 state 檔案
         if self._agent_work_dir is not None:
             state_dir = self._agent_work_dir / "state"
             if state_dir.exists() and state_dir.is_dir():
@@ -459,7 +459,7 @@ class AgentSkillRuntime:
 
     @staticmethod
     def _replace_generated_file_index(content: str, manifest: str) -> str:
-        """替换 AGENT.md 中的自动文件索引块，保留人工内容。"""
+        """替換 AGENT.md 中的自動檔案索引塊，保留人工內容。"""
         block = f"{FILE_INDEX_START}\n{manifest.rstrip()}\n{FILE_INDEX_END}"
         if FILE_INDEX_START in content and FILE_INDEX_END in content:
             before, _, rest = content.partition(FILE_INDEX_START)
@@ -470,7 +470,7 @@ class AgentSkillRuntime:
         return block
 
     def refresh_workspace_documents(self) -> None:
-        """同步工作区动态文档。"""
+        """同步工作區動態文件。"""
         self.sync_state_to_context()
         self.write_file_manifest()
         self.emit_behavior_event(
@@ -486,12 +486,12 @@ class AgentSkillRuntime:
     # ==================== AGENT.md Support ====================
 
     def read_agent_context(self) -> dict[str, Any]:
-        """读取 AGENT.md 文件内容。
+        """讀取 AGENT.md 檔案內容。
 
-        该文件是agent的自我声明文件，包含当前任务、重要上下文等信息。
-        使用YAML frontmatter格式，便于程序解析。
+        該檔案是agent的自我宣告檔案，包含當前任務、重要上下文等資訊。
+        使用YAML frontmatter格式，便於程式解析。
 
-        :returns: 解析后的上下文字典，包含metadata和content两部分。
+        :returns: 解析後的上下文字典，包含metadata和content兩部分。
         """
         content = self.workspace_read(AGENT_DOCUMENT)
         if not content:
@@ -500,10 +500,10 @@ class AgentSkillRuntime:
         return self._parse_context_md(content)
 
     def _parse_context_md(self, content: str) -> dict[str, Any]:
-        """解析 AGENT.md 文件（YAML frontmatter + markdown）。
+        """解析 AGENT.md 檔案（YAML frontmatter + markdown）。
 
-        :param content: 文件原始内容。
-        :returns: {"metadata": {...}, "content": "markdown内容"}
+        :param content: 檔案原始內容。
+        :returns: {"metadata": {...}, "content": "markdown內容"}
         """
         metadata: dict[str, Any] = {}
         body = content
@@ -517,7 +517,7 @@ class AgentSkillRuntime:
                     yaml = YAML(typ="safe")
                     metadata = yaml.load(parts[1]) or {}
                 except Exception as e:
-                    # 不静默回落：记录解析错误，保留 body 以便人工修复
+                    # 不靜默回落：記錄解析錯誤，保留 body 以便人工修復
                     logger.warning("AGENT.md YAML frontmatter parse failed: %s", e)
                     metadata = {
                         "_agent_md_parse_error": str(e),
@@ -528,24 +528,24 @@ class AgentSkillRuntime:
         return {"metadata": metadata, "content": body}
 
     def update_agent_context(self, updates: dict[str, Any]) -> None:
-        """更新 AGENT.md（合并而非覆盖）。
+        """更新 AGENT.md（合併而非覆蓋）。
 
-        :param updates: 要更新的metadata字段。
+        :param updates: 要更新的metadata欄位。
         """
         existing = self.read_agent_context()
         existing["metadata"].update(updates)
         self._write_agent_context(existing["metadata"], existing["content"])
 
     def set_agent_context_content(self, content: str) -> None:
-        """设置 AGENT.md 的内容部分（保留metadata）。
+        """設定 AGENT.md 的內容部分（保留metadata）。
 
-        :param content: 新的markdown内容。
+        :param content: 新的markdown內容。
         """
         existing = self.read_agent_context()
         self._write_agent_context(existing["metadata"], content)
 
     def _write_agent_context(self, metadata: dict[str, Any], content: str) -> None:
-        """写入 AGENT.md 文件。"""
+        """寫入 AGENT.md 檔案。"""
         from ruamel.yaml import YAML
         from io import StringIO
 
@@ -567,14 +567,14 @@ class AgentSkillRuntime:
         priority: str | None = None,
         notes: str | None = None,
     ) -> None:
-        """自动更新 AGENT.md（仿真人行为追踪）。
+        """自動更新 AGENT.md（模擬人行為追蹤）。
 
-        根据仿真人当前状态自动维护上下文文件，支持跨会话持久化。
+        根據模擬人當前狀態自動維護上下文檔案，支援跨會話持久化。
 
-        :param current_task: 当前任务描述。
-        :param active_goal: 活跃目标。
-        :param priority: 优先级。
-        :param notes: 额外备注。
+        :param current_task: 當前任務描述。
+        :param active_goal: 活躍目標。
+        :param priority: 優先順序。
+        :param notes: 額外備註。
         """
         updates: dict[str, Any] = {}
         if current_task is not None:
@@ -590,14 +590,14 @@ class AgentSkillRuntime:
         if notes is not None:
             existing = self.read_agent_context()
             existing_content = existing.get("content", "")
-            # 追加时间戳备注
+            # 追加時間戳備註
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
             new_content = (
                 f"{existing_content}\n\n## [{timestamp}]\n{notes}\n"
                 if existing_content
                 else f"## [{timestamp}]\n{notes}\n"
             )
-            # 对标 CLAUDE.md：保持简洁，避免无限增长
+            # 對標 CLAUDE.md：保持簡潔，避免無限增長
             max_chars = 2000
             if self._state_config is not None:
                 max_chars = int(
@@ -607,7 +607,7 @@ class AgentSkillRuntime:
 
     @staticmethod
     def _flatten_summary_value(value: Any, max_len: int = 100) -> str:
-        """将状态字段压缩成适合放入上下文的短文本。"""
+        """將狀態欄位壓縮成適合放入上下文的短文字。"""
         if value is None:
             return ""
         if isinstance(value, str):
@@ -642,10 +642,10 @@ class AgentSkillRuntime:
         summary_field: str = "",
         max_len: int = 100,
     ) -> str:
-        """从任意 JSON 状态中提取通用短摘要。
+        """從任意 JSON 狀態中提取通用短摘要。
 
-        运行时不理解具体 skill 的字段语义。技能若希望被稳定摘要，可写入
-        ``_summary`` 或 ``summary``；否则这里只展示少量顶层结构，帮助定位文件。
+        執行時不理解具體 skill 的欄位語義。技能若希望被穩定摘要，可寫入
+        ``_summary`` 或 ``summary``；否則這裡只展示少量頂層結構，幫助定位檔案。
         """
         if not isinstance(data, dict) or not data:
             return ""
@@ -685,10 +685,10 @@ class AgentSkillRuntime:
 
     @classmethod
     def _describe_state_json(cls, data: Any, max_len: int = 100) -> str:
-        """从自描述状态文件中提取文件用途。
+        """從自描述狀態檔案中提取檔案用途。
 
-        只读取通用元数据，不解释任何具体 skill 字段。
-        推荐技能写入 ``_meta.purpose`` 或 ``_meta.description``。
+        只讀取通用後設資料，不解釋任何具體 skill 欄位。
+        推薦技能寫入 ``_meta.purpose`` 或 ``_meta.description``。
         """
         if not isinstance(data, dict):
             return ""
@@ -702,7 +702,7 @@ class AgentSkillRuntime:
         return ""
 
     def _memory_file_candidates(self) -> list[Path]:
-        """返回当前 workspace 中可能的长期记忆文件路径。"""
+        """返回當前 workspace 中可能的長期記憶檔案路徑。"""
         if self._agent_work_dir is None:
             return []
         return [
@@ -713,7 +713,7 @@ class AgentSkillRuntime:
 
     @staticmethod
     def _count_nonempty_lines(path: Path) -> int:
-        """统计非空行数。"""
+        """統計非空行數。"""
         try:
             with path.open("r", encoding="utf-8") as f:
                 return sum(1 for line in f if line.strip())
@@ -721,9 +721,9 @@ class AgentSkillRuntime:
             return 0
 
     def sync_state_to_context(self) -> None:
-        """将当前状态同步到 AGENT.md。
+        """將當前狀態同步到 AGENT.md。
 
-        只做通用文件发现和短摘要，不理解具体 skill 的字段语义。
+        只做通用檔案發現和短摘要，不理解具體 skill 的欄位語義。
         """
         if self._agent_work_dir is None:
             return
@@ -789,12 +789,12 @@ class AgentSkillRuntime:
             self._write_agent_context(metadata, str(context.get("content", "")))
 
     def build_workspace_summary(self) -> str:
-        """生成 workspace 内容摘要。
+        """生成 workspace 內容摘要。
 
-        用于在step开始时让agent快速了解workspace状态。
-        动态发现 state/ 目录下的所有状态文件。
+        用於在step開始時讓agent快速瞭解workspace狀態。
+        動態發現 state/ 目錄下的所有狀態檔案。
 
-        :returns: workspace摘要文本。
+        :returns: workspace摘要文字。
         """
         if self._agent_work_dir is None:
             return ""
@@ -852,21 +852,21 @@ class AgentSkillRuntime:
         error: str | None = None,
         duration_ms: int | None = None,
     ) -> None:
-        """发送结构化行为事件到追踪日志。
+        """傳送結構化行為事件到追蹤日誌。
 
-        采用通用 trace/span 形态，不绑定具体 skill 语义。
+        採用通用 trace/span 形態，不繫結具體 skill 語義。
 
-        :param event_type: 事件类型（如 "tool_call", "skill_activate", "decision"）。
-        :param data: 事件数据。
-        :param tick: 当前 tick（可选）。
-        :param trace_id: 当前 step/run 的追踪 ID。
-        :param span_id: 当前操作 span ID。
+        :param event_type: 事件型別（如 "tool_call", "skill_activate", "decision"）。
+        :param data: 事件資料。
+        :param tick: 當前 tick（可選）。
+        :param trace_id: 當前 step/run 的追蹤 ID。
+        :param span_id: 當前操作 span ID。
         :param parent_span_id: 父 span ID。
-        :param name: 操作名称。
-        :param input_summary: 输入摘要，不写大内容或隐私内容。
-        :param output_summary: 输出摘要。
-        :param error: 错误摘要。
-        :param duration_ms: 操作耗时毫秒。
+        :param name: 操作名稱。
+        :param input_summary: 輸入摘要，不寫大內容或隱私內容。
+        :param output_summary: 輸出摘要。
+        :param error: 錯誤摘要。
+        :param duration_ms: 操作耗時毫秒。
         """
         if self._agent_work_dir is None:
             return
@@ -887,17 +887,17 @@ class AgentSkillRuntime:
             "data": data,
         }
 
-        # 追加到行为追踪日志
+        # 追加到行為追蹤日誌
         path = self._agent_work_dir / RUNTIME_LOG_DIR / "behavior_trace.jsonl"
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("a", encoding="utf-8") as f:
             f.write(jr_dumps(event, indent=None) + "\n")
 
     def get_behavior_summary(self, limit: int = 100) -> dict[str, Any]:
-        """获取行为摘要统计。
+        """獲取行為摘要統計。
 
-        :param limit: 读取的事件数量上限。
-        :return: 行为摘要字典。
+        :param limit: 讀取的事件數量上限。
+        :return: 行為摘要字典。
         """
         if self._agent_work_dir is None:
             return {}
@@ -906,7 +906,7 @@ class AgentSkillRuntime:
         if not path.exists():
             return {}
 
-        # 读取最近事件
+        # 讀取最近事件
         events: list[dict] = []
         with path.open("r", encoding="utf-8") as f:
             for line in f:
@@ -921,7 +921,7 @@ class AgentSkillRuntime:
 
         recent = events[-limit:] if len(events) > limit else events
 
-        # 统计
+        # 統計
         tool_counts: dict[str, int] = {}
         skill_activations: dict[str, int] = {}
         errors: list[dict] = []
@@ -955,11 +955,11 @@ class AgentSkillRuntime:
     # ==================== File Discovery ====================
 
     def build_file_manifest(self) -> str:
-        """构建 workspace 文件清单。
+        """構建 workspace 檔案清單。
 
-        动态扫描 workspace 目录，生成 Markdown 格式的短文件索引。
+        動態掃描 workspace 目錄，生成 Markdown 格式的短檔案索引。
 
-        :returns: Markdown 格式的文件清单。
+        :returns: Markdown 格式的檔案清單。
         """
         if self._agent_work_dir is None:
             return ""
@@ -1067,7 +1067,7 @@ class AgentSkillRuntime:
 
     @staticmethod
     def _format_file_size(size: int) -> str:
-        """格式化文件大小。"""
+        """格式化檔案大小。"""
         if size < 1024:
             return f"{size}B"
         elif size < 1024 * 1024:
@@ -1076,7 +1076,7 @@ class AgentSkillRuntime:
             return f"{size / (1024 * 1024):.1f}MB"
 
     def write_file_manifest(self) -> None:
-        """将文件索引写入 AGENT.md 的自动生成区块。"""
+        """將檔案索引寫入 AGENT.md 的自動生成區塊。"""
         manifest = self.build_file_manifest()
         if manifest:
             existing = self.read_agent_context()

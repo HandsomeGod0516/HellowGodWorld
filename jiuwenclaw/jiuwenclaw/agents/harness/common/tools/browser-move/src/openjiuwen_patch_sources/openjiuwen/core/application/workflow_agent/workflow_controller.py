@@ -381,10 +381,10 @@ class WorkflowController(IntentDetectionController):
                     result.result if hasattr(result, 'result') else None
                 )
                 
-                # 状态保存：保存所有中断
+                # 狀態儲存：儲存所有中斷
                 await self.interrupt_task(task, session, interaction_data)
 
-                # 流式返回：只返回第一个中断
+                # 流式返回：只返回第一個中斷
                 first_interrupt = self._get_first_interrupt(interaction_data)
                 logger.info(
                     f"Workflow has {self._count_interactions(interaction_data)} "
@@ -1043,17 +1043,17 @@ class WorkflowController(IntentDetectionController):
             self,
             interaction_data: Optional[list]
     ) -> list:
-        """从 interaction_data 中提取第一个中断用于流式返回
+        """從 interaction_data 中提取第一個中斷用於流式返回
         
-        当 workflow 产生多个中断时，状态中保存所有中断，
-        但流式输出只返回第一个中断给用户。
+        當 workflow 產生多箇中斷時，狀態中儲存所有中斷，
+        但流式輸出只返回第一個中斷給使用者。
         
         Args:
-            interaction_data: OutputSchema 列表，包含所有中断
+            interaction_data: OutputSchema 列表，包含所有中斷
             
         Returns:
-            list: 只包含第一个 __interaction__ 的 OutputSchema 列表
-                  保持其他类型的 chunk（tracer等）不变
+            list: 只包含第一個 __interaction__ 的 OutputSchema 列表
+                  保持其他型別的 chunk（tracer等）不變
         """
         if not interaction_data:
             return []
@@ -1063,7 +1063,7 @@ class WorkflowController(IntentDetectionController):
         
         for chunk in interaction_data:
             if isinstance(chunk, OutputSchema) and chunk.type == INTERACTION:
-                # 只保留第一个 __interaction__
+                # 只保留第一個 __interaction__
                 if not first_interrupt_found:
                     result.append(chunk)
                     first_interrupt_found = True
@@ -1072,7 +1072,7 @@ class WorkflowController(IntentDetectionController):
                         f"{chunk.payload.id if hasattr(chunk.payload, 'id') else 'unknown'}"
                     )
                 else:
-                    # 跳过后续的 __interaction__
+                    # 跳過後續的 __interaction__
                     logger.info(
                         f"Skipping additional interrupt: component_id="
                         f"{chunk.payload.id if hasattr(chunk.payload, 'id') else 'unknown'}"
@@ -1084,13 +1084,13 @@ class WorkflowController(IntentDetectionController):
             self,
             interaction_data: Optional[list]
     ) -> int:
-        """统计 interaction_data 中的中断数量
+        """統計 interaction_data 中的中斷數量
         
         Args:
             interaction_data: OutputSchema 列表
             
         Returns:
-            int: 中断数量
+            int: 中斷數量
         """
         if not interaction_data:
             return 0

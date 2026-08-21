@@ -1,5 +1,5 @@
 /**
- * 工具函数导出
+ * 工具函式匯出
  */
 
 export * from './formatters';

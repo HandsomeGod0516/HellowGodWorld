@@ -237,7 +237,7 @@ function validateExactlyOneAuth(token?: string, systemToken?: string): string | 
   const hasToken = Boolean(token && token.trim());
   const hasSystemToken = Boolean(systemToken && systemToken.trim());
   if (hasToken === hasSystemToken) {
-    return "请且仅请提供一种鉴权方式：--token 或 --system-token";
+    return "請且僅請提供一種鑑權方式：--token 或 --system-token";
   }
   return null;
 }
@@ -248,9 +248,9 @@ function formatMaybe(value: unknown): string {
 }
 
 function normalizeTeamSkillsErrorDetail(detail: unknown): string {
-  if (detail === null || detail === undefined) return "请求失败";
+  if (detail === null || detail === undefined) return "請求失敗";
   const raw = String(detail).trim();
-  if (!raw) return "请求失败";
+  if (!raw) return "請求失敗";
   let parsed: unknown = null;
   if ((raw.startsWith("{") && raw.endsWith("}")) || (raw.startsWith("[") && raw.endsWith("]"))) {
     try {
@@ -261,7 +261,7 @@ function normalizeTeamSkillsErrorDetail(detail: unknown): string {
   }
   if (!parsed || typeof parsed !== "object") {
     const plain = raw
-      .replaceAll("插件", "技能")
+      .replaceAll("外掛", "技能")
       .replace(/\bplugin_id\b/g, "skill_id")
       .replace(/\bplugin\b/gi, "skill");
     return plain;
@@ -274,21 +274,21 @@ function normalizeTeamSkillsErrorDetail(detail: unknown): string {
   const error = typeof detailObj.error === "string" ? detailObj.error : "";
   const rawMessage = typeof detailObj.message === "string" ? detailObj.message : "";
   const message = rawMessage
-    .replaceAll("插件", "技能")
+    .replaceAll("外掛", "技能")
     .replace(/\bplugin_id\b/g, "skill_id")
     .replace(/\bplugin\b/gi, "skill");
 
   if (error === "invalid_plugin_config") {
-    return `${message || "技能配置格式错误或缺失"}\n建议：检查并补齐 SKILL.md/frontmatter，重新执行 /teamskills validate 后再发布。`;
+    return `${message || "技能配置格式錯誤或缺失"}\n建議：檢查並補齊 SKILL.md/frontmatter，重新執行 /teamskills validate 後再發布。`;
   }
   if (error === "plugin_not_found") {
-    return `${message || "技能不存在"}\n建议：请使用 skill_id（不是名称）重试，可先用 /teamskills search --asset-id <skill_id> 或 /teamskills info <skill_id> --version <x.y.z> 校验。`;
+    return `${message || "技能不存在"}\n建議：請使用 skill_id（不是名稱）重試，可先用 /teamskills search --asset-id <skill_id> 或 /teamskills info <skill_id> --version <x.y.z> 校驗。`;
   }
   if (error.includes("token") || /unauthorized|forbidden/i.test(message)) {
-    return `${message || "鉴权失败"}\n建议：检查 /teamskills config 的 token/system-token，且二者只能配置一种。`;
+    return `${message || "鑑權失敗"}\n建議：檢查 /teamskills config 的 token/system-token，且二者只能配置一種。`;
   }
   if (error === "version_conflict") {
-    return `${message || "版本冲突"}\n建议：如需覆盖请添加 --force；若不覆盖请升级 --version。`;
+    return `${message || "版本衝突"}\n建議：如需覆蓋請新增 --force；若不覆蓋請升級 --version。`;
   }
 
   const parts: string[] = [];
@@ -351,7 +351,7 @@ export function createTeamSkillsCommand(): SlashCommand {
         action: async (ctx, args) => {
           const params = buildInitParams(args);
           if (!params.name) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：<name>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：<name>"));
             return;
           }
           if (!params.skill_type) {
@@ -363,7 +363,7 @@ export function createTeamSkillsCommand(): SlashCommand {
             path?: string;
           }>("skills.teamskillshub.init", params, 120_000);
           if (!payload.success) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", payload.detail || "初始化失败"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", payload.detail || "初始化失敗"));
             return;
           }
           ctx.addItem(makeItem(ctx.sessionId, "info", `初始化成功: ${payload.path || params.name}`));
@@ -379,7 +379,7 @@ export function createTeamSkillsCommand(): SlashCommand {
         action: async (ctx, args) => {
           const params = buildValidateParams(args);
           if (!params.path) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：<path>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：<path>"));
             return;
           }
           if (!params.skill_type) {
@@ -395,15 +395,15 @@ export function createTeamSkillsCommand(): SlashCommand {
           if (!payload.success) {
             const issues = (payload.errors || []).filter((item) => typeof item === "string" && item.trim());
             const issueText = issues.length > 0 ? `\n- ${issues.join("\n- ")}` : "";
-            const message = `${payload.detail || "校验失败"}${issueText}`;
+            const message = `${payload.detail || "校驗失敗"}${issueText}`;
             ctx.addItem(makeItem(ctx.sessionId, "error", message));
             return;
           }
           const warnings = payload.warnings || [];
           const content =
             warnings.length > 0
-              ? `校验通过: ${payload.name || "unknown"}（${warnings.join("；")}）`
-              : `校验通过: ${payload.name || "unknown"}`;
+              ? `校驗透過: ${payload.name || "unknown"}（${warnings.join("；")}）`
+              : `校驗透過: ${payload.name || "unknown"}`;
           ctx.addItem(makeItem(ctx.sessionId, "info", content));
         },
       },
@@ -417,7 +417,7 @@ export function createTeamSkillsCommand(): SlashCommand {
         action: async (ctx, args) => {
           const params = buildPackParams(args);
           if (!params.path) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：<path>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：<path>"));
             return;
           }
           const payload = await ctx.request<{
@@ -426,7 +426,7 @@ export function createTeamSkillsCommand(): SlashCommand {
             path?: string;
           }>("skills.teamskillshub.pack", params, 120_000);
           if (!payload.success) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", payload.detail || "打包失败"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", payload.detail || "打包失敗"));
             return;
           }
           ctx.addItem(makeItem(ctx.sessionId, "info", `打包成功: ${payload.path || "unknown"}`));
@@ -442,11 +442,11 @@ export function createTeamSkillsCommand(): SlashCommand {
         action: async (ctx, args) => {
           const params = buildInfoParams(args);
           if (!params.asset_id) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：<asset_id>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：<asset_id>"));
             return;
           }
           if (!params.version) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：--version <x.y.z>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：--version <x.y.z>"));
             return;
           }
           await hydrateTeamSkillsMarketUrlFromConfig(ctx, params);
@@ -462,7 +462,7 @@ export function createTeamSkillsCommand(): SlashCommand {
               makeItem(
                 ctx.sessionId,
                 "error",
-                normalizeTeamSkillsErrorDetail(payload.detail || "获取 TeamSkills Hub 详情失败"),
+                normalizeTeamSkillsErrorDetail(payload.detail || "獲取 TeamSkills Hub 詳情失敗"),
               ),
             );
             return;
@@ -479,7 +479,7 @@ export function createTeamSkillsCommand(): SlashCommand {
             `updated_at=${formatMaybe(data.update_time || data.updated_at)}`,
           ];
           ctx.addItem(
-            makeItem(ctx.sessionId, "info", `详情获取成功:\n${lines.map((line) => `- ${line}`).join("\n")}`),
+            makeItem(ctx.sessionId, "info", `詳情獲取成功:\n${lines.map((line) => `- ${line}`).join("\n")}`),
           );
         },
       },
@@ -512,7 +512,7 @@ export function createTeamSkillsCommand(): SlashCommand {
               makeItem(
                 ctx.sessionId,
                 "error",
-                normalizeTeamSkillsErrorDetail(payload.detail || payload.detail_key || "搜索失败"),
+                normalizeTeamSkillsErrorDetail(payload.detail || payload.detail_key || "搜尋失敗"),
               ),
             );
             return;
@@ -525,11 +525,11 @@ export function createTeamSkillsCommand(): SlashCommand {
             makeItem(
               ctx.sessionId,
               "info",
-              `搜索完成，结果 ${payload.count ?? items.length} 条`,
+              `搜尋完成，結果 ${payload.count ?? items.length} 條`,
               "*",
               {
                 view: "list",
-                title: `搜索完成，结果 ${payload.count ?? items.length} 条（格式：name | skill_id | version）`,
+                title: `搜尋完成，結果 ${payload.count ?? items.length} 條（格式：name | skill_id | version）`,
                 items,
               },
             ),
@@ -565,7 +565,7 @@ export function createTeamSkillsCommand(): SlashCommand {
             makeItem(
               ctx.sessionId,
               "info",
-              items.length > 0 ? `已安装技能: ${items.length} 个` : "未找到已安装技能",
+              items.length > 0 ? `已安裝技能: ${items.length} 個` : "未找到已安裝技能",
               "*",
               {
                 view: "list",
@@ -587,7 +587,7 @@ export function createTeamSkillsCommand(): SlashCommand {
         action: async (ctx, args) => {
           const params = buildInstallParams(args);
           if (!params.asset_id) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：<asset_id>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：<asset_id>"));
             return;
           }
           await hydrateTeamSkillsMarketUrlFromConfig(ctx, params);
@@ -602,7 +602,7 @@ export function createTeamSkillsCommand(): SlashCommand {
               makeItem(
                 ctx.sessionId,
                 "error",
-                normalizeTeamSkillsErrorDetail(payload.detail || payload.detail_key || "安装失败"),
+                normalizeTeamSkillsErrorDetail(payload.detail || payload.detail_key || "安裝失敗"),
               ),
             );
             return;
@@ -610,8 +610,8 @@ export function createTeamSkillsCommand(): SlashCommand {
           const displayName = payload.skill?.name || params.asset_id;
           const installPath = payload.skill?.path;
           const content = installPath
-            ? `安装成功: ${displayName}\n安装位置: ${installPath}`
-            : `安装成功: ${displayName}`;
+            ? `安裝成功: ${displayName}\n安裝位置: ${installPath}`
+            : `安裝成功: ${displayName}`;
           ctx.addItem(makeItem(ctx.sessionId, "info", content));
         },
       },
@@ -625,7 +625,7 @@ export function createTeamSkillsCommand(): SlashCommand {
         action: async (ctx, args) => {
           const name = args.trim();
           if (!name) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：<name>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：<name>"));
             return;
           }
           const payload = await ctx.request<{ success?: boolean; detail?: string }>(
@@ -634,10 +634,10 @@ export function createTeamSkillsCommand(): SlashCommand {
             120_000,
           );
           if (!payload.success) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", payload.detail || "卸载失败"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", payload.detail || "解除安裝失敗"));
             return;
           }
-          ctx.addItem(makeItem(ctx.sessionId, "info", `卸载成功: ${name}`));
+          ctx.addItem(makeItem(ctx.sessionId, "info", `解除安裝成功: ${name}`));
         },
       },
       {
@@ -665,7 +665,7 @@ export function createTeamSkillsCommand(): SlashCommand {
               applied_without_restart?: boolean;
             }>("config.set", updates);
             const updatedKeys = setPayload.updated || [];
-            const restartHint = setPayload.applied_without_restart ? "已即时生效" : "需重启后生效";
+            const restartHint = setPayload.applied_without_restart ? "已即時生效" : "需重啟後生效";
             ctx.addItem(
               makeItem(
                 ctx.sessionId,
@@ -686,7 +686,7 @@ export function createTeamSkillsCommand(): SlashCommand {
             makeItem(
               ctx.sessionId,
               "info",
-              `TeamSkills 当前配置:\n${lines.map((line) => `- ${line}`).join("\n")}`,
+              `TeamSkills 當前配置:\n${lines.map((line) => `- ${line}`).join("\n")}`,
             ),
           );
         },
@@ -703,7 +703,7 @@ export function createTeamSkillsCommand(): SlashCommand {
         action: async (ctx, args) => {
           const params = buildPublishParams(args);
           if (!params.version) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：--version <x.y.z>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：--version <x.y.z>"));
             return;
           }
 
@@ -717,7 +717,7 @@ export function createTeamSkillsCommand(): SlashCommand {
           }
 
           if (!params.path && !params.file) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "请提供 <path> 或 --file <zip>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "請提供 <path> 或 --file <zip>"));
             return;
           }
 
@@ -735,7 +735,7 @@ export function createTeamSkillsCommand(): SlashCommand {
               makeItem(
                 ctx.sessionId,
                 "error",
-                normalizeTeamSkillsErrorDetail(payload.detail || payload.detail_key || "发布失败"),
+                normalizeTeamSkillsErrorDetail(payload.detail || payload.detail_key || "釋出失敗"),
               ),
             );
             return;
@@ -748,7 +748,7 @@ export function createTeamSkillsCommand(): SlashCommand {
             makeItem(
               ctx.sessionId,
               "info",
-              `发布成功: skill_id=${displaySkillId}, name=${displayName}, version=${displayVersion}`,
+              `釋出成功: skill_id=${displaySkillId}, name=${displayName}, version=${displayVersion}`,
             ),
           );
         },
@@ -765,7 +765,7 @@ export function createTeamSkillsCommand(): SlashCommand {
         action: async (ctx, args) => {
           const params = buildDeleteParams(args);
           if (!params.skill_id) {
-            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少参数：<skill_id>"));
+            ctx.addItem(makeItem(ctx.sessionId, "error", "缺少引數：<skill_id>"));
             return;
           }
 
@@ -791,7 +791,7 @@ export function createTeamSkillsCommand(): SlashCommand {
               makeItem(
                 ctx.sessionId,
                 "error",
-                normalizeTeamSkillsErrorDetail(payload.detail || payload.detail_key || "删除失败"),
+                normalizeTeamSkillsErrorDetail(payload.detail || payload.detail_key || "刪除失敗"),
               ),
             );
             return;
@@ -800,7 +800,7 @@ export function createTeamSkillsCommand(): SlashCommand {
           const deletedSkillId = payload.skill_id || params.skill_id;
           const deletedVersion = payload.version || params.version || "all";
           ctx.addItem(
-            makeItem(ctx.sessionId, "info", `删除成功: skill_id=${deletedSkillId}, version=${deletedVersion}`),
+            makeItem(ctx.sessionId, "info", `刪除成功: skill_id=${deletedSkillId}, version=${deletedVersion}`),
           );
         },
       },

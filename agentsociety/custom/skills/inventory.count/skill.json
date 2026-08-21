@@ -21,7 +21,7 @@
   ],
   "status": "counting_inventory",
   "emotion": "focused",
-  "speech": "我先把库存数清楚，看看缺什么。",
+  "speech": "我先把庫存數清楚，看看缺什麼。",
   "memory_template": "Used inventory.count: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

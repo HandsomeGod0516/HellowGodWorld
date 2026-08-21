@@ -87,11 +87,11 @@ This agent participates in a 10-round Prisoner's Dilemma game where two players 
                 choice = response.choices[0]
                 if hasattr(choice, "message") and choice.message:
                     return choice.message.content or ""  # type: ignore
-            return "[错误] LLM返回空响应"
+            return "[錯誤] LLM返回空響應"
         except Exception as e:
-            error_message = f"LLM调用失败: {type(e).__name__} - {str(e)}"
+            error_message = f"LLM呼叫失敗: {type(e).__name__} - {str(e)}"
             self._logger.error(f"[{self.name}] {error_message}")
-            return f"[错误] {error_message}"
+            return f"[錯誤] {error_message}"
 
     async def step(self, tick: int, t: datetime) -> str:
         """Execute one step - make action decision and submit to environment"""
@@ -172,7 +172,7 @@ This agent participates in a 10-round Prisoner's Dilemma game where two players 
         )
 
         action = "No"  # Default action (defect)
-        explanation = "LLM调用或解析失败"
+        explanation = "LLM呼叫或解析失敗"
 
         try:
             response = await self.acompletion(
@@ -187,10 +187,10 @@ This agent participates in a 10-round Prisoner's Dilemma game where two players 
                 raise ValueError("LLM returned empty response")
 
             content = choice.message.content or ""  # type: ignore
-            self._logger.debug(f"[{self.name}] [DEBUG] 原始响应: {content}")
+            self._logger.debug(f"[{self.name}] [DEBUG] 原始響應: {content}")
 
             if not content or content.isspace():
-                raise ValueError("LLM返回空响应")
+                raise ValueError("LLM返回空響應")
 
             # Extract Action using regex
             action_match = re.search(
@@ -206,14 +206,14 @@ This agent participates in a 10-round Prisoner's Dilemma game where two players 
                 if explanation_match:
                     explanation = explanation_match.group(1).strip()
                 else:
-                    explanation = f"选择了 '{action}'，但未在 XML 中提供解释"
+                    explanation = f"選擇了 '{action}'，但未在 XML 中提供解釋"
 
                 self._logger.info(
-                    f"[{self.name}] [SUCCESS] 最终解析 (XML): action={action}, explanation={explanation[:50]}..."
+                    f"[{self.name}] [SUCCESS] 最終解析 (XML): action={action}, explanation={explanation[:50]}..."
                 )
             else:
                 # Fallback: single-line matching
-                self._logger.warning(f"[{self.name}] [WARNING] XML 解析失败，尝试单行匹配...")
+                self._logger.warning(f"[{self.name}] [WARNING] XML 解析失敗，嘗試單行匹配...")
                 lines = content.strip().split("\n")
                 first_line = lines[0].strip()
 
@@ -223,27 +223,27 @@ This agent participates in a 10-round Prisoner's Dilemma game where two players 
                     action = match.group(1).capitalize()
                     explanation = (
                         " ".join(lines[1:]).strip()
-                        or "单行匹配成功，无详细解释"
+                        or "單行匹配成功，無詳細解釋"
                     )
-                    self._logger.info(f"[{self.name}] [FALLBACK] 单行匹配成功: action={action}")
+                    self._logger.info(f"[{self.name}] [FALLBACK] 單行匹配成功: action={action}")
                 else:
                     # Final fallback: keyword search
                     keyword_match = re.search(r"\b(yes|no)\b", content, re.IGNORECASE)
                     if keyword_match:
                         action = keyword_match.group(1).capitalize()
-                        explanation = f"从响应中提取关键词：{action}"
-                        self._logger.info(f"[{self.name}] [KEYWORD] 关键词匹配成功: action={action}")
+                        explanation = f"從響應中提取關鍵詞：{action}"
+                        self._logger.info(f"[{self.name}] [KEYWORD] 關鍵詞匹配成功: action={action}")
                     else:
-                        raise ValueError(f"无法解析有效动作，内容:\n{content[:200]}")
+                        raise ValueError(f"無法解析有效動作，內容:\n{content[:200]}")
 
         except Exception as e:
-            error_message = f"解析/调用失败: {type(e).__name__} - {str(e)}"
+            error_message = f"解析/呼叫失敗: {type(e).__name__} - {str(e)}"
             self._logger.error(f"[{self.name}] [ERROR] {error_message}")
 
             action = "No"
-            explanation = f"[CRITICAL FAILURE] {error_message}，使用默认选择: No"
+            explanation = f"[CRITICAL FAILURE] {error_message}，使用預設選擇: No"
 
-        self._logger.debug(f"[{self.name}] [DEBUG] 最终选择: {action}")
+        self._logger.debug(f"[{self.name}] [DEBUG] 最終選擇: {action}")
         return action, explanation
 
     def _build_profile_string(self) -> str:

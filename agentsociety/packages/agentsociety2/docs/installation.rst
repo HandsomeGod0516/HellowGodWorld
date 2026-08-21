@@ -1,42 +1,42 @@
-安装
+安裝
 ============
 
-系统要求
+系統要求
 ------------
 
 AgentSociety 2 需要 Python 3.11 或更高版本。
 
-从 PyPI 安装
+從 PyPI 安裝
 -----------------
 
-最简单的安装 AgentSociety 2 的方法是使用 pip：
+最簡單的安裝 AgentSociety 2 的方法是使用 pip：
 
 .. code-block:: bash
 
    pip install agentsociety2
 
-这将安装核心包。如果要安装开发依赖：
+這將安裝核心包。如果要安裝開發依賴：
 
 .. code-block:: bash
 
    pip install "agentsociety2[dev]"
 
-对于文档依赖：
+對於文件依賴：
 
 .. code-block:: bash
 
    pip install "agentsociety2[docs]"
 
-安装所有内容：
+安裝所有內容：
 
 .. code-block:: bash
 
    pip install "agentsociety2[all]"
 
-从源码安装
+從原始碼安裝
 -------------------
 
-要从最新的源代码安装：
+要從最新的原始碼安裝：
 
 .. code-block:: bash
 
@@ -44,22 +44,22 @@ AgentSociety 2 需要 Python 3.11 或更高版本。
    cd agentsociety/packages/agentsociety2
    pip install -e .
 
-验证安装
+驗證安裝
 -------------------
 
-要验证您的安装，运行：
+要驗證您的安裝，執行：
 
 .. code-block:: python
 
    import agentsociety2
    print(agentsociety2.__version__)
 
-您应该能看到版本号被打印出来。
+您應該能看到版本號被列印出來。
 
 配置
 -------------
 
-AgentSociety 2 需要 LLM API 凭证。设置以下环境变量：
+AgentSociety 2 需要 LLM API 憑證。設定以下環境變數：
 
 **必需配置**
 
@@ -70,10 +70,10 @@ AgentSociety 2 需要 LLM API 凭证。设置以下环境变量：
    export AGENTSOCIETY_LLM_API_BASE="https://api.openai.com/v1"
    export AGENTSOCIETY_LLM_MODEL="gpt-5.4"
 
-**可选配置**
+**可選配置**
 
-对于专门的任务，您可以配置单独的 LLM 实例。如果未设置这些选项，
-它们将回退到默认 LLM 配置：
+對於專門的任務，您可以配置單獨的 LLM 例項。如果未設定這些選項，
+它們將回退到預設 LLM 配置：
 
 .. code-block:: bash
 
@@ -96,7 +96,7 @@ AgentSociety 2 需要 LLM API 凭证。设置以下环境变量：
    export AGENTSOCIETY_EMBEDDING_MODEL="text-embedding-3-large"   # Optional
    export AGENTSOCIETY_EMBEDDING_DIMS="1024"                      # Optional
 
-**数据目录**
+**資料目錄**
 
 .. code-block:: bash
 
@@ -104,15 +104,15 @@ AgentSociety 2 需要 LLM API 凭证。设置以下环境变量：
    # Default: ./agentsociety_data
    export AGENTSOCIETY_HOME_DIR="/path/to/your/data"
 
-**使用 .env 文件**
+**使用 .env 檔案**
 
-您也可以在项目目录中创建 ``.env`` 文件：
+您也可以在專案目錄中建立 ``.env`` 檔案：
 
 .. code-block:: bash
 
-   # 推荐：从仓库模板复制（若你在源码仓库内）
+   # 推薦：從倉庫模板複製（若你在原始碼倉庫內）
    cp .env.example .env
-   # 然后编辑 .env 填入 API Key
+   # 然後編輯 .env 填入 API Key
 
 .. code-block:: bash
 
@@ -135,27 +135,27 @@ AgentSociety 2 需要 LLM API 凭证。设置以下环境变量：
 
 .. note::
 
-   **环境变量区分**：
+   **環境變數區分**：
 
-   - ``AGENTSOCIETY_LLM_*``: 全局 LLM API 配置，用于模型调用
-   - ``AGENT_*``: Agent 行为配置，如上下文窗口大小、工具循环轮数等
+   - ``AGENTSOCIETY_LLM_*``: 全域性 LLM API 配置，用於模型呼叫
+   - ``AGENT_*``: Agent 行為配置，如上下文視窗大小、工具迴圈輪數等
 
-**遥测设置**
+**遙測設定**
 
-AgentSociety 2 会自动禁用所有遥测服务以防止外部连接：
+AgentSociety 2 會自動禁用所有遙測服務以防止外部連線：
 
 .. code-block:: bash
 
-   # 以下设置由框架自动配置，无需手动设置
+   # 以下設定由框架自動配置，無需手動設定
    MEM0_TELEMETRY=False
    ANONYMIZED_TELEMETRY=False
 
-这些设置禁用了 mem0 和 ChromaDB 的遥测功能，防止连接到 Posthog/Facebook 等外部服务。
+這些設定禁用了 mem0 和 ChromaDB 的遙測功能，防止連線到 Posthog/Facebook 等外部服務。
 
-支持的 LLM 提供商
+支援的 LLM 提供商
 ------------------------
 
-AgentSociety 2 使用 `litellm`_，支持许多 LLM 提供商：
+AgentSociety 2 使用 `litellm`_，支援許多 LLM 提供商：
 
 - OpenAI (GPT-4, GPT-3.5)
 - Anthropic (Claude)
@@ -164,7 +164,7 @@ AgentSociety 2 使用 `litellm`_，支持许多 LLM 提供商：
 - Cohere
 - 以及更多...
 
-查看 `litellm 文档`_ 获取完整列表。
+檢視 `litellm 文件`_ 獲取完整列表。
 
 .. _litellm: https://github.com/BerriAI/litellm
-.. _litellm 文档: https://docs.litellm.ai/
+.. _litellm 文件: https://docs.litellm.ai/

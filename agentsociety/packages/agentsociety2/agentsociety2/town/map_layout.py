@@ -1,7 +1,7 @@
-"""固定小镇地图：六个房间通过环形走廊连接到中央广场。
+"""固定小鎮地圖：六個房間透過環形走廊連線到中央廣場。
 
-地图完全由本文件的常量表生成，不读取任何 Tiled 图包或图集资源。
-前端只需拿到 :func:`build_world_map` 的结果就能用色块绘制整张地图。
+地圖完全由本檔案的常量表生成，不讀取任何 Tiled 圖包或圖集資源。
+前端只需拿到 :func:`build_world_map` 的結果就能用色塊繪製整張地圖。
 """
 
 from __future__ import annotations
@@ -33,23 +33,25 @@ def _tiles(rect: Rect) -> Iterator[Tile]:
 
 
 def _interior(rect: Rect) -> Rect:
-    """房间的可走内部：外框往内缩一圈（缩掉的那圈是墙）。"""
+    """房間的可走內部：外框往內縮一圈（縮掉的那圈是牆）。"""
     return _rect(rect["x"] + 1, rect["y"] + 1, rect["w"] - 2, rect["h"] - 2)
 
 
 PLAZA: Rect = _rect(17, 12, 11, 9)
 PLAZA_CENTER: Tile = (22, 16)
+# 廣場右上角擺一份食物，血量低的時候可以走過去吃東西回血。
+FOOD_SPOT: Tile = (PLAZA["x"] + PLAZA["w"] - 2, PLAZA["y"] + 1)
 
-# 从广场四边伸出的主干走廊。
+# 從廣場四邊伸出的主幹走廊。
 CORRIDORS: list[Rect] = [
-    _rect(21, 8, 3, 4),    # 上：接正上方房间
-    _rect(21, 21, 3, 4),   # 下：接正下方房间
-    _rect(2, 15, 15, 3),   # 左：接左侧两个房间
-    _rect(28, 15, 15, 3),  # 右：接右侧两个房间
-    _rect(8, 12, 1, 3),    # 左上房间下门 -> 左走廊
-    _rect(8, 18, 1, 3),    # 左下房间上门 -> 左走廊
-    _rect(35, 12, 1, 3),   # 右上房间下门 -> 右走廊
-    _rect(35, 18, 1, 3),   # 右下房间上门 -> 右走廊
+    _rect(21, 8, 3, 4),    # 上：接正上方房間
+    _rect(21, 21, 3, 4),   # 下：接正下方房間
+    _rect(2, 15, 15, 3),   # 左：接左側兩個房間
+    _rect(28, 15, 15, 3),  # 右：接右側兩個房間
+    _rect(8, 12, 1, 3),    # 左上房間下門 -> 左走廊
+    _rect(8, 18, 1, 3),    # 左下房間上門 -> 左走廊
+    _rect(35, 12, 1, 3),   # 右上房間下門 -> 右走廊
+    _rect(35, 18, 1, 3),   # 右下房間上門 -> 右走廊
 ]
 
 
@@ -65,7 +67,7 @@ class RoomDef(TypedDict):
 ROOMS: list[RoomDef] = [
     {
         "id": "cafe",
-        "name": "咖啡馆",
+        "name": "咖啡館",
         "name_en": "Cafe",
         "rect": _rect(17, 1, 11, 7),
         "door": (22, 7),
@@ -73,7 +75,7 @@ ROOMS: list[RoomDef] = [
     },
     {
         "id": "library",
-        "name": "图书馆",
+        "name": "圖書館",
         "name_en": "Library",
         "rect": _rect(4, 4, 10, 8),
         "door": (8, 11),
@@ -89,7 +91,7 @@ ROOMS: list[RoomDef] = [
     },
     {
         "id": "kitchen",
-        "name": "厨房",
+        "name": "廚房",
         "name_en": "Kitchen",
         "rect": _rect(4, 21, 10, 8),
         "door": (8, 21),
@@ -97,7 +99,7 @@ ROOMS: list[RoomDef] = [
     },
     {
         "id": "gameroom",
-        "name": "游戏室",
+        "name": "遊戲室",
         "name_en": "Game Room",
         "rect": _rect(31, 21, 10, 8),
         "door": (35, 21),
@@ -105,7 +107,7 @@ ROOMS: list[RoomDef] = [
     },
     {
         "id": "meeting",
-        "name": "会议室",
+        "name": "會議室",
         "name_en": "Meeting Room",
         "rect": _rect(17, 25, 11, 7),
         "door": (22, 25),
@@ -115,7 +117,7 @@ ROOMS: list[RoomDef] = [
 
 PLAZA_ROOM: RoomDef = {
     "id": "plaza",
-    "name": "中央广场",
+    "name": "中央廣場",
     "name_en": "Central Plaza",
     "rect": PLAZA,
     "door": PLAZA_CENTER,
@@ -126,12 +128,12 @@ ROOM_IDS: list[str] = [room["id"] for room in ROOMS] + [PLAZA_ROOM["id"]]
 
 
 def all_rooms() -> list[RoomDef]:
-    """六个房间加上中央广场，广场排在最后。"""
+    """六個房間加上中央廣場，廣場排在最後。"""
     return [*ROOMS, PLAZA_ROOM]
 
 
 def walkable_tiles() -> set[Tile]:
-    """广场 + 走廊 + 房间内部 + 门。房间外框其余部分是墙。"""
+    """廣場 + 走廊 + 房間內部 + 門。房間外框其餘部分是牆。"""
     walkable: set[Tile] = set(_tiles(PLAZA))
     for corridor in CORRIDORS:
         walkable.update(_tiles(corridor))
@@ -146,7 +148,7 @@ def walkable_tiles() -> set[Tile]:
 
 
 def wall_tiles() -> set[Tile]:
-    """房间外框上除门以外的格子，供前端画墙。"""
+    """房間外框上除門以外的格子，供前端畫牆。"""
     walkable = walkable_tiles()
     walls: set[Tile] = set()
     for room in ROOMS:
@@ -155,7 +157,7 @@ def wall_tiles() -> set[Tile]:
 
 
 def room_of(tile: Tile) -> str | None:
-    """判断一个格子属于哪个房间；走廊返回 ``None``。"""
+    """判斷一個格子屬於哪個房間；走廊返回 ``None``。"""
     x, y = int(tile[0]), int(tile[1])
     for room in ROOMS:
         rect = room["rect"]
@@ -176,13 +178,13 @@ def room_by_id(room_id: str | None) -> RoomDef | None:
 
 
 def room_anchor(room_id: str | None) -> Tile:
-    """房间中心；未知房间落到广场中心。"""
+    """房間中心；未知房間落到廣場中心。"""
     room = room_by_id(room_id)
     return room["anchor"] if room else PLAZA_CENTER
 
 
 def build_world_map() -> dict:
-    """给前端的地图描述：色块矩形 + 房间语义。"""
+    """給前端的地圖描述：色塊矩形 + 房間語義。"""
     return {
         "grid_w": GRID_WIDTH,
         "grid_h": GRID_HEIGHT,
@@ -209,4 +211,5 @@ def build_world_map() -> dict:
             "anchor": {"x": PLAZA_CENTER[0], "y": PLAZA_CENTER[1]},
         },
         "walls": [{"x": x, "y": y} for x, y in sorted(wall_tiles())],
+        "food": {"x": FOOD_SPOT[0], "y": FOOD_SPOT[1]},
     }

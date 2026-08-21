@@ -1,7 +1,7 @@
-"""即时小镇 API。
+"""即時小鎮 API。
 
-世界常驻运行：AI 小人各自跑自己的决策循环、各自指向自己的模型端点，
-人类玩家通过 WebSocket 用 WASD 直接走动。没有 experiment / replay 概念。
+世界常駐執行：AI 小人各自跑自己的決策迴圈、各自指向自己的模型端點，
+人類玩家透過 WebSocket 用 WASD 直接走動。沒有 experiment / replay 概念。
 """
 
 from __future__ import annotations
@@ -14,9 +14,9 @@ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
 from agentsociety2.logger import get_logger
-from agentsociety2.town.agents import SPRITES, TownAgentConfig
+from agentsociety2.town.agents import DEFAULT_BEHAVIOR_HINT, SPRITES, TownAgentConfig
 from agentsociety2.town.llm_client import EndpointTestResult, LLMEndpoint, test_endpoint
-from agentsociety2.town.map_layout import all_rooms
+from agentsociety2.town.map_layout import all_rooms, room_by_id
 from agentsociety2.town.store import load_agents, new_agent_id, save_agents
 from agentsociety2.town.world import WorldEngine, get_world
 
@@ -30,12 +30,13 @@ MASKED_API_KEY = "***"
 class AgentCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=40)
     sprite: str = SPRITES[0]
-    persona: str = Field("小镇的普通居民。", max_length=2000)
+    persona: str = Field("小鎮的普通居民。", max_length=2000)
     room_id: str = "plaza"
     llm: LLMEndpoint
     decision_interval_s: float = Field(8.0, ge=2.0, le=600.0)
     enabled: bool = True
     skip_connection_test: bool = False
+    behavior_hint: str = Field(DEFAULT_BEHAVIOR_HINT, max_length=500)
 
 
 class AgentUpdateRequest(BaseModel):
@@ -45,15 +46,17 @@ class AgentUpdateRequest(BaseModel):
     llm: Optional[LLMEndpoint] = None
     decision_interval_s: Optional[float] = Field(None, ge=2.0, le=600.0)
     enabled: Optional[bool] = None
+    behavior_hint: Optional[str] = Field(None, max_length=500)
 
 
 class TownDefaults(BaseModel):
-    """新增小人表单的预填值，来自 .env 的 GOD_LLM_*。"""
+    """新增小人表單的預填值，來自 .env 的 GOD_LLM_*。"""
 
     provider: str = "ollama"
     base_url: str = "http://localhost:11434"
     model: str = ""
     has_api_key: bool = False
+    behavior_hint: str = DEFAULT_BEHAVIOR_HINT
 
 
 class SayRequest(BaseModel):
@@ -65,19 +68,24 @@ class GotoRequest(BaseModel):
     room_id: str
 
 
+class DispatchAllRequest(BaseModel):
+    room_id: str
+    message: Optional[str] = Field(None, max_length=200)
+
+
 def _persist(world: WorldEngine) -> None:
     save_agents(list(world.configs.values()))
 
 
 async def bootstrap_world() -> WorldEngine:
-    """启动世界循环，并把 agents.json 里的小人放回小镇。"""
+    """啟動世界迴圈，並把 agents.json 裡的小人放回小鎮。"""
     world = get_world()
     await world.start()
     if not world.configs:
         for config in load_agents():
             try:
                 await world.add_agent(config)
-            except Exception:  # noqa: BLE001 - 单个小人恢复失败不该挡住启动
+            except Exception:  # noqa: BLE001 - 單個小人恢復失敗不該擋住啟動
                 logger.exception("Failed to restore town agent %s", config.id)
     return world
 
@@ -141,7 +149,7 @@ async def create_town_agent(request: AgentCreateRequest) -> dict[str, Any]:
         if not result.ok:
             raise HTTPException(
                 status_code=400,
-                detail=f"模型端点连接失败：{result.error}",
+                detail=f"模型端點連線失敗：{result.error}",
             )
 
     world = get_world()
@@ -154,6 +162,7 @@ async def create_town_agent(request: AgentCreateRequest) -> dict[str, Any]:
         llm=request.llm,
         decision_interval_s=request.decision_interval_s,
         enabled=request.enabled,
+        behavior_hint=request.behavior_hint,
     )
     await world.add_agent(config)
     _persist(world)
@@ -170,7 +179,7 @@ async def update_town_agent(agent_id: str, request: AgentUpdateRequest) -> dict[
     updates = request.model_dump(exclude_unset=True, exclude_none=True)
     llm_update = updates.pop("llm", None)
     if llm_update is not None:
-        # 前端拿到的是掩码后的 key，未真正改动时保留原值。
+        # 前端拿到的是掩碼後的 key，未真正改動時保留原值。
         if not llm_update.get("api_key") or llm_update.get("api_key") == MASKED_API_KEY:
             llm_update["api_key"] = current.llm.api_key
         updates["llm"] = LLMEndpoint.model_validate(llm_update)
@@ -201,6 +210,18 @@ async def send_agent_to_room(agent_id: str, request: GotoRequest) -> dict[str, A
     return {"ok": True}
 
 
+@router.post("/agents/dispatch-all")
+async def dispatch_all_agents(request: DispatchAllRequest) -> dict[str, Any]:
+    """把所有 AI 居民派去同一個地點，可選帶一句廣播（比如召集開會）。"""
+    world = get_world()
+    if room_by_id(request.room_id) is None:
+        raise HTTPException(status_code=400, detail=f"未知地點：{request.room_id}")
+    if request.message:
+        world.announce(request.message)
+    count = world.dispatch_all(request.room_id)
+    return {"dispatched": count}
+
+
 @router.post("/say")
 async def say(request: SayRequest) -> dict[str, Any]:
     world = get_world()
@@ -215,7 +236,7 @@ _DIRECTIONS = {"up", "down", "left", "right"}
 
 @router.websocket("/ws")
 async def town_ws(websocket: WebSocket) -> None:
-    """推送地图/快照/事件；接收人类玩家的加入、方向输入与发言。"""
+    """推送地圖/快照/事件；接收人類玩家的加入、方向輸入與發言。"""
     await websocket.accept()
     world = await bootstrap_world()
     await world.add_subscriber(websocket)
@@ -225,7 +246,7 @@ async def town_ws(websocket: WebSocket) -> None:
             try:
                 message = await websocket.receive_json()
             except (ValueError, TypeError):
-                # 客户端发了非 JSON，忽略这一条而不是掉线。
+                # 客戶端發了非 JSON，忽略這一條而不是掉線。
                 continue
             if not isinstance(message, dict):
                 continue
@@ -234,7 +255,7 @@ async def town_ws(websocket: WebSocket) -> None:
             if kind == "join":
                 if human_id is not None:
                     world.remove_human(human_id)
-                actor = world.add_human(str(message.get("name") or "访客"))
+                actor = world.add_human(str(message.get("name") or "訪客"))
                 human_id = actor.id
                 await websocket.send_json({"type": "joined", "actor_id": actor.id})
 

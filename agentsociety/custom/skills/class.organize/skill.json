@@ -21,7 +21,7 @@
   ],
   "status": "organizing_class",
   "emotion": "focused",
-  "speech": "我把课程安排和需要提醒的学生整理一下。",
+  "speech": "我把課程安排和需要提醒的學生整理一下。",
   "memory_template": "Used class.organize: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

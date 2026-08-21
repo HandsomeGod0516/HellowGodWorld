@@ -1,15 +1,15 @@
-使用智能体
+使用智慧體
 ===================
 
-本部分介绍如何在 AgentSociety 2 中使用智能体。
+本部分介紹如何在 AgentSociety 2 中使用智慧體。
 
-创建智能体
+建立智慧體
 ---------------
 
 PersonAgent
 ~~~~~~~~~~~
 
-``PersonAgent`` 是一个 **skills-first / tool-using** 智能体实现。它本身是一个轻量编排器，核心行为是“对标 Claude Code 的工具循环”：在每个 step 内注入身份与技能目录，然后由主模型逐轮选择并执行工具（包括技能激活与技能执行）。
+``PersonAgent`` 是一個 **skills-first / tool-using** 智慧體實現。它本身是一個輕量編排器，核心行為是“對標 Claude Code 的工具迴圈”：在每個 step 內注入身份與技能目錄，然後由主模型逐輪選擇並執行工具（包括技能啟用與技能執行）。
 
 .. code-block:: python
 
@@ -25,84 +25,84 @@ PersonAgent
        }
    )
 
-内置 Skills
+內建 Skills
 ^^^^^^^^^^^
 
-每个 simulation tick，PersonAgent 都会执行同一套“工具循环”的流程：
+每個 simulation tick，PersonAgent 都會執行同一套“工具迴圈”的流程：
 
 .. list-table::
      :widths: 28 72
      :header-rows: 1
 
-     * - 阶段
-       - 说明
+     * - 階段
+       - 說明
      * - 注入上下文
-       - system prompt 注入身份信息、技能目录、工具表。
-     * - 激活技能
-       - 需要某个技能时，先用 ``activate_skill`` 加载该技能完整说明（通常来自 ``SKILL.md``）。
-     * - 执行技能/工具
-       - 用 ``execute_skill`` 执行技能，或直接调用 ``bash`` / ``grep`` / ``glob`` / ``codegen`` 等工具。
-     * - 结束条件
-       - 当主模型输出 ``done=true`` 时结束本 step。
+       - system prompt 注入身份資訊、技能目錄、工具表。
+     * - 啟用技能
+       - 需要某個技能時，先用 ``activate_skill`` 載入該技能完整說明（通常來自 ``SKILL.md``）。
+     * - 執行技能/工具
+       - 用 ``execute_skill`` 執行技能，或直接呼叫 ``bash`` / ``grep`` / ``glob`` / ``codegen`` 等工具。
+     * - 結束條件
+       - 當主模型輸出 ``done=true`` 時結束本 step。
 
-常见内置技能包括 ``observation``、``needs``、``cognition``、``plan``、``memory``。
-它们都不再属于固定“必须执行层”，而是由 LLM 按上下文按需选择。
+常見內建技能包括 ``observation``、``needs``、``cognition``、``plan``、``memory``。
+它們都不再屬於固定“必須執行層”，而是由 LLM 按上下文按需選擇。
 
-详细说明请参见 :doc:`agent_skills`。
+詳細說明請參見 :doc:`agent_skills`。
 
-配置文件可以包含你希望的任何字段；PersonAgent 会把这些信息用于塑造其行为与决策。
+配置檔案可以包含你希望的任何欄位；PersonAgent 會把這些資訊用於塑造其行為與決策。
 
-自定义智能体
+自定義智慧體
 ~~~~~~~~~~~~~
 
 .. note::
 
-   对于扩展 PersonAgent 的认知能力，推荐使用 **Agent Skills** 系统。
-   参见 :doc:`agent_skills` 了解如何创建自定义 skill。
+   對於擴充套件 PersonAgent 的認知能力，推薦使用 **Agent Skills** 系統。
+   參見 :doc:`agent_skills` 瞭解如何建立自定義 skill。
 
-   只有在需要完全不同的智能体架构时，才需要创建自定义智能体类。
+   只有在需要完全不同的智慧體架構時，才需要建立自定義智慧體類。
 
-要创建自定义智能体，请继承 ``AgentBase`` 并实现必需的抽象方法：
+要建立自定義智慧體，請繼承 ``AgentBase`` 並實現必需的抽象方法：
 
-需要实现的方法
+需要實現的方法
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-创建自定义智能体时，必须实现 ``AgentBase`` 的这些抽象方法：
+建立自定義智慧體時，必須實現 ``AgentBase`` 的這些抽象方法：
 
 1. **async def ask(self, message: str, readonly: bool = True) -> str**
 
-   处理来自环境或用户的问题并返回响应。
+   處理來自環境或使用者的問題並返回響應。
 
-   参数:
-       message: 要处理的问题或指令
-       readonly: 智能体是否可以修改环境（False = 可以修改）
+   引數:
+       message: 要處理的問題或指令
+       readonly: 智慧體是否可以修改環境（False = 可以修改）
 
    返回:
-       智能体的响应字符串
+       智慧體的響應字串
 
 2. **async def step(self, tick: int, t: datetime) -> str**
 
-   执行一个模拟步骤。在 AgentSociety 模拟运行期间调用。
+   執行一個模擬步驟。在 AgentSociety 模擬執行期間呼叫。
 
-   参数:
-       tick: 此步骤的持续时间（秒）
-       t: 此步骤后的当前模拟日期时间
+   引數:
+       tick: 此步驟的持續時間（秒）
+       t: 此步驟後的當前模擬日期時間
 
    返回:
-       智能体在此步骤中的操作描述
+       智慧體在此步驟中的操作描述
 
 3. **async def dump(self) -> dict**
 
-   将智能体状态序列化为字典以便保存/加载。
+   將智慧體狀態序列化為字典以便儲存/載入。
 
 4. **async def load(self, dump_data: dict)**
 
-   从先前转储的字典中恢复智能体状态。
+   從先前轉儲的字典中恢復智慧體狀態。
 
-参考实现
+參考實現
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-有关完整参考，请参阅源代码中的 ``PersonAgent``。
+有關完整參考，請參閱原始碼中的 ``PersonAgent``。
 
 示例:
 ^^^^^^
@@ -138,18 +138,18 @@ PersonAgent
            # Restore state
            self._custom_state = dump_data.get("custom_state", {})
 
-智能体配置文件
+智慧體配置檔案
 --------------
 
-配置文件设计
+配置檔案設計
 ~~~~~~~~~~~~~
 
-一个好的智能体配置文件应包括：
+一個好的智慧體配置檔案應包括：
 
-* **身份**: 姓名、年龄、角色
-* **个性**: 特征、偏好、怪癖
-* **背景**: 历史、专业知识、关系
-* **目标**: 动机、欲望、恐惧
+* **身份**: 姓名、年齡、角色
+* **個性**: 特徵、偏好、怪癖
+* **背景**: 歷史、專業知識、關係
+* **目標**: 動機、慾望、恐懼
 
 .. code-block:: python
 
@@ -173,7 +173,7 @@ PersonAgent
        "fears": ["sea level rise", "ecosystem collapse"]
    }
 
-与智能体交互
+與智慧體互動
 -----------------------
 
 ask() 方法
@@ -186,15 +186,15 @@ ask() 方法
        readonly=True  # No side effects
    )
 
-``readonly`` 参数控制智能体是否可以修改环境：
+``readonly`` 引數控制智慧體是否可以修改環境：
 
-* ``readonly=True``: 仅查询，无副作用
-* ``readonly=False``: 可能调用修改状态的环境工具
+* ``readonly=True``: 僅查詢，無副作用
+* ``readonly=False``: 可能呼叫修改狀態的環境工具
 
 step() 方法
 ~~~~~~~~~~~~~~~~~
 
-``step()`` 方法在 AgentSociety 模拟期间自动调用：
+``step()`` 方法在 AgentSociety 模擬期間自動呼叫：
 
 .. code-block:: python
 
@@ -205,31 +205,31 @@ step() 方法
 持久化
 ~~~~~~~~~~~~~~~
 
-``PersonAgent`` 当前的持久化分成两层：
+``PersonAgent`` 當前的持久化分成兩層：
 
-1. **Agent workspace 文件**：由 ``PersonAgent`` 自身维护，位于 ``run/agents/agent_xxxx/``。
-2. **环境 replay dataset**：由环境模块通过 ``ReplayWriter`` 写入 SQLite。
+1. **Agent workspace 檔案**：由 ``PersonAgent`` 自身維護，位於 ``run/agents/agent_xxxx/``。
+2. **環境 replay dataset**：由環境模組透過 ``ReplayWriter`` 寫入 SQLite。
 
-也就是说，``PersonAgent`` 不会把自己的 step 状态直接写入 ``agent_status`` 之类的
-SQLite 表；如果你需要检查 agent 过程数据，应优先查看：
+也就是說，``PersonAgent`` 不會把自己的 step 狀態直接寫入 ``agent_status`` 之類的
+SQLite 表；如果你需要檢查 agent 過程資料，應優先檢視：
 
 * ``agent_config.json``: Agent 配置
-* ``session_state.json``: 会话状态
-* ``tool_calls.jsonl``: 工具调用日志
-* ``thread_messages.jsonl``: Thread 消息
-* ``AGENT_CONTEXT.md``: 动态上下文文件
-* ``AGENT_FILES.md``: 工作区文件清单
-* ``state/*.json``: 状态文件（情绪、需求、意图、规划等）
-* ``wal/``: Write-Ahead Log 目录
+* ``session_state.json``: 會話狀態
+* ``tool_calls.jsonl``: 工具呼叫日誌
+* ``thread_messages.jsonl``: Thread 訊息
+* ``AGENT_CONTEXT.md``: 動態上下文檔案
+* ``AGENT_FILES.md``: 工作區檔案清單
+* ``state/*.json``: 狀態檔案（情緒、需求、意圖、規劃等）
+* ``wal/``: Write-Ahead Log 目錄
 
-智能体记忆
+智慧體記憶
 ------------
 
-在当前版本中，记忆能力推荐通过 **Agent Skills** 来实现（例如 `memory` 技能）。
+在當前版本中，記憶能力推薦透過 **Agent Skills** 來實現（例如 `memory` 技能）。
 
-也就是说：
+也就是說：
 
-1. `PersonAgent` 提供独立工作目录与工具能力（读写文件、执行技能等）。
-2. 是否写入记忆、写入什么、以及持久化方式，由 `memory` 技能的 `SKILL.md` 与其脚本实现决定。
+1. `PersonAgent` 提供獨立工作目錄與工具能力（讀寫檔案、執行技能等）。
+2. 是否寫入記憶、寫入什麼、以及持久化方式，由 `memory` 技能的 `SKILL.md` 與其指令碼實現決定。
 
-如果你想替换/扩展记忆策略，优先做法是新增/替换 skill，而不是修改 `PersonAgent` 本体。
+如果你想替換/擴充套件記憶策略，優先做法是新增/替換 skill，而不是修改 `PersonAgent` 本體。

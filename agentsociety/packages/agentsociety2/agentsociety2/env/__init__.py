@@ -1,29 +1,29 @@
-"""环境模块 - 提供 Agent 与模拟环境交互的基础设施。
+"""環境模組 - 提供 Agent 與模擬環境互動的基礎設施。
 
-本模块包含两个核心概念：
+本模組包含兩個核心概念：
 
-**EnvBase** — 环境模块基类：
-- 定义 Agent 可执行的操作（通过 ``@tool`` 装饰器）
-- 管理环境状态
-- 提供 ``observe()`` 方法供 Agent 感知环境
+**EnvBase** — 環境模組基類：
+- 定義 Agent 可執行的操作（透過 ``@tool`` 裝飾器）
+- 管理環境狀態
+- 提供 ``observe()`` 方法供 Agent 感知環境
 
-**RouterBase** — 路由器基类：
-- 将 Agent 的自然语言指令转换为工具调用
-- 支持多种路由策略（ReAct、PlanExecute、CodeGen 等）
+**RouterBase** — 路由器基類：
+- 將 Agent 的自然語言指令轉換為工具呼叫
+- 支援多種路由策略（ReAct、PlanExecute、CodeGen 等）
 
-路由器实现：
-- ``ReActRouter``: ReAct 范式（推理-行动循环）
-- ``PlanExecuteRouter``: 计划-执行范式
-- ``CodeGenRouter``: 代码生成范式
-- ``TwoTierReActRouter``: 两层 ReAct 路由
-- ``TwoTierPlanExecuteRouter``: 两层计划执行路由
-- ``SearchToolRouter``: 搜索工具路由
+路由器實現：
+- ``ReActRouter``: ReAct 正規化（推理-行動迴圈）
+- ``PlanExecuteRouter``: 計劃-執行正規化
+- ``CodeGenRouter``: 程式碼生成正規化
+- ``TwoTierReActRouter``: 兩層 ReAct 路由
+- ``TwoTierPlanExecuteRouter``: 兩層計劃執行路由
+- ``SearchToolRouter``: 搜尋工具路由
 
-工具装饰器 ``@tool``：
-- ``readonly=True``: 只读工具，不修改环境状态
-- ``readonly=False``: 可修改环境状态的工具
-- ``kind="observe"``: 观察类工具（自动调用）
-- ``kind="statistics"``: 统计类工具
+工具裝飾器 ``@tool``：
+- ``readonly=True``: 只讀工具，不修改環境狀態
+- ``readonly=False``: 可修改環境狀態的工具
+- ``kind="observe"``: 觀察類工具（自動呼叫）
+- ``kind="statistics"``: 統計類工具
 
 使用示例::
 

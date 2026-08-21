@@ -51,10 +51,10 @@ CHAT_HISTORY_MAX_TURN = "chat_history_max_turn"
 INTENT_DETECTION_TEMPLATE = "intent_detection_template"
 ROLE = "role"
 CONTENT = "content"
-ROLE_MAP = {"user": '用户', 'assistant': '助手', 'system': '系统', 'tool': '工具'}
-JSON_PARSE_FAIL_REASON = "当前意图识别的输出:'{result}'格式不符合有效的JSON规范，导致解析失败，因此返回默认分类。"
-CLASS_KEY_MISSING_REASON = "当前意图识别的输出 '{result}' 缺少必要的输出'class'分类信息，因此返回默认分类。"
-VALIDATION_FAIL_REASON = "当前意图识别的输出类别 '{intent_class}' 不在预定义的分类列表: '{category_list}'中，因此系统返回默认分类。"
+ROLE_MAP = {"user": '使用者', 'assistant': '助手', 'system': '系統', 'tool': '工具'}
+JSON_PARSE_FAIL_REASON = "當前意圖識別的輸出:'{result}'格式不符合有效的JSON規範，導致解析失敗，因此返回預設分類。"
+CLASS_KEY_MISSING_REASON = "當前意圖識別的輸出 '{result}' 缺少必要的輸出'class'分類資訊，因此返回預設分類。"
+VALIDATION_FAIL_REASON = "當前意圖識別的輸出類別 '{intent_class}' 不在預定義的分類列表: '{category_list}'中，因此係統返回預設分類。"
 WORKFLOW_CHAT_HISTORY = "workflow_chat_history"
 
 RESULT = "result"
@@ -63,13 +63,13 @@ FEW_SHOT_NUM = 5
 ENABLE_Q2L = 'enableKnowledge'
 DEFAULT_QUERY_CATE = 'title'
 DEFAULT_CLASS_CATE = 'content'
-DEFAULT_INT = "不确定，其他的意图"
+DEFAULT_INT = "不確定，其他的意圖"
 SEARCH_TYPE = "faq"
 SEARCH_NUM = 5
 CLASSIFICATION_ID = "classificationId"
 CLASSIFICATION_DEFAULT_ID = 0
 CLASSIFICATION_NAME = "name"
-CLASSIFICATION_DEFAULT_NAME = "默认意图"
+CLASSIFICATION_DEFAULT_NAME = "預設意圖"
 KG_FILTER_KEY = "filter_string"
 KG_FILTER_PREFIX = "category:"
 KG_SCOPE = "scope"
@@ -81,27 +81,27 @@ _PROVIDER_NAME_MAP = {
     "dashscope": "DashScope",
 }
 
-DEFAULT_SYSTEM_PROMPT = "你是一个识别用户输入意图的AI助手。"
+DEFAULT_SYSTEM_PROMPT = "你是一個識別使用者輸入意圖的AI助手。"
 
 DEFAULT_USER_PROMPT = """
 {{user_prompt}}
 
-当前可供选择的功能分类如下：
+當前可供選擇的功能分類如下：
 {{category_info}}
 
-用户与助手的对话历史：
+使用者與助手的對話歷史：
 {{chat_history}}
 
-当前输入：
+當前輸入：
 {{input}}
 
-请根据当前输入和对话历史分析并输出最适合的功能分类。输出格式为 JSON，包含以下两个字段：
-class: 代表分类结果
-reason: 说明为何选择该分类
-例如: {"class": "分类xx", "reason": "当前输入xxx"}
-请参考以下示例：
+請根據當前輸入和對話歷史分析並輸出最適合的功能分類。輸出格式為 JSON，包含以下兩個欄位：
+class: 代表分類結果
+reason: 說明為何選擇該分類
+例如: {"class": "分類xx", "reason": "當前輸入xxx"}
+請參考以下示例：
 {{example_content}}
-如果没有合适的分类，请输出 {{default_class}}。
+如果沒有合適的分類，請輸出 {{default_class}}。
 """
 
 
@@ -130,7 +130,7 @@ class IntentDetectionCompConfig(ComponentConfig):
 class IntentDetectionDefaultConfig:
     category_list: list[str] = field(default_factory=list)
     intent_detection_template: PromptTemplate = field(default_factory=get_default_template)
-    default_class: str = '分类0'
+    default_class: str = '分類0'
     enable_input: bool = True
 
 
@@ -352,7 +352,7 @@ class IntentDetectionExecutable(ComponentExecutable):
             return self._default_config.default_class, CLASS_KEY_MISSING_REASON.format(result=parsed_dict)
 
         intent_class = parsed_dict.get(CLASS).replace('\n', '').replace(' ', '').replace('"', '').replace("'", '')
-        match = re.search(r"分类\d+", intent_class)
+        match = re.search(r"分類\d+", intent_class)
         if match:
             parsed_dict.update({CLASS: match.group(0)})
 
@@ -383,7 +383,7 @@ class IntentDetectionExecutable(ComponentExecutable):
     def _init_default_config_category_list(self, component_config: IntentDetectionCompConfig):
         self._default_config = IntentDetectionDefaultConfig()
         for index, _ in enumerate(component_config.category_name_list, start=1):
-            self._default_config.category_list.append(f"分类{index}")
+            self._default_config.category_list.append(f"分類{index}")
 
 
 class IntentDetectionComponent(ComponentComposable):

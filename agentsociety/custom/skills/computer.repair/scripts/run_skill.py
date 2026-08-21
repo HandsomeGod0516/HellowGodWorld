@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'supply_store']
 TARGET_INTERACTIONS = ['work_from_home', 'repair_tools']
 STATUS = 'repairing_computer'
 EMOTION = 'focused'
-SPEECH = '我先检查设备问题，再决定要不要拿工具处理。'
+SPEECH = '我先檢查裝置問題，再決定要不要拿工具處理。'
 MEMORY_TEMPLATE = 'Used computer.repair: {summary} at {location_id}.'
 
 

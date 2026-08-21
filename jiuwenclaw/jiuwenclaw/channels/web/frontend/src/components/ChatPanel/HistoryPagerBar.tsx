@@ -18,11 +18,11 @@ export function HistoryPagerBar({
   const hasMore = loadedPages < totalPages;
   const [showLoadedMessage, setShowLoadedMessage] = useState(false);
 
-  // 监听 loadingMore 状态变化，当从 true 变为 false 时，显示加载完成消息
+  // 監聽 loadingMore 狀態變化，當從 true 變為 false 時，顯示載入完成訊息
   useEffect(() => {
     if (!loadingMore && loadedPages > 0) {
       setShowLoadedMessage(true);
-      // 3秒后关闭消息
+      // 3秒後關閉訊息
       const timer = setTimeout(() => {
         setShowLoadedMessage(false);
       }, 3000);
@@ -30,7 +30,7 @@ export function HistoryPagerBar({
     }
   }, [loadingMore, loadedPages]);
 
-  // 当开始加载新内容时，隐藏已加载消息
+  // 當開始載入新內容時，隱藏已載入訊息
   useEffect(() => {
     if (loadingMore) {
       setShowLoadedMessage(false);
@@ -49,14 +49,14 @@ export function HistoryPagerBar({
       onClick={handleClick}
       title={t('chat.historyPager.clickOrScrollToLoadMore')}
     >
-      {/* 加载完成消息 */}
+      {/* 載入完成訊息 */}
       {showLoadedMessage && (
         <span className="text-text-muted tabular-nums animate-fade-in">
           {t('chat.historyPager.loadedOfTotal', { loaded: loadedPages, total: totalPages })}
         </span>
       )}
       
-      {/* 加载状态或提示文本 */}
+      {/* 載入狀態或提示文字 */}
       {loadingMore ? (
         <div className="flex justify-center items-center py-2">
           <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-text-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

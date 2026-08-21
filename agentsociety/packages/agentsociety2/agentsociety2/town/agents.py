@@ -1,8 +1,8 @@
-"""小镇里的角色：可序列化的 Agent 配置，以及每个 AI 自己的决策循环。
+"""小鎮裡的角色：可序列化的 Agent 配置，以及每個 AI 自己的決策迴圈。
 
-每个 AI 小人都有独立的 :class:`asyncio.Task`，按自己的节奏调用自己的模型端点，
-自行决定去哪、说什么。世界循环只负责把决策结果推进成平滑移动，
-不需要外部触发 step。
+每個 AI 小人都有獨立的 :class:`asyncio.Task`，按自己的節奏呼叫自己的模型端點，
+自行決定去哪、說什麼。世界迴圈只負責把決策結果推進成平滑移動，
+不需要外部觸發 step。
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from .llm_client import LLMEndpoint, chat, extract_json_object
 from .map_layout import all_rooms, room_by_id
 
-if TYPE_CHECKING:  # pragma: no cover - 仅为类型标注，避免与 world 循环导入
+if TYPE_CHECKING:  # pragma: no cover - 僅為型別標註，避免與 world 迴圈匯入
     from .world import WorldEngine
 
 Facing = Literal["up", "down", "left", "right"]
@@ -57,24 +57,27 @@ SPEECH_VISIBLE_SECONDS = 6.0
 HEARD_MEMORY = 8
 DECISION_TIMEOUT_SECONDS = 90.0
 STARTUP_JITTER_SECONDS = (0.5, 3.0)
+MAX_HP = 100.0
+DEFAULT_BEHAVIOR_HINT = "按人物設定自然地生活：去有意思的地方、和附近的人搭話；要不要吃東西、什麼時候去，自己判斷。"
 
 
 class TownAgentConfig(BaseModel):
-    """一个 AI 小人的持久化配置。"""
+    """一個 AI 小人的持久化配置。"""
 
     id: str
     name: str = Field(..., min_length=1, max_length=40)
     sprite: str = SPRITES[0]
-    persona: str = Field("小镇的普通居民。", max_length=2000)
+    persona: str = Field("小鎮的普通居民。", max_length=2000)
     room_id: str = "plaza"
     llm: LLMEndpoint
     decision_interval_s: float = Field(8.0, ge=2.0, le=600.0)
     enabled: bool = True
+    behavior_hint: str = Field(DEFAULT_BEHAVIOR_HINT, max_length=500)
 
 
 @dataclass
 class TownActor:
-    """世界里的一个实体，AI 与人类玩家共用。座标用浮点 tile，支持格内插值。"""
+    """世界裡的一個實體，AI 與人類玩家共用。座標用浮點 tile，支援格內插值。"""
 
     id: str
     name: str
@@ -87,8 +90,9 @@ class TownActor:
     path: list[tuple[int, int]] = field(default_factory=list)
     path_index: int = 0
     target_room: str | None = None
-    status: str = "刚到达"
+    status: str = "剛到達"
     last_error: str | None = None
+    hp: float = MAX_HP
     say_text: str | None = None
     say_until: float = 0.0
     input_dir: Facing | None = None
@@ -111,30 +115,46 @@ def _room_catalog() -> str:
 
 def build_system_prompt(config: TownAgentConfig) -> str:
     return (
-        f"你是像素小镇里的居民「{config.name}」。\n"
-        f"你的人物设定：{config.persona}\n\n"
-        "小镇由一个中央广场和六个房间组成，可去的地点：\n"
+        f"你是畫素小鎮裡的居民「{config.name}」。\n"
+        f"你的人物設定：{config.persona}\n\n"
+        "小鎮由一箇中央廣場和六個房間組成，可去的地點：\n"
         f"{_room_catalog()}\n\n"
-        "你通过输出 JSON 来行动，每次只输出一个 JSON 对象，不要输出任何其它文字：\n"
-        '{"action": "goto|say|idle", "room": "地点id", "text": "要说的话", "reason": "一句话动机"}\n\n'
-        "规则：\n"
-        "- action=goto 时必须给 room，只能用上面列出的地点 id。\n"
-        "- action=say 时必须给 text，只有在你附近的人才听得到，请控制在 40 字内。\n"
-        "- action=idle 表示留在原地观察。\n"
-        "- 按人物设定自然地生活：去有意思的地方、和附近的人搭话。"
+        "小鎮裡藏著食物（確切位置沒有標在地圖上），血量（hp）會隨時間慢慢下降，"
+        "站到食物旁邊會回血；血量歸零會直接從小鎮消失，無法恢復。\n"
+        "食物在哪裡要自己走近了才會發現：夠近時，下方觀察裡的「食物」欄位會告訴你距離、"
+        "夠近了甚至可以直接 goto 填「food」走過去；還沒發現食物的時候，"
+        "可以用 action=move 搭配方向自由走動，到處探索找找看。\n\n"
+        "你透過輸出 JSON 來行動，每次只輸出一個 JSON 物件，不要輸出任何其它文字：\n"
+        '{"action": "goto|move|say|idle", "room": "地點id", "direction": "up|down|left|right", '
+        '"text": "要說的話", "reason": "一句話動機"}\n\n'
+        "規則：\n"
+        "- action=goto 時必須給 room，可以是上面列出的地點 id；「food」只有在你已經發現食物時才有效。\n"
+        "- action=move 時必須給 direction（up/down/left/right），會朝那個方向自由走動，"
+        "直到你下一次決策為止；用來探索還沒去過的地方。\n"
+        "- action=say 時必須給 text，只有在你附近的人才聽得到，請控制在 40 字內。\n"
+        "- action=idle 表示留在原地觀察。\n"
+        f"- {config.behavior_hint}"
     )
 
 
 def build_observation(world: "WorldEngine", actor: TownActor) -> dict[str, Any]:
     room_id = world.room_of_actor(actor)
     room = room_by_id(room_id)
+    food = world.food_status(actor)
+    food_observation: dict[str, Any] = (
+        {"距離你": food["distance"], "你在食物旁邊": food["at_food"]}
+        if food["discovered"]
+        else {"還沒發現食物在哪": True}
+    )
     return {
         "你的位置": {
-            "地点": room["name"] if room else "走廊",
-            "地点id": room_id or "corridor",
-            "坐标": [round(actor.x, 1), round(actor.y, 1)],
+            "地點": room["name"] if room else "走廊",
+            "地點id": room_id or "corridor",
+            "座標": [round(actor.x, 1), round(actor.y, 1)],
         },
         "正在做": actor.status,
+        "血量": round(actor.hp, 1),
+        "食物": food_observation,
         "附近的人": [
             {
                 "名字": other.name,
@@ -143,27 +163,48 @@ def build_observation(world: "WorldEngine", actor: TownActor) -> dict[str, Any]:
             }
             for other in world.nearby(actor.id)
         ],
-        "最近听到": list(actor.heard),
-        "可去的地点": [room["id"] for room in all_rooms()],
+        "最近聽到": list(actor.heard),
+        "可去的地點": [room["id"] for room in all_rooms()],
     }
+
+
+_DIRECTIONS = ("up", "down", "left", "right")
 
 
 def apply_decision(world: "WorldEngine", actor: TownActor, decision: dict[str, Any]) -> None:
     action = str(decision.get("action") or "idle").strip().lower()
     reason = str(decision.get("reason") or "").strip()
 
+    if action != "move":
+        # 上一轮如果是 move，这一轮不是就先停下来，goto/say/idle 不该带着自由走动的惯性。
+        world.set_input(actor.id, None)
+
     if action == "goto":
         room_id = str(decision.get("room") or "").strip()
-        room = room_by_id(room_id)
-        if room is None:
-            actor.last_error = f"模型给了未知地点：{room_id!r}"
+        if room_id == "food" and not world.food_status(actor)["discovered"]:
+            actor.last_error = "還沒發現食物在哪，先用 move 到處走走看看"
+            return
+        destination_name = "食物" if room_id == "food" else (room_by_id(room_id) or {}).get("name")
+        if destination_name is None:
+            actor.last_error = f"模型給了未知地點：{room_id!r}"
             world.wander(actor.id)
             return
         if world.goto(actor.id, room_id):
-            actor.status = f"前往{room['name']}" + (f"（{reason}）" if reason else "")
+            actor.status = f"前往{destination_name}" + (f"（{reason}）" if reason else "")
             actor.last_error = None
         else:
             actor.last_error = f"找不到通往 {room_id} 的路"
+        return
+
+    if action == "move":
+        direction = str(decision.get("direction") or "").strip().lower()
+        if direction not in _DIRECTIONS:
+            actor.last_error = f"模型給了不合法的方向：{direction!r}"
+            world.wander(actor.id)
+            return
+        world.set_input(actor.id, direction)  # type: ignore[arg-type]
+        actor.status = "四處走走探索" + (f"（{reason}）" if reason else "")
+        actor.last_error = None
         return
 
     if action == "say":
@@ -172,16 +213,16 @@ def apply_decision(world: "WorldEngine", actor: TownActor, decision: dict[str, A
             actor.status = "沉默"
             return
         world.say(actor.id, text)
-        actor.status = "说话中"
+        actor.status = "說話中"
         actor.last_error = None
         return
 
-    actor.status = reason or "在原地观察"
+    actor.status = reason or "在原地觀察"
     actor.last_error = None
 
 
 async def decide_once(world: "WorldEngine", agent_id: str) -> None:
-    """跑一轮决策：观察 -> 调自己的模型 -> 套用动作。异常由调用方处理。"""
+    """跑一輪決策：觀察 -> 調自己的模型 -> 套用動作。異常由呼叫方處理。"""
     actor = world.actors.get(agent_id)
     config = world.configs.get(agent_id)
     if actor is None or config is None:
@@ -193,9 +234,9 @@ async def decide_once(world: "WorldEngine", agent_id: str) -> None:
         {
             "role": "user",
             "content": (
-                "这是你现在看到的情况（JSON）：\n"
+                "這是你現在看到的情況（JSON）：\n"
                 f"{observation}\n\n"
-                "请输出你的下一步行动 JSON。"
+                "請輸出你的下一步行動 JSON。"
             ),
         },
     ]
@@ -205,12 +246,12 @@ async def decide_once(world: "WorldEngine", agent_id: str) -> None:
     )
     decision = extract_json_object(reply)
     if decision is None:
-        raise ValueError(f"模型回复里没有可解析的 JSON：{reply[:200]!r}")
+        raise ValueError(f"模型回覆裡沒有可解析的 JSON：{reply[:200]!r}")
     apply_decision(world, actor, decision)
 
 
 async def run_agent_loop(world: "WorldEngine", agent_id: str) -> None:
-    """一个 AI 小人的自主循环。任何单次失败都不阻塞世界，退化成随机走动。"""
+    """一個 AI 小人的自主迴圈。任何單次失敗都不阻塞世界，退化成隨機走動。"""
     await asyncio.sleep(random.uniform(*STARTUP_JITTER_SECONDS))
     while True:
         config = world.configs.get(agent_id)
@@ -218,15 +259,15 @@ async def run_agent_loop(world: "WorldEngine", agent_id: str) -> None:
         if config is None or actor is None:
             return
         if not config.enabled:
-            actor.status = "已暂停"
+            actor.status = "已暫停"
             await asyncio.sleep(1.0)
             continue
         try:
             await decide_once(world, agent_id)
         except asyncio.CancelledError:
             raise
-        except Exception as error:  # noqa: BLE001 - 单个小人的失败不该拖垮世界
+        except Exception as error:  # noqa: BLE001 - 單個小人的失敗不該拖垮世界
             actor.last_error = f"{type(error).__name__}: {error}"
-            actor.status = "决策失败，随便走走"
+            actor.status = "決策失敗，隨便走走"
             world.wander(agent_id)
         await asyncio.sleep(config.decision_interval_s)

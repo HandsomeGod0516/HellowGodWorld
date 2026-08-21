@@ -133,6 +133,6 @@ def sample_messages():
         },
         {
             "role": "user",
-            "content": "不对，应该这样做",
+            "content": "不對，應該這樣做",
         },
     ]

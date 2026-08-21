@@ -39,7 +39,7 @@ def write_json_stdout(payload: dict) -> None:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="jiuwenclaw-tui",
-        description="JiuwenClaw CLI 入口（子命令分发）。",
+        description="JiuwenClaw CLI 入口（子命令分發）。",
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -47,17 +47,17 @@ def _build_parser() -> argparse.ArgumentParser:
     acp_parser.add_argument(
         "--gateway-url",
         default=None,
-        help="AgentServer WebSocket URL，传递给 gateway stdio 子进程。",
+        help="AgentServer WebSocket URL，傳遞給 gateway stdio 子程序。",
     )
     acp_parser.add_argument(
         "--session-id",
         default="acp_cli_session",
-        help="ACP 请求使用的 session_id。",
+        help="ACP 請求使用的 session_id。",
     )
     acp_parser.add_argument(
         "args",
         nargs=argparse.REMAINDER,
-        help="Prompt 内容。",
+        help="Prompt 內容。",
     )
     return parser
 

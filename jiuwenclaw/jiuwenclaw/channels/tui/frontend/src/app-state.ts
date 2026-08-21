@@ -71,8 +71,8 @@ export interface AppSnapshot {
   lastError: string | null;
   isProcessing: boolean;
   /**
-   * 当前 UI 观测到是否存在运行中的工作。
-   * 用于渲染与本地交互（如 Esc）；Ctrl+C 的中断请求仍以服务端为准，不依赖此值放行。
+   * 當前 UI 觀測到是否存在執行中的工作。
+   * 用於渲染與本地互動（如 Esc）；Ctrl+C 的中斷請求仍以服務端為準，不依賴此值放行。
    */
   cancellableWork: boolean;
   isPaused: boolean;
@@ -128,9 +128,9 @@ export class CliPiAppState {
   private historyFlushTimer: ReturnType<typeof setTimeout> | null = null;
   private toolTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
   private historyRequestToken = 0;
-  /** history.get 流返回的分页总数；由 `history.message` 事件帧的 `total_pages` 持续刷新。 */
+  /** history.get 流返回的分頁總數；由 `history.message` 事件幀的 `total_pages` 持續重新整理。 */
   private historyTotalPages: number | null = null;
-  /** 各页 done 事件的 resolver；restoreHistory 循环拉取时按 page_idx 等待。 */
+  /** 各頁 done 事件的 resolver；restoreHistory 迴圈拉取時按 page_idx 等待。 */
   private historyPageDoneResolvers = new Map<number, () => void>();
   private unlistenStatus: (() => void) | null = null;
   private unlistenFrames: (() => void) | null = null;
@@ -139,7 +139,7 @@ export class CliPiAppState {
     model: "",
     version: "",
   };
-  /** 当 closeUi 中 cancelBeforeExit 调 cancel({showNotice:false}) 时置 true，抑制 chat.interrupt_result 的 UI 通知。 */
+  /** 當 closeUi 中 cancelBeforeExit 調 cancel({showNotice:false}) 時置 true，抑制 chat.interrupt_result 的 UI 通知。 */
   private suppressInterruptResult = false;
   private readonly eventDelegate: AppEventDelegate = {
     getConnectionStatus: () => this.connectionStatus,
@@ -329,7 +329,7 @@ export class CliPiAppState {
     const hasActiveSubtasks = [...this.activeSubtasks.values()].some(
       (s) => s.status !== "completed" && s.status !== "error",
     );
-    // 与「Ctrl+C 强制结束当前任务」对齐：有任一进行中工作则为 true。
+    // 與「Ctrl+C 強制結束當前任務」對齊：有任一進行中工作則為 true。
     const cancellableWork =
       isProcessing ||
       this.streamingState === StreamingState.Paused ||
@@ -478,7 +478,7 @@ readonly request = async <T = Record<string, unknown>>(
         );
         this.setSessionTitle(meta.title || "");
       } catch {
-        // 标题获取失败不影响核心功能
+        // 標題獲取失敗不影響核心功能
       }
     })();
   };
@@ -662,7 +662,7 @@ readonly request = async <T = Record<string, unknown>>(
     return requestId;
   }
 
-  /** 向服务端请求中断当前 session 的任务；成功发送前不宣称"已中断"。 */
+  /** 向服務端請求中斷當前 session 的任務；成功傳送前不宣稱"已中斷"。 */
   cancel(options?: { showNotice?: boolean }): boolean {
     if (this.connectionStatus !== "connected") {
       if (options?.showNotice !== false) {
@@ -761,9 +761,9 @@ readonly request = async <T = Record<string, unknown>>(
       this.historyFlushTimer = null;
     }
 
-    // 本地 channel 对 `history.get` 的 ack 里只有 `accepted: true` / `session_id` / `page_idx`，
-    // 真正的消息和分页元数据通过 `history.message` 事件流异步到达；这里先处理本地 ack 返回里
-    // 恰好带 messages 的分支（老链路兼容），再按 `total_pages` 循环逐页拉取。
+    // 本地 channel 對 `history.get` 的 ack 裡只有 `accepted: true` / `session_id` / `page_idx`，
+    // 真正的訊息和分頁後設資料透過 `history.message` 事件流非同步到達；這裡先處理本地 ack 返回裡
+    // 恰好帶 messages 的分支（老鏈路相容），再按 `total_pages` 迴圈逐頁拉取。
     const fetchPage = async (pageIdx: number): Promise<void> => {
       const donePromise = new Promise<void>((resolve) => {
         this.historyPageDoneResolvers.set(pageIdx, resolve);
@@ -808,12 +808,12 @@ readonly request = async <T = Record<string, unknown>>(
         if (typeof ackPayload.total_pages === "number" && ackPayload.total_pages > 0) {
           this.historyTotalPages = ackPayload.total_pages;
         }
-        // 本地 ack 已经自带全部数据，不会再发 done 事件，这里手动解析。
+        // 本地 ack 已經自帶全部資料，不會再發 done 事件，這裡手動解析。
         this.historyPageDoneResolvers.delete(pageIdx);
         return;
       }
 
-      // 等待 history.message 流的 `status: done` 帧；加超时保护，避免 done 丢失时无限挂起。
+      // 等待 history.message 流的 `status: done` 幀；加超時保護，避免 done 丟失時無限掛起。
       const PAGE_TIMEOUT_MS = 15_000;
       await Promise.race([
         donePromise,
@@ -829,19 +829,19 @@ readonly request = async <T = Record<string, unknown>>(
     };
 
     try {
-      // 先拉第 1 页（取最新 50 条）。
+      // 先拉第 1 頁（取最新 50 條）。
       await fetchPage(1);
       if (requestToken !== this.historyRequestToken) return;
 
-      // 后端按 `list(reversed(raw))` 分页：第 2, 3, ... 页是更早的消息。
-      // 没有显式上限能确定会话总大小，统一按 total_pages 循环；每页不超过 50 条事件，成本可控。
+      // 後端按 `list(reversed(raw))` 分頁：第 2, 3, ... 頁是更早的訊息。
+      // 沒有顯式上限能確定會話總大小，統一按 total_pages 迴圈；每頁不超過 50 條事件，成本可控。
       const totalPages = this.historyTotalPages ?? 1;
       for (let page = 2; page <= totalPages; page++) {
         if (requestToken !== this.historyRequestToken) return;
         try {
           await fetchPage(page);
         } catch (error) {
-          // 容忍老会话或竞态下的 `invalid page_idx` 错误：停止翻页，保留已拉到的消息。
+          // 容忍老會話或競態下的 `invalid page_idx` 錯誤：停止翻頁，保留已拉到的訊息。
           if (isIgnorableHistoryRestoreError(error)) {
             break;
           }
@@ -862,9 +862,9 @@ readonly request = async <T = Record<string, unknown>>(
   };
 
   private applyHistoryEntriesToTranscript(): void {
-    // AgentServer 为了让分页优先返回最新页，在 `_handle_history_get_stream` 中把整条历史做了
-    // `list(reversed(raw))` 后再流式下发；CLI 按到达顺序 push 到 `historyEntries` 会得到倒序。
-    // 这里按消息时间戳重排回时间升序，再做同 turn 合并，保证 UI 从最早到最新正常显示。
+    // AgentServer 為了讓分頁優先返回最新頁，在 `_handle_history_get_stream` 中把整條歷史做了
+    // `list(reversed(raw))` 後再流式下發；CLI 按到達順序 push 到 `historyEntries` 會得到倒序。
+    // 這裡按訊息時間戳重排回時間升序，再做同 turn 合併，保證 UI 從最早到最新正常顯示。
     const ordered = [...this.historyEntries]
       .map((entry, originalIndex) => ({ entry, originalIndex, ts: Date.parse(entry.at) }))
       .sort((a, b) => {

@@ -1,18 +1,18 @@
-# CAM dispatch & combine Shmem算子
-## 使用场景
-提供在A3环境上运行的一对协同工作dispatch&&combine算子，基于Shmem实现后端通信，主要用于混合专家模型(Moe, Mixture of Experts)中用于专家并行（Expert Parallelism）带来的动态路由问题。在如下约束下可使用
-1. 运行环境为昇腾A3环境，需要支持Shmem特性
-2. 当前不支持TP
-3. 当前Moe场景需要满足如下取值要求
- - 假设当前Moe通信域的rank数定义为ep_world_size，ep_world_size只支持如下取值：[8, 16, 32, 64, 128, 144, 256, 288]
- - 假设当前Moe通信域的专家数为num_experts，num_experts取值范围的取值范围是(0, 512]，由共享专家和moe专家组成共享专家数量为shared_expert_rank_num，moe专家为moe_expert_num，需要满足(moe_expert_num + shared_expert_rank_num) ≤ 512， moe_expert_num % (ep_world_size - shared_expert_rank_num) == 0 ，moe_expert_num / (ep_world_size - shared_expert_rank_num) ≤ MAX_EXPERT_PER_RANK, 当前该值设置为32， (ep_world_size + block_num -1) / block_num ≤ MULTI_RANK_SIZE，如果shared_expert_rank_num不为0，则ep_world_size需要为其整数倍，切ep_world_size ≠ shared_expert_rank_num，(batch_size * hidden_size * ep_world_size * expert_num_per_rank * 2)小于ext_info指向的地址空间大小
-4. 当前Shmem算子使用时需要提前申请Shmem内存，申请Shmem内存时需要设置内存大小和ip端口参数，当前内存大小默认申请1024 ** 3即1GB，使用ip和端口为"tcp://127.0.0.1:8666"，注意这只是申请shmem用的参数，不要用到其他地方。
-必须在算子执行完之后(如torch.npu.synchronize())之后释放shmem资源(aclshmem_free和aclshmem_finialize)
+# CAM dispatch & combine Shmem運算元
+## 使用場景
+提供在A3環境上執行的一對協同工作dispatch&&combine運算元，基於Shmem實現後端通訊，主要用於混合專家模型(Moe, Mixture of Experts)中用於專家並行（Expert Parallelism）帶來的動態路由問題。在如下約束下可使用
+1. 執行環境為昇騰A3環境，需要支援Shmem特性
+2. 當前不支援TP
+3. 當前Moe場景需要滿足如下取值要求
+ - 假設當前Moe通訊域的rank數定義為ep_world_size，ep_world_size只支援如下取值：[8, 16, 32, 64, 128, 144, 256, 288]
+ - 假設當前Moe通訊域的專家數為num_experts，num_experts取值範圍的取值範圍是(0, 512]，由共享專家和moe專家組成共享專家數量為shared_expert_rank_num，moe專家為moe_expert_num，需要滿足(moe_expert_num + shared_expert_rank_num) ≤ 512， moe_expert_num % (ep_world_size - shared_expert_rank_num) == 0 ，moe_expert_num / (ep_world_size - shared_expert_rank_num) ≤ MAX_EXPERT_PER_RANK, 當前該值設定為32， (ep_world_size + block_num -1) / block_num ≤ MULTI_RANK_SIZE，如果shared_expert_rank_num不為0，則ep_world_size需要為其整數倍，切ep_world_size ≠ shared_expert_rank_num，(batch_size * hidden_size * ep_world_size * expert_num_per_rank * 2)小於ext_info指向的地址空間大小
+4. 當前Shmem運算元使用時需要提前申請Shmem記憶體，申請Shmem記憶體時需要設定記憶體大小和ip埠引數，當前記憶體大小預設申請1024 ** 3即1GB，使用ip和埠為"tcp://127.0.0.1:8666"，注意這只是申請shmem用的引數，不要用到其他地方。
+必須在運算元執行完之後(如torch.npu.synchronize())之後釋放shmem資源(aclshmem_free和aclshmem_finialize)
 
-## 接口说明文档
-当前提供算子已提供torch扩展包，需要import umdk_cam_op_lib，调用时使用torch.ops.umdk_cam_op_lib.xxx进行调用
+## 介面說明文件
+當前提供運算元已提供torch擴充套件包，需要import umdk_cam_op_lib，呼叫時使用torch.ops.umdk_cam_op_lib.xxx進行呼叫
 ### 2.1 moe_dispatch_shmem ▶
-#### 2.1.1 接口原型 
+#### 2.1.1 介面原型 
 ```python
 moe_dispatch_shmem(
     Tensor x, 
@@ -33,56 +33,56 @@ moe_dispatch_shmem(
     int ext_info)
 -> output: List[Tensor]
 ```
-#### 2.1.2 接口描述 
-基于SHMEM类内存的Dispatch接口，用以在EP通信阶段将token分发至不同的专家以供后续的操作。该接口需配合moe_combine_shmem配套使用。
-#### 2.1.3 入参 
-| **📌参数** | **🔧类型** | **✅是否必选** | **📋取值说明** | **📝描述** |
+#### 2.1.2 介面描述 
+基於SHMEM類記憶體的Dispatch介面，用以在EP通訊階段將token分發至不同的專家以供後續的操作。該介面需配合moe_combine_shmem配套使用。
+#### 2.1.3 入參 
+| **📌引數** | **🔧型別** | **✅是否必選** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|--------------|----------|
-|x|Tensor|必选|形状:(batch_size, hidden_size)|输入Token|
-|expert_ids|Tensor(int32)|必选|形状:(batch_size, top_k)|目的专家ID信息, 数据类型必须为int32|
-|scales|Tensor|可选|非空时为float类型，存在共享专家时形状:(m+1,h), 不存在共享专家时形状(m, h),其中m为共享专家数|量化参数|
-|x_active_mask|Tensor|可选|暂不支持，传入None|--|
-|ep_world_size|int|必选|只支持如下取值：[8, 16, 32, 64, 128, 144, 256, 288]|EP通信域内的rank数|
-|ep_rank_id|int|必选|[0, ep_world_size-1]|EP通信域内rank ID号|
-|moe_expert_num|int|必选|[1, 512]|MoE专家数|
-|tp_world_size|int|必选|暂不支持，传入1|--|
-|tp_rank_id|int|必选|暂不支持，传入0|--|
-|expert_shard_type|int|必选|暂不支持，传入0|--|
-|shared_expert_num|int|必选|不支持非1的值，传入1|每张卡上设置的共享专家数量|
-|shared_expert_rank_num|int|必选|[0, ep_world_size-1]|当前moe中共享专家数量，如果不存在共享专家设置为0|
-|quant_mode|int|必选|非量化传0，量化传2|量化模式|
-|global_bs|int|必选|根据实际情况传入，由实际内存大小约束|EP通信域全局BS大小|
-|expert_token_nums_type|int|必选|传入0：输出每个专家处理的token数量；传入1：输出每个专家处理的token前缀和。|输出expert_token_nums_out的数据格式|
-|ext_info|int|必选|--|SHMEM初始化后返回的基地址指针|
+|x|Tensor|必選|形狀:(batch_size, hidden_size)|輸入Token|
+|expert_ids|Tensor(int32)|必選|形狀:(batch_size, top_k)|目的專家ID資訊, 資料型別必須為int32|
+|scales|Tensor|可選|非空時為float型別，存在共享專家時形狀:(m+1,h), 不存在共享專家時形狀(m, h),其中m為共享專家數|量化引數|
+|x_active_mask|Tensor|可選|暫不支援，傳入None|--|
+|ep_world_size|int|必選|只支援如下取值：[8, 16, 32, 64, 128, 144, 256, 288]|EP通訊域內的rank數|
+|ep_rank_id|int|必選|[0, ep_world_size-1]|EP通訊域內rank ID號|
+|moe_expert_num|int|必選|[1, 512]|MoE專家數|
+|tp_world_size|int|必選|暫不支援，傳入1|--|
+|tp_rank_id|int|必選|暫不支援，傳入0|--|
+|expert_shard_type|int|必選|暫不支援，傳入0|--|
+|shared_expert_num|int|必選|不支援非1的值，傳入1|每張卡上設定的共享專家數量|
+|shared_expert_rank_num|int|必選|[0, ep_world_size-1]|當前moe中共享專家數量，如果不存在共享專家設定為0|
+|quant_mode|int|必選|非量化傳0，量化傳2|量化模式|
+|global_bs|int|必選|根據實際情況傳入，由實際記憶體大小約束|EP通訊域全域性BS大小|
+|expert_token_nums_type|int|必選|傳入0：輸出每個專家處理的token數量；傳入1：輸出每個專家處理的token字首和。|輸出expert_token_nums_out的資料格式|
+|ext_info|int|必選|--|SHMEM初始化後返回的基地址指標|
 #### 2.1.4 返回值 
-函数返回值是一个由Tensor构成的List，依次存放：expand_x, dynamic_scales, expand_idx, expert_token_nums, ep_send_count, tp_send_count和expand_scales.
-| **📌参数** | **🔧类型** | **📋取值说明** | **📝描述** |
+函式返回值是一個由Tensor構成的List，依次存放：expand_x, dynamic_scales, expand_idx, expert_token_nums, ep_send_count, tp_send_count和expand_scales.
+| **📌引數** | **🔧型別** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|----------|
-|expand_x|Tensor|当前rank是共享专家时，形状:(rank_size * batch_size / shared_expert_num, hidden_size);当前rank是路由专家时，形状：(expert_num_per_rank * rank_size * batch_size, hidden_size)|每个rank上所有专家的token|
-|dynamic_scales|Tensor|形状同expand_x的第一维，即:当前rank是共享专家时，形状:(rank_size * batch_size / shared_expert_num);当前rank是路由专家时，形状：(expert_num_per_rank * rank_size * batch_size)|量化参数信息|
-|expand_idx|Tensor|形状：(batch_size, top_k)|在目标专家内，仅排序当前rank的token时，当前rank发出的token各自的排序ID|
-|expert_token_nums|Tensor|(expert_num_on_rank)|当前rank上每个专家收到的token数|
-|ep_send_count|Tensor|形状：(expert_num_per_rank * ep_world_size)|每个专家从每个rank收到的token数|
-|tp_send_count|Tensor|--|暂不支持，无意义|
-|expand_scales|Tensor|--|暂不支持，无意义|
-#### 2.1.5 约束和注意事项 ⚠️
-1. 入参形状需严格满足上述入参描述中的形状定义。
-2. 当量化模式开启时，expand_x的数据类型为int8类型，而不开启量化时其数据类型为bfloat16类型。
-3. 当前接口不支持A2环境调用。
-4. 当前接口不支持并发调用。
-5. 当前接口在GE图模式下不支持动态图， 不支持fullgraph=true的选项。
-6. 用户应保证ext_info地址合法性。
-7. 除满足上述形状约束外，其他参数取值要求：
- - 需要满足：(moe_expert_num + shared_expert_rank_num) ≤ CAM_MAX_EXPERT_NUM, 当前最大专家数为512
- - 需要满足: moe_expert_num % (ep_world_size - shared_expert_rank_num) == 0
- - 需要满足：moe_expert_num / (ep_world_size - shared_expert_rank_num) ≤ MAX_EXPERT_PER_RANK, 当前该值设置为32
- - 需要满足： (ep_world_size + block_num -1) / block_num ≤ MULTI_RANK_SIZE
- - 需要满足： 如果shared_expert_rank_num不为0，则ep_world_size需要为其整数倍，切ep_world_size ≠ shared_expert_rank_num
- - 需要满足：(batch_size * hidden_size * ep_world_size * expert_num_per_rank * 2)小于ext_info指向的地址空间大小
-- - 必须在算子执行完之后(如torch.npu.synchronize())之后释放shmem资源(aclshmem_free和aclshmem_finialize)
+|expand_x|Tensor|當前rank是共享專家時，形狀:(rank_size * batch_size / shared_expert_num, hidden_size);當前rank是路由專家時，形狀：(expert_num_per_rank * rank_size * batch_size, hidden_size)|每個rank上所有專家的token|
+|dynamic_scales|Tensor|形狀同expand_x的第一維，即:當前rank是共享專家時，形狀:(rank_size * batch_size / shared_expert_num);當前rank是路由專家時，形狀：(expert_num_per_rank * rank_size * batch_size)|量化引數資訊|
+|expand_idx|Tensor|形狀：(batch_size, top_k)|在目標專家內，僅排序當前rank的token時，當前rank發出的token各自的排序ID|
+|expert_token_nums|Tensor|(expert_num_on_rank)|當前rank上每個專家收到的token數|
+|ep_send_count|Tensor|形狀：(expert_num_per_rank * ep_world_size)|每個專家從每個rank收到的token數|
+|tp_send_count|Tensor|--|暫不支援，無意義|
+|expand_scales|Tensor|--|暫不支援，無意義|
+#### 2.1.5 約束和注意事項 ⚠️
+1. 入參形狀需嚴格滿足上述入參描述中的形狀定義。
+2. 當量化模式開啟時，expand_x的資料型別為int8型別，而不開啟量化時其資料型別為bfloat16型別。
+3. 當前介面不支援A2環境呼叫。
+4. 當前介面不支援併發呼叫。
+5. 當前介面在GE圖模式下不支援動態圖， 不支援fullgraph=true的選項。
+6. 使用者應保證ext_info地址合法性。
+7. 除滿足上述形狀約束外，其他引數取值要求：
+ - 需要滿足：(moe_expert_num + shared_expert_rank_num) ≤ CAM_MAX_EXPERT_NUM, 當前最大專家數為512
+ - 需要滿足: moe_expert_num % (ep_world_size - shared_expert_rank_num) == 0
+ - 需要滿足：moe_expert_num / (ep_world_size - shared_expert_rank_num) ≤ MAX_EXPERT_PER_RANK, 當前該值設定為32
+ - 需要滿足： (ep_world_size + block_num -1) / block_num ≤ MULTI_RANK_SIZE
+ - 需要滿足： 如果shared_expert_rank_num不為0，則ep_world_size需要為其整數倍，切ep_world_size ≠ shared_expert_rank_num
+ - 需要滿足：(batch_size * hidden_size * ep_world_size * expert_num_per_rank * 2)小於ext_info指向的地址空間大小
+- - 必須在運算元執行完之後(如torch.npu.synchronize())之後釋放shmem資源(aclshmem_free和aclshmem_finialize)
 
 ### 2.2 moe_combine_shmem ▶
-#### 2.2.1 接口原型 
+#### 2.2.1 介面原型 
 ```python
 moe_combine_shmem(
     Tensor expand_x, 
@@ -111,58 +111,58 @@ moe_combine_shmem(
     int group_list_type)
 -> output: Tensor
 ```
-#### 2.2.2 接口描述 
-基于SHMEM类内存的Combine接口，用以在EP通信阶段将分发至不同的专家的token回合以供后续的操作。该接口需配合moe_dispatch_shmem配套使用。
-#### 2.2.3 入参 
-| **📌参数** | **🔧类型** | **✅是否必选** | **📋取值说明** | **📝描述** |
+#### 2.2.2 介面描述 
+基於SHMEM類記憶體的Combine介面，用以在EP通訊階段將分發至不同的專家的token回合以供後續的操作。該介面需配合moe_dispatch_shmem配套使用。
+#### 2.2.3 入參 
+| **📌引數** | **🔧型別** | **✅是否必選** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|--------------|----------|
-|expand_x|Tensor|必选|形状同dispatch的出参expand_x|dispatch分发至各专家上的token|
-|expert_ids|Tensor(int32)|必选|形状:(batch_size, top_k)|目的专家ID信息, 数据类型必须为int32|
-|expand_idx|Tensor|必选|形状:(batch_size, top_k)|在目标专家内，仅排序当前rank的token时，按照rank发出的token各自的排序ID|
-|ep_send_counts|Tensor|必选|形状:(expert_num_per_rank * ep_world_size)|每个专家从每个rank收到的token数|
-|expert_scales|Tensor|必选|形状：（batch_size, top_k）|合并token时需要的权重|
-|tp_send_count|Tensor|可选|暂不支持，传入int32类型的tensor[0]即可|--|
-|x_active_mask|Tensor|可选|暂不支持，传入None|--|
-|activation_scale|Tensor|可选|暂不支持，传入None|--|
-|weight_scale|Tensor|可选|暂不支持，传入None|--|
-|group_list|Tensor|可选|暂不支持，传入None|--|
-|expand_scales|Tensor|可选|暂不支持，传入None|--|
-|ep_world_size|int|必选|只支持如下取值：[8, 16, 32, 64, 128, 144, 256, 288]|EP通信域内的rank数|
-|ep_rank_id|int|必选|[0, ep_world_size-1]|EP通信域内rank ID号|
-|moe_expert_num|int|必选|[1, 512]|MoE专家数|
-|tp_world_size|int|必选|暂不支持，传入1|--|
-|tp_rank_id|int|必选|暂不支持，传入0|--|
-|expert_shard_type|int|必选|暂不支持，传入0|--|
-|shared_expert_num|int|必选|不支持非1的值，传入1|每张卡上设置的共享专家数量|
-|shared_expert_rank_num|int|必选|[0, ep_world_size-1]|当前moe中共享专家数量，如果不存在共享专家设置为0|
-|global_bs|int|必选|根据实际情况传入，由实际内存大小约束|EP通信域全局BS大小|
-|out_dtype|int|必选|暂不支持，传入0|--|
-|comm_quant_mode|int|必选|非量化传0，量化传2|量化模式|
-|group_list_type|int|必选|暂不支持，传入0|--|
-|ext_info|int|必选|--|SHMEM初始化后返回的基地址指针|
+|expand_x|Tensor|必選|形狀同dispatch的出參expand_x|dispatch分發至各專家上的token|
+|expert_ids|Tensor(int32)|必選|形狀:(batch_size, top_k)|目的專家ID資訊, 資料型別必須為int32|
+|expand_idx|Tensor|必選|形狀:(batch_size, top_k)|在目標專家內，僅排序當前rank的token時，按照rank發出的token各自的排序ID|
+|ep_send_counts|Tensor|必選|形狀:(expert_num_per_rank * ep_world_size)|每個專家從每個rank收到的token數|
+|expert_scales|Tensor|必選|形狀：（batch_size, top_k）|合併token時需要的權重|
+|tp_send_count|Tensor|可選|暫不支援，傳入int32型別的tensor[0]即可|--|
+|x_active_mask|Tensor|可選|暫不支援，傳入None|--|
+|activation_scale|Tensor|可選|暫不支援，傳入None|--|
+|weight_scale|Tensor|可選|暫不支援，傳入None|--|
+|group_list|Tensor|可選|暫不支援，傳入None|--|
+|expand_scales|Tensor|可選|暫不支援，傳入None|--|
+|ep_world_size|int|必選|只支援如下取值：[8, 16, 32, 64, 128, 144, 256, 288]|EP通訊域內的rank數|
+|ep_rank_id|int|必選|[0, ep_world_size-1]|EP通訊域內rank ID號|
+|moe_expert_num|int|必選|[1, 512]|MoE專家數|
+|tp_world_size|int|必選|暫不支援，傳入1|--|
+|tp_rank_id|int|必選|暫不支援，傳入0|--|
+|expert_shard_type|int|必選|暫不支援，傳入0|--|
+|shared_expert_num|int|必選|不支援非1的值，傳入1|每張卡上設定的共享專家數量|
+|shared_expert_rank_num|int|必選|[0, ep_world_size-1]|當前moe中共享專家數量，如果不存在共享專家設定為0|
+|global_bs|int|必選|根據實際情況傳入，由實際記憶體大小約束|EP通訊域全域性BS大小|
+|out_dtype|int|必選|暫不支援，傳入0|--|
+|comm_quant_mode|int|必選|非量化傳0，量化傳2|量化模式|
+|group_list_type|int|必選|暫不支援，傳入0|--|
+|ext_info|int|必選|--|SHMEM初始化後返回的基地址指標|
 #### 2.2.4 返回值 
-函数返回值是一个Tensor，存放expand_x信息。
-| **📌参数** | **🔧类型** | **📋取值说明** | **📝描述** |
+函式返回值是一個Tensor，存放expand_x資訊。
+| **📌引數** | **🔧型別** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|----------|
-|expand_x|Tensor|形状:(batch_size, hidden_size)|合并后的token信息|
-#### 2.2.5 约束和注意事项 ⚠️
-1. 入参形状需严格满足上述入参描述中的形状定义。
-2. 当前接口不支持A2环境调用。
-3. 当前接口不支持并发调用。
-4. 当前接口在GE图模式下不支持动态图， 不支持fullgraph=true的选项。
-5. 当前不支持共享专家功能。
-6. 用户应保证ext_info地址合法性。
-7. 除满足上述形状约束外，其他参数取值要求：
- - 需要满足：(moe_expert_num + shared_expert_rank_num) ≤ CAM_MAX_EXPERT_NUM, 当前最大专家数为512
- - 需要满足: moe_expert_num % (ep_world_size - shared_expert_rank_num) == 0
- - 需要满足：moe_expert_num / (ep_world_size - shared_expert_rank_num) ≤ MAX_EXPERT_PER_RANK, 当前该值设置为32
- - 需要满足： (ep_world_size + block_num -1) / block_num ≤ MULTI_RANK_SIZE, 
- - 需要满足： 如果shared_expert_rank_num不为0，则ep_world_size需要为其整数倍，切ep_world_size ≠ shared_expert_rank_num
- - 需要满足：(batch_size * hidden_size * ep_world_size * expert_num_per_rank * 2)小于ext_info指向的地址空间大小
-- 必须在算子执行完之后(如torch.npu.synchronize())之后释放shmem资源(aclshmem_free和aclshmem_finialize)
+|expand_x|Tensor|形狀:(batch_size, hidden_size)|合併後的token資訊|
+#### 2.2.5 約束和注意事項 ⚠️
+1. 入參形狀需嚴格滿足上述入參描述中的形狀定義。
+2. 當前介面不支援A2環境呼叫。
+3. 當前介面不支援併發呼叫。
+4. 當前介面在GE圖模式下不支援動態圖， 不支援fullgraph=true的選項。
+5. 當前不支援共享專家功能。
+6. 使用者應保證ext_info地址合法性。
+7. 除滿足上述形狀約束外，其他引數取值要求：
+ - 需要滿足：(moe_expert_num + shared_expert_rank_num) ≤ CAM_MAX_EXPERT_NUM, 當前最大專家數為512
+ - 需要滿足: moe_expert_num % (ep_world_size - shared_expert_rank_num) == 0
+ - 需要滿足：moe_expert_num / (ep_world_size - shared_expert_rank_num) ≤ MAX_EXPERT_PER_RANK, 當前該值設定為32
+ - 需要滿足： (ep_world_size + block_num -1) / block_num ≤ MULTI_RANK_SIZE, 
+ - 需要滿足： 如果shared_expert_rank_num不為0，則ep_world_size需要為其整數倍，切ep_world_size ≠ shared_expert_rank_num
+ - 需要滿足：(batch_size * hidden_size * ep_world_size * expert_num_per_rank * 2)小於ext_info指向的地址空間大小
+- 必須在運算元執行完之後(如torch.npu.synchronize())之後釋放shmem資源(aclshmem_free和aclshmem_finialize)
 
-### 示例1：deep ep dispatch & combine算子替换为 cam dispatch & combine shmem算子
-替换前：
+### 示例1：deep ep dispatch & combine運算元替換為 cam dispatch & combine shmem運算元
+替換前：
 ```python
 import argparse
 import os
@@ -215,22 +215,22 @@ def init_dist(local_rank: int, num_local_ranks: int):
     return dist.get_rank(), dist.get_world_size(), dist.new_group(list(range(num_local_ranks * num_nodes)))
 
 def test_main(args, num_sms, local_rank, num_local_ranks, num_ranks, num_nodes, rank, buffer, group):
-    # 配置参数
+    # 配置引數
     num_tokens, hidden = args.num_tokens, args.hidden
     num_topk_groups, num_topk, num_experts = args.num_topk_groups, args.num_topk, args.num_experts
 
-    # 准备随机数据
+    # 準備隨機資料
     x = torch.randn((num_tokens, hidden), dtype=torch.bfloat16, device='cuda')
     scores = torch.randn((num_tokens, num_experts), dtype=torch.float32, device='cuda').abs() + 1
     
-    # 计算 top-k 索引
+    # 計算 top-k 索引
     group_scores = scores.view(num_tokens, num_nodes, -1).amax(dim=-1)
     group_idx = torch.topk(group_scores, k=num_topk_groups, dim=-1, sorted=False).indices
     masked_scores = create_grouped_scores(scores, group_idx, num_nodes)
     topk_idx = torch.topk(masked_scores, num_topk, dim=-1, largest=True, sorted=False)[1].to(deep_ep.topk_idx_t)
     topk_weights = torch.ones((num_tokens, num_topk), dtype=torch.bfloat16, device='cuda')
 
-    # 计算 rank 索引
+    # 計算 rank 索引
     rank_idx = (topk_idx // (num_experts // num_ranks)).to(torch.int64)
     rank_idx.masked_fill_(topk_idx == -1, -1)
     inplace_unique(rank_idx, num_ranks)
@@ -249,7 +249,7 @@ def test_main(args, num_sms, local_rank, num_local_ranks, num_ranks, num_nodes, 
     rdma_buffer_size, nvl_buffer_size = 128, 512
     config = deep_ep.Config(num_sms, 8, nvl_buffer_size, 16, rdma_buffer_size)
 
-    # 测试 dispatch
+    # 測試 dispatch
     dispatch_args = {
         'x': x,
         'num_tokens_per_rank': num_tokens_per_rank,
@@ -268,7 +268,7 @@ def test_main(args, num_sms, local_rank, num_local_ranks, num_ranks, num_nodes, 
     if local_rank == 0:
         print(f"[dispatch] Completed, received {recv_x.size(0)} tokens")
 
-    # 测试 combine
+    # 測試 combine
     combine_args = {
         'x': recv_x,
         'bias': (torch.ones_like(recv_x), torch.zeros_like(recv_x)),
@@ -317,7 +317,7 @@ if __name__ == '__main__':
     torch.multiprocessing.spawn(test_loop, args=(args.num_processes, args), nprocs=args.num_processes)
 ```
 
-替换后：
+替換後：
 ```python
 import argparse
 import os
@@ -330,7 +330,7 @@ import inspect
 import numpy as np
 import random
 
-# 关闭tls认证
+# 關閉tls認證
 shm.set_conf_store_tls(False, "")
 
 def inplace_unique(x: torch.Tensor, num_slots: int):
@@ -377,25 +377,25 @@ def init_dist(local_rank: int, num_local_ranks: int):
     return dist.get_rank(), dist.get_world_size(), dist.new_group(list(range(num_local_ranks * num_nodes)))
 
 def test_main(args, local_rank, num_local_ranks, num_ranks, num_nodes, rank, group):
-    # 配置参数
+    # 配置引數
     num_tokens, hidden = args.num_tokens, args.hidden
     num_topk_groups, num_topk, num_experts = args.num_topk_groups, args.num_topk, args.num_experts
     
-    # EP通信域配置
+    # EP通訊域配置
     ep_world_size = num_ranks
     ep_rank_id = rank
     
     shared_expert_num = 1
     shared_expert_rank_num = 0
     
-    # 计算moe专家数
+    # 計算moe專家數
     moe_expert_num = num_experts - shared_expert_rank_num
     
-    # 准备随机数据
+    # 準備隨機資料
     x = torch.randn((num_tokens, hidden), dtype=torch.bfloat16, device='npu')
     scores = torch.randn((num_tokens, num_experts), dtype=torch.float32, device='npu').abs() + 1
     
-    # 计算 top-k 索引（保持原有逻辑）
+    # 計算 top-k 索引（保持原有邏輯）
     group_scores = scores.view(num_tokens, num_nodes, -1).amax(dim=-1)
     group_idx = torch.topk(group_scores, k=num_topk_groups, dim=-1, sorted=False).indices
     masked_scores = create_grouped_scores(scores, group_idx, num_nodes)
@@ -403,7 +403,7 @@ def test_main(args, local_rank, num_local_ranks, num_ranks, num_nodes, rank, gro
     
     # 生成 expert_ids 和 scales
     expert_ids = topk_idx.to(torch.int32)
-    scales = torch.gather(masked_scores, 1, topk_idx)  # 使用分数作为权重
+    scales = torch.gather(masked_scores, 1, topk_idx)  # 使用分數作為權重
     
     if local_rank == 0:
         print(f"[Rank {rank}] Configuration: ep_world_size={ep_world_size}, "
@@ -426,13 +426,13 @@ def test_main(args, local_rank, num_local_ranks, num_ranks, num_nodes, rank, gro
     if shm_ret != 0:
         raise ValueError(f'[ERROR] shmem_init failed on rank {rank}')
     
-    # 分配共享内存
+    # 分配共享記憶體
     shmem_ptr = shm.aclshmem_malloc(localMemSize)
     
     if local_rank == 0:
         print(f"[SHMEM] Initialized, ptr: {shmem_ptr}")
     
-    # 调用 moe_dispatch_shmem
+    # 呼叫 moe_dispatch_shmem
     if local_rank == 0:
         print(f"[Dispatch] Calling moe_dispatch_shmem...")
     
@@ -465,7 +465,7 @@ def test_main(args, local_rank, num_local_ranks, num_ranks, num_nodes, rank, gro
     
     dist.barrier()
 
-    # 准备combine参数
+    # 準備combine引數
     x_active_mask = None
     activation_scale = None
     weight_scale = None

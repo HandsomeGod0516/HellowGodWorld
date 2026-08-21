@@ -50,11 +50,11 @@ instructions:
     expected_calls:
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": 500020440, "mode": "driving"}]
 
-  - instruction: "Walk to Argo 希腊餐厅 (ID: 700002365) to begin the lunch break."
+  - instruction: "Walk to Argo 希臘餐廳 (ID: 700002365) to begin the lunch break."
     expected_calls:
       - ["MobilitySpace", "move_to", {"person_id": "@", "aoi_id_or_poi_id": 700002365, "mode": "walking"}]
 
-  - instruction: "Start a 45-minute eating out activity at Argo 希腊餐厅 (POI ID: 700002365) to restore satiety."
+  - instruction: "Start a 45-minute eating out activity at Argo 希臘餐廳 (POI ID: 700002365) to restore satiety."
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "eating out", "event_name": "*", "expected_duration_seconds": 2700}]
 
@@ -82,7 +82,7 @@ instructions:
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "leisure and entertainment", "event_name": "*", "expected_duration_seconds": "*"}]
 
-  - instruction: "Begin a 20-minute mindful walk along the sidewalk and adjacent courtyard near Argo 希腊餐厅, maintaining a steady, unhurried pace to support embodied presence and integrate the calm from lunch."
+  - instruction: "Begin a 20-minute mindful walk along the sidewalk and adjacent courtyard near Argo 希臘餐廳, maintaining a steady, unhurried pace to support embodied presence and integrate the calm from lunch."
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "leisure and entertainment", "event_name": "*", "expected_duration_seconds": 1200}]
 
@@ -102,7 +102,7 @@ instructions:
     expected_calls:
       - ["EventSpace", "start_event", {"person_id": "@", "event_type": "eating out", "event_name": "*", "expected_duration_seconds": "*"}]
 
-  - instruction: "Remain seated at Argo 希腊restaurant and stay observant for any colleagues who may approach for casual conversation to nurture social connection."
+  - instruction: "Remain seated at Argo 希臘restaurant and stay observant for any colleagues who may approach for casual conversation to nurture social connection."
     expected_calls:
       - ["EventSpace", "get_current_event", {"person_id": "@"}]
 

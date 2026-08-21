@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-报告生成模块
+報告生成模組
 
-支持：
-- 日报生成
-- 周报生成
-- 月报生成
+支援：
+- 日報生成
+- 週報生成
+- 月報生成
 """
 
 from .report_generator import ReportGenerator, ReportConfig

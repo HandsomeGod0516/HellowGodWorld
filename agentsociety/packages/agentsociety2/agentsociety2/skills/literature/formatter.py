@@ -51,7 +51,7 @@ def format_article_as_markdown(article: Dict[str, Any], query: str) -> str:
         lines.append(f"**Journal:** {article['journal']}")
         lines.append("")
 
-    # 处理 DOI 和 URL
+    # 處理 DOI 和 URL
     doi = article.get("doi", "")
     url = article.get("url", "")
     source = article.get("source", "")
@@ -66,7 +66,7 @@ def format_article_as_markdown(article: Dict[str, Any], query: str) -> str:
 
     if source:
         source_name = article.get("source_name", source)
-        # 为外部数据源添加提示
+        # 為外部資料來源新增提示
         if source in ["arxiv", "crossref", "openalex"]:
             lines.append(f"**Source:** {source_name} (external)")
         else:

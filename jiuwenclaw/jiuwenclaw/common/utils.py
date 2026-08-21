@@ -2,13 +2,13 @@
 
 """Path management for JiuWenClaw.
 
-根目录见 ``JIUWENCLAW_DATA_DIR``（默认 ``~/.jiuwenclaw``；可由环境变量 ``JIUWENCLAW_DATA_DIR`` 指定绝对路径）。
+根目錄見 ``JIUWENCLAW_DATA_DIR``（預設 ``~/.jiuwenclaw``；可由環境變數 ``JIUWENCLAW_DATA_DIR`` 指定絕對路徑）。
 
 Runtime layout:
 - <root>/config/config.yaml
 - <root>/config/.env
 - <root>/agent/home
-- <root>/agent/jiuwenclaw_workspace（DeepAgent 标准工作空间）
+- <root>/agent/jiuwenclaw_workspace（DeepAgent 標準工作空間）
   - memory/
   - skills/
   - todo/
@@ -24,7 +24,7 @@ Runtime layout:
 - <root>/agent/.checkpoint
 - <root>/agent/.logs（gateway.log / channel.log / agent_server.log / full.log）
 
-内置模板位于包内 ``jiuwenclaw/resources/``（含 ``agent/`` 下各技能模板以及 ``skills_state.json``）。
+內建模板位於包內 ``jiuwenclaw/resources/``（含 ``agent/`` 下各技能模板以及 ``skills_state.json``）。
 """
 
 import json
@@ -151,7 +151,7 @@ def _parse_log_level(name: str, default: int = logging.INFO) -> int:
 
 
 def _log_component_from_logger_name(name: str) -> str:
-    """按 ``logging.getLogger(__name__)`` 的 logger 名划分 gateway / channel / agent_server / permissions（含 security）。"""
+    """按 ``logging.getLogger(__name__)`` 的 logger 名劃分 gateway / channel / agent_server / permissions（含 security）。"""
     if name.startswith("jiuwenclaw.channels"):
         return "channel"
     if name.startswith("jiuwenclaw.agents.harness.common.rails.permissions"):
@@ -162,7 +162,7 @@ def _log_component_from_logger_name(name: str) -> str:
 
 
 class _ComponentNameFilter(logging.Filter):
-    """仅放行指定组件（由 logger 名判定）的日志记录。"""
+    """僅放行指定元件（由 logger 名判定）的日誌記錄。"""
 
     def __init__(self, component: str) -> None:
         super().__init__()
@@ -173,7 +173,7 @@ class _ComponentNameFilter(logging.Filter):
 
 
 class _CompositeFilter(logging.Filter):
-    """组合多个过滤器，任一通过即放行"""
+    """組合多個過濾器，任一透過即放行"""
 
     def __init__(self, filters: list[logging.Filter]) -> None:
         super().__init__()
@@ -184,7 +184,7 @@ class _CompositeFilter(logging.Filter):
 
 
 def _load_logging_config_from_yaml() -> dict[str, Any]:
-    """读取 ~/.jiuwenclaw/config/config.yaml 中的 logging 段（无则空）。"""
+    """讀取 ~/.jiuwenclaw/config/config.yaml 中的 logging 段（無則空）。"""
     try:
         cf = get_config_file()
         if not cf.exists():
@@ -203,7 +203,7 @@ def _load_logging_config_from_yaml() -> dict[str, Any]:
 def _resolve_logging_levels(
     log_level_override: Optional[str],
 ) -> LoggingLevels:
-    """返回日志级别配置。"""
+    """返回日誌級別配置。"""
     cfg = _load_logging_config_from_yaml()
     base = _parse_log_level(str(cfg.get("level", "INFO")))
 
@@ -309,7 +309,7 @@ def _detect_installation_mode() -> bool:
     if _is_package is not None:
         return _is_package
 
-    # PyInstaller 打包后使用用户工作区路径
+    # PyInstaller 打包後使用使用者工作區路徑
     if getattr(sys, "frozen", False):
         _is_package = True
         return True
@@ -359,7 +359,7 @@ def _find_package_root() -> Path | None:
 def _resolve_preferred_language(
     config_yaml_dest: Path, explicit: Optional[str]
 ) -> str:
-    """确定初始化使用的语言：显式参数优先，否则读已复制的 config，默认 zh。"""
+    """確定初始化使用的語言：顯式引數優先，否則讀已複製的 config，預設 zh。"""
     if explicit is not None:
         lang = str(explicit).strip().lower()
         return lang if lang in ("zh", "en") else "zh"
@@ -377,22 +377,22 @@ def _resolve_preferred_language(
 
 
 def prompt_preferred_language() -> Optional[Literal["zh", "en"]]:
-    """交互询问语言偏好。仅接受明确选项；空输入、不在列表或取消用语 → 返回 None（调用方应终止 init）。"""
+    """互動詢問語言偏好。僅接受明確選項；空輸入、不在列表或取消用語 → 返回 None（呼叫方應終止 init）。"""
     print()
     print("[jiuwenclaw-init] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print("[jiuwenclaw-init]  请选择默认语言 / Choose your default language")
+    print("[jiuwenclaw-init]  請選擇預設語言 / Choose your default language")
     print("[jiuwenclaw-init] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print("[jiuwenclaw-init]   [1] 中文（简体）")
+    print("[jiuwenclaw-init]   [1] 中文（簡體）")
     print("[jiuwenclaw-init]       → config: preferred_language: zh")
     print("[jiuwenclaw-init]   ────────────────────────────────────────────")
     print("[jiuwenclaw-init]   [2] English")
     print("[jiuwenclaw-init]       → config: preferred_language: en")
     print("[jiuwenclaw-init] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print("[jiuwenclaw-init]  须明确选择：1 / 2 / zh / en（无默认语言）")
+    print("[jiuwenclaw-init]  須明確選擇：1 / 2 / zh / en（無預設語言）")
     print("[jiuwenclaw-init]  取消：no / n / q / cancel / 取消")
     print("[jiuwenclaw-init] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     raw = input(
-        "[jiuwenclaw-init] 请输入选项 (1, 2, zh, en) 或 no 取消: "
+        "[jiuwenclaw-init] 請輸入選項 (1, 2, zh, en) 或 no 取消: "
     ).strip().lower()
     if raw in ("no", "n", "q", "quit", "cancel", "取消"):
         return None
@@ -400,7 +400,7 @@ def prompt_preferred_language() -> Optional[Literal["zh", "en"]]:
         return "zh"
     if raw in ("2", "en", "english", "e", "英文"):
         return "en"
-    print("[jiuwenclaw-init] 无效选项；未选择有效语言，初始化已取消（与拒绝 yes/no 相同）。")
+    print("[jiuwenclaw-init] 無效選項；未選擇有效語言，初始化已取消（與拒絕 yes/no 相同）。")
     return None
 
 
@@ -597,24 +597,24 @@ def _migrate_legacy_workspace(
 
 
 def cleanup_team_files(workspace_dir: Path) -> None:
-    """清理 Team 旧版本遗留的文件和目录.
+    """清理 Team 舊版本遺留的檔案和目錄.
 
     Legacy cleanup:
-    - Old: {workspace_dir}/workspace/ (旧版本 team workspace)
-    - Old: {workspace_dir}/agent/team_data/ (旧版本 team 数据库目录)
-    - Old: {workspace_dir}/team.db (旧版本 team 数据库文件)
-    - Old: {workspace_dir}/team.db-wal (旧版本 team WAL 文件)
-    - Old: {workspace_dir}/team.db-shm (旧版本 team SHM 文件)
-    - Old: {workspace_dir}/agent/team.db (旧版本 team 数据库文件)
-    - Old: {workspace_dir}/agent/team.db-wal (旧版本 team WAL 文件)
-    - Old: {workspace_dir}/agent/team.db-shm (旧版本 team SHM 文件)
+    - Old: {workspace_dir}/workspace/ (舊版本 team workspace)
+    - Old: {workspace_dir}/agent/team_data/ (舊版本 team 資料庫目錄)
+    - Old: {workspace_dir}/team.db (舊版本 team 資料庫檔案)
+    - Old: {workspace_dir}/team.db-wal (舊版本 team WAL 檔案)
+    - Old: {workspace_dir}/team.db-shm (舊版本 team SHM 檔案)
+    - Old: {workspace_dir}/agent/team.db (舊版本 team 資料庫檔案)
+    - Old: {workspace_dir}/agent/team.db-wal (舊版本 team WAL 檔案)
+    - Old: {workspace_dir}/agent/team.db-shm (舊版本 team SHM 檔案)
 
     Args:
-        workspace_dir: JiuWenClaw 用户工作空间根目录 (~/.jiuwenclaw)
+        workspace_dir: JiuWenClaw 使用者工作空間根目錄 (~/.jiuwenclaw)
     """
     agent_dir = workspace_dir / "agent"
 
-    # 清理 {workspace_dir}/workspace/ (旧版本 team workspace)
+    # 清理 {workspace_dir}/workspace/ (舊版本 team workspace)
     legacy_workspace = workspace_dir / "workspace"
     if legacy_workspace.exists():
         try:
@@ -623,7 +623,7 @@ def cleanup_team_files(workspace_dir: Path) -> None:
         except OSError as e:
             logger.warning(f"[Cleanup] Failed to remove legacy workspace directory: {e}")
 
-    # 清理 {workspace_dir}/agent/team_data/ (旧版本 team 数据库目录)
+    # 清理 {workspace_dir}/agent/team_data/ (舊版本 team 資料庫目錄)
     legacy_team_data = agent_dir / "team_data"
     if legacy_team_data.exists():
         try:
@@ -632,7 +632,7 @@ def cleanup_team_files(workspace_dir: Path) -> None:
         except OSError as e:
             logger.warning(f"[Cleanup] Failed to remove legacy team_data directory: {e}")
 
-    # 清理 {workspace_dir}/team.db* (旧版本 team 数据库文件)
+    # 清理 {workspace_dir}/team.db* (舊版本 team 資料庫檔案)
     legacy_team_db_root = workspace_dir / "team.db"
     for suffix in ["", "-wal", "-shm"]:
         db_file = legacy_team_db_root.with_suffix(".db" + suffix)
@@ -643,7 +643,7 @@ def cleanup_team_files(workspace_dir: Path) -> None:
             except OSError as e:
                 logger.warning(f"[Cleanup] Failed to remove legacy team database file: {e}")
 
-    # 清理 {workspace_dir}/agent/team.db* (旧版本 team 数据库文件)
+    # 清理 {workspace_dir}/agent/team.db* (舊版本 team 資料庫檔案)
     legacy_team_db_agent = agent_dir / "team.db"
     for suffix in ["", "-wal", "-shm"]:
         db_file = legacy_team_db_agent.with_suffix(".db" + suffix)
@@ -731,7 +731,7 @@ def prepare_workspace(
 
     resolved_lang = _resolve_preferred_language(config_yaml_dest, preferred_language)
 
-    # ----- 内置模板根目录：<package>/resources（含 agent/、skills_state.json）-----
+    # ----- 內建模板根目錄：<package>/resources（含 agent/、skills_state.json）-----
     template_root = resources_dir
     template_agent_dir = template_root / "agent"
     if not template_agent_dir.is_dir():
@@ -852,26 +852,26 @@ def init_user_workspace(
 ) -> Path | Literal["cancelled"]:
     """Initialize ~/.jiuwenclaw from package or source resources.
 
-    资源布局:
+    資源佈局:
     - 模板配置:   <package_root>/resources/config.yaml
     - .env 模板: <package_root>/resources/.env.template
-    - 数据模板:   <package_root>/resources/agent（含各技能模板）、skills_state.json
+    - 資料模板:   <package_root>/resources/agent（含各技能模板）、skills_state.json
 
-    上述内容会被复制到:
+    上述內容會被複制到:
     - ~/.jiuwenclaw/config/config.yaml（含 preferred_language）
-    - ~/.jiuwenclaw/config/builtin_rules.yaml（内置 shell 安全规则模板，与 config 同目录）
+    - ~/.jiuwenclaw/config/builtin_rules.yaml（內建 shell 安全規則模板，與 config 同目錄）
     - ~/.jiuwenclaw/config/.env
     - ~/.jiuwenclaw/agent/...
 
-    注意：PRINCIPLE.md、TONE.md、HEARTBEAT.md 已被 SOUL.md 和新的心跳机制替代，
-    不再由 JiuwenClaw 复制到用户工作区。
+    注意：PRINCIPLE.md、TONE.md、HEARTBEAT.md 已被 SOUL.md 和新的心跳機制替代，
+    不再由 JiuwenClaw 複製到使用者工作區。
 
-    交互式 init 会先询问语言；首次启动 app 时非交互 prepare_workspace 则沿用模板 config 中的语言。
+    互動式 init 會先詢問語言；首次啟動 app 時非互動 prepare_workspace 則沿用模板 config 中的語言。
 
     Args:
-        overwrite: True 时强制清理整个工作空间目录后初始化；
-                   False 时保留原有数据，执行迁移合并逻辑。
-        workspace_dir: 工作空间目录路径，若不指定则使用 get_user_workspace_dir() 获取。
+        overwrite: True 時強制清理整個工作空間目錄後初始化；
+                   False 時保留原有資料，執行遷移合併邏輯。
+        workspace_dir: 工作空間目錄路徑，若不指定則使用 get_user_workspace_dir() 獲取。
     """
     if workspace_dir is None:
         workspace_dir = get_user_workspace_dir()
@@ -921,7 +921,7 @@ def init_user_workspace(
     if lang is None:
         print("[jiuwenclaw-init] Initialization cancelled. Exiting.")
         return "cancelled"
-    print(f"[jiuwenclaw-init] 将使用语言 / Language: {lang}")
+    print(f"[jiuwenclaw-init] 將使用語言 / Language: {lang}")
     prepare_workspace(overwrite, preferred_language=lang, workspace_dir=workspace_dir)
 
     return workspace_dir
@@ -935,8 +935,8 @@ def _resolve_paths() -> None:
         return
 
     workspace_dir = get_user_workspace_dir()
-    # 优先使用已初始化的用户工作区 (~/.jiuwenclaw)，
-    # 保证源码运行与安装包运行后的读写路径完全一致。
+    # 優先使用已初始化的使用者工作區 (~/.jiuwenclaw)，
+    # 保證原始碼執行與安裝包執行後的讀寫路徑完全一致。
     user_config_dir = workspace_dir / "config"
     user_workspace_dir = workspace_dir / "agent" / "jiuwenclaw_workspace"
     if user_config_dir.exists():
@@ -944,7 +944,7 @@ def _resolve_paths() -> None:
         _config_dir = user_config_dir
         _workspace_dir = user_workspace_dir
     else:
-        # 尚未初始化 ~/.jiuwenclaw：从包内 resources 直读配置，工作区指向包内 agent/jiuwenclaw_workspace
+        # 尚未初始化 ~/.jiuwenclaw：從包內 resources 直讀配置，工作區指向包內 agent/jiuwenclaw_workspace
         package_root = _find_package_root()
         if package_root and (package_root / "resources" / "config.yaml").exists():
             res = package_root / "resources"
@@ -1113,11 +1113,11 @@ def get_deepagent_user_md_path() -> Path:
 def get_builtin_skills_dir() -> Path:
     """Get the built-in skills directory from package resources."""
     package_root = _find_package_root()
-    # 优先检查 jiuwenclaw_workspace/skills 目录（标准布局）
+    # 優先檢查 jiuwenclaw_workspace/skills 目錄（標準佈局）
     primary_path = package_root / "resources" / "agent" / "jiuwenclaw_workspace" / "skills"
     if primary_path.exists() and primary_path.is_dir():
         return primary_path
-    # 回退到 skills 目录
+    # 回退到 skills 目錄
     fallback_path = package_root / "resources" / "agent" / "skills"
     return fallback_path
 
@@ -1184,51 +1184,51 @@ def is_package_installation() -> bool:
     return _detect_installation_mode()
 
 
-# 统一敏感信息掩码值。
+# 統一敏感資訊掩碼值。
 _SENSITIVE_MASK = "******"
-# 匹配常见敏感字段键值对（不要求值必须带引号），用于覆盖:
+# 匹配常見敏感欄位鍵值對（不要求值必須帶引號），用於覆蓋:
 # - token=abc
 # - api_key: sk-xxx
 # - authorization = Bearer ...
-# 分组说明：
-# 1) 敏感键名；2) 分隔符及两侧空白（: 或 =）；3/4) 可选引号（当前替换逻辑未直接使用）
+# 分組說明：
+# 1) 敏感鍵名；2) 分隔符及兩側空白（: 或 =）；3/4) 可選引號（當前替換邏輯未直接使用）
 _KV_SENSITIVE_PATTERN = re.compile(
     r"(?i)(?<![A-Za-z0-9])"
     r"(password|passwd|pwd|secret|token|api[_-]?key|access[_-]?token|"
     r"refresh[_-]?token|authorization|user[_-]?id|userid)"
     r"(?![A-Za-z0-9])(\s*[:=]\s*)([\"']?)[^,\s\"'\]\}]+([\"']?)"
 )
-# 匹配“键名包含敏感关键词”且“值被引号包裹”的场景，覆盖:
+# 匹配“鍵名包含敏感關鍵詞”且“值被引號包裹”的場景，覆蓋:
 # - 'CAT_CAFE_CALLBACK_TOKEN': 'xxxx'
 # - 'CAT_CAFE_USER_ID': 'CSDN-weixin'
 # - "my_private_key"="xxxx"
-# 分组说明：
-# 1) 完整的 key + 分隔符（含可选引号）
-# 2) 值的起始引号（' 或 "）
-# 3) 值内容（非贪婪）
-# 4) 结束引号（通过 (\2) 强制与起始引号一致）
+# 分組說明：
+# 1) 完整的 key + 分隔符（含可選引號）
+# 2) 值的起始引號（' 或 "）
+# 3) 值內容（非貪婪）
+# 4) 結束引號（透過 (\2) 強制與起始引號一致）
 _NAMED_SENSITIVE_KV_PATTERN = re.compile(
     r"(?i)([\"']?[A-Za-z0-9_.-]*"
     r"(?:token|secret|password|passwd|pwd|api[_-]?key|authorization|"
     r"credential|private[_-]?key|user[_-]?id|userid)"
     r"[A-Za-z0-9_.-]*[\"']?\s*[:=]\s*)([\"'])(.*?)(\2)"
 )
-# 匹配 Authorization Bearer 令牌，保留 "Bearer " 前缀，仅掩码后面的令牌值。
+# 匹配 Authorization Bearer 令牌，保留 "Bearer " 字首，僅掩碼後面的令牌值。
 _BEARER_SENSITIVE_PATTERN = re.compile(r"(?i)\b(Bearer\s+)[A-Za-z0-9\-._~+/]+=*")
 _SENSITIVE_PATTERNS: list[re.Pattern[str]] = [
-    # 匹配 JWT（header.payload.signature 三段式，常见以 eyJ 开头）。
+    # 匹配 JWT（header.payload.signature 三段式，常見以 eyJ 開頭）。
     re.compile(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"),
-    # 匹配 OpenAI 风格 key（sk- 前缀）。
+    # 匹配 OpenAI 風格 key（sk- 字首）。
     re.compile(r"\bsk-[A-Za-z0-9]{8,}\b"),
-    # 匹配 GitHub Personal Access Token（ghp_ 前缀）。
+    # 匹配 GitHub Personal Access Token（ghp_ 字首）。
     re.compile(r"\bghp_[A-Za-z0-9]{20,}\b"),
-    # 匹配 GitLab Personal Access Token（glpat- 前缀）。
+    # 匹配 GitLab Personal Access Token（glpat- 字首）。
     re.compile(r"\bglpat-[A-Za-z0-9_-]{20,}\b"),
-    # 匹配邮箱地址（避免日志中泄露个人身份信息）。
+    # 匹配郵箱地址（避免日誌中洩露個人身份資訊）。
     re.compile(r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}\b"),
-    # 匹配中国大陆手机号（可带 +86 或 86 前缀，支持空格/短横线分隔）。
+    # 匹配中國大陸手機號（可帶 +86 或 86 字首，支援空格/短橫線分隔）。
     re.compile(r"(?<!\d)(?:\+?86[-\s]?)?1[3-9]\d{9}(?!\d)"),
-    # 匹配中国身份证号（18 位，最后一位可为 X/x）。
+    # 匹配中國身份證號（18 位，最後一位可為 X/x）。
     re.compile(r"(?<!\d)\d{17}[\dXx](?!\d)"),
 ]
 
@@ -1261,24 +1261,24 @@ class SensitiveDataFilter(logging.Filter):
 
 
 class JsonOnlyFormatter(logging.Formatter):
-    """只输出message内容，不添加任何前缀（时间戳、级别、logger名）"""
+    """只輸出message內容，不新增任何字首（時間戳、級別、logger名）"""
 
     def format(self, record: logging.LogRecord) -> str:
         return record.getMessage()
 
 
 def setup_logger(log_level: Optional[str] = None) -> logging.Logger:
-    """配置 ``jiuwenclaw`` 根日志：控制台 + 分组件文件 + 汇总 full.log。
+    """配置 ``jiuwenclaw`` 根日誌：控制檯 + 分元件檔案 + 彙總 full.log。
 
-    各模块应使用 ``logging.getLogger(__name__)``，分文件规则：
+    各模組應使用 ``logging.getLogger(__name__)``，分檔案規則：
     - ``jiuwenclaw.channel.*`` → channel.log
     - ``jiuwenclaw.agents.*`` 或 ``jiuwenclaw.server.*`` → agent_server.log
-    - 其余 ``jiuwenclaw.*``（含 ``jiuwenclaw.app``、gateway、evolution、utils 等）→ gateway.log
+    - 其餘 ``jiuwenclaw.*``（含 ``jiuwenclaw.app``、gateway、evolution、utils 等）→ gateway.log
 
-    所有分类日志同时写入 ``full.log``。输出目录：``~/.jiuwenclaw/agent/.logs/``。
+    所有分類日誌同時寫入 ``full.log``。輸出目錄：``~/.jiuwenclaw/agent/.logs/``。
 
-    级别由 ``config.yaml`` 的 ``logging`` 段控制；环境变量 ``LOG_LEVEL`` 仅覆盖**控制台**级别
-    （``log_level`` 参数为 ``None`` 时）。若传入 ``log_level``（如单测），则控制台与各文件级别均为该值。
+    級別由 ``config.yaml`` 的 ``logging`` 段控制；環境變數 ``LOG_LEVEL`` 僅覆蓋**控制檯**級別
+    （``log_level`` 引數為 ``None`` 時）。若傳入 ``log_level``（如單測），則控制檯與各檔案級別均為該值。
     """
     logs_root = get_logs_dir()
     logs_root.mkdir(parents=True, exist_ok=True)

@@ -1,11 +1,11 @@
-"""循环检测服务。
+"""迴圈檢測服務。
 
-防止 Agent 陷入无效循环：工具调用循环、内容循环、错误重复。
+防止 Agent 陷入無效迴圈：工具呼叫迴圈、內容迴圈、錯誤重複。
 
-检测模式：
-1. 连续重复检测 (AAAA)：相同工具+参数连续调用
-2. 交替模式检测 (ABAB)：两个工具交替调用
-3. 过度使用检测：同一工具在短时间内调用过多
+檢測模式：
+1. 連續重複檢測 (AAAA)：相同工具+引數連續呼叫
+2. 交替模式檢測 (ABAB)：兩個工具交替呼叫
+3. 過度使用檢測：同一工具在短時間內呼叫過多
 
 Example:
     from agentsociety2.agent.tool.loop_detection import LoopDetectionService
@@ -27,13 +27,13 @@ from typing import Any
 
 @dataclass
 class LoopDetectionConfig:
-    """循环检测配置。
+    """迴圈檢測配置。
 
-    :ivar max_tool_repeats: 相同工具+参数连续调用阈值。
-    :ivar max_content_repeats: 相同内容连续输出阈值。
-    :ivar max_error_repeats: 相同错误连续出现阈值。
-    :ivar history_size: 历史记录大小。
-    :ivar overuse_threshold: 同一工具在 history_size 调用中的过度使用阈值。
+    :ivar max_tool_repeats: 相同工具+引數連續呼叫閾值。
+    :ivar max_content_repeats: 相同內容連續輸出閾值。
+    :ivar max_error_repeats: 相同錯誤連續出現閾值。
+    :ivar history_size: 歷史記錄大小。
+    :ivar overuse_threshold: 同一工具在 history_size 呼叫中的過度使用閾值。
     """
 
     max_tool_repeats: int = 5
@@ -45,14 +45,14 @@ class LoopDetectionConfig:
 
 @dataclass
 class LoopDetectionResult:
-    """循环检测结果。
+    """迴圈檢測結果。
 
-    :ivar is_loop: 是否检测到循环。
-    :ivar loop_type: 循环类型 ("tool_repeat", "tool_alternating", "tool_overuse", "content", "error")。
-    :ivar details: 详细描述。
+    :ivar is_loop: 是否檢測到迴圈。
+    :ivar loop_type: 迴圈型別 ("tool_repeat", "tool_alternating", "tool_overuse", "content", "error")。
+    :ivar details: 詳細描述。
     :ivar root_cause: 根本原因分析。
-    :ivar alternative_actions: 建议的替代行动。
-    :ivar affected_tools: 受影响的工具列表。
+    :ivar alternative_actions: 建議的替代行動。
+    :ivar affected_tools: 受影響的工具列表。
     """
 
     is_loop: bool = False
@@ -70,21 +70,21 @@ class LoopDetectionResult:
 
 
 class LoopDetectionService:
-    """循环检测服务。
+    """迴圈檢測服務。
 
-    检测多种循环类型：
+    檢測多種迴圈型別：
 
-    1. 工具调用循环：相同工具+参数连续调用
-    2. 交替模式：两个工具交替调用
-    3. 过度使用：同一工具短时间内调用过多
-    4. 内容循环：相同输出内容连续出现
-    5. 错误重复：相同错误连续出现
+    1. 工具呼叫迴圈：相同工具+引數連續呼叫
+    2. 交替模式：兩個工具交替呼叫
+    3. 過度使用：同一工具短時間內呼叫過多
+    4. 內容迴圈：相同輸出內容連續出現
+    5. 錯誤重複：相同錯誤連續出現
     """
 
     def __init__(self, config: LoopDetectionConfig | None = None):
-        """初始化循环检测服务。
+        """初始化迴圈檢測服務。
 
-        :param config: 检测配置，为 None 时使用默认值。
+        :param config: 檢測配置，為 None 時使用預設值。
         :type config: LoopDetectionConfig | None
         """
         self._config = config or LoopDetectionConfig()
@@ -93,7 +93,7 @@ class LoopDetectionService:
         self._error_history: deque[str] = deque(maxlen=self._config.history_size)
 
     def reset(self) -> None:
-        """重置历史记录。"""
+        """重置歷史記錄。"""
         self._tool_call_history.clear()
         self._content_history.clear()
         self._error_history.clear()
@@ -101,16 +101,16 @@ class LoopDetectionService:
     def check_tool_loop(
         self, tool_name: str, arguments: dict[str, Any]
     ) -> LoopDetectionResult:
-        """检测工具调用循环。
+        """檢測工具呼叫迴圈。
 
-        检测三种模式：
-        1. 连续重复 (AAAA)
+        檢測三種模式：
+        1. 連續重複 (AAAA)
         2. 交替模式 (ABAB)
-        3. 过度使用
+        3. 過度使用
 
-        :param tool_name: 工具名称。
-        :param arguments: 工具参数。
-        :return: 检测结果。
+        :param tool_name: 工具名稱。
+        :param arguments: 工具引數。
+        :return: 檢測結果。
         :rtype: LoopDetectionResult
         """
         call_fingerprint = f"{tool_name}:{self._hash_arguments(arguments)}"
@@ -118,7 +118,7 @@ class LoopDetectionService:
 
         history = list(self._tool_call_history)
 
-        # 1. 连续重复检测
+        # 1. 連續重複檢測
         if len(history) >= self._config.max_tool_repeats:
             recent = history[-self._config.max_tool_repeats :]
             if len(set(recent)) == 1:
@@ -136,10 +136,10 @@ class LoopDetectionService:
                     affected_tools=[tool_name],
                 )
 
-        # 2. 交替模式检测 (ABAB)
+        # 2. 交替模式檢測 (ABAB)
         if len(history) >= 6:
             last_6 = history[-6:]
-            # 检查 ABABAB 模式
+            # 檢查 ABABAB 模式
             if (
                 len(set(last_6)) == 2
                 and last_6[0] == last_6[2] == last_6[4]
@@ -160,7 +160,7 @@ class LoopDetectionService:
                     affected_tools=tools,
                 )
 
-        # 3. 过度使用检测
+        # 3. 過度使用檢測
         if len(history) >= self._config.history_size:
             tool_counts: dict[str, int] = {}
             for fp in history:
@@ -185,10 +185,10 @@ class LoopDetectionService:
         return LoopDetectionResult(is_loop=False)
 
     def check_content_loop(self, content: str) -> LoopDetectionResult:
-        """检测内容循环。
+        """檢測內容迴圈。
 
-        :param content: 输出内容。
-        :return: 检测结果。
+        :param content: 輸出內容。
+        :return: 檢測結果。
         :rtype: LoopDetectionResult
         """
         content_hash = self._hash_content(content)
@@ -205,10 +205,10 @@ class LoopDetectionService:
         return LoopDetectionResult(is_loop=False)
 
     def check_error_loop(self, error: str) -> LoopDetectionResult:
-        """检测错误循环。
+        """檢測錯誤迴圈。
 
-        :param error: 错误信息。
-        :return: 检测结果。
+        :param error: 錯誤資訊。
+        :return: 檢測結果。
         :rtype: LoopDetectionResult
         """
         error_hash = self._hash_content(error)
@@ -226,12 +226,12 @@ class LoopDetectionService:
 
     @staticmethod
     def _hash_arguments(args: dict[str, Any]) -> str:
-        """生成参数哈希。
+        """生成引數雜湊。
 
-        使用 MD5 生成固定长度指纹。
+        使用 MD5 生成固定長度指紋。
 
-        :param args: 参数字典。
-        :return: 哈希字符串（16 字符）。
+        :param args: 引數字典。
+        :return: 雜湊字串（16 字元）。
         :rtype: str
         """
         try:
@@ -242,14 +242,14 @@ class LoopDetectionService:
 
     @staticmethod
     def _hash_content(content: str) -> str:
-        """生成内容哈希。
+        """生成內容雜湊。
 
-        使用 MD5 生成固定长度指纹，避免内存占用过大。
+        使用 MD5 生成固定長度指紋，避免記憶體佔用過大。
 
-        :param content: 内容字符串。
-        :return: 哈希字符串（16 字符）。
+        :param content: 內容字串。
+        :return: 雜湊字串（16 字元）。
         :rtype: str
         """
-        # 截取前 500 字符用于哈希，平衡准确性和性能
+        # 擷取前 500 字元用於雜湊，平衡準確性和效能
         data = content.strip()[:500]
         return hashlib.md5(data.encode()).hexdigest()[:16]

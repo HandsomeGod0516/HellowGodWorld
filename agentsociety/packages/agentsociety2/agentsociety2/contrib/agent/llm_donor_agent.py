@@ -9,22 +9,22 @@ from mem0.memory.main import MemoryConfig
 
 
 class LLMDonorAgent(AgentBase):
-    """LLM 驱动的捐赠者智能体
+    """LLM 驅動的捐贈者智慧體
 
     核心特性：
-    1. 基于 LLM 动态决策
-    2. 集成记忆系统（mem0）用于学习
-    3. 周期性观察顶尖智能体并学习
-    4. 根据情境信息（声誉、收益、记忆）做出决策
+    1. 基於 LLM 動態決策
+    2. 整合記憶系統（mem0）用於學習
+    3. 週期性觀察頂尖智慧體並學習
+    4. 根據情境資訊（聲譽、收益、記憶）做出決策
 
-    Profile 字段（字典格式）：
-    - learning_frequency: int (可选) -> 学习频率，默认5（每5步学习一次）
-    - personality: str (可选) -> 智能体个性描述
-    - initial_mood: float (可选) -> 初始情绪值（-1.0 ~ 1.0）
-    - risk_tolerance: float (可选) -> 风险偏好（0.0 ~ 1.0）
+    Profile 欄位（字典格式）：
+    - learning_frequency: int (可選) -> 學習頻率，預設5（每5步學習一次）
+    - personality: str (可選) -> 智慧體個性描述
+    - initial_mood: float (可選) -> 初始情緒值（-1.0 ~ 1.0）
+    - risk_tolerance: float (可選) -> 風險偏好（0.0 ~ 1.0）
     """
 
-    # 常量定义
+    # 常量定義
     DEFAULT_POPULATION_SIZE = 5
     DEFAULT_LEARNING_FREQUENCY = 5
     MOOD_DECAY_RATE = 0.95
@@ -88,7 +88,7 @@ This agent participates in a reputation-based donation game where it can choose 
     ):
         super().__init__(id=id, profile=profile)
 
-        # 记忆系统（mem0）
+        # 記憶系統（mem0）
         self._memory_user_id = f"agent_{id}"
         self._memory: AsyncMemory | None = None
         
@@ -97,7 +97,7 @@ This agent participates in a reputation-based donation game where it can choose 
             memory_config_obj = MemoryConfig.model_validate(memory_config)
             self._memory = AsyncMemory(config=memory_config_obj)
 
-        # 学习配置
+        # 學習配置
         custom_fields = self._extract_custom_fields(profile)
         learning_freq = (
             custom_fields.get("learning_frequency")
@@ -109,27 +109,27 @@ This agent participates in a reputation-based donation game where it can choose 
             learning_frequency if learning_frequency is not None else self.DEFAULT_LEARNING_FREQUENCY,
         )
 
-        # 状态追踪
+        # 狀態追蹤
         self._step_count = 0
         self._decision_history: List[Dict] = []
 
-        # 缓存 Z 值（种群大小），第一次使用时从环境查询
+        # 快取 Z 值（種群大小），第一次使用時從環境查詢
         self._cached_Z: Optional[int] = None
 
-        # 主观情绪/个性状态（用于影响决策）
+        # 主觀情緒/個性狀態（用於影響決策）
         self._personality = custom_fields.get(
             "personality", self._generate_random_personality()
         )
         self._mood = self._coerce_float(
             custom_fields.get("initial_mood"), random.uniform(-1.0, 1.0)
-        )  # -1.0 (消极) 到 1.0 (积极)
+        )  # -1.0 (消極) 到 1.0 (積極)
         self._risk_tolerance = self._coerce_float(
             custom_fields.get("risk_tolerance"), random.uniform(0.0, 1.0)
-        )  # 0.0 (保守) 到 1.0 (冒险)
+        )  # 0.0 (保守) 到 1.0 (冒險)
 
     def _generate_random_personality(self) -> str:
-        """生成随机个性描述（仅在未提供 personality 时使用，作为后备方案）"""
-        # 默认个性列表（仅在未提供 personality 时使用）
+        """生成隨機個性描述（僅在未提供 personality 時使用，作為後備方案）"""
+        # 預設個性列表（僅在未提供 personality 時使用）
         personalities = [
             "You are a rational and cautious agent, tending to maximize long-term benefits.",
             "You are an emotional agent, and your decisions are influenced by your current emotional state.",
@@ -144,7 +144,7 @@ This agent participates in a reputation-based donation game where it can choose 
 
     @staticmethod
     def _extract_custom_fields(profile: Any) -> Dict[str, Any]:
-        """从 profile 中提取 custom_fields"""
+        """從 profile 中提取 custom_fields"""
         if isinstance(profile, dict):
             return profile.get("custom_fields", {}) or {}
         else:
@@ -152,12 +152,12 @@ This agent participates in a reputation-based donation game where it can choose 
             if isinstance(custom_fields, dict):
                 return custom_fields
             else:
-                # 如果不是字典，尝试转换为字典
+                # 如果不是字典，嘗試轉換為字典
                 return {"raw": str(custom_fields)}
 
     @staticmethod
     def _coerce_int(value: Any, default: int) -> int:
-        """将值转换为整数，失败时返回默认值"""
+        """將值轉換為整數，失敗時返回預設值"""
         try:
             return int(value)
         except (TypeError, ValueError):
@@ -165,48 +165,48 @@ This agent participates in a reputation-based donation game where it can choose 
 
     @staticmethod
     def _coerce_float(value: Any, default: float) -> float:
-        """将值转换为浮点数，失败时返回默认值"""
+        """將值轉換為浮點數，失敗時返回預設值"""
         try:
             return float(value)
         except (TypeError, ValueError):
             return default
 
     async def step(self, tick: int, t: datetime) -> str:
-        """每个 tick 执行一次
+        """每個 tick 執行一次
 
         流程：
-        1. 随机选择接受者
-        2. 收集情境信息（声誉、收益、记忆）
-        3. LLM 决策（合作/背叛）
-        4. 执行捐赠
-        5. 周期性学习
+        1. 隨機選擇接受者
+        2. 收集情境資訊（聲譽、收益、記憶）
+        3. LLM 決策（合作/背叛）
+        4. 執行捐贈
+        5. 週期性學習
         """
         self._step_count += 1
 
-        # 1. 随机选择接受者
+        # 1. 隨機選擇接受者
         target_id = await self._select_recipient()
 
-        # 2. 收集情境信息
+        # 2. 收集情境資訊
         context_info = await self._gather_context(target_id)
 
-        # 3. LLM 决策
+        # 3. LLM 決策
         decision = await self._make_decision(context_info, target_id)
 
-        # 4. 执行捐赠
+        # 4. 執行捐贈
         result = await self._execute_donation(target_id, decision)
 
-        # 5. 周期性学习
+        # 5. 週期性學習
         if self._step_count % self._learning_frequency == 0:
             await self._learn_from_top_agents()
 
         return result
 
     async def _get_population_size(self) -> int:
-        """从环境获取种群大小 Z，并缓存结果"""
+        """從環境獲取種群大小 Z，並快取結果"""
         if self._cached_Z is not None:
             return self._cached_Z
 
-        # 从环境查询 Z 值
+        # 從環境查詢 Z 值
         try:
             ctx, ans, _ = await self.ask_env(
                 {}, "Query the population size (Z) of the environment.", readonly=True
@@ -216,27 +216,27 @@ This agent participates in a reputation-based donation game where it can choose 
                 self._cached_Z = int(Z)
                 return self._cached_Z
         except Exception:
-            # 如果查询失败，使用默认值
+            # 如果查詢失敗，使用預設值
             pass
 
-        # 如果查询失败，使用默认值（向后兼容）
+        # 如果查詢失敗，使用預設值（向後相容）
         self._cached_Z = self.DEFAULT_POPULATION_SIZE
         return self._cached_Z
 
     async def _select_recipient(self) -> int:
-        """选择接受者（随机选择）"""
-        # 从环境获取 Z 值（带缓存）
+        """選擇接受者（隨機選擇）"""
+        # 從環境獲取 Z 值（帶快取）
         Z = await self._get_population_size()
         candidates = [i for i in range(Z) if i != self.id]
         if not candidates:
-            # 如果只有自己，抛出异常而不是返回无效值
+            # 如果只有自己，丟擲異常而不是返回無效值
             raise ValueError(
                 f"Agent {self.id}: No valid recipients available (population size: {Z})"
             )
         return random.choice(candidates)
 
     async def _query_agent_reputation(self, agent_id: int) -> str:
-        """查询智能体的声誉"""
+        """查詢智慧體的聲譽"""
         ctx, _, _ = await self.ask_env(
             {"agent_id": agent_id},
             f"Query the current reputation of Agent {agent_id}. Use agent_id={agent_id} exactly.",
@@ -245,7 +245,7 @@ This agent participates in a reputation-based donation game where it can choose 
         return ctx.get("reputation", "good")
 
     async def _query_agent_payoff(self, agent_id: int) -> float:
-        """查询智能体的收益"""
+        """查詢智慧體的收益"""
         ctx, _, _ = await self.ask_env(
             {"agent_id": agent_id},
             f"Query the cumulative payoff of Agent {agent_id}. Use agent_id={agent_id} exactly.",
@@ -254,7 +254,7 @@ This agent participates in a reputation-based donation game where it can choose 
         return self._coerce_float(ctx.get("payoff"), 0.0)
 
     async def _get_recent_memories(self) -> str:
-        """获取最近的记忆摘要"""
+        """獲取最近的記憶摘要"""
         if not self._memory:
             return ""
         try:
@@ -262,7 +262,7 @@ This agent participates in a reputation-based donation game where it can choose 
             if isinstance(memories, dict):
                 items = memories.get("memories", []) or memories.get("data", [])
                 if items:
-                    # 取最近N条记忆
+                    # 取最近N條記憶
                     recent_memories = (
                         items[-self.RECENT_MEMORIES_COUNT :]
                         if len(items) > self.RECENT_MEMORIES_COUNT
@@ -272,19 +272,19 @@ This agent participates in a reputation-based donation game where it can choose 
                         [f"- {m.get('memory', '')}" for m in recent_memories]
                     )
         except Exception:
-            # 记忆查询失败不影响主流程，静默处理
+            # 記憶查詢失敗不影響主流程，靜默處理
             pass
         return ""
 
     async def _gather_context(self, recipient_id: int) -> Dict[str, Any]:
-        """收集决策所需的情境信息（并行查询以提高效率）"""
-        # 并行查询自己的声誉和收益，以及接受者的声誉
+        """收集決策所需的情境資訊（並行查詢以提高效率）"""
+        # 並行查詢自己的聲譽和收益，以及接受者的聲譽
         my_rep_task = self._query_agent_reputation(self.id)
         my_payoff_task = self._query_agent_payoff(self.id)
         recipient_rep_task = self._query_agent_reputation(recipient_id)
         memory_task = self._get_recent_memories()
 
-        # 等待所有查询完成
+        # 等待所有查詢完成
         my_rep, my_payoff, recipient_rep, memory_summary = await asyncio.gather(
             my_rep_task, my_payoff_task, recipient_rep_task, memory_task
         )
@@ -301,12 +301,12 @@ This agent participates in a reputation-based donation game where it can choose 
     async def _make_decision(
         self, context_info: Dict[str, Any], recipient_id: int
     ) -> str:
-        """LLM 决策：合作或背叛（基于主观情绪和个性）"""
+        """LLM 決策：合作或背叛（基於主觀情緒和個性）"""
 
-        # 根据当前收益和情绪状态更新情绪
+        # 根據當前收益和情緒狀態更新情緒
         self._update_mood(context_info)
 
-        # 构建情绪描述
+        # 構建情緒描述
         mood_description = self._get_mood_description()
         risk_description = self._get_risk_description()
 
@@ -347,9 +347,9 @@ Only return "cooperate" or "defect", do not return any other content.
             [{"role": "user", "content": prompt}], stream=False
         )
 
-        # 安全地提取响应内容
+        # 安全地提取響應內容
         if not response or not response.choices or not response.choices[0].message:
-            # 如果响应无效，使用默认决策逻辑
+            # 如果響應無效，使用預設決策邏輯
             if self._mood < self.MOOD_THRESHOLD_NEGATIVE or self._risk_tolerance < self.RISK_THRESHOLD_LOW:
                 decision = "defect"
             else:
@@ -359,18 +359,18 @@ Only return "cooperate" or "defect", do not return any other content.
             content = response.choices[0].message.content
             decision_text = (content or "").strip().lower()
 
-        # 解析决策
+        # 解析決策
         if "cooperate" in decision_text or "合作" in decision_text:
             decision = "cooperate"
         elif (
             "defect" in decision_text
             or "背叛" in decision_text
-            or "拒绝" in decision_text
+            or "拒絕" in decision_text
         ):
             decision = "defect"
         else:
-            # 根据情绪和风险偏好决定默认行为，而不是总是合作
-            # 如果情绪消极或风险容忍度低，默认背叛；否则默认合作
+            # 根據情緒和風險偏好決定預設行為，而不是總是合作
+            # 如果情緒消極或風險容忍度低，預設背叛；否則預設合作
             if (
                 self._mood < self.MOOD_THRESHOLD_NEGATIVE
                 or self._risk_tolerance < self.RISK_THRESHOLD_LOW
@@ -379,7 +379,7 @@ Only return "cooperate" or "defect", do not return any other content.
             else:
                 decision = "cooperate"
 
-        # 记录决策历史
+        # 記錄決策歷史
         self._decision_history.append(
             {
                 "step": self._step_count,
@@ -394,29 +394,29 @@ Only return "cooperate" or "defect", do not return any other content.
         return decision
 
     def _update_mood(self, context_info: Dict[str, Any]):
-        """根据当前情境更新情绪状态"""
-        # 如果收益较低，情绪可能变差
+        """根據當前情境更新情緒狀態"""
+        # 如果收益較低，情緒可能變差
         my_payoff = context_info.get("my_payoff", 0.0)
 
-        # 简单的情绪更新规则：
-        # - 如果收益低于平均值，情绪可能变差
-        # - 如果收益高于平均值，情绪可能变好
-        # - 情绪会逐渐回归到中性（0.0）
+        # 簡單的情緒更新規則：
+        # - 如果收益低於平均值，情緒可能變差
+        # - 如果收益高於平均值，情緒可能變好
+        # - 情緒會逐漸迴歸到中性（0.0）
 
-        # 情绪衰减（逐渐回归中性）
+        # 情緒衰減（逐漸迴歸中性）
         self._mood *= self.MOOD_DECAY_RATE
 
-        # 根据收益调整情绪（假设平均收益约为 0）
+        # 根據收益調整情緒（假設平均收益約為 0）
         if my_payoff < self.PAYOFF_THRESHOLD_LOW:
             self._mood -= self.MOOD_ADJUSTMENT_STEP
         elif my_payoff > self.PAYOFF_THRESHOLD_HIGH:
             self._mood += self.MOOD_ADJUSTMENT_STEP
 
-        # 限制情绪范围
+        # 限制情緒範圍
         self._mood = max(-1.0, min(1.0, self._mood))
 
     def _get_mood_description(self) -> str:
-        """获取情绪的文字描述"""
+        """獲取情緒的文字描述"""
         if self._mood > 0.5:
             return "very positive and optimistic"
         elif self._mood > 0.2:
@@ -429,7 +429,7 @@ Only return "cooperate" or "defect", do not return any other content.
             return "very negative and pessimistic"
 
     def _get_risk_description(self) -> str:
-        """获取风险偏好的文字描述"""
+        """獲取風險偏好的文字描述"""
         if self._risk_tolerance > 0.7:
             return "high risk preference, willing to take risks"
         elif self._risk_tolerance > 0.4:
@@ -438,7 +438,7 @@ Only return "cooperate" or "defect", do not return any other content.
             return "low risk preference, tending to be conservative"
 
     async def _execute_donation(self, recipient_id: int, decision: str) -> str:
-        """执行捐赠决策"""
+        """執行捐贈決策"""
         ctx = {
             "donor_id": self.id,
             "recipient_id": recipient_id,
@@ -453,7 +453,7 @@ Only return "cooperate" or "defect", do not return any other content.
 
         ctx2, ans, _ = await self.ask_env(ctx, message, readonly=False)
 
-        # 保存记忆
+        # 儲存記憶
         if self._memory:
             try:
                 action_text = "cooperated" if decision == "cooperate" else "defected"
@@ -463,14 +463,14 @@ Only return "cooperate" or "defect", do not return any other content.
                     user_id=self._memory_user_id,
                 )
             except Exception:
-                # 记忆保存失败不影响主流程，静默处理
+                # 記憶儲存失敗不影響主流程，靜默處理
                 pass
 
         return ans
 
     async def _learn_from_top_agents(self):
-        """从顶尖智能体学习"""
-        # 查询顶尖智能体
+        """從頂尖智慧體學習"""
+        # 查詢頂尖智慧體
         ctx, ans, _ = await self.ask_env(
             {"top_k": self.TOP_AGENTS_COUNT},
             f"Query the summary of top {self.TOP_AGENTS_COUNT} agents by payoff, including their reputation and recent actions. Use top_k={self.TOP_AGENTS_COUNT}.",
@@ -494,7 +494,7 @@ Please summarize their success patterns and provide suggestions: How should I ad
                 [{"role": "user", "content": analysis_prompt}], stream=False
             )
 
-            # 安全地提取分析内容
+            # 安全地提取分析內容
             if (
                 analysis_response
                 and analysis_response.choices
@@ -504,7 +504,7 @@ Please summarize their success patterns and provide suggestions: How should I ad
             else:
                 analysis = "Failed to analyze top agents' patterns."
 
-            # 保存学习结果到记忆
+            # 儲存學習結果到記憶
             if self._memory:
                 try:
                     await self._memory.add(
@@ -514,7 +514,7 @@ Please summarize their success patterns and provide suggestions: How should I ad
                 except Exception:
                     pass
         except Exception:
-            # 学习失败不影响主流程，静默处理
+            # 學習失敗不影響主流程，靜默處理
             pass
 
     async def ask(self, message: str, readonly: bool = True) -> str:
@@ -565,7 +565,7 @@ Please answer the question."""
                 [{"role": "user", "content": prompt}], stream=False
             )
 
-            # 安全地提取响应内容
+            # 安全地提取響應內容
             if (
                 response
                 and response.choices
@@ -579,7 +579,7 @@ Please answer the question."""
             return f"I encountered an error while processing your question: {str(e)}"
 
     async def dump(self) -> dict:
-        """序列化状态"""
+        """序列化狀態"""
         profile_data = self._profile
         if hasattr(self._profile, "to_dict"):
             profile_data = self._profile.to_dict()
@@ -595,7 +595,7 @@ Please answer the question."""
         }
 
     async def load(self, dump_data: dict):
-        """反序列化状态"""
+        """反序列化狀態"""
         await super().load(dump_data)
         self._decision_history = dump_data.get("decision_history", [])
         self._step_count = dump_data.get("step_count", 0)
@@ -606,5 +606,5 @@ Please answer the question."""
         self._risk_tolerance = dump_data.get("risk_tolerance", 0.5)
 
     async def close(self):
-        """清理资源"""
+        """清理資源"""
         return None

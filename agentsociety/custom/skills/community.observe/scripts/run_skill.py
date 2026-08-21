@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'market']
 TARGET_INTERACTIONS = ['take_walk', 'chat_with_regular']
 STATUS = 'observing'
 EMOTION = 'curious'
-SPEECH = '我顺路观察一下大家今天的状态。'
+SPEECH = '我順路觀察一下大家今天的狀態。'
 MEMORY_TEMPLATE = 'Used community.observe: {summary} at {location_id}.'
 
 

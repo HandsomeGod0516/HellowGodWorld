@@ -5,7 +5,7 @@ import { normalizeFinalContent } from '../utils/finalContent';
 export const HISTORY_GET_METHOD = 'history.get';
 export const HISTORY_MESSAGE_EVENT = 'history.message';
 
-/** 助手侧仅恢复这些事件；用户消息无 event_type，单独保留 */
+/** 助手側僅恢復這些事件；使用者訊息無 event_type，單獨保留 */
 const ALLOWED_ASSISTANT_EVENT_TYPES = new Set([
   'chat.final',
   'chat.tool_call',
@@ -13,9 +13,9 @@ const ALLOWED_ASSISTANT_EVENT_TYPES = new Set([
   'chat.usage_summary',
 ]);
 
-/** 后端约定：最后一帧 `history.message` 使用 `payload.status: done`（兼容旧版 `payload.content: done`） */
+/** 後端約定：最後一幀 `history.message` 使用 `payload.status: done`（相容舊版 `payload.content: done`） */
 const HISTORY_RESTORE_DONE_CONTENT = 'done';
-/** 流式 chunk 之间的兜底：正常情况由 `done` / `page_complete` 等结束帧关闭；仅当缺少明确结束标记时使用 */
+/** 流式 chunk 之間的兜底：正常情況由 `done` / `page_complete` 等結束幀關閉；僅當缺少明確結束標記時使用 */
 const HISTORY_RESTORE_IDLE_MS = 500;
 
 export interface HistoryToolReplayItem {
@@ -33,9 +33,9 @@ type HistoryTimelineEntry =
 interface BeginHistoryRestoreOptions {
   sessionId: string;
   onReady: (messages: Message[], totalPages: number | null) => void;
-  /** 与消息同一时间线顺序，用于恢复 ToolGroupDisplay */
+  /** 與訊息同一時間線順序，用於恢復 ToolGroupDisplay */
   onToolReplay?: (items: HistoryToolReplayItem[]) => void;
-  /** 无消息且无工具回放时调用；`totalPages` 来自流中最后一帧（若有） */
+  /** 無訊息且無工具回放時呼叫；`totalPages` 來自流中最後一幀（若有） */
   onEmpty?: (totalPages: number | null) => void;
   onError?: (message: string) => void;
 }
@@ -48,7 +48,7 @@ export interface HistoryRestoreHandle {
 let restoreGeneration = 0;
 let activeRestore: HistoryRestoreHandle | null = null;
 
-/** 分页拉取与全量恢复互斥，避免 chunk 串台 */
+/** 分頁拉取與全量恢復互斥，避免 chunk 串臺 */
 let activePageFetchDispose: (() => void) | null = null;
 
 function disposeActivePageFetch(): void {
@@ -153,12 +153,12 @@ const _HISTORY_RECORD_META_KEYS = new Set([
   'id', 'role', 'request_id', 'channel_id', 'timestamp', 'event_type', 'event_payload',
 ]);
 
-/** 合并 event_payload 与顶层 content，供 final / tool 解析 */
+/** 合併 event_payload 與頂層 content，供 final / tool 解析 */
 function buildEventPayloadForRecord(record: Record<string, unknown>): Record<string, unknown> {
   const ep = record.event_payload;
   const base = isRecord(ep) ? { ...ep } : {};
 
-  // 无 event_payload 时：将顶层工具字段（extra 展平写入的字段）提升到 base
+  // 無 event_payload 時：將頂層工具欄位（extra 展平寫入的欄位）提升到 base
   if (!isRecord(ep)) {
     for (const [key, value] of Object.entries(record)) {
       if (!_HISTORY_RECORD_META_KEYS.has(key)) {
@@ -253,12 +253,12 @@ function parseHistoryTimelineEntry(
   return null;
 }
 
-/** 工作区 history.json 预览：最多展示条数（按消息时间取最近） */
+/** 工作區 history.json 預覽：最多展示條數（按訊息時間取最近） */
 export const HISTORY_FILE_PREVIEW_MAX_MESSAGES = 20;
 
 /**
- * 将磁盘上的 history.json 解析结果（通常为记录数组）转为与历史恢复相同的筛选规则下的消息列表，
- * 并按时间升序仅保留时间上最近的 {@link HISTORY_FILE_PREVIEW_MAX_MESSAGES} 条用户/助手消息。
+ * 將磁碟上的 history.json 解析結果（通常為記錄陣列）轉為與歷史恢復相同的篩選規則下的訊息列表，
+ * 並按時間升序僅保留時間上最近的 {@link HISTORY_FILE_PREVIEW_MAX_MESSAGES} 條使用者/助手訊息。
  */
 export function parseHistoryJsonFileToPreviewMessages(
   parsed: unknown,
@@ -297,8 +297,8 @@ function isHistoryBatchEnd(payload: Record<string, unknown>): boolean {
 }
 
 /**
- * 仅处理属于当前 `history.get` 会话的帧，避免多标签/乱序下的串台。
- * 无 `session_id` 时：丢弃数据行；仍接受明确的结束帧（兼容未注入 id 的旧链路）。
+ * 僅處理屬於當前 `history.get` 會話的幀，避免多標籤/亂序下的串臺。
+ * 無 `session_id` 時：丟棄資料行；仍接受明確的結束幀（相容未注入 id 的舊鏈路）。
  */
 function shouldProcessHistoryPayload(payload: Record<string, unknown>, expectedSessionId: string): boolean {
   const sid = typeof payload.session_id === 'string' ? payload.session_id.trim() : '';
@@ -432,8 +432,8 @@ export interface FetchHistoryPageOptions {
 }
 
 /**
- * 拉取单页历史（用于「加载更早」），与 beginHistoryRestore 互斥。
- * 调用方需在订阅建立后再发 `history.get`（含对应 `page_idx`）。
+ * 拉取單頁歷史（用於「載入更早」），與 beginHistoryRestore 互斥。
+ * 呼叫方需在訂閱建立後再發 `history.get`（含對應 `page_idx`）。
  */
 export function fetchHistoryPage(options: FetchHistoryPageOptions): HistoryRestoreHandle {
   disposeActivePageFetch();

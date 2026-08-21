@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Gateway 模块 - 系统枢纽."""
+"""Gateway 模組 - 系統樞紐."""
 
 from jiuwenclaw.gateway.routing.agent_client import AgentServerClient, WebSocketAgentServerClient
 from jiuwenclaw.gateway.channel_manager import ChannelManager

@@ -158,7 +158,7 @@ class CronSchedulerService:
         """Reload jobs from store and rebuild the event queue."""
         jobs = await self._store.list_jobs()
         self._jobs = {j.id: j for j in jobs}
-        # 保留飞行中的 push_update 事件（单次任务 push 后即 disabled，但补发结果还未完成）
+        # 保留飛行中的 push_update 事件（單次任務 push 後即 disabled，但補發結果還未完成）
         pending_push_updates = [
             (at_ts, seq, ev)
             for at_ts, seq, ev in self._events
@@ -177,7 +177,7 @@ class CronSchedulerService:
                 push_dt, wake_dt, run_id = self._compute_next_run(job, now_ts=now)
             except Exception as exc:  # noqa: BLE001
                 if self._is_croniter_no_next_date(exc):
-                    # 已过期的 one-shot：标记 expired 并停用，避免 UI 仍显示 enabled。
+                    # 已過期的 one-shot：標記 expired 並停用，避免 UI 仍顯示 enabled。
                     try:
                         job.enabled = False
                         job.expired = True
@@ -216,7 +216,7 @@ class CronSchedulerService:
         self._seq += 1
         ev = _Event(at_ts=at_ts, seq=self._seq, kind=kind, job_id=job_id, run_id=run_id)
         heapq.heappush(self._events, (ev.at_ts, ev.seq, ev))
-        # 若事件已在 1 秒内到期（如 push_update 补发），需唤醒主循环，否则会等到 timeout（可能 10 分钟）
+        # 若事件已在 1 秒內到期（如 push_update 補發），需喚醒主迴圈，否則會等到 timeout（可能 10 分鐘）
         if at_ts <= self._now_fn() + 1.0:
             self._reload_event.set()
 
@@ -230,7 +230,7 @@ class CronSchedulerService:
 
     @staticmethod
     def _is_croniter_no_next_date(exc: Exception) -> bool:
-        """croniter 找不到下一次日期（通常为单次 year 固定为过去）时视为过期。"""
+        """croniter 找不到下一次日期（通常為單次 year 固定為過去）時視為過期。"""
         return (
             exc.__class__.__name__ == "CroniterBadDateError"
             or "failed to find next date" in str(exc)
@@ -300,7 +300,7 @@ class CronSchedulerService:
                 chat_type=state.chat_type,
             )
             logger.info("[Cron] push_update using rebuilt job from state job_id=%s run_id=%s", ev.job_id, ev.run_id)
-        # push_update 是对已触发任务的补发，即使单次任务已过期也必须放行，否则真正结果永远发不出去
+        # push_update 是對已觸發任務的補發，即使單次任務已過期也必須放行，否則真正結果永遠發不出去
         if not job.enabled and ev.kind != "push_update":
             return
 
@@ -322,7 +322,7 @@ class CronSchedulerService:
                 self._schedule_event(push_dt, "push", job.id, next_run_id)
             except Exception as exc:  # noqa: BLE001
                 if self._is_croniter_no_next_date(exc):
-                    # 执行后无下一次：将任务标记为过期并停用。
+                    # 執行後無下一次：將任務標記為過期並停用。
                     try:
                         job.enabled = False
                         job.expired = True
@@ -394,7 +394,7 @@ class CronSchedulerService:
                 resp = await self._agent_client.send_request(envelope)
                 text = _extract_text_from_agent_payload(resp.payload)
                 if not text:
-                    text = "[cron] 任务完成，但未返回可展示文本"
+                    text = "[cron] 任務完成，但未返回可展示文字"
                 state.result_text = text
                 state.status = "succeeded" if resp.ok else "failed"
             except asyncio.CancelledError:
@@ -466,7 +466,7 @@ class CronSchedulerService:
             return
 
         # Not ready: send placeholder
-        placeholder = f"[cron] {job.name} 正在执行中，结果稍后补发（push_at={state.push_at_iso}）"
+        placeholder = f"[cron] {job.name} 正在執行中，結果稍後補發（push_at={state.push_at_iso}）"
         await self._push_to_targets(job, state, text=placeholder, is_placeholder=True)
         state.placeholder_sent = True
 
@@ -517,8 +517,8 @@ class CronSchedulerService:
         if not channel_id:
             return
 
-        # 企业飞书：优先用作业里绑定的 SessionMap session_id（feishu::chat_id::bot_id::...），
-        # 避免多群共用 bot 时误用 config 中的 last_*（最近一条消息的会话）。
+        # 企業飛書：優先用作業裡繫結的 SessionMap session_id（feishu::chat_id::bot_id::...），
+        # 避免多群共用 bot 時誤用 config 中的 last_*（最近一條訊息的會話）。
         metadata: dict | None = None
         msg_session_id: str | None = None
         routing_sid = str(getattr(job, "session_id", None) or "").strip()
@@ -536,8 +536,8 @@ class CronSchedulerService:
                             metadata["feishu_open_id"] = open_part
                     msg_session_id = chat_part
 
-        # 针对 feishu/xiaoyi/whatsapp：从 config.yaml 取最近一次可回发的平台身份，写入 metadata
-        # 这样即使 cron 推送没有 session_id，也能让 Channel.send 正常路由到对应会话。
+        # 針對 feishu/xiaoyi/whatsapp：從 config.yaml 取最近一次可回發的平臺身份，寫入 metadata
+        # 這樣即使 cron 推送沒有 session_id，也能讓 Channel.send 正常路由到對應會話。
         if metadata is None:
             channels_cfg: dict = {}
             ch_cfg: dict = {}
@@ -612,7 +612,7 @@ class CronSchedulerService:
         if metadata is None:
             metadata = {}
 
-        # 获取 group_digital_avatar 和 my_user_id 配置
+        # 獲取 group_digital_avatar 和 my_user_id 配置
         _group_digital_avatar = False
         _my_user_id = ""
         if channel_id == "wecom":
@@ -636,19 +636,19 @@ class CronSchedulerService:
                     break
 
         if _group_digital_avatar and _my_user_id:
-            # 判断定时任务是在群聊还是私聊中创建的
-            # 优先使用 job.chat_type（创建时保存的），如果没有则尝试从 session_id 推断
+            # 判斷定時任務是在群聊還是私聊中建立的
+            # 優先使用 job.chat_type（建立時儲存的），如果沒有則嘗試從 session_id 推斷
             _is_cron_from_group = job.chat_type == "group"
 
-            # 只有同时满足以下条件才启用 IMOutboundPipeline 路由决策：
-            # 1. 开启了 group_digital_avatar
+            # 只有同時滿足以下條件才啟用 IMOutboundPipeline 路由決策：
+            # 1. 開啟了 group_digital_avatar
             # 2. 配置了 my_user_id
-            # 3. 定时任务是在群聊中创建的（私聊创建的任务直接推送，不走路由决策）
+            # 3. 定時任務是在群聊中建立的（私聊建立的任務直接推送，不走路由決策）
             if _is_cron_from_group:
-                # 不在此处硬编码 reply_scope，交由 IMOutboundPipeline 根据内容决定 DM 还是群聊。
-                # 只需补充 outbound pipeline 所需的 metadata 前置条件：
-                #   - chat_type=group（pipeline 仅对群聊做路由决策）
-                #   - reply_candidate_feishu_open_id / reply_candidate_reason（pipeline 需要知道目标用户）
+                # 不在此處硬編碼 reply_scope，交由 IMOutboundPipeline 根據內容決定 DM 還是群聊。
+                # 只需補充 outbound pipeline 所需的 metadata 前置條件：
+                #   - chat_type=group（pipeline 僅對群聊做路由決策）
+                #   - reply_candidate_feishu_open_id / reply_candidate_reason（pipeline 需要知道目標使用者）
                 metadata["chat_type"] = "group"
                 if channel_id == "wecom":
                     metadata["reply_wecom_user_id"] = _my_user_id
@@ -656,15 +656,15 @@ class CronSchedulerService:
                     metadata["reply_candidate_feishu_open_id"] = _my_user_id
                 metadata["reply_candidate_reason"] = "cron_target_user"
                 metadata["reply_target_name"] = _my_user_id
-                # 标记为定时任务消息，避免在群聊中重复发送确认消息
+                # 標記為定時任務訊息，避免在群聊中重複傳送確認訊息
                 metadata["is_cron_job"] = True
                 logger.info(
-                    "[Cron] 定时任务创建于群聊，启用 IMOutboundPipeline 路由决策: my_user_id=%s channel=%s job_id=%s",
+                    "[Cron] 定時任務建立於群聊，啟用 IMOutboundPipeline 路由決策: my_user_id=%s channel=%s job_id=%s",
                     _my_user_id, channel_id, job.id,
                 )
             else:
                 logger.info(
-                    "[Cron] 定时任务创建于私聊，跳过 IMOutboundPipeline 路由决策: job.chat_type=%s channel=%s job_id=%s",
+                    "[Cron] 定時任務建立於私聊，跳過 IMOutboundPipeline 路由決策: job.chat_type=%s channel=%s job_id=%s",
                     job.chat_type, channel_id, job.id,
                 )
 

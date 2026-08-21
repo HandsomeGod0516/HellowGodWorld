@@ -1,4 +1,4 @@
-"""执行器：`AnalysisRunner`（主路径工具+代码）、`CodeExecutor`、`ToolRegistry` 与内置工具。"""
+"""執行器：`AnalysisRunner`（主路徑工具+程式碼）、`CodeExecutor`、`ToolRegistry` 與內建工具。"""
 
 import asyncio
 import fnmatch
@@ -34,13 +34,13 @@ logger = get_logger()
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# 数据结构
+# 資料結構
 # ─────────────────────────────────────────────────────────────────────────
 
 
 @dataclass
 class ExecutionResult:
-    """代码执行结果"""
+    """程式碼執行結果"""
 
     success: bool
     stdout: str = ""
@@ -52,7 +52,7 @@ class ExecutionResult:
 
 @dataclass
 class ToolInfo:
-    """工具信息"""
+    """工具資訊"""
 
     name: str
     description: str
@@ -61,7 +61,7 @@ class ToolInfo:
 
 
 class ToolResult(BaseModel):
-    """工具执行结果"""
+    """工具執行結果"""
 
     success: bool
     content: str
@@ -70,7 +70,7 @@ class ToolResult(BaseModel):
 
 
 class ExecutionJudgment(BaseModel):
-    """执行结果判断"""
+    """執行結果判斷"""
 
     success: bool
     reason: str
@@ -79,7 +79,7 @@ class ExecutionJudgment(BaseModel):
 
 
 class CodeExecutionJudgment(BaseModel):
-    """代码执行裁判（与 CodeExecutor 的 ExecutionJudgment 字段一致，供 AnalysisRunner 解析 XML）"""
+    """程式碼執行裁判（與 CodeExecutor 的 ExecutionJudgment 欄位一致，供 AnalysisRunner 解析 XML）"""
 
     success: bool
     reason: str
@@ -88,12 +88,12 @@ class CodeExecutionJudgment(BaseModel):
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# CodeExecutor: 代码执行器
+# CodeExecutor: 程式碼執行器
 # ─────────────────────────────────────────────────────────────────────────
 
 
 class CodeExecutor:
-    """Python 代码执行器"""
+    """Python 程式碼執行器"""
 
     def __init__(
         self,
@@ -118,13 +118,13 @@ class CodeExecutor:
         timeout: Optional[int] = None,
     ) -> ExecutionResult:
         """
-        执行 Python 代码。
+        執行 Python 程式碼。
 
         Args:
-            description: 代码描述
-            db_path: 数据库路径
-            extra_files: 额外文件
-            timeout: 超时时间（秒）
+            description: 程式碼描述
+            db_path: 資料庫路徑
+            extra_files: 額外檔案
+            timeout: 超時時間（秒）
 
         Returns:
             ExecutionResult
@@ -132,20 +132,20 @@ class CodeExecutor:
         timeout = timeout or self.config.code_execution_timeout
         extra_files = extra_files or []
 
-        # 创建临时工作目录
+        # 建立臨時工作目錄
         work_dir = Path(tempfile.mkdtemp(prefix="analysis_", dir=self.output_dir))
         files_before = {p for p in work_dir.rglob("*") if p.is_file()}
 
         try:
-            # 准备工作目录
+            # 準備工作目錄
             db_filename = self._prepare_work_dir(work_dir, db_path, extra_files)
 
-            # 构建 prompt
+            # 構建 prompt
             full_description = self._build_prompt(
                 description, db_path, db_filename, extra_files
             )
 
-            # 迭代执行
+            # 迭代執行
             messages = [{"role": "user", "content": full_description}]
             max_retries = self.config.max_code_gen_retries
 
@@ -155,13 +155,13 @@ class CodeExecutor:
                 )
 
                 if result.success:
-                    # 收集生成的文件
+                    # 收集生成的檔案
                     artifacts = self._collect_artifacts(work_dir, files_before)
                     result.artifacts = artifacts
                     return result
 
                 if not result.success and attempt < max_retries - 1:
-                    # 添加错误反馈
+                    # 新增錯誤反饋
                     messages.append(
                         {
                             "role": "user",
@@ -171,7 +171,7 @@ class CodeExecutor:
 
             return result
         finally:
-            # 确保临时目录总是被清理
+            # 確保臨時目錄總是被清理
             shutil.rmtree(work_dir, ignore_errors=True)
 
     async def _generate_and_execute(
@@ -182,8 +182,8 @@ class CodeExecutor:
         timeout: int,
         attempt: int,
     ) -> ExecutionResult:
-        """生成并执行代码"""
-        # 生成代码
+        """生成並執行程式碼"""
+        # 生成程式碼
         response = await self._router.acompletion(
             model=self._model_name,
             messages=messages,
@@ -198,16 +198,16 @@ class CodeExecutor:
                 generated_code=generated_text,
             )
 
-        # 检测依赖
+        # 檢測依賴
         dependencies = self.dependency_detector.detect(code)
 
-        # 执行代码
+        # 執行程式碼
         executor = LocalCodeExecutor(work_dir=work_dir)
         exec_result = await executor.execute(
             code, dependencies=dependencies, timeout=timeout
         )
 
-        # 判断结果
+        # 判斷結果
         judgment = await self._judge_execution(code, exec_result, work_dir)
 
         return ExecutionResult(
@@ -224,8 +224,8 @@ class CodeExecutor:
         exec_result,
         work_dir: Path,
     ) -> ExecutionJudgment:
-        """判断执行结果"""
-        # 截断输出
+        """判斷執行結果"""
+        # 截斷輸出
         stdout = (exec_result.stdout or "")[:4000]
         stderr = (exec_result.stderr or "")[:2000]
         code_preview = code[:4000]
@@ -259,7 +259,7 @@ The "[truncated for display]" marker means text was truncated for brevity—the 
         db_path: Optional[Path],
         extra_files: List[str],
     ) -> Optional[str]:
-        """准备工作目录"""
+        """準備工作目錄"""
         db_filename = None
 
         if db_path and db_path.exists():
@@ -282,7 +282,7 @@ The "[truncated for display]" marker means text was truncated for brevity—the 
         db_filename: Optional[str],
         extra_files: List[str],
     ) -> str:
-        """构建代码生成 prompt"""
+        """構建程式碼生成 prompt"""
         schema_info = ""
         if db_path and db_path.exists():
             from .data import DataReader
@@ -334,7 +334,7 @@ The "[truncated for display]" marker means text was truncated for brevity—the 
 """
 
     def _build_error_feedback(self, result: ExecutionResult, attempt: int) -> str:
-        """构建错误反馈"""
+        """構建錯誤反饋"""
         return f"""## Execution Failed (Attempt {attempt + 1})
 
 **STDOUT**: {result.stdout[:2000]}
@@ -349,7 +349,7 @@ The "[truncated for display]" marker means text was truncated for brevity—the 
 Please fix the issues and generate corrected code."""
 
     def _collect_artifacts(self, work_dir: Path, files_before: set) -> List[str]:
-        """收集生成的文件"""
+        """收集生成的檔案"""
         artifact_extensions = {
             ".png",
             ".jpg",
@@ -377,7 +377,7 @@ Please fix the issues and generate corrected code."""
                 shutil.copy2(p, dest)
             artifacts.append(str(dest))
 
-        # 收集 output_dir 中已有的文件
+        # 收集 output_dir 中已有的檔案
         for p in self.output_dir.glob("**/*"):
             if p.is_file() and p.suffix.lower() in artifact_extensions:
                 if str(p) not in artifacts:
@@ -387,12 +387,12 @@ Please fix the issues and generate corrected code."""
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# ToolRegistry: 工具注册表
+# ToolRegistry: 工具登錄檔
 # ─────────────────────────────────────────────────────────────────────────
 
 
 class ToolRegistry:
-    """工具注册表"""
+    """工具登錄檔"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -401,7 +401,7 @@ class ToolRegistry:
         self._register_builtin_tools()
 
     def _register_builtin_tools(self) -> None:
-        """注册内置工具"""
+        """註冊內建工具"""
         builtin_tools = {
             "list_directory": (ListDirectoryTool, "List directory contents"),
             "read_file": (ReadFileTool, "Read file contents"),
@@ -435,14 +435,14 @@ class ToolRegistry:
         name: str,
         parameters: Dict[str, Any],
     ) -> ToolResult:
-        """执行工具。
+        """執行工具。
 
         Args:
-            name: 工具名称。
-            parameters: 工具参数字典。
+            name: 工具名稱。
+            parameters: 工具引數字典。
 
         Returns:
-            ToolResult 对象，包含 success、content、error 等字段。
+            ToolResult 物件，包含 success、content、error 等欄位。
         """
         if name not in self._tool_classes:
             return ToolResult(
@@ -457,12 +457,12 @@ class ToolRegistry:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# 内置工具实现
+# 內建工具實現
 # ─────────────────────────────────────────────────────────────────────────
 
 
 class GlobTool:
-    """查找匹配 glob 模式的文件"""
+    """查詢匹配 glob 模式的檔案"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -504,7 +504,7 @@ class GlobTool:
 
 
 class ListDirectoryTool:
-    """列出目录内容"""
+    """列出目錄內容"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -550,7 +550,7 @@ class ListDirectoryTool:
 
 
 class ReadFileTool:
-    """读取文件内容"""
+    """讀取檔案內容"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -588,7 +588,7 @@ class ReadFileTool:
 
 
 class WriteFileTool:
-    """写入文件内容"""
+    """寫入檔案內容"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -620,7 +620,7 @@ class WriteFileTool:
 
 
 class SearchFileContentTool:
-    """搜索文件内容"""
+    """搜尋檔案內容"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -659,7 +659,7 @@ class SearchFileContentTool:
 
 
 class ReplaceTool:
-    """替换文件中的文本"""
+    """替換檔案中的文字"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -699,7 +699,7 @@ class ReplaceTool:
 
 
 class RunShellCommandTool:
-    """在工作区内执行 shell 命令"""
+    """在工作區內執行 shell 命令"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -775,7 +775,7 @@ class RunShellCommandTool:
 
 
 class WriteTodoTool:
-    """待办列表（供 ReAct 规划）"""
+    """待辦列表（供 ReAct 規劃）"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -823,7 +823,7 @@ class WriteTodoTool:
 
 
 class LoadLiteratureTool:
-    """加载文献索引"""
+    """載入文獻索引"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -850,7 +850,7 @@ class LoadLiteratureTool:
 
 
 class LiteratureSearchTool:
-    """文献检索"""
+    """文獻檢索"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -883,12 +883,12 @@ class LiteratureSearchTool:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# AnalysisRunner: 内置工具 + 代码执行（多轮对话 / ReAct 工具环）
+# AnalysisRunner: 內建工具 + 程式碼執行（多輪對話 / ReAct 工具環）
 # ─────────────────────────────────────────────────────────────────────────
 
 
 class AnalysisRunner:
-    """为分析流程执行内置工具与生成的 Python 代码。"""
+    """為分析流程執行內建工具與生成的 Python 程式碼。"""
 
     def __init__(
         self,
@@ -932,7 +932,7 @@ class AnalysisRunner:
                 "type": "builtin",
             }
 
-        self.logger.info("已初始化 %s 个内置分析工具", len(self._builtin_tools))
+        self.logger.info("已初始化 %s 個內建分析工具", len(self._builtin_tools))
 
     def discover_tools(self) -> Dict[str, Dict[str, Any]]:
         return {
@@ -962,17 +962,17 @@ class AnalysisRunner:
         tool_type: str,
         parameters: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """执行工具。
+        """執行工具。
 
-        根据工具类型分发到对应的执行器。
+        根據工具型別分發到對應的執行器。
 
         Args:
-            tool_name: 工具名称。
-            tool_type: 工具类型（builtin 或 code_executor）。
-            parameters: 工具参数字典。
+            tool_name: 工具名稱。
+            tool_type: 工具型別（builtin 或 code_executor）。
+            parameters: 工具引數字典。
 
         Returns:
-            执行结果字典，包含 success、error 等字段。
+            執行結果字典，包含 success、error 等欄位。
         """
         if tool_type == "builtin":
             return await self._execute_builtin_tool(tool_name, parameters)
@@ -1061,7 +1061,7 @@ for table in actual_tables:
     print(f"Table {{table}}: {{count}} rows")
 ```
 """
-                self.logger.info("数据库 schema 已包含在代码生成提示中")
+                self.logger.info("資料庫 schema 已包含在程式碼生成提示中")
 
         if db_path:
             src_db = Path(db_path)
@@ -1190,7 +1190,7 @@ Use these libraries for analysis and visualization:
                     break
 
                 if judgment.should_retry and current_try < max_retries - 1:
-                    self.logger.info("代码执行失败，将重试。原因: %s", judgment.reason)
+                    self.logger.info("程式碼執行失敗，將重試。原因: %s", judgment.reason)
                     execution_output = f"""## Code Execution Result (Attempt {current_try + 1})
 
 **Return Code**: {exec_result.return_code if exec_result else "N/A"}
@@ -1222,7 +1222,7 @@ Please generate corrected code that addresses the issues above."""
                     break
 
             if not exec_result:
-                self.logger.warning("所有尝试后仍无执行结果")
+                self.logger.warning("所有嘗試後仍無執行結果")
                 return {
                     "success": False,
                     "error": "No execution result after all attempts",
@@ -1296,19 +1296,19 @@ Please generate corrected code that addresses the issues above."""
         work_dir: Path,
         files_before_execution: set,
     ) -> CodeExecutionJudgment:
-        """判断代码执行结果是否成功。
+        """判斷程式碼執行結果是否成功。
 
-        检查执行返回码、输出文件、错误信息等，通过 LLM 判断执行是否成功，
-        以及是否需要重试。
+        檢查執行返回碼、輸出檔案、錯誤資訊等，透過 LLM 判斷執行是否成功，
+        以及是否需要重試。
 
         Args:
-            generated_code: 生成的 Python 代码。
-            exec_result: 代码执行结果，包含 return_code、stdout、stderr。
-            work_dir: 工作目录，用于检查生成的文件。
-            files_before_execution: 执行前已存在的文件集合。
+            generated_code: 生成的 Python 程式碼。
+            exec_result: 程式碼執行結果，包含 return_code、stdout、stderr。
+            work_dir: 工作目錄，用於檢查生成的檔案。
+            files_before_execution: 執行前已存在的檔案集合。
 
         Returns:
-            CodeExecutionJudgment 对象，包含 success、reason、should_retry 等字段。
+            CodeExecutionJudgment 物件，包含 success、reason、should_retry 等欄位。
         """
         artifact_extensions = {
             ".png",

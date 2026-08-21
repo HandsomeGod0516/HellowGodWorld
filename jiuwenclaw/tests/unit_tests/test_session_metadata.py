@@ -1,4 +1,4 @@
-"""session_metadata 模块单元测试"""
+"""session_metadata 模組單元測試"""
 from __future__ import annotations
 
 import json
@@ -119,7 +119,7 @@ class TestUpdateSessionMetadata:
             channel_id="feishu",
             increment_message_count=True,
         )
-        # 等待异步队列写入完成
+        # 等待非同步佇列寫入完成
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_u1" / "metadata.json")
@@ -128,13 +128,13 @@ class TestUpdateSessionMetadata:
 
     @staticmethod
     def test_fallback_create_when_no_metadata(sessions_dir):
-        """外部渠道隐式创建 session 时,metadata 不存在,应自动创建"""
+        """外部渠道隱式建立 session 時,metadata 不存在,應自動建立"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             update_session_metadata,
             _METADATA_QUEUE,
         )
 
-        # 不调用 init,直接 update — 模拟外部渠道场景
+        # 不呼叫 init,直接 update — 模擬外部渠道場景
         (sessions_dir / "sess_ext").mkdir()
         update_session_metadata(
             session_id="sess_ext",
@@ -157,16 +157,16 @@ class TestUpdateSessionMetadata:
             _METADATA_QUEUE,
         )
 
-        init_session_metadata(session_id="sess_at")  # title 为空
+        init_session_metadata(session_id="sess_at")  # title 為空
 
         update_session_metadata(
             session_id="sess_at",
-            user_content="帮我写一个排序算法",
+            user_content="幫我寫一個排序演算法",
         )
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_at" / "metadata.json")
-        assert data["title"] == "帮我写一个排序算法"
+        assert data["title"] == "幫我寫一個排序演算法"
 
     @staticmethod
     def test_no_overwrite_existing_title(sessions_dir):
@@ -176,16 +176,16 @@ class TestUpdateSessionMetadata:
             _METADATA_QUEUE,
         )
 
-        init_session_metadata(session_id="sess_nt", title="原始标题")
+        init_session_metadata(session_id="sess_nt", title="原始標題")
 
         update_session_metadata(
             session_id="sess_nt",
-            user_content="新消息内容",
+            user_content="新訊息內容",
         )
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_nt" / "metadata.json")
-        assert data["title"] == "原始标题"  # 不被覆盖
+        assert data["title"] == "原始標題"  # 不被覆蓋
 
     @staticmethod
     def test_increment_message_count_multiple(sessions_dir):
@@ -304,17 +304,17 @@ class TestGetAllSessionsMetadata:
         sessions, total = get_all_sessions_metadata(limit=2, offset=2)
         assert total == 5
         assert len(sessions) == 2
-        # offset=2 跳过前2个,取第3和第4个(按 last_message_at 倒序)
+        # offset=2 跳過前2個,取第3和第4個(按 last_message_at 倒序)
         assert sessions[0]["session_id"] == "o2"
         assert sessions[1]["session_id"] == "o3"
 
     @staticmethod
     def test_fallback_for_old_sessions(sessions_dir):
-        """没有 metadata.json 的旧会话应用目录时间戳构造最小信息"""
+        """沒有 metadata.json 的舊會話應用目錄時間戳構造最小資訊"""
         from jiuwenclaw.server.runtime.session.session_metadata import get_all_sessions_metadata
 
         (sessions_dir / "legacy_sess").mkdir()
-        # 不写 metadata.json
+        # 不寫 metadata.json
 
         sessions, total = get_all_sessions_metadata()
         assert total == 1
@@ -333,7 +333,7 @@ class TestGetAllSessionsMetadata:
 
 
 # ===========================================================================
-# _read_metadata 容错
+# _read_metadata 容錯
 # ===========================================================================
 class TestReadMetadataRobustness:
     @staticmethod
@@ -365,7 +365,7 @@ class TestReadMetadataRobustness:
 class TestChannelMetadata:
     @staticmethod
     def test_first_request_metadata_stored(sessions_dir):
-        """首次请求的 metadata 应写入 channel_metadata"""
+        """首次請求的 metadata 應寫入 channel_metadata"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             update_session_metadata,
             _METADATA_QUEUE,
@@ -384,7 +384,7 @@ class TestChannelMetadata:
 
     @staticmethod
     def test_no_overwrite_existing_metadata(sessions_dir):
-        """已存在的 channel_metadata 不应被覆盖"""
+        """已存在的 channel_metadata 不應被覆蓋"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             _write_metadata_sync,
             update_session_metadata,
@@ -409,11 +409,11 @@ class TestChannelMetadata:
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_no" / "metadata.json")
-        assert data["channel_metadata"]["traceparent"] == "original"  # 未被覆盖
+        assert data["channel_metadata"]["traceparent"] == "original"  # 未被覆蓋
 
     @staticmethod
     def test_empty_metadata_not_stored(sessions_dir):
-        """空 metadata 不写入字段"""
+        """空 metadata 不寫入欄位"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             update_session_metadata,
             _METADATA_QUEUE,
@@ -431,17 +431,17 @@ class TestChannelMetadata:
 
     @staticmethod
     def test_backfill_when_missing(sessions_dir):
-        """首次未写入时，后续可补充"""
+        """首次未寫入時，後續可補充"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             update_session_metadata,
             _METADATA_QUEUE,
         )
 
-        # 首次不带 metadata
+        # 首次不帶 metadata
         update_session_metadata(session_id="sess_backfill", channel_id="web")
         _METADATA_QUEUE.join()
 
-        # 二次补充 metadata
+        # 二次補充 metadata
         update_session_metadata(
             session_id="sess_backfill",
             channel_metadata={"traceparent": "backfilled"},
@@ -548,39 +548,39 @@ class TestDeliveryContext:
 
 
 # ===========================================================================
-# 需求验证: 会话标题稳定性
+# 需求驗證: 會話標題穩定性
 # ===========================================================================
 class TestTitleStability:
-    """验证两个核心需求:
-    1. 首条用户消息自动生成标题，后续消息不改变
-    2. 标题一旦创建就不再变化
+    """驗證兩個核心需求:
+    1. 首條使用者訊息自動生成標題，後續訊息不改變
+    2. 標題一旦建立就不再變化
     """
 
     @staticmethod
     def test_req1_first_message_sets_title_second_does_not(sessions_dir):
-        """需求1: 首条消息设置标题，第二条消息不改变标题"""
+        """需求1: 首條訊息設定標題，第二條訊息不改變標題"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             init_session_metadata,
             update_session_metadata,
             _METADATA_QUEUE,
         )
 
-        # 模拟 web 前端创建会话(无标题)
+        # 模擬 web 前端建立會話(無標題)
         init_session_metadata(session_id="sess_req1")
 
-        # 第一条用户消息
+        # 第一條使用者訊息
         update_session_metadata(
             session_id="sess_req1",
             channel_id="web",
             increment_message_count=True,
-            user_content="第一条消息应该成为标题",
+            user_content="第一條訊息應該成為標題",
         )
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_req1" / "metadata.json")
-        assert data["title"] == "第一条消息应该成为标题"
+        assert data["title"] == "第一條訊息應該成為標題"
 
-        # 第一条助手回复
+        # 第一條助手回覆
         update_session_metadata(
             session_id="sess_req1",
             channel_id="web",
@@ -589,24 +589,24 @@ class TestTitleStability:
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_req1" / "metadata.json")
-        assert data["title"] == "第一条消息应该成为标题", "助手回复不应覆盖标题"
+        assert data["title"] == "第一條訊息應該成為標題", "助手回覆不應覆蓋標題"
 
-        # 第二条用户消息(模拟隔1分钟后)
+        # 第二條使用者訊息(模擬隔1分鐘後)
         update_session_metadata(
             session_id="sess_req1",
             channel_id="web",
             increment_message_count=True,
-            user_content="第二条消息不应改变标题",
+            user_content="第二條訊息不應改變標題",
         )
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_req1" / "metadata.json")
-        assert data["title"] == "第一条消息应该成为标题", "第二条用户消息不应覆盖标题"
+        assert data["title"] == "第一條訊息應該成為標題", "第二條使用者訊息不應覆蓋標題"
         assert data["message_count"] == 3
 
     @staticmethod
     def test_req1_rapid_user_then_assistant_no_race(sessions_dir):
-        """需求1(竞态): 用户消息和助手消息快速连续到达时，标题不被覆盖"""
+        """需求1(競態): 使用者訊息和助手訊息快速連續到達時，標題不被覆蓋"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             init_session_metadata,
             update_session_metadata,
@@ -615,15 +615,15 @@ class TestTitleStability:
 
         init_session_metadata(session_id="sess_race")
 
-        # 模拟真实场景: 用户消息和助手消息不等异步写入就连续调用
-        # 不调用 _METADATA_QUEUE.join()，模拟异步写入未完成
+        # 模擬真實場景: 使用者訊息和助手訊息不等非同步寫入就連續呼叫
+        # 不呼叫 _METADATA_QUEUE.join()，模擬非同步寫入未完成
         update_session_metadata(
             session_id="sess_race",
             channel_id="web",
             increment_message_count=True,
-            user_content="用户的第一条消息",
+            user_content="使用者的第一條訊息",
         )
-        # 助手立即回复(不等用户消息的异步写入落盘)
+        # 助手立即回覆(不等使用者訊息的非同步寫入落盤)
         update_session_metadata(
             session_id="sess_race",
             channel_id="web",
@@ -632,13 +632,13 @@ class TestTitleStability:
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_race" / "metadata.json")
-        assert data["title"] == "用户的第一条消息", \
-            "竞态条件: 助手消息的异步写入不应覆盖用户消息生成的标题"
+        assert data["title"] == "使用者的第一條訊息", \
+            "競態條件: 助手訊息的非同步寫入不應覆蓋使用者訊息生成的標題"
         assert data["message_count"] == 2
 
     @staticmethod
     def test_req2_title_immutable_after_creation(sessions_dir):
-        """需求2: 标题一旦创建就不再改变，即使后续多轮对话"""
+        """需求2: 標題一旦建立就不再改變，即使後續多輪對話"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             init_session_metadata,
             update_session_metadata,
@@ -647,11 +647,11 @@ class TestTitleStability:
 
         init_session_metadata(session_id="sess_immut")
 
-        # 第1轮
+        # 第1輪
         update_session_metadata(
             session_id="sess_immut",
             increment_message_count=True,
-            user_content="最初的标题",
+            user_content="最初的標題",
         )
         _METADATA_QUEUE.join()
         update_session_metadata(
@@ -660,11 +660,11 @@ class TestTitleStability:
         )
         _METADATA_QUEUE.join()
 
-        # 第2轮
+        # 第2輪
         update_session_metadata(
             session_id="sess_immut",
             increment_message_count=True,
-            user_content="第二轮消息",
+            user_content="第二輪訊息",
         )
         _METADATA_QUEUE.join()
         update_session_metadata(
@@ -673,30 +673,30 @@ class TestTitleStability:
         )
         _METADATA_QUEUE.join()
 
-        # 第3轮
+        # 第3輪
         update_session_metadata(
             session_id="sess_immut",
             increment_message_count=True,
-            user_content="第三轮消息",
+            user_content="第三輪訊息",
         )
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_immut" / "metadata.json")
-        assert data["title"] == "最初的标题", "多轮对话后标题仍保持不变"
+        assert data["title"] == "最初的標題", "多輪對話後標題仍保持不變"
         assert data["message_count"] == 5
 
     @staticmethod
     def test_req2_explicit_empty_title_does_not_clear(sessions_dir):
-        """需求2: 即使传入空字符串 title 参数，也不应清除已有标题"""
+        """需求2: 即使傳入空字串 title 引數，也不應清除已有標題"""
         from jiuwenclaw.server.runtime.session.session_metadata import (
             init_session_metadata,
             update_session_metadata,
             _METADATA_QUEUE,
         )
 
-        init_session_metadata(session_id="sess_noclear", title="已有标题")
+        init_session_metadata(session_id="sess_noclear", title="已有標題")
 
-        # 模拟某处传入 title=""
+        # 模擬某處傳入 title=""
         update_session_metadata(
             session_id="sess_noclear",
             title="",
@@ -704,4 +704,4 @@ class TestTitleStability:
         _METADATA_QUEUE.join()
 
         data = _read_json(sessions_dir / "sess_noclear" / "metadata.json")
-        assert data["title"] == "已有标题", "空字符串不应清除已有标题"
+        assert data["title"] == "已有標題", "空字串不應清除已有標題"

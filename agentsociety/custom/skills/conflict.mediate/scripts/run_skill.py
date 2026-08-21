@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['cafe', 'park']
 TARGET_INTERACTIONS = ['casual_meetup', 'meet_friend']
 STATUS = 'mediating'
 EMOTION = 'patient'
-SPEECH = '我先听双方怎么说，再帮大家把话说稳。'
+SPEECH = '我先聽雙方怎麼說，再幫大家把話說穩。'
 MEMORY_TEMPLATE = 'Used conflict.mediate: {summary} at {location_id}.'
 
 

@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""AgentServer 工具函数."""
+"""AgentServer 工具函式."""
 
 from typing import Any
 
@@ -8,21 +8,21 @@ from jiuwenclaw.common.schema.agent import AgentRequest
 
 
 def get_chat_id(request: AgentRequest) -> str | None:
-    """获取请求的 Chat ID（平台聊天标识）。
+    """獲取請求的 Chat ID（平臺聊天標識）。
 
-    优先使用顶层字段，向后兼容 metadata 方式。
+    優先使用頂層欄位，向後相容 metadata 方式。
 
     Args:
-        request: AgentServer 请求对象
+        request: AgentServer 請求物件
 
     Returns:
-        平台聊天标识（Chat ID），如果无法获取则返回 None
+        平臺聊天標識（Chat ID），如果無法獲取則返回 None
     """
-    # 1. 优先使用顶层字段
+    # 1. 優先使用頂層欄位
     if request.chat_id:
         return request.chat_id
 
-    # 2. 向后兼容：从 metadata 获取（优先级按平台）
+    # 2. 向後相容：從 metadata 獲取（優先順序按平臺）
     if request.metadata:
         return (
             request.metadata.get('feishu_chat_id') or

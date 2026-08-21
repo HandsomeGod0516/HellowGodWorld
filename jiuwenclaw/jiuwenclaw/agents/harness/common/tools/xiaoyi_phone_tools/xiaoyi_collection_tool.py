@@ -1,11 +1,11 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Collection tools - 小艺收藏工具.
+"""Collection tools - 小藝收藏工具.
 
 包含：
-- query_collection: 检索用户在小艺收藏中记下来的公共知识数据
-- add_collection: 向小艺收藏中添加公共知识数据
-- delete_collection: 从小艺收藏中删除已保存的公共知识数据
+- query_collection: 檢索使用者在小藝收藏中記下來的公共知識資料
+- add_collection: 向小藝收藏中新增公共知識資料
+- delete_collection: 從小藝收藏中刪除已儲存的公共知識資料
 """
 
 from __future__ import annotations
@@ -26,34 +26,34 @@ from .file_upload_helpers import XiaoyiObsUploadConfig, upload_local_file_public
 
 @tool(
     name="query_collection",
-    description="""检索用户在小艺收藏中记下来的公共知识数据，本技能支持查询用户收藏的
-公共知识数据，也可以根据特定语义化描述进行特定内容的检索，通过参数进行控制。
-本技能返回结果
-中，linkTitle是收藏内容的标题，description是对收藏内容的总结，label是收藏内容的标签，
-linkUrl是可以直接访问的原始内容链接。如果你认为某条数据对用户交互有用，可以通过
-linkUrl抓取更加丰富的原始数据。
+    description="""檢索使用者在小藝收藏中記下來的公共知識資料，本技能支援查詢使用者收藏的
+公共知識資料，也可以根據特定語義化描述進行特定內容的檢索，透過引數進行控制。
+本技能返回結果
+中，linkTitle是收藏內容的標題，description是對收藏內容的總結，label是收藏內容的標籤，
+linkUrl是可以直接訪問的原始內容連結。如果你認為某條資料對使用者互動有用，可以透過
+linkUrl抓取更加豐富的原始資料。
   注意:
-  a. 操作超时时间为60秒,请勿重复调用此工具
-  b. 如果遇到各类调用失败场景,最多只能重试一次，不可以重复调用多次。
-  c. 调用工具前需认真检查调用参数是否满足工具要求
+  a. 操作超時時間為60秒,請勿重複呼叫此工具
+  b. 如果遇到各類呼叫失敗場景,最多隻能重試一次，不可以重複呼叫多次。
+  c. 呼叫工具前需認真檢查呼叫引數是否滿足工具要求
 
-  回复约束：如果工具返回没有授权或者其他报错，只需要完整描述没有授权或者其他报错
-内容即可，不需要主动给用户提供解决方案，例如告诉用户如何授权，如何解决报错等都是
-不需要的，请严格遵守。
+  回覆約束：如果工具返回沒有授權或者其他報錯，只需要完整描述沒有授權或者其他報錯
+內容即可，不需要主動給使用者提供解決方案，例如告訴使用者如何授權，如何解決報錯等都是
+不需要的，請嚴格遵守。
   """,
 )
 async def query_collection(
     query_all: str = "true",
     query: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """检索小艺收藏（与 xy_channel xiaoyi-collection-tool.ts 行为对齐）.
+    """檢索小藝收藏（與 xy_channel xiaoyi-collection-tool.ts 行為對齊）.
 
     Args:
-        query_all: 是否查询全部收藏，默认 "true"
-        query: 查询条件，queryAll 不为 "true" 时必填
+        query_all: 是否查詢全部收藏，預設 "true"
+        query: 查詢條件，queryAll 不為 "true" 時必填
 
     Returns:
-        content[0].text: JSON 字符串（event.outputs）
+        content[0].text: JSON 字串（event.outputs）
     """
     try:
         logger.info(
@@ -63,7 +63,7 @@ async def query_collection(
         )
 
         if query_all != "true" and (not query or not isinstance(query, str)):
-            raise ToolInputError("queryAll不为true时，query参数必填")
+            raise ToolInputError("queryAll不為true時，query引數必填")
 
         intent_param: Dict[str, str] = {}
         if query_all == "true":
@@ -103,7 +103,7 @@ async def query_collection(
         if not isinstance(outputs, dict):
             outputs = {"outputs": outputs}
 
-        raise_if_device_error(outputs, "查询小艺收藏失败")
+        raise_if_device_error(outputs, "查詢小藝收藏失敗")
 
         logger.info("[QUERY_COLLECTION_TOOL] Query completed successfully")
 
@@ -120,13 +120,13 @@ async def query_collection(
         raise
     except Exception as e:
         logger.error(f"[QUERY_COLLECTION_TOOL] Failed to query collection: {e}")
-        raise RuntimeError(f"查询小艺收藏失败: {str(e)}") from e
+        raise RuntimeError(f"查詢小藝收藏失敗: {str(e)}") from e
 
 
 def _normalize_item_ids(param: Any) -> List[str]:
-    """将 item_ids 规范为字符串列表（支持数组或 JSON 数组字符串）。"""
+    """將 item_ids 規範為字串列表（支援陣列或 JSON 陣列字串）。"""
     if param is None:
-        raise ToolInputError("缺少必填参数 itemIds")
+        raise ToolInputError("缺少必填引數 itemIds")
     if isinstance(param, list):
         return param
     if isinstance(param, str):
@@ -148,30 +148,30 @@ def _normalize_item_ids(param: Any) -> List[str]:
 
 @tool(
     name="delete_collection",
-    description="""从小艺收藏中删除之前已保存的公共知识数据。任何用户希望删除已保存到
-个人
-知识库的数据都可以调用本技能。如果用户想更新之前的收藏数据，需要先query获取itemId
-然后再delete，最后执行Add，按照这个步骤完成收藏数据更新。
+    description="""從小藝收藏中刪除之前已儲存的公共知識資料。任何使用者希望刪除已儲存到
+個人
+知識庫的資料都可以呼叫本技能。如果使用者想更新之前的收藏資料，需要先query獲取itemId
+然後再delete，最後執行Add，按照這個步驟完成收藏資料更新。
   注意:
-  a. 操作超时时间为60秒,请勿重复调用此工具
-  b. 如果遇到各类调用失败场景,最多只能重试一次，不可以重复调用多次。
-  c. 调用工具前需认真检查调用参数是否满足工具要求
+  a. 操作超時時間為60秒,請勿重複呼叫此工具
+  b. 如果遇到各類呼叫失敗場景,最多隻能重試一次，不可以重複呼叫多次。
+  c. 呼叫工具前需認真檢查呼叫引數是否滿足工具要求
 
-  回复约束：如果工具返回没有授权或者其他报错，只需要完整描述没有授权或者其他报错
-内容即可，不需要主动给用户提供解决方案，例如告诉用户如何授权，如何解决报错等都是
-不需要的，请严格遵守。
+  回覆約束：如果工具返回沒有授權或者其他報錯，只需要完整描述沒有授權或者其他報錯
+內容即可，不需要主動給使用者提供解決方案，例如告訴使用者如何授權，如何解決報錯等都是
+不需要的，請嚴格遵守。
   """,
 )
 async def delete_collection(
     item_ids: Union[str, List[str]],
 ) -> Dict[str, Any]:
-    """删除小艺收藏（与 xy_channel xiaoyi-delete-collection-tool.ts 对齐）.
+    """刪除小藝收藏（與 xy_channel xiaoyi-delete-collection-tool.ts 對齊）.
 
     Args:
-        item_ids: 待删除的数据的 itemId 合集，支持数组或 JSON 字符串
+        item_ids: 待刪除的資料的 itemId 合集，支援陣列或 JSON 字串
 
     Returns:
-        content[0].text: JSON 字符串（event.outputs）
+        content[0].text: JSON 字串（event.outputs）
     """
     try:
         normalized = _normalize_item_ids(item_ids)
@@ -217,7 +217,7 @@ async def delete_collection(
         if not isinstance(outputs, dict):
             outputs = {"outputs": outputs}
 
-        raise_if_device_error(outputs, "删除小艺收藏失败")
+        raise_if_device_error(outputs, "刪除小藝收藏失敗")
 
         logger.info("[DELETE_COLLECTION_TOOL] Delete completed successfully")
 
@@ -234,40 +234,40 @@ async def delete_collection(
         raise
     except Exception as e:
         logger.error(f"[DELETE_COLLECTION_TOOL] Failed to delete collection: {e}")
-        raise RuntimeError(f"删除小艺收藏失败: {str(e)}") from e
+        raise RuntimeError(f"刪除小藝收藏失敗: {str(e)}") from e
 
 
 @tool(
     name="add_collection",
-    description="""向小艺收藏中添加公共知识数据，可以给用户提供个性化体验。任何用户
+    description="""向小藝收藏中新增公共知識資料，可以給使用者提供個性化體驗。任何使用者
 希望
-保存到个人化知识库中的数据都可以调用本技能。不同类型的数据对应的数据要求如下：
-请求入参说明：
-● content:必填字段，数据类型为string，功能描述是该字段是用户添加收藏的链接url或
-  文本原文。适用于HYPER_LINK和TEXT类型。
-● uri:必填字段，数据类型为string，功能描述是该字段是图片或文件的端存储地址链接。
-  适用于IMAGE和FILE类型。
-● sourceAppBundleName:非必填字段，数据类型为string，功能描述是标识该数据的来源
-  应用。
-● dataType:必填字段，数据类型为string，功能描述是标识数据类型。HYPER_LINK标识
-  网页，TEXT标识文本，IMAGE标识图片，FILE标识文件。
-● title:非必填字段，数据类型为string，功能描述是标识文件类型数据的文件名称。
-  适用于FILE类型。
-说明：如果dataType为HYPER_LINK或TEXT，则content字段必填且不能为空；如果dataType
-为IMAGE或FILE，则uri字段必填且不能为空。当用户希望收藏海报、截图等图片类数据时，
-请将数据以图片IMAGE的形式存入到小艺帮记；当用户希望收藏电子书、笔记、报告、素材、
-文档、合同、协议、简历、证书、报表、日志、安装包、压缩包等描述的文件时，请将数据
-以文件FILE的形式存入到小艺帮记。
-当你成功收藏这个数据到小艺帮记后，请在最后显示"已成功把数据添加到[小艺帮记]
+儲存到個人化知識庫中的資料都可以呼叫本技能。不同型別的資料對應的資料要求如下：
+請求入參說明：
+● content:必填欄位，資料型別為string，功能描述是該欄位是使用者新增收藏的連結url或
+  文字原文。適用於HYPER_LINK和TEXT型別。
+● uri:必填欄位，資料型別為string，功能描述是該欄位是圖片或檔案的端儲存地址連結。
+  適用於IMAGE和FILE型別。
+● sourceAppBundleName:非必填欄位，資料型別為string，功能描述是標識該資料的來源
+  應用。
+● dataType:必填欄位，資料型別為string，功能描述是標識資料型別。HYPER_LINK標識
+  網頁，TEXT標識文字，IMAGE標識圖片，FILE標識檔案。
+● title:非必填欄位，資料型別為string，功能描述是標識檔案型別資料的檔名稱。
+  適用於FILE型別。
+說明：如果dataType為HYPER_LINK或TEXT，則content欄位必填且不能為空；如果dataType
+為IMAGE或FILE，則uri欄位必填且不能為空。當使用者希望收藏海報、截圖等圖片類資料時，
+請將資料以圖片IMAGE的形式存入到小藝幫記；當使用者希望收藏電子書、筆記、報告、素材、
+文件、合同、協議、簡歷、證書、報表、日誌、安裝包、壓縮包等描述的檔案時，請將資料
+以檔案FILE的形式存入到小藝幫記。
+當你成功收藏這個資料到小藝幫記後，請在最後顯示"已成功把資料新增到[小藝幫記]
 (vassistant://voice/main?page=CollectionPage&jumpHomePageTab=myCollection)"，
   注意:
-  a. 操作超时时间为60秒,请勿重复调用此工具
-  b. 如果遇到各类调用失败场景,最多只能重试一次，不可以重复调用多次。
-  c. 调用工具前需认真检查调用参数是否满足工具要求
+  a. 操作超時時間為60秒,請勿重複呼叫此工具
+  b. 如果遇到各類呼叫失敗場景,最多隻能重試一次，不可以重複呼叫多次。
+  c. 呼叫工具前需認真檢查呼叫引數是否滿足工具要求
 
-  回复约束：如果工具返回没有授权或者其他报错，只需要完整描述没有授权或者其他报错
-内容即可，不需要主动给用户提供解决方案，例如告诉用户如何授权，如何解决报错等都是
-不需要的，请严格遵守。
+  回覆約束：如果工具返回沒有授權或者其他報錯，只需要完整描述沒有授權或者其他報錯
+內容即可，不需要主動給使用者提供解決方案，例如告訴使用者如何授權，如何解決報錯等都是
+不需要的，請嚴格遵守。
   """,
 )
 async def add_collection(
@@ -277,37 +277,37 @@ async def add_collection(
     source_app_bundle_name: Optional[str] = None,
     title: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """添加小艺收藏（与 xy_channel xiaoyi-add-collection-tool.ts 对齐）.
+    """新增小藝收藏（與 xy_channel xiaoyi-add-collection-tool.ts 對齊）.
 
     Args:
-        data_type: 数据类型，HYPER_LINK/TEXT/IMAGE/FILE
-        content: 链接url或文本原文（HYPER_LINK/TEXT 类型时必填）
-        uri: 图片或文件的地址链接（IMAGE/FILE 类型时必填）
-        source_app_bundle_name: 来源应用标识
-        title: 文件名称（FILE 类型时使用）
+        data_type: 資料型別，HYPER_LINK/TEXT/IMAGE/FILE
+        content: 連結url或文字原文（HYPER_LINK/TEXT 型別時必填）
+        uri: 圖片或檔案的地址連結（IMAGE/FILE 型別時必填）
+        source_app_bundle_name: 來源應用標識
+        title: 檔名稱（FILE 型別時使用）
 
     Returns:
-        content[0].text: JSON 字符串（event.outputs）
+        content[0].text: JSON 字串（event.outputs）
     """
     try:
         valid_types = ("HYPER_LINK", "TEXT", "IMAGE", "FILE")
         if not data_type or data_type not in valid_types:
             raise ToolInputError(
-                f"dataType必填且必须为 HYPER_LINK、TEXT、IMAGE、FILE 之一，当前值: {data_type}"
+                f"dataType必填且必須為 HYPER_LINK、TEXT、IMAGE、FILE 之一，當前值: {data_type}"
             )
 
         if data_type in ("HYPER_LINK", "TEXT") and (not content or not isinstance(content, str)):
-            raise ToolInputError(f"dataType为{data_type}时，content字段必填且不能为空")
+            raise ToolInputError(f"dataType為{data_type}時，content欄位必填且不能為空")
 
         if data_type in ("IMAGE", "FILE") and (not uri or not isinstance(uri, str)):
-            raise ToolInputError(f"dataType为{data_type}时，uri字段必填且不能为空")
+            raise ToolInputError(f"dataType為{data_type}時，uri欄位必填且不能為空")
 
         logger.info(
             "[ADD_COLLECTION_TOOL] Adding collection - dataType=%s",
             data_type,
         )
 
-        # 如果 uri 是本地路径，上传获取公网 URL
+        # 如果 uri 是本地路徑，上傳獲取公網 URL
         public_uri = uri
         _remote_prefixes = ("http://", "https://", "file://")
         if uri and not uri.startswith(_remote_prefixes):
@@ -327,7 +327,7 @@ async def add_collection(
                 public_uri = await upload_local_file_public_url(session, obs_cfg, uri)
 
             if not public_uri:
-                raise RuntimeError("本地文件上传失败，无法获取公网URL")
+                raise RuntimeError("本地檔案上傳失敗，無法獲取公網URL")
 
         intent_param: Dict[str, str] = {"dataType": data_type}
         if content:
@@ -370,7 +370,7 @@ async def add_collection(
         if not isinstance(outputs, dict):
             outputs = {"outputs": outputs}
 
-        raise_if_device_error(outputs, "添加小艺收藏失败")
+        raise_if_device_error(outputs, "新增小藝收藏失敗")
 
         logger.info("[ADD_COLLECTION_TOOL] Add completed successfully")
 
@@ -387,4 +387,4 @@ async def add_collection(
         raise
     except Exception as e:
         logger.error(f"[ADD_COLLECTION_TOOL] Failed to add collection: {e}")
-        raise RuntimeError(f"添加小艺收藏失败: {str(e)}") from e
+        raise RuntimeError(f"新增小藝收藏失敗: {str(e)}") from e

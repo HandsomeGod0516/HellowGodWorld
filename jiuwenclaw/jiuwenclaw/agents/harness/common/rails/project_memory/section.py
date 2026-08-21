@@ -12,12 +12,12 @@ from openjiuwen.harness.prompts import PromptSection
 # modify agent-core's ``SectionName`` enum.
 SECTION_NAME = "project_memory"
 
-_HEADER_CN = "## 项目记忆（ProjectMemoryRail 自动加载）"
+_HEADER_CN = "## 專案記憶（ProjectMemoryRail 自動載入）"
 _HEADER_EN = "## Project Memory (auto-loaded by ProjectMemoryRail)"
 
 _NOTE_CN = (
-    "以下内容来自项目根、用户目录、本地私有文件的合并。"
-    "修改磁盘文件即可在下一轮对话生效。"
+    "以下內容來自專案根、使用者目錄、本地私有檔案的合併。"
+    "修改磁碟檔案即可在下一輪對話生效。"
 )
 _NOTE_EN = (
     "The following is merged from project root, user home, and local private files. "

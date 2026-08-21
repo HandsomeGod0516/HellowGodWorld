@@ -13,7 +13,7 @@ _FORBIDDEN_BODY = b"Forbidden: Origin not allowed\n"
 
 
 def is_allowed_browser_origin(origin: str | None) -> bool:
-    """校验浏览器 Origin 是否来自允许的本机地址。"""
+    """校驗瀏覽器 Origin 是否來自允許的本機地址。"""
     if origin is None:
         return False
 

@@ -1,24 +1,24 @@
-"""模块注册中心 - 提供 Agent 类和环境模块的集中注册管理。
+"""模組註冊中心 - 提供 Agent 類和環境模組的集中註冊管理。
 
-本模块支持：
-- 内置模块（来自 contrib 目录）
-- 自定义模块（来自 custom 目录）
+本模組支援：
+- 內建模組（來自 contrib 目錄）
+- 自定義模組（來自 custom 目錄）
 
 主要功能
 --------
 
-- **ModuleRegistry**: 模块注册中心类
-- **get_registry**: 获取全局注册中心实例
-- **get_registered_env_modules**: 获取已注册的环境模块列表
-- **get_registered_agent_modules**: 获取已注册的 Agent 模块列表
-- **get_env_module_class**: 根据名称获取环境模块类
-- **get_agent_module_class**: 根据名称获取 Agent 模块类
-- **list_all_modules**: 列出所有已注册模块
-- **reload_modules**: 重新加载所有模块
-- **scan_and_register_custom_modules**: 扫描并注册自定义模块
-- **discover_and_register_builtin_modules**: 发现并注册内置模块
+- **ModuleRegistry**: 模組註冊中心類
+- **get_registry**: 獲取全域性註冊中心例項
+- **get_registered_env_modules**: 獲取已註冊的環境模組列表
+- **get_registered_agent_modules**: 獲取已註冊的 Agent 模組列表
+- **get_env_module_class**: 根據名稱獲取環境模組類
+- **get_agent_module_class**: 根據名稱獲取 Agent 模組類
+- **list_all_modules**: 列出所有已註冊模組
+- **reload_modules**: 重新載入所有模組
+- **scan_and_register_custom_modules**: 掃描並註冊自定義模組
+- **discover_and_register_builtin_modules**: 發現並註冊內建模組
 
-实现延迟加载 - 模块只在首次访问时才被发现。
+實現延遲載入 - 模組只在首次訪問時才被發現。
 """
 
 from agentsociety2.registry.base import ModuleRegistry, get_registry

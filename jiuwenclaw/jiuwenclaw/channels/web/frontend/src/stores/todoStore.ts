@@ -1,5 +1,5 @@
 /**
- * Todo 状态管理
+ * Todo 狀態管理
  */
 
 import { create } from 'zustand';

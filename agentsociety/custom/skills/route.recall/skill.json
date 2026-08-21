@@ -23,7 +23,7 @@
   ],
   "status": "recalling_route",
   "emotion": "thoughtful",
-  "speech": "我想想平常怎么走最稳妥。",
+  "speech": "我想想平常怎麼走最穩妥。",
   "memory_template": "Used route.recall: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

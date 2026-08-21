@@ -1,9 +1,9 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
 """
-E2A 数据模型：请求信封 ``E2AEnvelope``、响应 ``E2AResponse`` 与子结构。
+E2A 資料模型：請求信封 ``E2AEnvelope``、響應 ``E2AResponse`` 與子結構。
 
-完整约定、易混点与 JSON 示例见仓库 ``docs/zh/E2A-protocol.md``（``docs/en/E2A-protocol.md``）。字段以本模块 dataclass 为准。
+完整約定、易混點與 JSON 示例見倉庫 ``docs/zh/E2A-protocol.md``（``docs/en/E2A-protocol.md``）。欄位以本模組 dataclass 為準。
 """
 
 from __future__ import annotations
@@ -25,13 +25,13 @@ E2A_PROTOCOL_VERSION = "1.0"
 
 
 def utc_now_iso() -> str:
-    """当前 UTC 时刻的 RFC 3339 字符串（``provenance.converted_at``、响应 ``timestamp`` 缺省等）。"""
+    """當前 UTC 時刻的 RFC 3339 字串（``provenance.converted_at``、響應 ``timestamp`` 預設等）。"""
 
     return datetime.now(timezone.utc).isoformat()
 
 
 class IdentityOrigin(str, Enum):
-    """身份来源：谁触发了本次对 Agent 的请求。"""
+    """身份來源：誰觸發了本次對 Agent 的請求。"""
 
     SYSTEM = "system"
     USER = "user"
@@ -42,11 +42,11 @@ class IdentityOrigin(str, Enum):
 @dataclass
 class E2AProvenance:
     """
-    记录 E2A 信封的出处。
+    記錄 E2A 信封的出處。
 
-    - E2A 为统一载体：ACP、A2A 等消息经转换后均应落在此结构中。
-    - ``source_protocol`` 标明**进入 E2A 之前**所依据的主要协议或「原生 E2A」。
-    - ``converter`` / ``converted_at`` / ``details`` 标明由谁、何时、从何种具体调用转换而来。
+    - E2A 為統一載體：ACP、A2A 等訊息經轉換後均應落在此結構中。
+    - ``source_protocol`` 標明**進入 E2A 之前**所依據的主要協議或「原生 E2A」。
+    - ``converter`` / ``converted_at`` / ``details`` 標明由誰、何時、從何種具體呼叫轉換而來。
     """
 
     source_protocol: str = E2A_SOURCE_PROTOCOL_E2A
@@ -57,7 +57,7 @@ class E2AProvenance:
 
 @dataclass
 class E2AFileRef:
-    """文件引用（用于 ``params.files`` / ``params.attachments`` 等元素，对齐 MCP/A2A 常见形态）。"""
+    """檔案引用（用於 ``params.files`` / ``params.attachments`` 等元素，對齊 MCP/A2A 常見形態）。"""
 
     uri: str
     name: str | None = None
@@ -69,9 +69,9 @@ class E2AFileRef:
 @dataclass
 class E2AAuth:
     """
-    身份鉴权信息（按需填充）。
+    身份鑑權資訊（按需填充）。
 
-    建议：生产环境用 credential_ref / oauth 等间接引用，由网关在受控环境换票。
+    建議：生產環境用 credential_ref / oauth 等間接引用，由閘道器在受控環境換票。
     """
 
     method_id: str | None = None
@@ -85,26 +85,26 @@ class E2AAuth:
 @dataclass
 class E2AEnvelope:
     """
-    E2A 统一信封：单结构兼容多协议入口，由网关或适配层解析后调用 Agent。
+    E2A 統一信封：單結構相容多協議入口，由閘道器或適配層解析後呼叫 Agent。
 
-    基础字段：
-    - protocol_version：E2A 载荷版本。
-    - provenance：出处（原生 e2a 或由 acp / a2a 等转换）。
-    - request_id：网关↔AgentServer 主请求 id（流式 chunk 关联）。
-    - jsonrpc_id / correlation_id：JSON-RPC id、分布式追踪等（可与 request_id 并存）。
-    - task_id / context_id / session_id / message_id：对齐 A2A / ACP 侧概念。
-    - is_stream：是否流式响应。
+    基礎欄位：
+    - protocol_version：E2A 載荷版本。
+    - provenance：出處（原生 e2a 或由 acp / a2a 等轉換）。
+    - request_id：閘道器↔AgentServer 主請求 id（流式 chunk 關聯）。
+    - jsonrpc_id / correlation_id：JSON-RPC id、分散式追蹤等（可與 request_id 並存）。
+    - task_id / context_id / session_id / message_id：對齊 A2A / ACP 側概念。
+    - is_stream：是否流式響應。
 
-    事件语义：
-    - method：**网关 RPC**（如 ``chat.send``）或 ACP 转入时的 JSON-RPC method；``ext`` + ``ext_method`` 用于自定义。
-    - **params**：**唯一业务参数字典**（JSON-RPC params、用户正文、``content_blocks``、附件列表等均放此处，见仓库 ``docs/zh/E2A-protocol.md``）。
+    事件語義：
+    - method：**閘道器 RPC**（如 ``chat.send``）或 ACP 轉入時的 JSON-RPC method；``ext`` + ``ext_method`` 用於自定義。
+    - **params**：**唯一業務引數字典**（JSON-RPC params、使用者正文、``content_blocks``、附件列表等均放此處，見倉庫 ``docs/zh/E2A-protocol.md``）。
 
-    通道与互操作：
-    - channel_context：**可选溢出**；主路径上通道侧信息应在**网关入口**映射为规范化字段。
-    - a2a_metadata / acp_meta：与 A2A/ACP 互操作时使用。
+    通道與互操作：
+    - channel_context：**可選溢位**；主路徑上通道側資訊應在**閘道器入口**對映為規範化欄位。
+    - a2a_metadata / acp_meta：與 A2A/ACP 互操作時使用。
     """
 
-    # --- 基础 / 关联 ---
+    # --- 基礎 / 關聯 ---
     protocol_version: str = E2A_PROTOCOL_VERSION
     provenance: E2AProvenance = field(default_factory=E2AProvenance)
     request_id: str | None = None
@@ -115,41 +115,41 @@ class E2AEnvelope:
     session_id: str | None = None
     message_id: str | None = None
 
-    # --- 时间戳：规范为 RFC 3339 UTC 字符串；from_dict 可将历史 float 纪元秒规范化 ---
+    # --- 時間戳：規範為 RFC 3339 UTC 字串；from_dict 可將歷史 float 紀元秒規範化 ---
     timestamp: str | None = None
 
-    # --- 身份与入口 ---
+    # --- 身份與入口 ---
     identity_origin: IdentityOrigin = IdentityOrigin.USER
     channel: str | None = None
     user_id: str | None = None
     chat_id: str | None = None
     source_agent_id: str | None = None
 
-    # --- 网关 RPC（原 req_method）；ACP 转入时同字段承载 JSON-RPC method ---
+    # --- 閘道器 RPC（原 req_method）；ACP 轉入時同欄位承載 JSON-RPC method ---
     method: str | None = None
     params: dict[str, Any] = field(default_factory=dict)
     ext_method: str | None = None
     session_update_kind: str | None = None
     is_stream: bool = False
 
-    # --- 期望输出（对齐 A2A acceptedOutputModes）---
+    # --- 期望輸出（對齊 A2A acceptedOutputModes）---
     expected_output_modes: list[str] = field(default_factory=list)
 
-    # --- 鉴权 ---
+    # --- 鑑權 ---
     auth: E2AAuth | None = None
 
-    # --- 扩展槽 ---
+    # --- 擴充套件槽 ---
     channel_context: dict[str, Any] = field(default_factory=dict)
     a2a_metadata: dict[str, Any] = field(default_factory=dict)
     acp_meta: dict[str, Any] = field(default_factory=dict)
 
     def ensure_timestamp(self) -> None:
-        """若未设置 timestamp，则填当前 UTC ISO8601。"""
+        """若未設定 timestamp，則填當前 UTC ISO8601。"""
         if self.timestamp is None:
             self.timestamp = utc_now_iso()
 
     def to_dict(self) -> dict[str, Any]:
-        """序列化为 JSON 友好 dict（枚举转为值）。"""
+        """序列化為 JSON 友好 dict（列舉轉為值）。"""
         d = _dataclass_to_json_dict(self)
         return d
 
@@ -161,13 +161,13 @@ class E2AEnvelope:
 @dataclass
 class E2AResponse:
     """
-    E2A 统一响应：每条出站记录（含流式多帧）一条实例；与 ``E2AEnvelope`` 对称。
+    E2A 統一響應：每條出站記錄（含流式多幀）一條例項；與 ``E2AEnvelope`` 對稱。
 
-    分层语义见 ``docs/zh/E2A-protocol.md`` / ``docs/en/E2A-protocol.md`` §12；``response_kind`` 取值以
-    ``constants.E2A_RESPONSE_KINDS`` 为准。
+    分層語義見 ``docs/zh/E2A-protocol.md`` / ``docs/en/E2A-protocol.md`` §12；``response_kind`` 取值以
+    ``constants.E2A_RESPONSE_KINDS`` 為準。
 
-    ``metadata``：通道/业务自定义键值；兼容旧版 ``AgentResponse.metadata``；协议转换失败时可临时写入兜底信息
-    （如原始片段、错误说明），与 ``a2a_metadata`` / ``acp_meta`` 分工不同。
+    ``metadata``：通道/業務自定義鍵值；相容舊版 ``AgentResponse.metadata``；協議轉換失敗時可臨時寫入兜底資訊
+    （如原始片段、錯誤說明），與 ``a2a_metadata`` / ``acp_meta`` 分工不同。
     """
 
     protocol_version: str = E2A_PROTOCOL_VERSION
@@ -201,12 +201,12 @@ class E2AResponse:
     acp_meta: dict[str, Any] = field(default_factory=dict)
 
     def ensure_timestamp(self) -> None:
-        """若未设置 timestamp，则填当前 UTC ISO8601。"""
+        """若未設定 timestamp，則填當前 UTC ISO8601。"""
         if self.timestamp is None:
             self.timestamp = utc_now_iso()
 
     def to_dict(self) -> dict[str, Any]:
-        """序列化为 JSON 友好 dict（枚举转为值）。"""
+        """序列化為 JSON 友好 dict（列舉轉為值）。"""
         return _dataclass_to_json_dict(self)
 
     @classmethod
@@ -268,7 +268,7 @@ def _provenance_from_dict(raw: Any) -> E2AProvenance:
 
 
 def _normalize_timestamp_value(raw: Any) -> str | None:
-    """规范为 RFC 3339 UTC 字符串；接受 str 或历史 float/int 纪元秒。"""
+    """規範為 RFC 3339 UTC 字串；接受 str 或歷史 float/int 紀元秒。"""
     if raw is None:
         return None
     if isinstance(raw, str):
@@ -279,7 +279,7 @@ def _normalize_timestamp_value(raw: Any) -> str | None:
 
 
 def _migrate_legacy_binding(data: dict[str, Any], prov: E2AProvenance) -> E2AProvenance:
-    """旧版 ``binding`` 字段迁入 provenance.details，避免丢失信息。"""
+    """舊版 ``binding`` 欄位遷入 provenance.details，避免丟失資訊。"""
     legacy = data.get("binding")
     if legacy is None or prov.details.get("migrated_from_binding") is not None:
         return prov
@@ -306,7 +306,7 @@ def _migrate_legacy_binding(data: dict[str, Any], prov: E2AProvenance) -> E2APro
 
 def _params_with_optional_legacy_payload(data: dict[str, Any]) -> dict[str, Any]:
     """
-    以 ``params`` 为真源；若存在顶层 ``payload`` 对象，将其键合并进 params（不覆盖已有键）。
+    以 ``params`` 為真源；若存在頂層 ``payload`` 物件，將其鍵合併進 params（不覆蓋已有鍵）。
     """
     p = dict(data.get("params") or {})
     raw = data.get("payload")
@@ -349,7 +349,7 @@ def _envelope_from_dict(data: dict[str, Any]) -> E2AEnvelope:
             _meta=dict(auth_raw.get("_meta") or {}),
         )
 
-    # channel_context：合并 wire 顶层 metadata 中尚未出现的键。
+    # channel_context：合併 wire 頂層 metadata 中尚未出現的鍵。
     channel_context = dict(data.get("channel_context") or {})
     meta_top = data.get("metadata")
     if isinstance(meta_top, dict) and meta_top:
@@ -448,14 +448,14 @@ def _e2a_response_from_dict(data: dict[str, Any]) -> E2AResponse:
 
 def merge_params_to_acp_prompt(envelope: E2AEnvelope) -> dict[str, Any]:
     """
-    当 ``method == "session/prompt"`` 时，从 ``envelope.params`` 补全 ACP 所需 ``prompt``，返回新参数字典。
+    當 ``method == "session/prompt"`` 時，從 ``envelope.params`` 補全 ACP 所需 ``prompt``，返回新引數字典。
 
-    优先级：
-    1. 已有 ``params.prompt`` 则不修改。
-    2. 否则若有 ``params.content_blocks``（非空 list），用作 ``prompt``。
-    3. 否则用 ``params.text``、``params.content``、``params.query`` 中第一个非空字符串生成单条 text ContentBlock。
+    優先順序：
+    1. 已有 ``params.prompt`` 則不修改。
+    2. 否則若有 ``params.content_blocks``（非空 list），用作 ``prompt``。
+    3. 否則用 ``params.text``、``params.content``、``params.query`` 中第一個非空字串生成單條 text ContentBlock。
 
-    随后按需补 ``session_id``、``params._meta``（来自 ``envelope.acp_meta``）。
+    隨後按需補 ``session_id``、``params._meta``（來自 ``envelope.acp_meta``）。
     """
     p = dict(envelope.params)
     if envelope.method != "session/prompt":

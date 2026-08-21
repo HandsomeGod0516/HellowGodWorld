@@ -1,23 +1,23 @@
 /**
- * 语音输入输出 Hook
+ * 語音輸入輸出 Hook
  *
- * 使用 Web Speech API 实现语音识别（STT）和语音合成（TTS）
+ * 使用 Web Speech API 實現語音識別（STT）和語音合成（TTS）
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import i18n from '../i18n';
 
 // ============================================================================
-// 语音识别 (STT)
+// 語音識別 (STT)
 // ============================================================================
 
 interface UseSpeechRecognitionOptions {
   language?: string;
   continuous?: boolean;
   interimResults?: boolean;
-  /** 无声音后多少毫秒结束识别，默认 5000。需配合 continuous: true 使用。 */
+  /** 無聲音後多少毫秒結束識別，預設 5000。需配合 continuous: true 使用。 */
   silenceTimeoutMs?: number;
-  /** 返回 true 时，onend 后会自动重启识别。 */
+  /** 返回 true 時，onend 後會自動重啟識別。 */
   restartWhen?: () => boolean;
   onResult?: (transcript: string, isFinal: boolean) => void;
   onError?: (error: string) => void;
@@ -33,7 +33,7 @@ interface UseSpeechRecognitionReturn {
   isSupported: boolean;
 }
 
-// Web Speech API 类型（部分浏览器/TS 未内置）
+// Web Speech API 型別（部分瀏覽器/TS 未內建）
 interface SpeechRecognitionEventMap {
   resultIndex: number;
   results: SpeechRecognitionResultList;
@@ -60,17 +60,17 @@ declare global {
   }
 }
 
-// 供本文件内 ref 等使用
+// 供本檔案內 ref 等使用
 type SpeechRecognition = SpeechRecognitionInstance;
 
 export function useSpeechRecognition(
   options: UseSpeechRecognitionOptions = {}
 ): UseSpeechRecognitionReturn {
   const {
-    language = 'cmn-Hans-CN', // 普通话简体中文（比 zh-CN 更准确）
-    continuous = false, // 默认检测到停止说话后自动结束
+    language = 'cmn-Hans-CN', // 普通話簡體中文（比 zh-CN 更準確）
+    continuous = false, // 預設檢測到停止說話後自動結束
     interimResults = true,
-    silenceTimeoutMs = 5000, // 无声音后 5s 结束（需配合 continuous: true）
+    silenceTimeoutMs = 5000, // 無聲音後 5s 結束（需配合 continuous: true）
     restartWhen,
     onResult,
     onError,
@@ -86,7 +86,7 @@ export function useSpeechRecognition(
   const autoStopRef = useRef(false);
   const useContinuousRef = useRef(false);
 
-  // 检查浏览器支持
+  // 檢查瀏覽器支援
   const isSupported =
     typeof window !== 'undefined' &&
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
@@ -120,7 +120,7 @@ export function useSpeechRecognition(
     manualStopRef.current = false;
     autoStopRef.current = false;
 
-    // 创建识别实例
+    // 建立識別例項
     const SpeechRecognitionCtor =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
@@ -129,7 +129,7 @@ export function useSpeechRecognition(
     }
     const recognition = new SpeechRecognitionCtor();
 
-    // 使用自定义静默超时时，用 continuous=true 避免浏览器约 2s 就结束
+    // 使用自定義靜默超時時，用 continuous=true 避免瀏覽器約 2s 就結束
     const useContinuous = continuous || silenceTimeoutMs > 0;
     useContinuousRef.current = useContinuous;
     recognition.lang = language;
@@ -224,7 +224,7 @@ export function useSpeechRecognition(
     setIsListening(false);
   }, [clearSilenceTimer]);
 
-  // 组件卸载时清理
+  // 元件解除安裝時清理
   useEffect(() => {
     return () => {
       clearSilenceTimer();
@@ -245,7 +245,7 @@ export function useSpeechRecognition(
 }
 
 // ============================================================================
-// 语音合成 (TTS)
+// 語音合成 (TTS)
 // ============================================================================
 
 interface UseSpeechSynthesisOptions {
@@ -285,11 +285,11 @@ export function useSpeechSynthesis(
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // 检查浏览器支持
+  // 檢查瀏覽器支援
   const isSupported =
     typeof window !== 'undefined' && 'speechSynthesis' in window;
 
-  // 加载可用语音
+  // 載入可用語音
   useEffect(() => {
     if (!isSupported) return;
 
@@ -313,7 +313,7 @@ export function useSpeechSynthesis(
         return;
       }
 
-      // 停止当前播放
+      // 停止當前播放
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -322,7 +322,7 @@ export function useSpeechSynthesis(
       utterance.pitch = pitch;
       utterance.volume = volume;
 
-      // 选择合适的中文语音
+      // 選擇合適的中文語音
       const chineseVoice = voices.find(
         (v) => v.lang.includes('zh') || v.lang.includes('CN')
       );
@@ -371,7 +371,7 @@ export function useSpeechSynthesis(
     }
   }, [isSupported]);
 
-  // 组件卸载时清理
+  // 元件解除安裝時清理
   useEffect(() => {
     return () => {
       if (isSupported) {

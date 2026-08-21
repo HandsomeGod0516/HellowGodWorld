@@ -1,6 +1,6 @@
 """
 Plan-and-Execute Router Implementation
-使用Plan-and-Execute模式：先制定计划，然后执行计划中的步骤
+使用Plan-and-Execute模式：先制定計劃，然後執行計劃中的步驟
 """
 
 import json
@@ -19,13 +19,13 @@ __all__ = ["PlanExecuteRouter"]
 
 class PlanExecuteRouter(RouterBase):
     """
-    Plan-and-Execute模式Router：先制定计划，然后执行计划中的步骤。
+    Plan-and-Execute模式Router：先制定計劃，然後執行計劃中的步驟。
 
     工作流程：
-    1. 收集所有环境模块的工具信息
-    2. 第一阶段：使用LLM制定执行计划（不调用工具）
-    3. 第二阶段：按照计划逐步执行工具调用
-    4. 根据执行结果生成最终答案
+    1. 收集所有環境模組的工具資訊
+    2. 第一階段：使用LLM制定執行計劃（不呼叫工具）
+    3. 第二階段：按照計劃逐步執行工具呼叫
+    4. 根據執行結果生成最終答案
     """
 
     def __init__(
@@ -40,7 +40,7 @@ class PlanExecuteRouter(RouterBase):
             max_llm_call_retry=max_llm_call_retry,
         )
 
-        # 预收集所有工具
+        # 預收集所有工具
         self._all_tools: List[ChatCompletionToolParam] = []
         self._all_readonly_tools: List[ChatCompletionToolParam] = []
         self._tool_name_to_module: Dict[str, EnvBase] = {}
@@ -49,12 +49,12 @@ class PlanExecuteRouter(RouterBase):
         self._collect_all_tools()
 
     def _collect_all_tools(self):
-        """收集所有模块的所有工具"""
+        """收集所有模組的所有工具"""
         for module in self.env_modules:
             registered_tools = getattr(module.__class__, "_registered_tools", {})
 
             for tool_name, tool_obj in registered_tools.items():
-                # 获取工具的LLM格式schema
+                # 獲取工具的LLM格式schema
                 tool_schema: ChatCompletionToolParam | None = None
                 for llm_tool in module._llm_tools:
                     if llm_tool["function"]["name"] == tool_name:
@@ -66,7 +66,7 @@ class PlanExecuteRouter(RouterBase):
                     self._tool_name_to_module[tool_name] = module
                     self._tool_name_to_tool_obj[tool_name] = tool_obj
 
-                    # 检查是否是readonly工具
+                    # 檢查是否是readonly工具
                     readonly_tools = getattr(module.__class__, "_readonly_tools", {})
                     if readonly_tools.get(tool_name, False):
                         self._all_readonly_tools.append(tool_schema)
@@ -79,18 +79,18 @@ class PlanExecuteRouter(RouterBase):
         template_mode: bool = False,
     ) -> Tuple[dict, str]:
         """
-        使用Plan-and-Execute模式处理指令。
+        使用Plan-and-Execute模式處理指令。
 
         Args:
             ctx: 上下文字典
-            instruction: 指令字符串
-            readonly: 是否只读模式
-            template_mode: 模板模式（PlanExecuteRouter 不使用，仅为签名兼容）
+            instruction: 指令字串
+            readonly: 是否只讀模式
+            template_mode: 模板模式（PlanExecuteRouter 不使用，僅為簽名相容）
 
         Returns:
-            (ctx, answer) 元组
+            (ctx, answer) 元組
         """
-        # 添加当前时间信息到 ctx，以便工具调用可以访问
+        # 新增當前時間資訊到 ctx，以便工具呼叫可以訪問
         self._add_current_time_to_ctx(ctx)
 
         get_logger().info(
@@ -105,7 +105,7 @@ class PlanExecuteRouter(RouterBase):
                 "No environment modules available to handle the request.",
             )
 
-        # 选择可用的工具列表
+        # 選擇可用的工具列表
         available_tools = self._all_readonly_tools if readonly else self._all_tools
 
         if not available_tools:
@@ -115,7 +115,7 @@ class PlanExecuteRouter(RouterBase):
             }
             return results, "No available tools to handle the request."
 
-        # 第一阶段：制定计划
+        # 第一階段：制定計劃
         plan = await self._create_plan(instruction, ctx, readonly, available_tools)
         if not plan:
             results = {"status": "fail", "reason": "Failed to create execution plan"}
@@ -123,12 +123,12 @@ class PlanExecuteRouter(RouterBase):
 
         get_logger().info(f"PlanExecuteRouter: Created plan with {len(plan)} steps")
 
-        # 第二阶段：执行计划（支持replan）
+        # 第二階段：執行計劃（支援replan）
         results = {}
         execution_log = []
-        status = "unknown"  # 初始状态，LLM可以在执行过程中设置
+        status = "unknown"  # 初始狀態，LLM可以在執行過程中設定
         plan_attempts = 0
-        max_plan_attempts = 3  # 最多允许3次replan
+        max_plan_attempts = 3  # 最多允許3次replan
 
         while plan_attempts < max_plan_attempts:
             plan_attempts += 1
@@ -136,7 +136,7 @@ class PlanExecuteRouter(RouterBase):
                 f"PlanExecuteRouter: Executing plan attempt {plan_attempts}/{max_plan_attempts}"
             )
 
-            # 执行当前计划
+            # 執行當前計劃
             plan_completed = False
             for step_idx, step in enumerate(plan):
                 if step_idx >= self.max_steps:
@@ -149,7 +149,7 @@ class PlanExecuteRouter(RouterBase):
                     f"PlanExecuteRouter: Executing step {step_idx + 1}/{len(plan)}: {step.get('description', 'N/A')}"
                 )
 
-                # 执行步骤
+                # 執行步驟
                 step_result = await self._execute_step(
                     step, ctx, readonly, results, execution_log, instruction
                 )
@@ -162,7 +162,7 @@ class PlanExecuteRouter(RouterBase):
                     }
                 )
 
-                # 检查是否是replan请求或需要replan的错误
+                # 檢查是否是replan請求或需要replan的錯誤
                 should_replan = False
                 replan_reason = ""
 
@@ -183,7 +183,7 @@ class PlanExecuteRouter(RouterBase):
                     get_logger().info(
                         f"PlanExecuteRouter: Replan triggered at step {step_idx + 1}: {replan_reason}"
                     )
-                    # 重新制定计划
+                    # 重新制定計劃
                     new_plan = await self._create_replan(
                         instruction,
                         ctx,
@@ -197,7 +197,7 @@ class PlanExecuteRouter(RouterBase):
                         get_logger().info(
                             f"PlanExecuteRouter: Created new plan with {len(plan)} steps"
                         )
-                        # 记录replan事件
+                        # 記錄replan事件
                         execution_log.append(
                             {
                                 "step": step_idx + 1,
@@ -208,7 +208,7 @@ class PlanExecuteRouter(RouterBase):
                             }
                         )
                         plan_completed = False
-                        break  # 跳出当前计划执行，开始执行新计划
+                        break  # 跳出當前計劃執行，開始執行新計劃
                     else:
                         get_logger().warning(
                             "PlanExecuteRouter: Failed to create replan, continuing with current plan"
@@ -217,19 +217,19 @@ class PlanExecuteRouter(RouterBase):
                 # 更新results
                 if isinstance(step_result, dict):
                     results.update(step_result)
-                    # 检查是否设置了status
+                    # 檢查是否設定了status
                     if "status" in step_result:
                         status = step_result["status"]
-                        # 如果status是success或fail，计划完成
+                        # 如果status是success或fail，計劃完成
                         if status in ["success", "fail", "error"]:
                             plan_completed = True
                             break
 
-            # 如果计划完成或达到最大尝试次数，退出循环
+            # 如果計劃完成或達到最大嘗試次數，退出迴圈
             if plan_completed or plan_attempts >= max_plan_attempts:
                 break
 
-        # 初步检查是否有明显的错误
+        # 初步檢查是否有明顯的錯誤
         error = None
         for log_entry in execution_log:
             step_result = log_entry.get("result", {})
@@ -237,11 +237,11 @@ class PlanExecuteRouter(RouterBase):
                 error = step_result.get("error")
                 break
 
-        # 构建过程文本
+        # 構建過程文字
         process_text = (
             json.dumps(execution_log, indent=2, default=str) if execution_log else ""
         )
-        # 使用基类的generate_final_answer生成最终答案
+        # 使用基類的generate_final_answer生成最終答案
         final_answer, determined_status = await self.generate_final_answer(
             ctx, instruction, results, process_text, status, error
         )
@@ -258,11 +258,11 @@ class PlanExecuteRouter(RouterBase):
         readonly: bool,
         available_tools: List[ChatCompletionToolParam],
     ) -> List[Dict[str, Any]]:
-        """创建执行计划"""
-        # 构建工具列表描述
+        """建立執行計劃"""
+        # 構建工具列表描述
         tools_description = self._format_tools_description(available_tools)
 
-        # 使用改进的prompt构建方法
+        # 使用改進的prompt構建方法
         base_prompt = self._build_plan_prompt_with_status(instruction, ctx, readonly)
 
         prompt = f"""{base_prompt}
@@ -324,7 +324,7 @@ Your plan:"""
 
             plan_text = response.choices[0].message.content or "[]"  # type: ignore
 
-            # 尝试从响应中提取JSON
+            # 嘗試從響應中提取JSON
             plan = self._extract_json_from_text(plan_text)
 
             if not isinstance(plan, list):
@@ -346,11 +346,11 @@ Your plan:"""
         current_results: dict,
         execution_log: list,
     ) -> List[Dict[str, Any]]:
-        """创建重新计划，基于当前执行结果和错误信息"""
-        # 构建工具列表描述
+        """建立重新計劃，基於當前執行結果和錯誤資訊"""
+        # 構建工具列表描述
         tools_description = self._format_tools_description(available_tools)
 
-        # 构建当前执行状态摘要
+        # 構建當前執行狀態摘要
         execution_summary = self._build_execution_summary(
             execution_log, current_results
         )
@@ -431,7 +431,7 @@ Your new plan:"""
 
             plan_text = response.choices[0].message.content or "[]"  # type: ignore
 
-            # 尝试从响应中提取JSON
+            # 嘗試從響應中提取JSON
             plan = self._extract_json_from_text(plan_text)
 
             if not isinstance(plan, list):
@@ -447,14 +447,14 @@ Your new plan:"""
     def _build_execution_summary(
         self, execution_log: list, current_results: dict
     ) -> str:
-        """构建执行摘要，用于replan"""
+        """構建執行摘要，用於replan"""
         summary_lines = []
 
-        # 统计执行步骤
+        # 統計執行步驟
         completed_steps = [log for log in execution_log if log.get("type") != "replan"]
         summary_lines.append(f"- Total steps executed: {len(completed_steps)}")
 
-        # 检查错误
+        # 檢查錯誤
         errors = []
         for log_entry in execution_log:
             result = log_entry.get("result", {})
@@ -469,13 +469,13 @@ Your new plan:"""
 
         if errors:
             summary_lines.append(f"\n- Errors encountered: {len(errors)}")
-            for error_info in errors[:3]:  # 只显示前3个错误
+            for error_info in errors[:3]:  # 只顯示前3個錯誤
                 summary_lines.append(
                     f"  Step {error_info['step']}: {error_info.get('description', 'N/A')}"
                 )
                 summary_lines.append(f"    Error: {error_info['error']}")
 
-        # 检查成功执行的步骤
+        # 檢查成功執行的步驟
         successful_steps = [
             log
             for log in execution_log
@@ -485,12 +485,12 @@ Your new plan:"""
         ]
         if successful_steps:
             summary_lines.append(f"\n- Successful steps: {len(successful_steps)}")
-            for step in successful_steps[:3]:  # 只显示前3个成功步骤
+            for step in successful_steps[:3]:  # 只顯示前3個成功步驟
                 summary_lines.append(
                     f"  Step {step.get('step', 'unknown')}: {step.get('description', 'N/A')}"
                 )
 
-        # 检查是否有status设置
+        # 檢查是否有status設定
         if "status" in current_results:
             summary_lines.append(
                 f"\n- Current status: {current_results.get('status', 'unknown')}"
@@ -503,10 +503,10 @@ Your new plan:"""
         )
 
     def _extract_json_from_text(self, text: str) -> Any:
-        """从文本中提取JSON"""
+        """從文字中提取JSON"""
         import re
 
-        # 尝试找到JSON数组
+        # 嘗試找到JSON陣列
         json_match = re.search(r"\[[\s\S]*\]", text)
         if json_match:
             try:
@@ -514,13 +514,13 @@ Your new plan:"""
             except Exception:
                 pass
 
-        # 尝试直接解析整个文本
+        # 嘗試直接解析整個文字
         try:
             return json_repair.loads(text)
         except Exception:
             pass
 
-        # 如果都失败，返回空列表
+        # 如果都失敗，返回空列表
         return []
 
     def _format_tools_description(self, tools: List[ChatCompletionToolParam]) -> str:
@@ -543,14 +543,14 @@ Your new plan:"""
         execution_log: list,
         instruction: str,
     ) -> Any:
-        """执行计划中的一个步骤"""
+        """執行計劃中的一個步驟"""
         tool_name = step.get("tool")
         arguments = step.get("arguments", {})
 
         if not tool_name:
             return {"error": "Step missing tool name"}
 
-        # 处理set_status工具
+        # 處理set_status工具
         if tool_name == "set_status":
             status = arguments.get("status", "unknown")
             reason = arguments.get("reason", "")
@@ -560,7 +560,7 @@ Your new plan:"""
             get_logger().info(f"PlanExecuteRouter: Status set to {status}")
             return result
 
-        # 处理replan工具
+        # 處理replan工具
         if tool_name == "replan":
             reason = arguments.get("reason", "Execution issues encountered")
             get_logger().info(f"PlanExecuteRouter: Replan requested: {reason}")
@@ -568,10 +568,10 @@ Your new plan:"""
 
         try:
             result = await self._execute_tool(tool_name, arguments, readonly)
-            # 检查结果中是否有错误，如果有且是参数错误等可恢复的错误，标记为可能需要replan
+            # 檢查結果中是否有錯誤，如果有且是引數錯誤等可恢復的錯誤，標記為可能需要replan
             if isinstance(result, dict) and "error" in result:
                 error_msg = result.get("error", "")
-                # 检查是否是参数相关的错误（可能需要replan）
+                # 檢查是否是引數相關的錯誤（可能需要replan）
                 replan_keywords = [
                     "missing",
                     "required",
@@ -585,15 +585,15 @@ Your new plan:"""
                     get_logger().warning(
                         f"PlanExecuteRouter: Potential replan trigger - error: {error_msg}"
                     )
-                    # 标记错误为可恢复的，但不在这一步自动触发replan
-                    # 让计划执行循环检查是否需要replan
+                    # 標記錯誤為可恢復的，但不在這一步自動觸發replan
+                    # 讓計劃執行迴圈檢查是否需要replan
                     result["_recoverable_error"] = "true"  # type: ignore
                     result["_error_suggests_replan"] = "true"  # type: ignore
             return result
         except Exception as e:
             error_msg = f"Error executing {tool_name}: {str(e)}"
             get_logger().error(f"PlanExecuteRouter: {error_msg}")
-            # 检查异常是否是参数相关的
+            # 檢查異常是否是引數相關的
             error_str = str(e).lower()
             replan_keywords = [
                 "missing",
@@ -610,30 +610,30 @@ Your new plan:"""
             return result
 
     async def _execute_tool(self, tool_name: str, args: dict, readonly: bool) -> Any:
-        """执行工具调用"""
-        # 获取工具所属的模块
+        """執行工具呼叫"""
+        # 獲取工具所屬的模組
         module = self._tool_name_to_module.get(tool_name)
         if not module:
             raise ValueError(f"Tool {tool_name} not found")
 
-        # 检查readonly约束
+        # 檢查readonly約束
         readonly_tools = getattr(module.__class__, "_readonly_tools", {})
         if readonly and not readonly_tools.get(tool_name, False):
             raise ValueError(
                 f"Tool {tool_name} is not readonly, but readonly mode is enabled"
             )
 
-        # 获取工具对象
+        # 獲取工具物件
         tool_obj = self._tool_name_to_tool_obj.get(tool_name)
         if not tool_obj:
             raise ValueError(f"Tool object for {tool_name} not found")
 
-        # 获取工具函数
+        # 獲取工具函式
         tool_func = tool_obj.fn
         if not tool_func:
             raise ValueError(f"Tool function for {tool_name} not found")
 
-        # 执行工具函数（可能是async）
+        # 執行工具函式（可能是async）
         import inspect
 
         if inspect.iscoroutinefunction(tool_func):
@@ -646,7 +646,7 @@ Your new plan:"""
     def _build_plan_prompt_with_status(
         self, instruction: str, ctx: dict, readonly: bool
     ) -> str:
-        """构建包含status设置说明的计划prompt"""
+        """構建包含status設定說明的計劃prompt"""
         readonly_note = (
             " (READONLY MODE - you can only use read-only tools)" if readonly else ""
         )

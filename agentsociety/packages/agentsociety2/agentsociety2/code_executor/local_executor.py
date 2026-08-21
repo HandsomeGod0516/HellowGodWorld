@@ -1,9 +1,9 @@
 """
-本地代码执行器
+原生代碼執行器
 
-直接使用当前Python解释器执行代码，不使用Docker。
+直接使用當前Python直譯器執行程式碼，不使用Docker。
 
-主要入口为 :meth:`~agentsociety2.code_executor.local_executor.LocalCodeExecutor.execute`，
+主要入口為 :meth:`~agentsociety2.code_executor.local_executor.LocalCodeExecutor.execute`，
 返回 :class:`~agentsociety2.code_executor.models.ExecutionResult`。
 """
 
@@ -26,13 +26,13 @@ logger = get_logger()
 
 
 class LocalCodeExecutor:
-    """本地代码执行器（子进程执行）。
+    """原生代碼執行器（子程序執行）。
 
-    :param work_dir: 工作目录。代码会写入该目录并在该目录下运行；执行产生的新增文件会记录为 artifacts。
+    :param work_dir: 工作目錄。程式碼會寫入該目錄並在該目錄下執行；執行產生的新增檔案會記錄為 artifacts。
     """
 
     def __init__(self, work_dir: Path):
-        """创建执行器并确保工作目录存在。"""
+        """建立執行器並確保工作目錄存在。"""
         self._work_dir = Path(work_dir)
         self._work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -46,26 +46,26 @@ class LocalCodeExecutor:
         extra_files: Optional[Iterable[Path | str]] = None,
         program_args: Optional[Iterable[str]] = None,
     ) -> ExecutionResult:
-        """在当前 Python 解释器中执行代码。
+        """在當前 Python 直譯器中執行程式碼。
 
-        :param code: Python 代码文本。
-        :param dependencies: 可选。需要安装的依赖包名列表。
-            依赖安装器由环境变量 ``CODE_EXECUTOR_DEPS_INSTALLER`` 控制：
+        :param code: Python 程式碼文字。
+        :param dependencies: 可選。需要安裝的依賴包名列表。
+            依賴安裝器由環境變數 ``CODE_EXECUTOR_DEPS_INSTALLER`` 控制：
 
-            - ``pip``（默认）：``python -m pip install --quiet ...``
-            - ``uv``：若检测到 ``uv`` 命令则使用 ``uv pip install --quiet ...``
-            - ``conda``：若检测到 ``conda`` 命令则使用 ``conda install -y ...``
-            - ``0/false/no/off/none/never``：禁用安装（直接执行）
-        :param timeout: 超时时间（秒）。
-        :param input_data: 可选。作为 stdin 输入的字符串。
-        :param extra_files: 可选。额外输入文件路径（会复制到 ``work_dir`` 根目录；同名文件已存在则跳过以避免覆盖）。
-        :param program_args: 可选。传给脚本的命令行参数。
-        :returns: 执行结果（包含 ``stdout``/``stderr``/``return_code``/``execution_time`` 以及新增文件列表 ``artifacts``）。
+            - ``pip``（預設）：``python -m pip install --quiet ...``
+            - ``uv``：若檢測到 ``uv`` 命令則使用 ``uv pip install --quiet ...``
+            - ``conda``：若檢測到 ``conda`` 命令則使用 ``conda install -y ...``
+            - ``0/false/no/off/none/never``：禁用安裝（直接執行）
+        :param timeout: 超時時間（秒）。
+        :param input_data: 可選。作為 stdin 輸入的字串。
+        :param extra_files: 可選。額外輸入檔案路徑（會複製到 ``work_dir`` 根目錄；同名檔案已存在則跳過以避免覆蓋）。
+        :param program_args: 可選。傳給指令碼的命令列引數。
+        :returns: 執行結果（包含 ``stdout``/``stderr``/``return_code``/``execution_time`` 以及新增檔案列表 ``artifacts``）。
         """
         start_time = time.time()
         deps_installer = os.getenv("CODE_EXECUTOR_DEPS_INSTALLER", "pip").strip().lower()
 
-        # 创建临时文件保存代码
+        # 建立臨時檔案儲存程式碼
         with tempfile.NamedTemporaryFile(
             mode="w",
             suffix=".py",
@@ -77,10 +77,10 @@ class LocalCodeExecutor:
             tmp_file_path = Path(tmp_file.name)
 
         try:
-            # 准备环境变量：显式传递父进程的环境变量
+            # 準備環境變數：顯式傳遞父程序的環境變數
             env = os.environ.copy()
 
-            # 复制额外输入文件到工作目录
+            # 複製額外輸入檔案到工作目錄
             extra_files = list(extra_files or [])
             for file_path in extra_files:
                 src = Path(file_path)
@@ -93,15 +93,15 @@ class LocalCodeExecutor:
                     continue
                 shutil.copy2(src, dst)
 
-            # 基线：准备完输入后记录文件集合，artifact 只统计“执行产生的新增文件”
+            # 基線：準備完輸入後記錄檔案集合，artifact 只統計“執行產生的新增檔案”
             files_before = {p for p in self._work_dir.rglob("*") if p.is_file()}
 
-            # 如果需要安装依赖
+            # 如果需要安裝依賴
             if dependencies:
                 deps_list = [dep.strip() for dep in dependencies if dep.strip()]
                 if deps_list:
                     if deps_installer in ("0", "false", "no", "off", "none", "never"):
-                        logger.info("跳过依赖安装（CODE_EXECUTOR_DEPS_INSTALLER 禁用）")
+                        logger.info("跳過依賴安裝（CODE_EXECUTOR_DEPS_INSTALLER 禁用）")
                     else:
                         installer_cmd: list[str] | None = None
                         if deps_installer == "pip":
@@ -115,10 +115,10 @@ class LocalCodeExecutor:
 
                         if installer_cmd is None:
                             logger.warning(
-                                f"无法安装依赖（installer={deps_installer} 不可用或未找到命令），继续执行代码"
+                                f"無法安裝依賴（installer={deps_installer} 不可用或未找到命令），繼續執行程式碼"
                             )
                         else:
-                            logger.info(f"安装依赖（{deps_installer}）: {deps_list}")
+                            logger.info(f"安裝依賴（{deps_installer}）: {deps_list}")
                             install_process = await asyncio.create_subprocess_exec(
                                 *installer_cmd,
                                 stdout=subprocess.PIPE,
@@ -127,12 +127,12 @@ class LocalCodeExecutor:
                             )
                             await install_process.wait()
                             if install_process.returncode != 0:
-                                logger.warning("依赖安装失败，但继续执行代码")
+                                logger.warning("依賴安裝失敗，但繼續執行程式碼")
 
-            # 执行代码
-            logger.info(f"执行代码文件: {tmp_file_path}")
+            # 執行程式碼
+            logger.info(f"執行程式碼檔案: {tmp_file_path}")
 
-            # 使用subprocess执行，捕获输出
+            # 使用subprocess執行，捕獲輸出
             process = await asyncio.create_subprocess_exec(
                 sys.executable,
                 str(tmp_file_path),
@@ -141,7 +141,7 @@ class LocalCodeExecutor:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 cwd=str(self._work_dir),
-                env=env,  # 显式传递环境变量
+                env=env,  # 顯式傳遞環境變數
             )
 
             try:
@@ -154,9 +154,9 @@ class LocalCodeExecutor:
                 process.kill()
                 await process.wait()
                 stdout = b""
-                stderr = f"执行超时（超过{timeout}秒）".encode("utf-8")
+                stderr = f"執行超時（超過{timeout}秒）".encode("utf-8")
                 success = False
-                logger.error(f"代码执行超时: {tmp_file_path}")
+                logger.error(f"程式碼執行超時: {tmp_file_path}")
 
             execution_time = time.time() - start_time
 
@@ -176,9 +176,9 @@ class LocalCodeExecutor:
             )
 
         finally:
-            # 清理临时文件
+            # 清理臨時檔案
             try:
                 tmp_file_path.unlink()
             except Exception as e:
-                logger.warning(f"清理临时文件失败: {e}")
+                logger.warning(f"清理臨時檔案失敗: {e}")
 

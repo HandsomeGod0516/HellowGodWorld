@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['market', 'supply_store']
 TARGET_INTERACTIONS = ['work_shop_shift', 'customer_service']
 STATUS = 'ledgering'
 EMOTION = 'focused'
-SPEECH = '我把收支和物资变动记下来。'
+SPEECH = '我把收支和物資變動記下來。'
 MEMORY_TEMPLATE = 'Used ledger.basic: {summary} at {location_id}.'
 
 

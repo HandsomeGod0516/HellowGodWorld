@@ -21,7 +21,7 @@
   ],
   "status": "radio_comms",
   "emotion": "clear",
-  "speech": "我用最短的信息说明位置、需求和下一步。",
+  "speech": "我用最短的資訊說明位置、需求和下一步。",
   "memory_template": "Used radio.comms: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

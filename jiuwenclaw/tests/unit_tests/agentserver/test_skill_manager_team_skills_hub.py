@@ -11,7 +11,7 @@ _TEAM_SKILLS_HUB_ZIP_URL = "https://openjiuwen-market.obs.ap-southeast-1.myhuawe
 
 
 class TeamSkillsHubHarnessSkillManager(SkillManager):
-    """公开受保护方法供单测（勿命名为 Test*，否则 pytest 会当成测试类收集）。"""
+    """公開受保護方法供單測（勿命名為 Test*，否則 pytest 會當成測試類收集）。"""
 
     def get_team_skills_hub_base_url(self) -> str:
         return self._get_team_skills_hub_base_url()
@@ -40,7 +40,7 @@ def _build_skill_zip_bytes(*, skill_name: str) -> bytes:
 
 
 def _build_skill_zip_bytes_flat_root(*, skill_name: str) -> bytes:
-    """SKILL.md 在 zip 根目录（与 Team Hub 常见扁平包一致），用于覆盖 copytree 误带 skill.zip 的场景。"""
+    """SKILL.md 在 zip 根目錄（與 Team Hub 常見扁平包一致），用於覆蓋 copytree 誤帶 skill.zip 的場景。"""
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr(
@@ -63,7 +63,7 @@ def test_get_team_skills_hub_base_url_env_override(monkeypatch):
 
 
 def test_get_team_skills_hub_base_url_default_without_override(monkeypatch):
-    """未配置 TEAM_SKILLS_HUB_BASE_URL 时应回退默认值。"""
+    """未配置 TEAM_SKILLS_HUB_BASE_URL 時應回退預設值。"""
     monkeypatch.delenv("TEAM_SKILLS_HUB_BASE_URL", raising=False)
     manager = TeamSkillsHubHarnessSkillManager(workspace_dir="dummy")
     assert manager.get_team_skills_hub_base_url() == "https://teamskills.openjiuwen.com"
@@ -147,7 +147,7 @@ async def test_handle_skills_team_skills_hub_install_success(tmp_path):
 
 @pytest.mark.asyncio
 async def test_handle_skills_team_skills_hub_install_flat_zip_does_not_copy_staging_zip(tmp_path):
-    """扁平 zip（根目录 SKILL.md）安装后目标目录不应残留暂存的 skill.zip。"""
+    """扁平 zip（根目錄 SKILL.md）安裝後目標目錄不應殘留暫存的 skill.zip。"""
     manager = TeamSkillsHubHarnessSkillManager(workspace_dir=str(tmp_path))
     zip_bytes = _build_skill_zip_bytes_flat_root(skill_name="flat-demo")
 
@@ -192,7 +192,7 @@ async def test_handle_skills_team_skills_hub_install_duplicate_without_force(tmp
 
     payload = await manager.handle_skills_team_skills_hub_install({"asset_id": "demo-skill", "force": False})
     assert payload["success"] is False
-    assert "已安装" in payload["detail"]
+    assert "已安裝" in payload["detail"]
 
 
 @pytest.mark.asyncio
@@ -274,7 +274,7 @@ async def test_handle_skills_team_skills_hub_install_rejects_untrusted_download_
 
     payload = await manager.handle_skills_team_skills_hub_install({"asset_id": "demo-skill"})
     assert payload["success"] is False
-    assert "host" in payload["detail"] and "白名单" in payload["detail"]
+    assert "host" in payload["detail"] and "白名單" in payload["detail"]
     assert payload["detail_key"] == "skills.teamskillshub.errors.installFailed"
 
 
@@ -306,7 +306,7 @@ def test_safe_extract_zip_to_dir_rejects_zip_slip(tmp_path):
     out = tmp_path / "out"
     out.mkdir()
     manager = TeamSkillsHubHarnessSkillManager(workspace_dir="dummy")
-    with pytest.raises(RuntimeError, match="非法路径|越界"):
+    with pytest.raises(RuntimeError, match="非法路徑|越界"):
         manager.call_safe_extract_zip_to_dir(zip_path, out)
 
 
@@ -349,6 +349,6 @@ async def test_handle_skills_team_skills_hub_install_rejects_zip_slip(tmp_path):
 
     payload = await manager.handle_skills_team_skills_hub_install({"asset_id": "demo-skill"})
     assert payload["success"] is False
-    assert "非法路径" in payload["detail"] or "越界" in payload["detail"]
+    assert "非法路徑" in payload["detail"] or "越界" in payload["detail"]
     assert payload["detail_key"] == "skills.teamskillshub.errors.installFailed"
     assert not (tmp_path / "evil.txt").exists()

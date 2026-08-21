@@ -1,7 +1,7 @@
 """
-LightGCN 推荐算法实现
+LightGCN 推薦演算法實現
 
-基于 PyTorch 的轻量级图卷积网络算法
+基於 PyTorch 的輕量級圖卷積網路演算法
 """
 
 import pickle
@@ -19,10 +19,10 @@ from .config import LightGCNConfig
 
 class LightGCNModel(nn.Module):
     """
-    简化版 LightGCN：
-    - 用户、物品各一套 embedding
-    - 使用归一化后的用户-物品二分图邻接矩阵进行多层传播
-    - 最终用户/物品表示为各层 embedding 的平均
+    簡化版 LightGCN：
+    - 使用者、物品各一套 embedding
+    - 使用歸一化後的使用者-物品二分圖鄰接矩陣進行多層傳播
+    - 終端使用者/物品表示為各層 embedding 的平均
     """
     
     def __init__(
@@ -43,25 +43,25 @@ class LightGCNModel(nn.Module):
         
         self._init_weights()
         
-        # 图结构（训练时由 Recommender 通过 set_graph 注入）
+        # 圖結構（訓練時由 Recommender 透過 set_graph 注入）
         self.Graph = None  # torch.sparse.FloatTensor
     
     def _init_weights(self):
-        """初始化权重"""
+        """初始化權重"""
         nn.init.normal_(self.embedding_user.weight, std=0.1)
         nn.init.normal_(self.embedding_item.weight, std=0.1)
     
     def set_graph(self, graph: torch.Tensor):
         """
-        设置归一化后的稀疏邻接矩阵 Graph（形状为 [n_users+n_items, n_users+n_items]）
+        設定歸一化後的稀疏鄰接矩陣 Graph（形狀為 [n_users+n_items, n_users+n_items]）
         """
         self.Graph = graph
     
     def propagate(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        进行 LightGCN 的多层传播，返回最终的 (user_emb, item_emb)
+        進行 LightGCN 的多層傳播，返回最終的 (user_emb, item_emb)
         """
-        assert self.Graph is not None, "Graph 未设置，请先调用 set_graph"
+        assert self.Graph is not None, "Graph 未設定，請先呼叫 set_graph"
         
         users_emb = self.embedding_user.weight
         items_emb = self.embedding_item.weight
@@ -82,7 +82,7 @@ class LightGCNModel(nn.Module):
     
     def forward(self, users: torch.Tensor, items: torch.Tensor) -> torch.Tensor:
         """
-        输入用户索引和物品索引，输出匹配得分（未过 sigmoid）
+        輸入使用者索引和物品索引，輸出匹配得分（未過 sigmoid）
         """
         all_users, all_items = self.propagate()
         users_emb = all_users[users.long()]
@@ -93,23 +93,23 @@ class LightGCNModel(nn.Module):
 
 class LightGCNRecommender(RecommenderAlgorithm):
     """
-    LightGCN 推荐算法
+    LightGCN 推薦演算法
     
-    基于图卷积网络的推荐算法，使用用户-物品二分图进行信息传播
+    基於圖卷積網路的推薦演算法，使用使用者-物品二分圖進行資訊傳播
     """
     
     def __init__(self, config: LightGCNConfig = LightGCNConfig()):
         """
-        初始化LightGCN推荐器
+        初始化LightGCN推薦器
         
         Args:
-            config: LightGCN算法配置
+            config: LightGCN演算法配置
         """
         self.config = config
         self.model: Optional[LightGCNModel] = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        # ID映射
+        # ID對映
         self.user_index_map: Optional[Dict[int, int]] = None
         self.item_index_map: Optional[Dict[int, int]] = None
         self.index_user_map: Optional[Dict[int, int]] = None
@@ -117,7 +117,7 @@ class LightGCNRecommender(RecommenderAlgorithm):
         self.n_users: int = 0
         self.n_items: int = 0
         
-        # 热门物品（用于冷启动）
+        # 熱門物品（用於冷啟動）
         self._popular_items: List[Tuple[int, float]] = []
         
         get_logger().info(
@@ -127,17 +127,17 @@ class LightGCNRecommender(RecommenderAlgorithm):
     
     def fit(self, data: RatingMatrix) -> None:
         """
-        训练LightGCN模型
+        訓練LightGCN模型
         
         Args:
-            data: 评分矩阵
+            data: 評分矩陣
         """
         get_logger().info(
-            f"开始训练 LightGCN 模型: {data.get_user_count()} 用户, "
-            f"{data.get_item_count()} 物品, {data.get_rating_count()} 评分"
+            f"開始訓練 LightGCN 模型: {data.get_user_count()} 使用者, "
+            f"{data.get_item_count()} 物品, {data.get_rating_count()} 評分"
         )
         
-        # 1. 构建ID映射
+        # 1. 構建ID對映
         self.user_index_map = data.user_map.copy()
         self.item_index_map = data.item_map.copy()
         self.index_user_map = {idx: uid for uid, idx in self.user_index_map.items()}
@@ -146,10 +146,10 @@ class LightGCNRecommender(RecommenderAlgorithm):
         self.n_users = len(self.user_index_map)
         self.n_items = len(self.item_index_map)
         
-        # 2. 构建图结构
+        # 2. 構建圖結構
         graph = self._build_graph(data)
         
-        # 3. 创建模型并设置图
+        # 3. 建立模型並設定圖
         self.model = LightGCNModel(
             n_users=self.n_users,
             n_items=self.n_items,
@@ -158,7 +158,7 @@ class LightGCNRecommender(RecommenderAlgorithm):
         ).to(self.device)
         self.model.set_graph(graph)
         
-        # 4. 准备训练数据（使用rating >= 3.0作为正样本）
+        # 4. 準備訓練資料（使用rating >= 3.0作為正樣本）
         train_users = []
         train_items = []
         train_labels = []
@@ -167,7 +167,7 @@ class LightGCNRecommender(RecommenderAlgorithm):
             if user_id in self.user_index_map and item_id in self.item_index_map:
                 train_users.append(self.user_index_map[user_id])
                 train_items.append(self.item_index_map[item_id])
-                train_labels.append(1.0 if rating >= 3.0 else 0.0)  # 使用rating >= 3.0作为正样本
+                train_labels.append(1.0 if rating >= 3.0 else 0.0)  # 使用rating >= 3.0作為正樣本
         
         train_dataset = TensorDataset(
             torch.tensor(train_users, dtype=torch.long),
@@ -176,11 +176,11 @@ class LightGCNRecommender(RecommenderAlgorithm):
         )
         train_loader = DataLoader(train_dataset, batch_size=self.config.batch_size, shuffle=True)
         
-        # 5. 优化器和损失函数
+        # 5. 最佳化器和損失函式
         optimizer = optim.Adam(self.model.parameters(), lr=self.config.learning_rate, weight_decay=self.config.reg)
         criterion = nn.BCEWithLogitsLoss()
         
-        # 6. 训练循环
+        # 6. 訓練迴圈
         self.model.train()
         for epoch in range(self.config.n_epochs):
             total_loss = 0.0
@@ -191,10 +191,10 @@ class LightGCNRecommender(RecommenderAlgorithm):
                 
                 optimizer.zero_grad()
                 
-                # 计算预测logits（内积）
+                # 計算預測logits（內積）
                 pred_logits = self.model.forward(batch_users, batch_items)
                 
-                # 计算损失（BCEWithLogitsLoss包含sigmoid，直接使用logits）
+                # 計算損失（BCEWithLogitsLoss包含sigmoid，直接使用logits）
                 loss = criterion(pred_logits, batch_labels)
                 
                 loss.backward()
@@ -210,23 +210,23 @@ class LightGCNRecommender(RecommenderAlgorithm):
         
         self.model.eval()
         
-        # 7. 计算热门物品
+        # 7. 計算熱門物品
         self._compute_popular_items(data)
         
-        get_logger().info("LightGCN 模型训练完成")
+        get_logger().info("LightGCN 模型訓練完成")
     
     def _build_graph(self, data: RatingMatrix) -> torch.Tensor:
         """
-        从评分矩阵构建 LightGCN 的归一化邻接矩阵（稀疏）
+        從評分矩陣構建 LightGCN 的歸一化鄰接矩陣（稀疏）
         
-        使用rating >= 3.0作为正反馈构建图
+        使用rating >= 3.0作為正反饋構建圖
         """
-        # 所有正样本交互（rating >= 3.0）
+        # 所有正樣本互動（rating >= 3.0）
         user_indices = []
         item_indices = []
         
         for user_id, item_id, rating in zip(data.user_ids, data.item_ids, data.ratings):
-            if rating >= 3.0:  # 使用rating >= 3.0作为正反馈
+            if rating >= 3.0:  # 使用rating >= 3.0作為正反饋
                 if user_id in self.user_index_map and item_id in self.item_index_map:
                     user_indices.append(self.user_index_map[user_id])
                     item_indices.append(self.item_index_map[item_id])
@@ -236,7 +236,7 @@ class LightGCNRecommender(RecommenderAlgorithm):
         
         num_nodes = self.n_users + self.n_items
         
-        # 构建无向图的边：user -> item', item' -> user
+        # 構建無向圖的邊：user -> item', item' -> user
         rows = np.concatenate([user_indices, item_indices + self.n_users])
         cols = np.concatenate([item_indices + self.n_users, user_indices])
         
@@ -244,7 +244,7 @@ class LightGCNRecommender(RecommenderAlgorithm):
             np.vstack([rows, cols]), dtype=torch.long, device=self.device
         )  # [2, E]
         
-        # 计算度并进行 D^{-1/2} A D^{-1/2} 归一化
+        # 計算度並進行 D^{-1/2} A D^{-1/2} 歸一化
         deg = torch.bincount(indices[0], minlength=num_nodes).float().to(self.device)
         deg_inv_sqrt = torch.pow(deg + 1e-8, -0.5).to(self.device)
         deg_inv_sqrt[torch.isinf(deg_inv_sqrt)] = 0.0
@@ -260,7 +260,7 @@ class LightGCNRecommender(RecommenderAlgorithm):
         return graph.coalesce()
     
     def _get_final_embeddings(self) -> Tuple[torch.Tensor, torch.Tensor]:
-        """获取最终的用户和物品嵌入"""
+        """獲取最終的使用者和物品嵌入"""
         assert self.model is not None
         self.model.eval()
         with torch.no_grad():
@@ -269,19 +269,19 @@ class LightGCNRecommender(RecommenderAlgorithm):
     
     def predict(self, user_id: int, item_id: int) -> float:
         """
-        预测用户对物品的评分
+        預測使用者對物品的評分
         
         Args:
-            user_id: 用户ID
+            user_id: 使用者ID
             item_id: 物品ID
             
         Returns:
-            预测评分 (1.0-5.0)
+            預測評分 (1.0-5.0)
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,请先调用 fit()")
+            raise RuntimeError("模型尚未訓練,請先呼叫 fit()")
         
-        # 冷启动处理
+        # 冷啟動處理
         if user_id not in self.user_index_map:
             return 2.5
         if item_id not in self.item_index_map:
@@ -294,10 +294,10 @@ class LightGCNRecommender(RecommenderAlgorithm):
         u_vec = user_emb[u_idx]
         i_vec = item_emb[i_idx]
         
-        # 计算内积（logits），然后sigmoid并映射到1-5评分
+        # 計算內積（logits），然後sigmoid並對映到1-5評分
         score = torch.dot(u_vec, i_vec).item()
         prob = torch.sigmoid(torch.tensor(score)).item()
-        rating = 1.0 + prob * 4.0  # 映射到 [1, 5]
+        rating = 1.0 + prob * 4.0  # 對映到 [1, 5]
         
         return max(1.0, min(5.0, rating))
     
@@ -308,20 +308,20 @@ class LightGCNRecommender(RecommenderAlgorithm):
         exclude_ids: Set[int]
     ) -> List[Tuple[int, float]]:
         """
-        为用户生成推荐列表
+        為使用者生成推薦列表
         
         Args:
-            user_id: 用户ID
-            n: 推荐数量
+            user_id: 使用者ID
+            n: 推薦數量
             exclude_ids: 要排除的物品ID集合
             
         Returns:
             [(item_id, score), ...] 按 score 降序排列
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,请先调用 fit()")
+            raise RuntimeError("模型尚未訓練,請先呼叫 fit()")
         
-        # 冷启动: 新用户返回热门物品
+        # 冷啟動: 新使用者返回熱門物品
         if user_id not in self.user_index_map:
             return [
                 (item_id, score)
@@ -333,10 +333,10 @@ class LightGCNRecommender(RecommenderAlgorithm):
         user_emb, item_emb = self._get_final_embeddings()
         u_vec = user_emb[u_idx]  # [D]
         
-        # 计算所有物品的分数
+        # 計算所有物品的分數
         scores = torch.matmul(item_emb, u_vec)  # [n_items]
-        scores = torch.sigmoid(scores).cpu().numpy()  # sigmoid后映射到0-1
-        ratings = 1.0 + scores * 4.0  # 映射到 [1, 5]
+        scores = torch.sigmoid(scores).cpu().numpy()  # sigmoid後對映到0-1
+        ratings = 1.0 + scores * 4.0  # 對映到 [1, 5]
         
         recommendations = [
             (self.index_item_map[i_idx], float(rating))
@@ -344,14 +344,14 @@ class LightGCNRecommender(RecommenderAlgorithm):
             if self.index_item_map[i_idx] not in exclude_ids
         ]
         
-        # 按评分降序排序
+        # 按評分降序排序
         recommendations.sort(key=lambda x: x[1], reverse=True)
         return recommendations[:n]
     
     def save(self, path: str) -> None:
-        """保存模型到文件"""
+        """儲存模型到檔案"""
         if self.model is None:
-            raise RuntimeError("模型尚未训练,无法保存")
+            raise RuntimeError("模型尚未訓練,無法儲存")
         
         checkpoint = {
             'model_state_dict': self.model.state_dict(),
@@ -368,10 +368,10 @@ class LightGCNRecommender(RecommenderAlgorithm):
         with open(path, 'wb') as f:
             pickle.dump(checkpoint, f)
         
-        get_logger().info(f"LightGCN 模型已保存到 {path}")
+        get_logger().info(f"LightGCN 模型已儲存到 {path}")
     
     def load(self, path: str) -> None:
-        """从文件加载模型"""
+        """從檔案載入模型"""
         with open(path, 'rb') as f:
             checkpoint = pickle.load(f)
         
@@ -384,7 +384,7 @@ class LightGCNRecommender(RecommenderAlgorithm):
         self.n_users = checkpoint['n_users']
         self.n_items = checkpoint['n_items']
         
-        # 重建模型（需要重新构建图，但这里简化处理，假设图会在fit时重建）
+        # 重建模型（需要重新構建圖，但這裡簡化處理，假設圖會在fit時重建）
         self.model = LightGCNModel(
             n_users=self.n_users,
             n_items=self.n_items,
@@ -395,11 +395,11 @@ class LightGCNRecommender(RecommenderAlgorithm):
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
         
-        get_logger().info(f"LightGCN 模型已从 {path} 加载")
-        get_logger().warning("注意：加载的模型需要重新设置图结构，建议重新训练")
+        get_logger().info(f"LightGCN 模型已從 {path} 載入")
+        get_logger().warning("注意：載入的模型需要重新設定圖結構，建議重新訓練")
     
     def _compute_popular_items(self, data: RatingMatrix) -> None:
-        """计算热门物品（用于冷启动）"""
+        """計算熱門物品（用於冷啟動）"""
         item_ratings: Dict[int, List[float]] = {}
         
         for item_id, rating in zip(data.item_ids, data.ratings):
@@ -414,10 +414,10 @@ class LightGCNRecommender(RecommenderAlgorithm):
             popularity = avg_rating * np.log(count + 1)
             popular_scores.append((item_id, popularity))
         
-        # 按热门度降序排序
+        # 按熱門度降序排序
         popular_scores.sort(key=lambda x: x[1], reverse=True)
         
-        # 归一化到[1.0, 5.0]
+        # 歸一化到[1.0, 5.0]
         if popular_scores:
             max_score = popular_scores[0][1]
             min_score = popular_scores[-1][1]
@@ -431,5 +431,5 @@ class LightGCNRecommender(RecommenderAlgorithm):
         else:
             self._popular_items = []
         
-        get_logger().debug(f"计算了 {len(self._popular_items)} 个热门物品")
+        get_logger().debug(f"計算了 {len(self._popular_items)} 個熱門物品")
 

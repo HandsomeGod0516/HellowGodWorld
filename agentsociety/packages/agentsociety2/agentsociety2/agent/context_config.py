@@ -1,9 +1,9 @@
-"""轻量 ContextConfig（面向测试与阈值计算）。
+"""輕量 ContextConfig（面向測試與閾值計算）。
 
-该模块提供一个与 agent 上下文窗口治理相关的最小配置对象，主要用于 token 估算、
-压缩阈值判断等纯函数逻辑的参数承载。
+該模組提供一個與 agent 上下文視窗治理相關的最小配置物件，主要用於 token 估算、
+壓縮閾值判斷等純函式邏輯的引數承載。
 
-说明：本仓库不追求向后兼容；此模块的字段以测试与当前实现需要为准。
+說明：本倉庫不追求向後相容；此模組的欄位以測試與當前實現需要為準。
 """
 
 from __future__ import annotations
@@ -14,15 +14,15 @@ DEFAULT_CONTEXT_WINDOW = 200_000
 
 
 def get_model_context_window(model: str | None) -> int:
-    """根据模型名返回上下文窗口大小（tokens）。
+    """根據模型名返回上下文視窗大小（tokens）。
 
     :param model: LiteLLM 路由模型名。
-    :returns: 上下文窗口大小（tokens）。
+    :returns: 上下文視窗大小（tokens）。
     """
     if not model:
         return DEFAULT_CONTEXT_WINDOW
     m = str(model).lower()
-    # 主流：gpt-4o 128k（用于测试）
+    # 主流：gpt-4o 128k（用於測試）
     if "gpt-4o" in m:
         return 128_000
     return DEFAULT_CONTEXT_WINDOW
@@ -30,7 +30,7 @@ def get_model_context_window(model: str | None) -> int:
 
 @dataclass
 class ContextConfig:
-    """上下文阈值配置。"""
+    """上下文閾值配置。"""
 
     model: str = ""
 
@@ -49,11 +49,11 @@ class ContextConfig:
     max_retries: int = 3
     backoff: float = 2.0
 
-    # thread defaults (用于测试)
+    # thread defaults (用於測試)
     thread_max_messages: int = 40
     thread_compact_keep_recent: int = 6
 
-    # summary defaults (用于测试)
+    # summary defaults (用於測試)
     summary_char_budget: int = 6000
     summary_msg_limit: int = 1600
 
@@ -63,5 +63,5 @@ class ContextConfig:
 
     @property
     def effective_window(self) -> int:
-        """可用上下文窗口（扣除输出预留与 prompt 开销）。"""
+        """可用上下文視窗（扣除輸出預留與 prompt 開銷）。"""
         return self.model_context_window - self.output_reserve - self.prompt_overhead

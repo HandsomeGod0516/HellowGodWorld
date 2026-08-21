@@ -1,8 +1,8 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Team 成员运行时继承模块.
+"""Team 成員執行時繼承模組.
 
-TeamMember 专用 Rail、Ability 继承逻辑，不依赖主 agent adapter。
+TeamMember 專用 Rail、Ability 繼承邏輯，不依賴主 agent adapter。
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class MemberInfo:
-    """成员身份信息."""
+    """成員身份資訊."""
     agent_name: str = "team_member"
     model_name: str = "gpt-4"
     role: str | None = None
@@ -44,14 +44,14 @@ class MemberInfo:
 
 @dataclass
 class RuntimeInfo:
-    """运行时环境信息."""
+    """執行時環境資訊."""
     channel: str = "default"
     language: str = "cn"
 
 
 @dataclass
 class TeamWorkspaceInfo:
-    """Team 共享 workspace 信息."""
+    """Team 共享 workspace 資訊."""
     root_dir: str | None = None
     skills_dir: str | None = None
     trajectories_dir: str | None = None
@@ -121,21 +121,21 @@ def build_member_rails(
     runtime: RuntimeInfo | None = None,
     team_workspace: TeamWorkspaceInfo | None = None,
 ) -> list[Any]:
-    """为 Team 成员创建 rails 列表.
+    """為 Team 成員建立 rails 列表.
 
     Args:
-        member_info: 成员身份信息（agent_name, role）
-        runtime: 运行时环境信息（channel, language）
-        team_workspace: 团队共享 workspace 信息，其中 skills_dir 为 team shared skills root
+        member_info: 成員身份資訊（agent_name, role）
+        runtime: 執行時環境資訊（channel, language）
+        team_workspace: 團隊共享 workspace 資訊，其中 skills_dir 為 team shared skills root
 
     Returns:
-        rail 实例列表
+        rail 例項列表
     """
     member_info = member_info or MemberInfo()
     runtime = runtime or RuntimeInfo()
     team_workspace = team_workspace or TeamWorkspaceInfo()
 
-    # 从 dataclass 提取参数
+    # 從 dataclass 提取引數
     agent_name = member_info.agent_name
     model_name = member_info.model_name
     role = member_info.role
@@ -298,13 +298,13 @@ def build_member_rails(
 
 
 def filter_inheritable_ability_cards(main_agent: Any) -> list[ToolCard]:
-    """从主 agent 获取可继承的 ToolCard 白名单.
+    """從主 agent 獲取可繼承的 ToolCard 白名單.
 
     Args:
-        main_agent: 主 DeepAgent 实例
+        main_agent: 主 DeepAgent 例項
 
     Returns:
-        白名单内的 ToolCard 列表
+        白名單內的 ToolCard 列表
     """
     result = []
     try:
@@ -326,13 +326,13 @@ def filter_inheritable_ability_cards(main_agent: Any) -> list[ToolCard]:
 
 
 def get_default_model_name(config: dict[str, Any] | None = None) -> str:
-    """从配置获取默认 model_name.
+    """從配置獲取預設 model_name.
 
     Args:
-        config: 可选的配置字典
+        config: 可選的配置字典
 
     Returns:
-        model_name 字符串，默认为 "gpt-4"
+        model_name 字串，預設為 "gpt-4"
     """
     if config is None:
         try:
@@ -357,10 +357,10 @@ def get_default_model_name(config: dict[str, Any] | None = None) -> str:
 def resolve_model_config(
     config: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any], str]:
-    """从配置字典解析 model 相关参数.
+    """從配置字典解析 model 相關引數.
 
-    优先从 models.defaults 列表中取 is_default=true 的条目，
-    回退到 models.default 单对象，再回退到 react 段。
+    優先從 models.defaults 列表中取 is_default=true 的條目，
+    回退到 models.default 單物件，再回退到 react 段。
 
     Args:
         config: 配置字典.
@@ -370,7 +370,7 @@ def resolve_model_config(
     """
     model_configs = config.get("models", {})
 
-    # 优先从 models.defaults 列表取 is_default=true 的条目
+    # 優先從 models.defaults 列表取 is_default=true 的條目
     defaults_list = model_configs.get("defaults")
     if isinstance(defaults_list, list) and defaults_list:
         for entry in defaults_list:
@@ -380,7 +380,7 @@ def resolve_model_config(
                 model_name = mcc.get("model_name", "")
                 if model_name:
                     return mcc, mco, model_name
-        # 无 is_default=true 时取第一个
+        # 無 is_default=true 時取第一個
         first = defaults_list[0]
         if isinstance(first, dict):
             mcc = (first.get("model_client_config") or {}).copy()
@@ -389,7 +389,7 @@ def resolve_model_config(
             if model_name:
                 return mcc, mco, model_name
 
-    # 回退到旧格式
+    # 回退到舊格式
     default_model_config = model_configs.get("default", {}).copy()
     react_config = config.get("react", {}).copy()
 
@@ -413,13 +413,13 @@ def resolve_model_config(
 def build_evolution_llm(
     config: dict[str, Any] | None = None,
 ) -> tuple[Any, str]:
-    """从配置构造 evolution 使用的 LLM Model 实例.
+    """從配置構造 evolution 使用的 LLM Model 例項.
 
     Args:
-        config: 可选配置字典，为 None 时自动加载.
+        config: 可選配置字典，為 None 時自動載入.
 
     Returns:
-        (Model 实例, model_name 字符串) 元组.
+        (Model 例項, model_name 字串) 元組.
     """
     from openjiuwen.core.foundation.llm import (
         Model, ModelClientConfig, ModelRequestConfig,
@@ -444,14 +444,14 @@ def build_skill_evolution_rail(
     config: dict[str, Any] | None = None,
     team_trajectory_store: TrajectoryStore | None = None,
 ) -> Any | None:
-    """为 Team member 构造 SkillEvolutionRail.
+    """為 Team member 構造 SkillEvolutionRail.
 
     Args:
-        skills_dir: 技能目录路径.
-        config: 可选配置字典.
+        skills_dir: 技能目錄路徑.
+        config: 可選配置字典.
 
     Returns:
-        SkillEvolutionRail 实例，失败返回 None.
+        SkillEvolutionRail 例項，失敗返回 None.
     """
     try:
         llm, model_name = build_evolution_llm(config)

@@ -1,5 +1,5 @@
 /**
- * 状态管理导出
+ * 狀態管理匯出
  */
 
 export { useChatStore } from './chatStore';

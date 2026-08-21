@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'park', 'market']
 TARGET_INTERACTIONS = ['read_at_home', 'take_walk', 'buy_food']
 STATUS = 'recalling_route'
 EMOTION = 'thoughtful'
-SPEECH = '我想想平常怎么走最稳妥。'
+SPEECH = '我想想平常怎麼走最穩妥。'
 MEMORY_TEMPLATE = 'Used route.recall: {summary} at {location_id}.'
 
 

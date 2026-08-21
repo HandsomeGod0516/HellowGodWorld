@@ -1,5 +1,5 @@
 /**
- * Todo 类型定义
+ * Todo 型別定義
  */
 
 export type TodoStatus = 'pending' | 'in_progress' | 'completed';

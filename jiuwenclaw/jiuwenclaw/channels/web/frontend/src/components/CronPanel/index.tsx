@@ -1,7 +1,7 @@
 /**
- * CronPanel 组件
+ * CronPanel 元件
  *
- * 定时任务面板，使用 cron 表达式管理定时任务
+ * 定時任務面板，使用 cron 表示式管理定時任務
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -263,7 +263,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [enabledChannels, setEnabledChannels] = useState<Set<string>>(new Set());
 
-  // 时区选项
+  // 時區選項
   const timezoneOptions = [
     { value: 'Asia/Shanghai', label: 'Asia/Shanghai' },
     { value: 'Asia/Bangkok', label: 'Asia/Bangkok' },
@@ -277,7 +277,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     { value: 'America/Chicago', label: 'America/Chicago' },
   ];
 
-  // 加载频道列表
+  // 載入頻道列表
   const fetchChannels = useCallback(async () => {
     try {
       const payload = await webRequest<{ channels?: unknown[] }>('channel.get');
@@ -297,7 +297,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     }
   }, []);
 
-  // 目标选项 - 动态根据启用状态
+  // 目標選項 - 動態根據啟用狀態
   const targetOptions = useMemo(() => [
     { value: 'web', label: t('cron.targets.web'), disabled: !enabledChannels.has('web') },
     { value: 'xiaoyi', label: t('cron.targets.xiaoyi'), disabled: !enabledChannels.has('xiaoyi') },
@@ -307,7 +307,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     { value: 'wechat', label: t('cron.targets.wechat'), disabled: !enabledChannels.has('wechat') },
   ], [t, enabledChannels]);
 
-  // 加载任务列表
+  // 載入任務列表
   const loadJobs = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -323,13 +323,13 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     }
   }, [t]);
 
-  // 初始化加载
+  // 初始化載入
   useEffect(() => {
     void loadJobs();
     void fetchChannels();
   }, [loadJobs, fetchChannels]);
 
-  // 成功消息自动消失
+  // 成功訊息自動消失
   useEffect(() => {
     if (!success) return;
     const timer = window.setTimeout(() => {
@@ -338,7 +338,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     return () => window.clearTimeout(timer);
   }, [success]);
 
-  // 创建任务
+  // 建立任務
   const handleCreateJob = async () => {
     if (!newJob.name) {
       setError(t('cron.errors.nameRequired'));
@@ -381,7 +381,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     }
   };
 
-  // 切换任务状态
+  // 切換任務狀態
   const handleToggleJob = async (id: string, enabled: boolean) => {
     try {
       await webRequest<{ job: CronJob }>('cron.job.toggle', {
@@ -396,7 +396,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     }
   };
 
-  // 删除任务
+  // 刪除任務
   const handleDeleteJob = async (id: string) => {
     if (!window.confirm(t('cron.deleteConfirm'))) return;
 
@@ -447,7 +447,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     return parsed.toLocaleString();
   };
 
-  // 准备更新任务
+  // 準備更新任務
   const handleUpdateJob = async (id: string) => {
     try {
       const payload = await webRequest<{ job: CronJob }>('cron.job.get', { id, session_id: sessionId });
@@ -461,7 +461,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
     }
   };
 
-  // 执行更新任务
+  // 執行更新任務
   const handleSubmitUpdate = async (jobId: string) => {
     const editJob = editingJobs[jobId];
     if (!editJob) return;
@@ -567,7 +567,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* 创建任务行 */}
+                  {/* 建立任務行 */}
                   {isCreating && (
                     <tr className="border-b border-border bg-secondary/10 sticky top-[41px] z-5">
                       <td className="px-4 py-3">
@@ -695,7 +695,7 @@ export default function CronPanel({ sessionId }: CronPanelProps) {
                     </tr>
                   )}
 
-                  {/* 任务列表 */}
+                  {/* 任務列表 */}
                   {cronJobs.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-4 py-8 text-center text-text-muted">

@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['library', 'school']
 TARGET_INTERACTIONS = ['borrow_book', 'research_topic']
 STATUS = 'curating_library'
 EMOTION = 'focused'
-SPEECH = '我找几本现在真正派得上用场的资料。'
+SPEECH = '我找幾本現在真正派得上用場的資料。'
 MEMORY_TEMPLATE = 'Used library.curate: {summary} at {location_id}.'
 
 

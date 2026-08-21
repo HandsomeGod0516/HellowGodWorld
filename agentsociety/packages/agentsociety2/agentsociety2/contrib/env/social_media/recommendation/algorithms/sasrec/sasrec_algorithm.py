@@ -1,5 +1,5 @@
 """
-SASRec推荐算法包装类
+SASRec推薦演算法包裝類
 """
 
 import pickle
@@ -17,28 +17,28 @@ from .sasrec_model import SASRec
 
 class SASRecRecommender(RecommenderAlgorithm):
     """
-    SASRec (Self-Attentive Sequential Recommendation) 推荐算法
+    SASRec (Self-Attentive Sequential Recommendation) 推薦演算法
     """
 
     def __init__(self, config: SASRecConfig = SASRecConfig()):
         """
-        初始化SASRec推荐器
+        初始化SASRec推薦器
 
         Args:
-            config: SASRec算法配置
+            config: SASRec演算法配置
         """
         self.config = config
         self.model: Optional[SASRec] = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        # ID映射（原始ID ↔ 内部索引）
+        # ID對映（原始ID ↔ 內部索引）
         self._user_map: Dict[int, int] = {}
         self._item_map: Dict[int, int] = {}
 
-        # 用户行为序列（存储每个用户的历史物品ID列表）
+        # 使用者行為序列（儲存每個使用者的歷史物品ID列表）
         self._user_sequences: Dict[int, List[int]] = {}
 
-        # 热门物品（用于冷启动）
+        # 熱門物品（用於冷啟動）
         self._popular_items: List[Tuple[int, float]] = []
 
         get_logger().info(
@@ -49,41 +49,41 @@ class SASRecRecommender(RecommenderAlgorithm):
 
     def fit(self, data: RatingMatrix) -> None:
         """
-        训练SASRec模型
+        訓練SASRec模型
 
         流程：
-        1. 构建用户序列（按时间戳排序）
-        2. 创建训练数据（序列 + 目标物品）
-        3. 训练Transformer模型
-        4. 计算热门物品（冷启动用）
+        1. 構建使用者序列（按時間戳排序）
+        2. 建立訓練資料（序列 + 目標物品）
+        3. 訓練Transformer模型
+        4. 計算熱門物品（冷啟動用）
 
         Args:
-            data: 评分矩阵（需要包含时间戳信息）
+            data: 評分矩陣（需要包含時間戳資訊）
         """
         get_logger().info(
-            f"开始训练 SASRec 模型: {data.get_user_count()} 用户, "
-            f"{data.get_item_count()} 物品, {data.get_rating_count()} 评分"
+            f"開始訓練 SASRec 模型: {data.get_user_count()} 使用者, "
+            f"{data.get_item_count()} 物品, {data.get_rating_count()} 評分"
         )
 
-        # 1. 构建ID映射
+        # 1. 構建ID對映
         self._user_map = data.user_map.copy()
         self._item_map = data.item_map.copy()
 
-        # 2. 更新配置中的用户/物品数量
+        # 2. 更新配置中的使用者/物品數量
         self.config.user_num = len(self._user_map)
         self.config.item_num = len(self._item_map) + 1  # +1 for padding (ID=0)
 
-        # 3. 构建用户序列（按用户分组，按时间排序）
+        # 3. 構建使用者序列（按使用者分組，按時間排序）
         self._build_user_sequences(data)
 
-        # 4. 创建PyTorch模型
-        model_config = self.config  # 直接使用config对象
+        # 4. 建立PyTorch模型
+        model_config = self.config  # 直接使用config物件
         self.model = SASRec(model_config).to(self.device)
 
-        # 5. 准备训练数据
+        # 5. 準備訓練資料
         train_loader = self._prepare_training_data()
 
-        # 6. 训练循环
+        # 6. 訓練迴圈
         optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=self.config.learning_rate,
@@ -104,11 +104,11 @@ class SASRecRecommender(RecommenderAlgorithm):
                 targets = targets.to(self.device)
                 labels = labels.to(self.device).float()
 
-                # 前向传播
+                # 前向傳播
                 logits = self.model(seqs, targets)
                 loss = criterion(logits, labels)
 
-                # 反向传播
+                # 反向傳播
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -118,7 +118,7 @@ class SASRecRecommender(RecommenderAlgorithm):
 
             avg_loss = total_loss / batch_count if batch_count > 0 else 0.0
 
-            # 评估和早停
+            # 評估和早停
             if (epoch + 1) % self.config.eval_interval == 0:
                 get_logger().debug(
                     f"Epoch {epoch + 1}/{self.config.max_epochs}, "
@@ -132,45 +132,45 @@ class SASRecRecommender(RecommenderAlgorithm):
                     patience_counter += 1
 
                 if patience_counter >= self.config.patience:
-                    get_logger().info(f"早停触发于 epoch {epoch + 1}")
+                    get_logger().info(f"早停觸發於 epoch {epoch + 1}")
                     break
 
         self.model.eval()
 
-        # 7. 计算热门物品
+        # 7. 計算熱門物品
         self._compute_popular_items(data)
 
-        get_logger().info(f"SASRec 模型训练完成, 最终损失: {best_loss:.4f}")
+        get_logger().info(f"SASRec 模型訓練完成, 最終損失: {best_loss:.4f}")
 
     def predict(self, user_id: int, item_id: int) -> float:
         """
-        预测用户对物品的评分
+        預測使用者對物品的評分
 
-        使用用户的历史序列编码 + 目标物品嵌入计算匹配分数
+        使用使用者的歷史序列編碼 + 目標物品嵌入計算匹配分數
 
         Args:
-            user_id: 用户ID（原始ID）
+            user_id: 使用者ID（原始ID）
             item_id: 物品ID（原始ID）
 
         Returns:
-            预测评分 (1.0-5.0)
+            預測評分 (1.0-5.0)
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,请先调用 fit()")
+            raise RuntimeError("模型尚未訓練,請先呼叫 fit()")
 
-        # 冷启动处理
+        # 冷啟動處理
         if user_id not in self._user_map:
-            return 2.5  # 新用户默认评分
+            return 2.5  # 新使用者預設評分
         if item_id not in self._item_map:
-            return 2.5  # 新物品默认评分
+            return 2.5  # 新物品預設評分
 
-        # 获取用户历史序列
+        # 獲取使用者歷史序列
         user_seq = self._get_user_sequence(user_id)
 
-        # 获取物品内部索引（+1因为0是padding）
+        # 獲取物品內部索引（+1因為0是padding）
         item_idx = self._item_map[item_id] + 1
 
-        # 预测
+        # 預測
         with torch.no_grad():
             seq_tensor = torch.LongTensor([user_seq]).to(self.device)
             item_tensor = torch.LongTensor([item_idx]).to(self.device)
@@ -180,7 +180,7 @@ class SASRecRecommender(RecommenderAlgorithm):
                 log_seqs=seq_tensor
             )
 
-        # Sigmoid转换到[0,1]，然后映射到[1,5]
+        # Sigmoid轉換到[0,1]，然後對映到[1,5]
         score = torch.sigmoid(logit).item()
         rating = 1.0 + score * 4.0
 
@@ -193,22 +193,22 @@ class SASRecRecommender(RecommenderAlgorithm):
         exclude_ids: Set[int]
     ) -> List[Tuple[int, float]]:
         """
-        为用户生成推荐列表
+        為使用者生成推薦列表
 
-        使用predict_all()计算所有物品的分数，返回Top-N
+        使用predict_all()計算所有物品的分數，返回Top-N
 
         Args:
-            user_id: 用户ID（原始ID）
-            n: 推荐数量
+            user_id: 使用者ID（原始ID）
+            n: 推薦數量
             exclude_ids: 要排除的物品ID集合
 
         Returns:
             [(item_id, score), ...] 按 score 降序排列
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,请先调用 fit()")
+            raise RuntimeError("模型尚未訓練,請先呼叫 fit()")
 
-        # 冷启动：新用户返回热门物品
+        # 冷啟動：新使用者返回熱門物品
         if user_id not in self._user_map:
             return [
                 (item_id, score)
@@ -216,10 +216,10 @@ class SASRecRecommender(RecommenderAlgorithm):
                 if item_id not in exclude_ids
             ][:n]
 
-        # 获取用户历史序列
+        # 獲取使用者歷史序列
         user_seq = self._get_user_sequence(user_id)
 
-        # 预测所有物品的分数
+        # 預測所有物品的分數
         with torch.no_grad():
             seq_tensor = torch.LongTensor([user_seq]).to(self.device)
             logits = self.model.predict_all(
@@ -227,34 +227,34 @@ class SASRecRecommender(RecommenderAlgorithm):
                 log_seqs=seq_tensor
             )  # [1, item_num]
 
-            # Sigmoid转换
+            # Sigmoid轉換
             scores = torch.sigmoid(logits).squeeze(0).cpu().numpy()
 
-        # 构建候选列表（排除已交互物品）
+        # 構建候選列表（排除已互動物品）
         all_scores: List[Tuple[int, float]] = []
         for original_item_id, internal_idx in self._item_map.items():
             if original_item_id in exclude_ids:
                 continue
-            # internal_idx+1 因为模型中0是padding
+            # internal_idx+1 因為模型中0是padding
             score = scores[internal_idx + 1]
-            # 映射到[1,5]
+            # 對映到[1,5]
             rating = 1.0 + float(score) * 4.0
             all_scores.append((original_item_id, rating))
 
-        # 按分数降序排序
+        # 按分數降序排序
         all_scores.sort(key=lambda x: x[1], reverse=True)
 
         return all_scores[:n]
 
     def save(self, path: str) -> None:
         """
-        保存模型到文件
+        儲存模型到檔案
 
         Args:
-            path: 模型保存路径
+            path: 模型儲存路徑
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,无法保存")
+            raise RuntimeError("模型尚未訓練,無法儲存")
 
         checkpoint = {
             'model_state_dict': self.model.state_dict(),
@@ -268,14 +268,14 @@ class SASRecRecommender(RecommenderAlgorithm):
         with open(path, 'wb') as f:
             pickle.dump(checkpoint, f)
 
-        get_logger().info(f"SASRec 模型已保存到 {path}")
+        get_logger().info(f"SASRec 模型已儲存到 {path}")
 
     def load(self, path: str) -> None:
         """
-        从文件加载模型
+        從檔案載入模型
 
         Args:
-            path: 模型文件路径
+            path: 模型檔案路徑
         """
         with open(path, 'rb') as f:
             checkpoint = pickle.load(f)
@@ -291,26 +291,26 @@ class SASRecRecommender(RecommenderAlgorithm):
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
 
-        get_logger().info(f"SASRec 模型已从 {path} 加载")
+        get_logger().info(f"SASRec 模型已從 {path} 載入")
 
     def _build_user_sequences(self, data: RatingMatrix) -> None:
         """
-        从评分矩阵构建用户行为序列
+        從評分矩陣構建使用者行為序列
 
-        假设data按时间戳排序，相同用户的交互已经按顺序排列
+        假設data按時間戳排序，相同使用者的互動已經按順序排列
 
         Args:
-            data: 评分矩阵
+            data: 評分矩陣
         """
         user_sequences = defaultdict(list)
 
-        # 按用户分组收集物品
+        # 按使用者分組收集物品
         for user_id, item_id in zip(data.user_ids, data.item_ids):
-            # 转换为内部索引 (+1因为0是padding)
+            # 轉換為內部索引 (+1因為0是padding)
             item_idx = self._item_map[item_id] + 1
             user_sequences[user_id].append(item_idx)
 
-        # 截断到maxlen（保留最近的N个）
+        # 截斷到maxlen（保留最近的N個）
         for user_id, seq in user_sequences.items():
             if len(seq) > self.config.maxlen:
                 user_sequences[user_id] = seq[-self.config.maxlen:]
@@ -318,42 +318,42 @@ class SASRecRecommender(RecommenderAlgorithm):
         self._user_sequences = dict(user_sequences)
 
         get_logger().debug(
-            f"构建了 {len(self._user_sequences)} 个用户序列, "
-            f"平均长度: {np.mean([len(s) for s in self._user_sequences.values()]):.1f}"
+            f"構建了 {len(self._user_sequences)} 個使用者序列, "
+            f"平均長度: {np.mean([len(s) for s in self._user_sequences.values()]):.1f}"
         )
 
     def _get_user_sequence(self, user_id: int) -> List[int]:
         """
-        获取用户的行为序列（padding到maxlen）
+        獲取使用者的行為序列（padding到maxlen）
 
         Args:
-            user_id: 用户ID（原始ID）
+            user_id: 使用者ID（原始ID）
 
         Returns:
-            填充后的序列 [maxlen]
+            填充後的序列 [maxlen]
         """
         if user_id not in self._user_sequences:
             return [0] * self.config.maxlen
 
         seq = self._user_sequences[user_id]
 
-        # 左侧填充0（padding）
+        # 左側填充0（padding）
         if len(seq) < self.config.maxlen:
             padding_len = self.config.maxlen - len(seq)
             padded_seq = [0] * padding_len + seq
         else:
-            # 取最近的maxlen个
+            # 取最近的maxlen個
             padded_seq = seq[-self.config.maxlen:]
 
         return padded_seq
 
     def _prepare_training_data(self) -> List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
         """
-        准备训练数据：序列 → 下一个物品
+        準備訓練資料：序列 → 下一個物品
 
-        使用滑动窗口生成训练样本：
-        - 正样本：实际下一个物品
-        - 负样本：随机采样物品
+        使用滑動視窗生成訓練樣本：
+        - 正樣本：實際下一個物品
+        - 負樣本：隨機取樣物品
 
         Returns:
             [(seqs, targets, labels), ...] 的批次列表
@@ -362,24 +362,24 @@ class SASRecRecommender(RecommenderAlgorithm):
 
         for user_id, seq in self._user_sequences.items():
             if len(seq) < 2:
-                continue  # 序列太短，跳过
+                continue  # 序列太短，跳過
 
-            # 为序列中的每个位置生成训练样本
+            # 為序列中的每個位置生成訓練樣本
             for i in range(1, len(seq)):
-                # 输入序列：[0, ..., item_i-1]
+                # 輸入序列：[0, ..., item_i-1]
                 input_seq = [0] * (self.config.maxlen - i) + seq[:i]
 
-                # 正样本：下一个物品
+                # 正樣本：下一個物品
                 pos_item = seq[i]
                 train_data.append((input_seq, pos_item, 1.0))
 
-                # 负样本：随机物品（不在用户序列中）
+                # 負樣本：隨機物品（不在使用者序列中）
                 neg_item = np.random.randint(1, self.config.item_num)
                 while neg_item in seq:
                     neg_item = np.random.randint(1, self.config.item_num)
                 train_data.append((input_seq, neg_item, 0.0))
 
-        # 转换为批次
+        # 轉換為批次
         batch_size = self.config.batch_size
         batches = []
         for i in range(0, len(train_data), batch_size):
@@ -390,20 +390,20 @@ class SASRecRecommender(RecommenderAlgorithm):
             batches.append((seqs, targets, labels))
 
         get_logger().debug(
-            f"生成了 {len(train_data)} 个训练样本, "
-            f"{len(batches)} 个批次"
+            f"生成了 {len(train_data)} 個訓練樣本, "
+            f"{len(batches)} 個批次"
         )
 
         return batches
 
     def _compute_popular_items(self, data: RatingMatrix) -> None:
         """
-        计算热门物品（用于冷启动）
+        計算熱門物品（用於冷啟動）
 
-        基于 平均评分 × log(评分数+1) 计算热门度
+        基於 平均評分 × log(評分數+1) 計算熱門度
 
         Args:
-            data: 评分矩阵
+            data: 評分矩陣
         """
         item_ratings: Dict[int, List[float]] = defaultdict(list)
 
@@ -417,10 +417,10 @@ class SASRecRecommender(RecommenderAlgorithm):
             popularity = avg_rating * np.log(count + 1)
             popular_scores.append((item_id, popularity))
 
-        # 按热门度降序排序
+        # 按熱門度降序排序
         popular_scores.sort(key=lambda x: x[1], reverse=True)
 
-        # 归一化到[1.0, 5.0]
+        # 歸一化到[1.0, 5.0]
         if popular_scores:
             max_score = popular_scores[0][1]
             min_score = popular_scores[-1][1]
@@ -434,4 +434,4 @@ class SASRecRecommender(RecommenderAlgorithm):
         else:
             self._popular_items = []
 
-        get_logger().debug(f"计算了 {len(self._popular_items)} 个热门物品")
+        get_logger().debug(f"計算了 {len(self._popular_items)} 個熱門物品")

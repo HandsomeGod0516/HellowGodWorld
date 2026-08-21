@@ -35,7 +35,7 @@ from jiuwenclaw.common.version import __version__
 
 logger = logging.getLogger(__name__)
 
-# ── 需要转发到 Agent 的方法集合 ──────────────────────────────
+# ── 需要轉發到 Agent 的方法集合 ──────────────────────────────
 
 CLI_FORWARD_REQ_METHODS = frozenset(
     {
@@ -202,9 +202,9 @@ _PREFERRED_LANGUAGE_OPTIONS = ("zh", "en")
 
 
 def _build_config_schema() -> list[dict]:
-    """构建配置项 Schema，供前端渲染交互界面。与 config.yaml 结构对齐。"""
+    """構建配置項 Schema，供前端渲染互動介面。與 config.yaml 結構對齊。"""
     available_providers = [p.value for p in ProviderType]
-    # 显式使用 ProviderType.OpenAI 作为默认供应商，避免依赖枚举声明顺序
+    # 顯式使用 ProviderType.OpenAI 作為預設供應商，避免依賴列舉宣告順序
     default_provider = (
         ProviderType.OpenAI.value
         if hasattr(ProviderType, "OpenAI")
@@ -213,40 +213,40 @@ def _build_config_schema() -> list[dict]:
     empty = ""
     return [
         # Model
-        {"key": "model", "label": "默认模型", "group": "Model", "type": "string",
+        {"key": "model", "label": "預設模型", "group": "Model", "type": "string",
          "source": "env", "default": empty},
-        {"key": "model_provider", "label": "模型供应商", "group": "Model", "type": "select",
+        {"key": "model_provider", "label": "模型供應商", "group": "Model", "type": "select",
          "options": available_providers, "source": "env", "default": default_provider},
         {"key": "api_base", "label": "API 地址", "group": "Model", "type": "string",
          "source": "env", "default": empty},
         {"key": "api_key", "label": "API Key", "group": "Model", "type": "password",
          "sensitive": True, "source": "env", "default": empty},
         # Vision
-        {"key": "vision_model", "label": "视觉模型", "group": "Vision", "type": "string",
+        {"key": "vision_model", "label": "視覺模型", "group": "Vision", "type": "string",
          "source": "env", "default": empty},
-        {"key": "vision_provider", "label": "视觉供应商", "group": "Vision", "type": "select",
+        {"key": "vision_provider", "label": "視覺供應商", "group": "Vision", "type": "select",
          "options": available_providers, "source": "env", "default": default_provider},
-        {"key": "vision_api_base", "label": "视觉API地址", "group": "Vision", "type": "string",
+        {"key": "vision_api_base", "label": "視覺API地址", "group": "Vision", "type": "string",
          "source": "env", "default": empty},
-        {"key": "vision_api_key", "label": "视觉API Key", "group": "Vision", "type": "password",
+        {"key": "vision_api_key", "label": "視覺API Key", "group": "Vision", "type": "password",
          "sensitive": True, "source": "env", "default": empty},
         # Video
-        {"key": "video_model", "label": "视频模型", "group": "Video", "type": "string",
+        {"key": "video_model", "label": "影片模型", "group": "Video", "type": "string",
          "source": "env", "default": empty},
-        {"key": "video_provider", "label": "视频供应商", "group": "Video", "type": "select",
+        {"key": "video_provider", "label": "影片供應商", "group": "Video", "type": "select",
          "options": available_providers, "source": "env", "default": default_provider},
-        {"key": "video_api_base", "label": "视频API地址", "group": "Video", "type": "string",
+        {"key": "video_api_base", "label": "影片API地址", "group": "Video", "type": "string",
          "source": "env", "default": empty},
-        {"key": "video_api_key", "label": "视频API Key", "group": "Video", "type": "password",
+        {"key": "video_api_key", "label": "影片API Key", "group": "Video", "type": "password",
          "sensitive": True, "source": "env", "default": empty},
         # Audio
-        {"key": "audio_model", "label": "音频模型", "group": "Audio", "type": "string",
+        {"key": "audio_model", "label": "音訊模型", "group": "Audio", "type": "string",
          "source": "env", "default": empty},
-        {"key": "audio_provider", "label": "音频供应商", "group": "Audio", "type": "select",
+        {"key": "audio_provider", "label": "音訊供應商", "group": "Audio", "type": "select",
          "options": available_providers, "source": "env", "default": default_provider},
-        {"key": "audio_api_base", "label": "音频API地址", "group": "Audio", "type": "string",
+        {"key": "audio_api_base", "label": "音訊API地址", "group": "Audio", "type": "string",
          "source": "env", "default": empty},
-        {"key": "audio_api_key", "label": "音频API Key", "group": "Audio", "type": "password",
+        {"key": "audio_api_key", "label": "音訊API Key", "group": "Audio", "type": "password",
          "sensitive": True, "source": "env", "default": empty},
         # Embedding
         {"key": "embed_api_key", "label": "嵌入API Key", "group": "Embedding", "type": "password",
@@ -267,31 +267,31 @@ def _build_config_schema() -> list[dict]:
         # TeamSkills
         {"key": "teamskills_market_url", "label": "TeamSkills Hub 地址", "group": "TeamSkills", "type": "string",
          "source": "env", "default": empty},
-        {"key": "teamskills_user_token", "label": "TeamSkills 用户Token", "group": "TeamSkills", "type": "password",
+        {"key": "teamskills_user_token", "label": "TeamSkills 使用者Token", "group": "TeamSkills", "type": "password",
          "sensitive": True, "source": "env", "default": empty},
-        {"key": "teamskills_system_token", "label": "TeamSkills 系统Token", "group": "TeamSkills", "type": "password",
+        {"key": "teamskills_system_token", "label": "TeamSkills 系統Token", "group": "TeamSkills", "type": "password",
          "sensitive": True, "source": "env", "default": empty},
         {
          "key": "teamskills_allowed_download_hosts",
-         "label": "TeamSkills 下载白名单Hosts(逗号分隔)",
+         "label": "TeamSkills 下載白名單Hosts(逗號分隔)",
          "group": "TeamSkills",
          "type": "string",
          "source": "env", "default": empty},
         # Email
-        {"key": "email_address", "label": "邮箱地址", "group": "Email", "type": "string",
+        {"key": "email_address", "label": "郵箱地址", "group": "Email", "type": "string",
          "source": "env", "default": empty},
-        {"key": "email_token", "label": "邮箱Token", "group": "Email", "type": "password",
+        {"key": "email_token", "label": "郵箱Token", "group": "Email", "type": "password",
          "sensitive": True, "source": "env", "default": empty},
         # Features
-        {"key": "context_engine_enabled", "label": "上下文压缩", "group": "Features",
+        {"key": "context_engine_enabled", "label": "上下文壓縮", "group": "Features",
          "type": "toggle", "source": "yaml", "default": "false"},
-        {"key": "permissions_enabled", "label": "权限管控", "group": "Features",
+        {"key": "permissions_enabled", "label": "許可權管控", "group": "Features",
          "type": "toggle", "source": "yaml", "default": "false"},
-        {"key": "memory_forbidden_enabled", "label": "敏感信息过滤", "group": "Features",
+        {"key": "memory_forbidden_enabled", "label": "敏感資訊過濾", "group": "Features",
          "type": "toggle", "source": "yaml", "default": "false"},
-        {"key": "preferred_language", "label": "显示语言", "group": "Features", "type": "select",
+        {"key": "preferred_language", "label": "顯示語言", "group": "Features", "type": "select",
          "options": ["zh", "en"], "source": "yaml", "default": "zh"},
-        {"key": "evolution_auto_scan", "label": "自动扫描技能", "group": "Features",
+        {"key": "evolution_auto_scan", "label": "自動掃描技能", "group": "Features",
          "type": "toggle", "source": "env", "default": "false"},
     ]
 
@@ -357,11 +357,11 @@ def _persist_env_updates(updates: dict[str, str]) -> None:
         with open(env_path, "w", encoding="utf-8") as f:
             f.writelines(new_lines)
     except OSError as e:
-        logger.warning("[cli config.set] 写回 .env 失败: %s", e)
+        logger.warning("[cli config.set] 寫回 .env 失敗: %s", e)
 
 
 def _load_env_from_file() -> dict[str, str]:
-    """从 .env 文件读取环境变量值（不从当前 os.environ 读取）。"""
+    """從 .env 檔案讀取環境變數值（不從當前 os.environ 讀取）。"""
     from jiuwenclaw.common.utils import get_env_file
 
     env_path = get_env_file()
@@ -492,12 +492,12 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                 yaml_updated.append(param_key)
             except Exception as e:
                 logger.warning(
-                    "[cli config.set] 写回 config.yaml 失败 %s: %s", param_key, e
+                    "[cli config.set] 寫回 config.yaml 失敗 %s: %s", param_key, e
                 )
 
         for env_key, value in env_updates.items():
             os.environ[env_key] = value
-        # env 变量直接写 os.environ 立即生效；YAML 改动需要 agent 重启/热重载才生效
+        # env 變數直接寫 os.environ 立即生效；YAML 改動需要 agent 重啟/熱過載才生效
         applied_without_restart = not yaml_updated
 
         if env_updates:
@@ -514,8 +514,8 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
             k for k, e in _CLI_CONFIG_SET_ENV_MAP.items() if e in env_updates
         ] + yaml_updated
 
-        # 先回包再执行 on_config_saved（含 Agent 热重载），
-        # 避免 WebSocket 长时间无响应、CLI 误以为无反馈。
+        # 先回包再執行 on_config_saved（含 Agent 熱過載），
+        # 避免 WebSocket 長時間無響應、CLI 誤以為無反饋。
         await channel.send_response(
             ws,
             req_id,
@@ -722,7 +722,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
             )
             return
         session_dir.mkdir()
-        # 初始化元数据（与 web channel 对齐）
+        # 初始化後設資料（與 web channel 對齊）
         init_session_metadata(
             session_id=target,
             channel_id="tui",
@@ -764,7 +764,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
         await channel.send_response(ws, req_id, ok=True, payload={"session_id": target})
 
     async def _session_rename(ws, req_id, params, session_id):
-        """优先经 E2A 转发至 AgentWebSocketServer._handle_session_rename；无 agent 或转发失败时本地回退。"""
+        """優先經 E2A 轉發至 AgentWebSocketServer._handle_session_rename；無 agent 或轉發失敗時本地回退。"""
         from jiuwenclaw.server.runtime.session.session_rename import apply_session_rename
         from jiuwenclaw.common.e2a.gateway_normalize import e2a_from_agent_fields
         from jiuwenclaw.common.schema.message import ReqMethod
@@ -895,7 +895,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                 "ssl_cert": "ssl_cert",
                 "alias": "alias",
             }
-            # target 可能是 "model=gpt-5" 形式（前端把第一个 key=value 当作 name 参数解析）
+            # target 可能是 "model=gpt-5" 形式（前端把第一個 key=value 當作 name 引數解析）
             if "=" in target:
                 _eq = target.index("=")
                 _k, _v = target[:_eq].strip().lower(), target[_eq + 1:].strip()
@@ -912,12 +912,12 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
             model_cfg_obj = configs.get("model_config_obj", {})
             if not model_cfg_obj:
                 model_cfg_obj = {"temperature": 0.95}
-            # target 作为 model_name 的回退：若未通过 model= 参数指定，则以 target 为准
+            # target 作為 model_name 的回退：若未透過 model= 引數指定，則以 target 為準
             if not client_cfg.get("model_name"):
                 client_cfg["model_name"] = target
             effective_name = client_cfg["model_name"]
 
-            # alias 为顶层字段，从 client_cfg 中提取；提前计算最终值确保唯一性校验基于实际存储值
+            # alias 為頂層欄位，從 client_cfg 中提取；提前計算最終值確保唯一性校驗基於實際儲存值
             entry_alias = client_cfg.pop("alias", None)
             effective_alias = str(entry_alias).strip() if entry_alias else ""
 
@@ -930,21 +930,21 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                 _raw = get_config_raw()
                 _raw_defs = (_raw.get("models") or {}).get("defaults")
                 if isinstance(_raw_defs, list):
-                    # alias 唯一性校验（仅在 alias 非空时执行）
+                    # alias 唯一性校驗（僅在 alias 非空時執行）
                     if effective_alias:
                         for _e in _raw_defs:
                             if not isinstance(_e, dict):
                                 continue
                             _emn = resolve_env_vars(str((_e.get("model_client_config") or {}).get("model_name", "")))
                             _ea = resolve_env_vars(str(_e.get("alias", "")))
-                            # 别名不能和其他模型的别名重复
+                            # 別名不能和其他模型的別名重複
                             if _ea == effective_alias:
                                 await channel.send_response(
                                     ws, req_id, ok=False,
                                     error=f"Alias '{effective_alias}' is already used by model '{_emn}'",
                                 )
                                 return
-                            # 别名不能和其他模型的 model_name 冲突
+                            # 別名不能和其他模型的 model_name 衝突
                             if _emn == effective_alias:
                                 await channel.send_response(
                                     ws, req_id, ok=False,
@@ -954,7 +954,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                     _raw_defs.append(new_entry)
                     update_default_models_in_config(_raw_defs)
                 else:
-                    # 旧格式：通过 get_default_models 枚举现有模型，补做 alias 唯一性校验
+                    # 舊格式：透過 get_default_models 列舉現有模型，補做 alias 唯一性校驗
                     if effective_alias:
                         for _e in get_default_models():
                             if not isinstance(_e, dict):
@@ -1038,7 +1038,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
             return
 
         target = str(model_name).strip()
-        logger.info("[cli command.model] 切换模型: target=%s", target)
+        logger.info("[cli command.model] 切換模型: target=%s", target)
         _raw_defs_check = (get_config_raw().get("models") or {}).get("defaults") or []
         _valid_names: set[str] = set()
         for _e in _raw_defs_check:
@@ -1091,13 +1091,13 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                 if _ename == target or _ealias == target:
                     _target_entry = _e
                     _target_idx = _i
-                    break  # 取第一个匹配
+                    break  # 取第一個匹配
             _other_entries = [_e for _i, _e in enumerate(_raw_defaults) if _i != _target_idx]
             if _target_entry is None:
                 await channel.send_response(ws, req_id, ok=False, error=f"Model '{target}' config not found")
                 return
             update_default_models_in_config([_target_entry] + _other_entries)
-            logger.info("[cli command.model] 新格式切换，已更新 models.defaults 首位: %s", target)
+            logger.info("[cli command.model] 新格式切換，已更新 models.defaults 首位: %s", target)
             _reload_env = e2a_from_agent_fields(
                 request_id=req_id,
                 channel_id="cli",
@@ -1117,7 +1117,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                     logger.warning("[cli model.switch] on_config_saved failed: %s", _e2)
             _target_model_name = resolve_env_vars(
                 str((_target_entry.get("model_client_config") or {}).get("model_name", target)))
-            logger.info("[cli command.model] 切换完成(新格式): current=%s", _target_model_name)
+            logger.info("[cli command.model] 切換完成(新格式): current=%s", _target_model_name)
             await channel.send_response(ws, req_id, ok=True, payload={
                 "current": _target_model_name,
                 "requested": target,
@@ -1167,7 +1167,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
 
             resolved_cfg[key] = pattern.sub(_replace, raw_val)
 
-        logger.info("[cli command.model] 解析后的配置: %s", resolved_cfg)
+        logger.info("[cli command.model] 解析後的配置: %s", resolved_cfg)
 
         required_keys = {
             "api_base": "API_BASE",
@@ -1196,7 +1196,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                 else:
                     missing.append(yaml_key)
         if missing:
-            logger.error("[cli command.model] 必要配置缺失: %s, 无法切换", missing)
+            logger.error("[cli command.model] 必要配置缺失: %s, 無法切換", missing)
             await channel.send_response(
                 ws,
                 req_id,
@@ -1223,7 +1223,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
             return
 
         logger.info(
-            "[cli command.model] 写入环境变量: %s",
+            "[cli command.model] 寫入環境變數: %s",
             {k: (v if k != "API_KEY" else "***") for k, v in env_updates.items()},
         )
 
@@ -1263,9 +1263,9 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                         "model_config_obj": raw_model_config_obj,
                     },
                 )
-                logger.info("[cli command.model] 已重置 models.default 为环境变量引用")
+                logger.info("[cli command.model] 已重置 models.default 為環境變數引用")
             except Exception as e:
-                logger.warning("[cli command.model] 更新 config.yaml 失败: %s", e)
+                logger.warning("[cli command.model] 更新 config.yaml 失敗: %s", e)
             if on_config_saved:
                 config_payload = get_config()
                 try:
@@ -1279,7 +1279,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                 except Exception as e:
                     logger.warning("[cli model.switch] on_config_saved failed: %s", e)
             logger.info(
-                "[cli command.model] 切换完成: current=%s, requested=%s",
+                "[cli command.model] 切換完成: current=%s, requested=%s",
                 env_updates.get("MODEL_NAME", target),
                 target,
             )
@@ -1295,7 +1295,7 @@ def register_cli_handlers(bind: CliHandlersBindParams) -> None:
                 },
             )
         else:
-            logger.error("[cli command.model] agentserver 切换失败: %s", resp.error)
+            logger.error("[cli command.model] agentserver 切換失敗: %s", resp.error)
             await channel.send_response(
                 ws,
                 req_id,

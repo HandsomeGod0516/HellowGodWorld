@@ -1,9 +1,9 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""JiuWenClaw Deep Adapter - 基于 openjiuwen DeepAgent 的适配器实现.
+"""JiuWenClaw Deep Adapter - 基於 openjiuwen DeepAgent 的介面卡實現.
 
-此模块实现 AgentAdapter 协议，封装 Deep SDK 的所有专属逻辑。
-公共编排逻辑（session 队列、Skills 路由、heartbeat 等）由 Facade 层处理。
+此模組實現 AgentAdapter 協議，封裝 Deep SDK 的所有專屬邏輯。
+公共編排邏輯（session 佇列、Skills 路由、heartbeat 等）由 Facade 層處理。
 """
 
 from __future__ import annotations
@@ -230,13 +230,13 @@ _PLACEHOLDER_API_BASES = frozenset({"https://example.com/compatible-mode/v1"})
 
 
 def _get_skill_create_enabled(config: dict[str, Any] | None) -> bool:
-    """读取 skill_create 配置，环境变量优先，不存在时从 config.yaml 读取.
+    """讀取 skill_create 配置，環境變數優先，不存在時從 config.yaml 讀取.
 
     Args:
         config: 配置字典（包含 evolution.skill_create）
 
     Returns:
-        True 表示启用 SkillCreateRail，False 表示不启用
+        True 表示啟用 SkillCreateRail，False 表示不啟用
     """
     env_skill_create = os.getenv("SKILL_CREATE")
     if env_skill_create is not None:
@@ -254,7 +254,7 @@ def init_permission_engine(*_args: Any, **_kwargs: Any) -> None:
 
 
 def _mcc_looks_usable(mcc: dict) -> bool:
-    """检查 model_client_config 是否包含有效的 API 凭据。"""
+    """檢查 model_client_config 是否包含有效的 API 憑據。"""
     api_key = str(mcc.get("api_key", "") or "").strip()
     api_base = str(mcc.get("api_base", "") or "").strip()
     return bool(api_key) and bool(api_base) and api_base not in _PLACEHOLDER_API_BASES
@@ -271,10 +271,10 @@ def parse_int(value: Any, default: int) -> int:
 
 
 def _deep_agent_context_engine_config(react_cfg: dict[str, Any] | None) -> ContextEngineConfig:
-    """供 ``create_deep_agent(..., context_engine_config=...)`` 使用（与 agent-core 集成测试方法二一致）。
+    """供 ``create_deep_agent(..., context_engine_config=...)`` 使用（與 agent-core 整合測試方法二一致）。
 
-    仅根据 ``react.context_engine_config.enable_kv_cache_release`` 切换亲和开关；
-    其余字段与 ``ReActAgentConfig`` 默认 ``context_engine_config`` 一致。
+    僅根據 ``react.context_engine_config.enable_kv_cache_release`` 切換親和開關；
+    其餘欄位與 ``ReActAgentConfig`` 預設 ``context_engine_config`` 一致。
     """
     react_cfg = react_cfg or {}
     cec = react_cfg.get("context_engine_config")
@@ -298,7 +298,7 @@ def _build_context_assemble_rail() -> ContextAssembleRail | None:
 def _build_context_processor_rail(config: dict[str, Any]) -> ContextProcessorRail | None:
     """Build ContextProcessorRail with user config.
 
-    从配置中读取 processor 配置，传递给 ContextProcessorRail。
+    從配置中讀取 processor 配置，傳遞給 ContextProcessorRail。
 
     Args:
         config: 配置字典
@@ -339,9 +339,9 @@ def _build_context_processor_rail(config: dict[str, Any]) -> ContextProcessorRai
 
 
 _MODE_DISPLAY_MAP: dict[str, dict[str, str]] = {
-    "agent.plan": {"cn": "规划模式", "en": "Planning Mode"},
-    "agent.fast": {"cn": "性能模式", "en": "Performance Mode"},
-    "team": {"cn": "集群模式", "en": "Cluster Mode"},
+    "agent.plan": {"cn": "規劃模式", "en": "Planning Mode"},
+    "agent.fast": {"cn": "效能模式", "en": "Performance Mode"},
+    "team": {"cn": "叢集模式", "en": "Cluster Mode"},
 }
 
 
@@ -373,14 +373,14 @@ class _RuntimeCronToolContext:
 
 
 class JiuWenClawDeepAdapter:
-    """Deep SDK 适配器，实现 AgentAdapter 协议.
+    """Deep SDK 介面卡，實現 AgentAdapter 協議.
 
-    封装所有 Deep SDK 专属逻辑：
-    - DeepAgent 实例生命周期管理
-    - Deep runtime tools 注册
+    封裝所有 Deep SDK 專屬邏輯：
+    - DeepAgent 例項生命週期管理
+    - Deep runtime tools 註冊
     - Deep stream event 解析
-    - Deep evolution 绑定
-    - Deep interrupt / user_answer 处理
+    - Deep evolution 繫結
+    - Deep interrupt / user_answer 處理
     """
 
     def __init__(self) -> None:
@@ -606,7 +606,7 @@ class JiuWenClawDeepAdapter:
         return "unknown"
 
     def _write_runtime_state(self, mode: str, language: str, channel: str) -> None:
-        """将当前运行时状态写入 config 目录下的 runtime_state.yaml。"""
+        """將當前執行時狀態寫入 config 目錄下的 runtime_state.yaml。"""
         try:
             git_branch = "N/A"
             git_bin = which("git")
@@ -1077,17 +1077,17 @@ class JiuWenClawDeepAdapter:
         return True
 
     def _iter_runtime_audio_tools(self, agent_id: str | None) -> list[Any]:
-        """可注册的音频工具：须先在 config 中为 ``models.audio`` 配置独立 ``api_key``。
+        """可註冊的音訊工具：須先在 config 中為 ``models.audio`` 配置獨立 ``api_key``。
 
-        与 vision / video 一致，无该 key 时不挂载任何音频工具（含 ``audio_metadata``）。
-        已配置 key 且 ``_audio_model_config`` 完整时注册全部 harness 音频工具；否则仅保留
-        ``audio_metadata``（ACRCloud，仍依赖 ``ACR_*`` 环境变量在运行时识别曲库）。
+        與 vision / video 一致，無該 key 時不掛載任何音訊工具（含 ``audio_metadata``）。
+        已配置 key 且 ``_audio_model_config`` 完整時註冊全部 harness 音訊工具；否則僅保留
+        ``audio_metadata``（ACRCloud，仍依賴 ``ACR_*`` 環境變數在執行時識別曲庫）。
         """
         config_base = get_config()
         if not dedicated_multimodal_model_configured(config_base, "audio"):
             logger.info(
                 "[JiuWenClawDeepAdapter] skip all audio tools (incl. audio_metadata): "
-                "models.audio 未配置独立 api_key"
+                "models.audio 未配置獨立 api_key"
             )
             return []
         lang = self._resolve_runtime_language()
@@ -1133,7 +1133,7 @@ class JiuWenClawDeepAdapter:
         create_fn: Callable[[], list[Any]],
         warn_label: str,
     ) -> tuple[list[Any], bool]:
-        """统一处理一组工具的热更新：启用时注册，禁用时移除。
+        """統一處理一組工具的熱更新：啟用時註冊，禁用時移除。
 
         Returns:
             (updated_tools, updated_registered)
@@ -1300,7 +1300,7 @@ class JiuWenClawDeepAdapter:
 
     @staticmethod
     def _build_model_from_entry(mcc: dict, mco: dict) -> Model:
-        """根据单个模型条目的 model_client_config / model_config_obj 构建 Model 实例。"""
+        """根據單個模型條目的 model_client_config / model_config_obj 構建 Model 例項。"""
         name = mcc.get("model_name", "")
         m_config = ModelRequestConfig(
             model=name,
@@ -1312,10 +1312,10 @@ class JiuWenClawDeepAdapter:
         return Model(model_client_config=ModelClientConfig(**mcc_fields), model_config=m_config)
 
     def _build_model_cache_from_defaults(self, config: dict) -> None:
-        """从 models.defaults 列表构建模型缓存。
+        """從 models.defaults 列表構建模型快取。
 
-        key 使用 {model_name}#{index} 格式以支持同名模型共存。
-        同时记录 _model_name_to_keys 映射以便按 model_name 查找。
+        key 使用 {model_name}#{index} 格式以支援同名模型共存。
+        同時記錄 _model_name_to_keys 對映以便按 model_name 查詢。
         """
         self._model_name_to_keys.clear()
         name_counter: dict[str, int] = {}
@@ -1336,7 +1336,7 @@ class JiuWenClawDeepAdapter:
                 self._model_name_to_keys[model_name] = []
             self._model_name_to_keys[model_name].append(cache_key)
 
-            # 同时用纯 model_name 作为 key 指向 is_default=true 的条目
+            # 同時用純 model_name 作為 key 指向 is_default=true 的條目
             if entry.get("is_default") is True:
                 self._model_cache[model_name] = self._model_cache[cache_key]
 
@@ -1345,7 +1345,7 @@ class JiuWenClawDeepAdapter:
                 self._model_cache[alias] = self._model_cache[cache_key]
 
     def _build_model_cache_legacy(self, config: dict) -> None:
-        """回退到旧格式（models.default / react 段）构建单条目缓存。"""
+        """回退到舊格式（models.default / react 段）構建單條目快取。"""
         default_model_config = config.get("models", {}).get("default", {})
         react_config = config.get("react", {})
 
@@ -1371,14 +1371,14 @@ class JiuWenClawDeepAdapter:
         if not self._model_cache:
             self._build_model_cache_legacy(config)
 
-        # 优先取 is_default=true 的条目（纯 model_name key），否则取第一个
+        # 優先取 is_default=true 的條目（純 model_name key），否則取第一個
         default_name = None
         for name, keys in self._model_name_to_keys.items():
             if name in self._model_cache:
                 default_name = name
                 break
         if default_name is None:
-            # 回退：取第一个 #index key
+            # 回退：取第一個 #index key
             for key in self._model_cache:
                 if "#" in key:
                     default_name = key
@@ -1393,29 +1393,29 @@ class JiuWenClawDeepAdapter:
         return self._model
 
     def _resolve_model_for_request(self, request: AgentRequest) -> Model:
-        """根据请求中的 model_name 参数查找对应模型（支持别名），未匹配则回退默认模型。
+        """根據請求中的 model_name 引數查詢對應模型（支援別名），未匹配則回退預設模型。
 
-        支持两种格式：
-        - 纯 model_name：查找 is_default=true 的条目
-        - {model_name}#{index}：查找指定索引的条目
+        支援兩種格式：
+        - 純 model_name：查詢 is_default=true 的條目
+        - {model_name}#{index}：查詢指定索引的條目
         """
         requested = (request.params.get("model_name") or "").strip()
         if not requested:
             return self._model
-        # 精确匹配（#index 格式或纯 model_name key）
+        # 精確匹配（#index 格式或純 model_name key）
         if requested in self._model_cache:
             return self._model_cache[requested]
-        # 回退：按纯 model_name 查找 is_default=true 的条目
+        # 回退：按純 model_name 查詢 is_default=true 的條目
         name_to_keys = self._model_name_to_keys
         if requested in name_to_keys and requested in self._model_cache:
             return self._model_cache[requested]
         return self._model
 
     def _apply_model_to_react_agent(self, model: Model) -> None:
-        """将指定模型应用到 react_agent 实例（替换 _llm 和 _config 字段）。
+        """將指定模型應用到 react_agent 例項（替換 _llm 和 _config 欄位）。
 
-        react_agent._railed_model_call 使用 self._config.model_name 作为 model= 参数，
-        因此需要同时替换 _llm 和 _config 中的模型相关字段。
+        react_agent._railed_model_call 使用 self._config.model_name 作為 model= 引數，
+        因此需要同時替換 _llm 和 _config 中的模型相關欄位。
         """
         react_agent = getattr(self._instance, "_react_agent", None)
         if react_agent is None:
@@ -1830,10 +1830,10 @@ class JiuWenClawDeepAdapter:
             ),
         ]
 
-        # SkillEvolutionRail 不在冷启动时挂载，由 _update_rails_for_mode 按 mode 按需注册/注销
-        # 智能模式下关闭自演进，plan 模式下按配置启用
+        # SkillEvolutionRail 不在冷啟動時掛載，由 _update_rails_for_mode 按 mode 按需註冊/登出
+        # 智慧模式下關閉自演進，plan 模式下按配置啟用
 
-        # MemoryRail 不在冷启动时挂载，由 _update_rails_for_mode 按 mode 按需注册/注销
+        # MemoryRail 不在冷啟動時掛載，由 _update_rails_for_mode 按 mode 按需註冊/登出
 
         if self._filesystem_rail_enabled_for_profile():
             rail_infos.insert(1, _RailBuildInfo("_filesystem_rail", self._build_filesystem_rail))
@@ -1914,7 +1914,7 @@ class JiuWenClawDeepAdapter:
         tool_cards: list[Any],
         rails: list[Any] | None = None,
     ) -> DeepAgentConfig:
-        """与 create_deep_agent() 中 DeepAgentConfig 构造保持一致."""
+        """與 create_deep_agent() 中 DeepAgentConfig 構造保持一致."""
         resolved_language = self._resolve_runtime_language()
         config_base = get_config()
         workspace_obj = Workspace(root_path=self._workspace_dir or "./", language=resolved_language)
@@ -1953,7 +1953,7 @@ class JiuWenClawDeepAdapter:
         )
 
     def _update_permission_rail(self, config_base: dict[str, Any] | None) -> None:
-        """原地更新已有 PermissionRail 配置，或在首次启用时新建。"""
+        """原地更新已有 PermissionRail 配置，或在首次啟用時新建。"""
         permission_config = config_base.get("permissions", {}) if config_base else {}
         if self._permission_rail is not None:
             self._permission_rail.update_config(permission_config)
@@ -2025,7 +2025,7 @@ class JiuWenClawDeepAdapter:
                 Runner.resource_mgr.add_tool(wtool)
             tool_cards.append(wtool.card)
 
-        # 付费搜索工具：有任意一个付费 key 就注册
+        # 付費搜尋工具：有任意一個付費 key 就註冊
         if is_paid_search_enabled():
             self._paid_search_tool = WebPaidSearchTool(
                 language=self._resolve_runtime_language(), agent_id=agent_id
@@ -2099,7 +2099,7 @@ class JiuWenClawDeepAdapter:
                     exc,
                 )
 
-        # 小艺手机端工具：由 channels.xiaoyi.phone_tools_enabled 控制
+        # 小藝手機端工具：由 channels.xiaoyi.phone_tools_enabled 控制
         config_base = get_config()
         xiaoyi_phone_tools_enabled = (
             config_base.get("channels", {}).get("xiaoyi", {}).get("phone_tools_enabled", False)
@@ -2180,14 +2180,14 @@ class JiuWenClawDeepAdapter:
     async def create_instance(
         self, config: dict[str, Any] | None = None, *, mode: str = "agent.plan", sub_mode: str = None
     ) -> None:
-        """初始化 DeepAgent 实例.
+        """初始化 DeepAgent 例項.
 
         Args:
-            config: 可选配置，支持以下字段：
-                - agent_name: Agent 名称，默认 "main_agent"。
-                - workspace_dir: 工作区目录，默认 "workspace/agent"。
-                - 其余字段透传给 DeepAgentConfig。
-            mode: 实例化模式，默认 "agent.plan"，使用 create_deep_agent。
+            config: 可選配置，支援以下欄位：
+                - agent_name: Agent 名稱，預設 "main_agent"。
+                - workspace_dir: 工作區目錄，預設 "workspace/agent"。
+                - 其餘欄位透傳給 DeepAgentConfig。
+            mode: 例項化模式，預設 "agent.plan"，使用 create_deep_agent。
             sub_mode: 子模式
         """
         await self.set_checkpoint()
@@ -2210,8 +2210,8 @@ class JiuWenClawDeepAdapter:
         tool_cards = await self._get_tool_cards(agent_card.id)
         self._tool_cards = tool_cards
 
-        # 权限护栏由 openjiuwen PermissionInterruptRail + ToolPermissionHost 接管；
-        # 无需初始化 jiuwenclaw 内置 PermissionEngine（已弃用）。
+        # 許可權護欄由 openjiuwen PermissionInterruptRail + ToolPermissionHost 接管；
+        # 無需初始化 jiuwenclaw 內建 PermissionEngine（已棄用）。
 
         rails_list = self._build_agent_rails(config, config_base, mode=mode)
 
@@ -2263,49 +2263,49 @@ class JiuWenClawDeepAdapter:
             "[JiuWenClawDeepAdapter] 初始化完成: agent_name=%s, mode=%s, sub_mode=%s", self._agent_name, mode, sub_mode
         )
 
-        # 动态加载用户自定义的 Rail 扩展
+        # 動態載入使用者自定義的 Rail 擴充套件
         await self.load_user_rails()
 
     async def load_user_rails(self) -> None:
-        """动态加载用户自定义的 Rail 扩展."""
+        """動態載入使用者自定義的 Rail 擴充套件."""
         try:
             manager = get_rail_manager()
 
-            # 设置 agent 实例到 rail_manager，用于热更新
+            # 設定 agent 例項到 rail_manager，用於熱更新
             manager.set_agent_instance(self._instance)
 
             extensions = manager.get_extensions()
 
-            # 只加载配置中启用的 rail 扩展
+            # 只載入配置中啟用的 rail 擴充套件
             for ext in extensions:
                 if ext["enabled"]:
                     try:
                         await manager.hot_reload_rail(ext["name"], True)
                     except Exception as e:
                         logger.error(
-                            "[JiuWenClawDeepAdapter] 用户 Rail 扩展加载失败: %s, 错误: %s",
+                            "[JiuWenClawDeepAdapter] 使用者 Rail 擴充套件載入失敗: %s, 錯誤: %s",
                             ext["name"],
                             e,
                         )
         except Exception as e:
-            logger.error("[JiuWenClawDeepAdapter] 加载用户 Rail 扩展时发生错误: %s", e)
+            logger.error("[JiuWenClawDeepAdapter] 載入使用者 Rail 擴充套件時發生錯誤: %s", e)
 
     async def reload_agent_config(
         self,
         config_base: dict[str, Any] | None = None,
         env_overrides: dict[str, Any] | None = None,
     ) -> None:
-        """从 config.yaml 重新加载配置，通过 DeepAgent.configure() 热更新当前实例（不新建 DeepAgent）。
+        """從 config.yaml 重新載入配置，透過 DeepAgent.configure() 熱更新當前例項（不新建 DeepAgent）。
 
-        DeepAgent.configure() 现在自动处理 rail 生命周期：保留旧已注册 rails 的注销上下文，
-        并在下次 _ensure_initialized() 时先卸载旧回调，再注册新的 rails。
+        DeepAgent.configure() 現在自動處理 rail 生命週期：保留舊已註冊 rails 的登出上下文，
+        並在下次 _ensure_initialized() 時先解除安裝舊回撥，再註冊新的 rails。
 
         Args:
-            config_base: 可选的完整配置快照；传入时优先使用它而不是读取本地 config.yaml。
-            env_overrides: 可选的环境变量增量；仅覆盖请求中出现的 key。
+            config_base: 可選的完整配置快照；傳入時優先使用它而不是讀取本地 config.yaml。
+            env_overrides: 可選的環境變數增量；僅覆蓋請求中出現的 key。
         """
         if self._instance is None:
-            raise RuntimeError("JiuWenClawDeepAdapter 未初始化，请先调用 create_instance()")
+            raise RuntimeError("JiuWenClawDeepAdapter 未初始化，請先呼叫 create_instance()")
         clear_config_cache()
         clear_memory_manager_cache()
 
@@ -2348,7 +2348,7 @@ class JiuWenClawDeepAdapter:
 
         rails_list = self._get_current_agent_rails(config, config_base)
 
-        # 加载用户自定义的 Rail 扩展
+        # 載入使用者自定義的 Rail 擴充套件
         await self.load_user_rails()
 
         deep_cfg = self._make_deep_agent_config(
@@ -2361,7 +2361,7 @@ class JiuWenClawDeepAdapter:
         self._instance.configure(deep_cfg)
         await self._sync_mcp_servers_for_runtime(config_base, tag="agent.reload")
 
-        logger.info("[JiuWenClawDeepAdapter] 配置已热更新（configure），未重启进程")
+        logger.info("[JiuWenClawDeepAdapter] 配置已熱更新（configure），未重啟程序")
 
     @staticmethod
     def _bind_runtime_cron_context(
@@ -2399,30 +2399,30 @@ class JiuWenClawDeepAdapter:
         _CRON_TOOL_CHANNEL_ID.reset(channel_token)
 
     async def _update_rails_for_mode(self, mode: str) -> None:
-        """按 mode 注册或卸载 rails。"""
+        """按 mode 註冊或解除安裝 rails。"""
         if mode == "agent.plan":
             await self._update_plan_mode_rails()
         else:
-            await self._update_agent_mode_rails(mode)  # 透传 mode
+            await self._update_agent_mode_rails(mode)  # 透傳 mode
 
     async def _update_plan_mode_rails(self) -> None:
-        """plan 模式：注册 plan 专属 rails，卸载 agent 专属资源。"""
+        """plan 模式：註冊 plan 專屬 rails，解除安裝 agent 專屬資源。"""
         if self._task_planning_rail is None:
             self._task_planning_rail = self._build_task_planning_rail()
             if self._task_planning_rail is not None:
                 await self._instance.register_rail(self._task_planning_rail)
                 logger.info("[JiuWenClawDeepAdapter] TaskPlanningRail registered for plan mode")
-        # 卸载 multi-session 工具
+        # 解除安裝 multi-session 工具
         for existing in list(self._instance.ability_manager.list() or []):
             if getattr(existing, "name", "").startswith(
                 ("session_new", "session_cancel", "session_list")
             ):
                 self._instance.ability_manager.remove(existing.name)
-        # plan 模式，根据config选择是否注册或者卸载memory rail
+        # plan 模式，根據config選擇是否註冊或者解除安裝memory rail
         await self._handle_memory_rail_by_config("plan")
-        # 外接记忆 rail（mode-independent，注册一次，跨 reload 持久）
+        # 外接記憶 rail（mode-independent，註冊一次，跨 reload 持久）
         await self._handle_external_memory_rail_by_config()
-        # 上下文 rail（仅 plan 模式）
+        # 上下文 rail（僅 plan 模式）
         context_enabled = self._config_cache.get("context_engine_config", {}).get("enabled", False)
 
         if self._context_assemble_rail is None or self._context_assemble_mode != "agent.plan":
@@ -2491,7 +2491,7 @@ class JiuWenClawDeepAdapter:
                 self._skill_create_rail = None
                 logger.info("[JiuWenClawDeepAdapter] SkillCreateRail unregistered (skill_create=false)")
 
-        # 注册 subagent rail（plan 模式下启用）
+        # 註冊 subagent rail（plan 模式下啟用）
         if self._subagent_rail is None:
             self._subagent_rail = self._build_subagent_rail()
             if self._subagent_rail is not None:
@@ -2499,8 +2499,8 @@ class JiuWenClawDeepAdapter:
                 logger.info("[JiuWenClawDeepAdapter] SubagentRail registered for plan mode")
 
     async def _update_agent_mode_rails(self, mode: str | None = None) -> None:
-        """agent 模式：卸载 plan 专属 rails，按需注册 agent 专属 rails。"""
-        # 卸载 plan 专属 rails
+        """agent 模式：解除安裝 plan 專屬 rails，按需註冊 agent 專屬 rails。"""
+        # 解除安裝 plan 專屬 rails
         rail_specs = (
             ("_task_planning_rail", "TaskPlanningRail"),
             ("_skill_evolution_rail", "SkillEvolutionRail"),
@@ -2519,11 +2519,11 @@ class JiuWenClawDeepAdapter:
                     mode or "agent",
                 )
 
-        # agent 模式，根据 config 选择是否注册或者卸载 memory rail
+        # agent 模式，根據 config 選擇是否註冊或者解除安裝 memory rail
         await self._handle_memory_rail_by_config("fast")
-        # 外接记忆 rail（mode-independent，注册一次，跨 reload 持久）
+        # 外接記憶 rail（mode-independent，註冊一次，跨 reload 持久）
         await self._handle_external_memory_rail_by_config()
-        # agent/智能模式：恢复上下文 rail（仅配置启用时）
+        # agent/智慧模式：恢復上下文 rail（僅配置啟用時）
         if self._context_assemble_rail is None or self._context_assemble_mode == "agent.plan":
             if self._context_assemble_rail is not None:
                 await self._instance.unregister_rail(self._context_assemble_rail)
@@ -2582,7 +2582,7 @@ class JiuWenClawDeepAdapter:
     async def _update_tools_for_mode(
         self, mode: str, session_id: str | None, request_id: str | None
     ) -> None:
-        """按 mode 注册或卸载 multi-session 工具。"""
+        """按 mode 註冊或解除安裝 multi-session 工具。"""
         if mode != "agent.fast":
             return
         if not (request_id and session_id and self._model_client_config is not None):
@@ -2608,7 +2608,7 @@ class JiuWenClawDeepAdapter:
                 self._instance.ability_manager.add(ms_tool.card)
             logger.info("[JiuWenClawDeepAdapter] MultiSessionToolkit registered for agent mode")
         except Exception as exc:
-            logger.error("[JiuWenClawDeepAdapter] MultiSessionToolkit 注册失败: %s", exc)
+            logger.error("[JiuWenClawDeepAdapter] MultiSessionToolkit 註冊失敗: %s", exc)
 
     async def _update_session_tools(
         self,
@@ -2616,8 +2616,8 @@ class JiuWenClawDeepAdapter:
         request_id: str | None,
         channel_id: str | None = None,
     ) -> None:
-        """注册 cron 和 send_file 工具（与 mode 无关，每次请求刷新）。"""
-        # 定时工具：按当前 session 的 channel 注册（contextvar 已由 _bind_runtime_cron_context 设置）
+        """註冊 cron 和 send_file 工具（與 mode 無關，每次請求重新整理）。"""
+        # 定時工具：按當前 session 的 channel 註冊（contextvar 已由 _bind_runtime_cron_context 設定）
         if not (session_id.startswith("heartbeat") or session_id.startswith("cron")):
             try:
                 cron_tools = self._build_cron_tools()
@@ -2631,10 +2631,10 @@ class JiuWenClawDeepAdapter:
                         self._instance.ability_manager.add(cron_tool.card)
                     logger.info("[JiuWenClawDeepAdapter] Cron tools registered successfully")
             except Exception as exc:
-                logger.error("[JiuWenClawDeepAdapter] 定时工具注册失败: %s", exc)
+                logger.error("[JiuWenClawDeepAdapter] 定時工具註冊失敗: %s", exc)
 
-        # send_file 工具：由 channels.<channel>.send_file_allowed 控制，每次请求重新注册
-        # channel_id/metadata 由调用前的 _bind_runtime_cron_context 已写入 contextvar
+        # send_file 工具：由 channels.<channel>.send_file_allowed 控制，每次請求重新註冊
+        # channel_id/metadata 由呼叫前的 _bind_runtime_cron_context 已寫入 contextvar
         config_base = get_config()
         channel = (
             str(channel_id or self._resolve_prompt_channel(session_id) or "web").strip() or "web"
@@ -2643,7 +2643,7 @@ class JiuWenClawDeepAdapter:
             config_base.get("channels", {}).get(channel, {}).get("send_file_allowed", False)
         )
         if send_file_enabled and request_id and session_id:
-            # 先卸载上一次请求遗留的 send_file 工具
+            # 先解除安裝上一次請求遺留的 send_file 工具
             for existing in list(self._instance.ability_manager.list() or []):
                 if getattr(existing, "name", "").startswith("send_file_to_user"):
                     self._instance.ability_manager.remove(existing.name)
@@ -2726,7 +2726,7 @@ class JiuWenClawDeepAdapter:
             )
 
     def _update_prompt_for_mode(self, mode: str, resolved_language: str) -> None:
-        """同步 system_prompt_builder 的语言。"""
+        """同步 system_prompt_builder 的語言。"""
         if self._instance.system_prompt_builder is not None:
             self._instance.system_prompt_builder.language = resolved_language
         if self._instance.deep_config is not None:
@@ -2746,7 +2746,7 @@ class JiuWenClawDeepAdapter:
     async def _update_runtime_config(self, runtime_config: "_RuntimeConfig") -> None:
         """Register per-request tools for current agent execution."""
         if self._instance is None:
-            raise RuntimeError("JiuWenClawDeepAdapter 未初始化，请先调用 create_instance()")
+            raise RuntimeError("JiuWenClawDeepAdapter 未初始化，請先呼叫 create_instance()")
 
         resolved_language = self._resolve_runtime_language()
         resolved_channel = (
@@ -2784,7 +2784,7 @@ class JiuWenClawDeepAdapter:
         )
         self._update_prompt_for_mode(runtime_config.mode, resolved_language)
 
-        # user_todos 工具注册（工具只注册一次，channel_id 每次请求由 ContextVar 更新）
+        # user_todos 工具註冊（工具只註冊一次，channel_id 每次請求由 ContextVar 更新）
         try:
             from jiuwenclaw.agents.harness.common.tools.user_todo_tool import (
                 get_decorated_tools as _get_user_todo_tools,
@@ -2801,22 +2801,22 @@ class JiuWenClawDeepAdapter:
         except ImportError:
             pass
 
-        # 处理两种场景的记忆工具移除：
-        # 1. 群聊数字分身模式（group_digital_avatar=True + avatar_mode=True）：移除写入工具，但保留读取工具
-        # 2. 记忆完全禁用（enable_memory=False + group_digital_avatar=True + avatar_mode=True）：移除所有记忆工具（读取和写入）
+        # 處理兩種場景的記憶工具移除：
+        # 1. 群聊數字分身模式（group_digital_avatar=True + avatar_mode=True）：移除寫入工具，但保留讀取工具
+        # 2. 記憶完全禁用（enable_memory=False + group_digital_avatar=True + avatar_mode=True）：移除所有記憶工具（讀取和寫入）
         perm_ctx = TOOL_PERMISSION_CONTEXT.get()
         if perm_ctx is not None:
-            # 判断是否为群聊数字分身模式
+            # 判斷是否為群聊數字分身模式
             is_group_digital_avatar = perm_ctx.group_digital_avatar and perm_ctx.avatar_mode
 
-            # 判断是否为记忆完全禁用（三个条件同时满足）
+            # 判斷是否為記憶完全禁用（三個條件同時滿足）
             should_disable_memory = (
                 not perm_ctx.enable_memory
                 and perm_ctx.group_digital_avatar
                 and perm_ctx.avatar_mode
             )
 
-            # 场景2：记忆完全禁用 - 移除所有记忆工具
+            # 場景2：記憶完全禁用 - 移除所有記憶工具
             if should_disable_memory:
                 _all_memory_tools = (
                     "write_memory",
@@ -2828,20 +2828,20 @@ class JiuWenClawDeepAdapter:
                 for tool_name in _all_memory_tools:
                     try:
                         self._instance.ability_manager.remove(tool_name)
-                        logger.info("[JiuWenClawDeepAdapter] 记忆系统已禁用，移除 %s", tool_name)
+                        logger.info("[JiuWenClawDeepAdapter] 記憶系統已禁用，移除 %s", tool_name)
                     except Exception:
                         pass
-            # 场景1：群聊数字分身模式 - 只移除写入工具
+            # 場景1：群聊數字分身模式 - 只移除寫入工具
             elif is_group_digital_avatar:
                 for tool_name in ("write_memory", "edit_memory"):
                     try:
                         self._instance.ability_manager.remove(tool_name)
                         logger.info(
-                            "[JiuWenClawDeepAdapter] 群聊模式下禁止写入记忆，移除 %s", tool_name
+                            "[JiuWenClawDeepAdapter] 群聊模式下禁止寫入記憶，移除 %s", tool_name
                         )
                     except Exception:
                         pass
-            # 非群聊数字分身且记忆启用时，恢复写入工具
+            # 非群聊數字分身且記憶啟用時，恢復寫入工具
             else:
                 try:
                     from openjiuwen.core.memory.lite.memory_tools import (
@@ -2892,21 +2892,21 @@ class JiuWenClawDeepAdapter:
         return selected_names
 
     async def process_interrupt(self, request: AgentRequest) -> AgentResponse:
-        """处理 interrupt 请求.
+        """處理 interrupt 請求.
 
-        根据 intent 分流：
-        - pause: 暂停循环（不取消任务）
-        - resume: 恢复已暂停的循环
-        - cancel: 为当前 session 生成取消结果与清理信息；真正停任务由 SessionManager 完成
-        - supplement: 取消当前任务但保留 todo
+        根據 intent 分流：
+        - pause: 暫停迴圈（不取消任務）
+        - resume: 恢復已暫停的迴圈
+        - cancel: 為當前 session 生成取消結果與清理資訊；真正停任務由 SessionManager 完成
+        - supplement: 取消當前任務但保留 todo
 
         Args:
             request: AgentRequest，params 中可包含：
-                - intent: 中断意图 ('pause' | 'cancel' | 'resume' | 'supplement')
-                - new_input: 新的用户输入（用于切换任务）
+                - intent: 中斷意圖 ('pause' | 'cancel' | 'resume' | 'supplement')
+                - new_input: 新的使用者輸入（用於切換任務）
 
         Returns:
-            AgentResponse 包含 interrupt_result 事件数据
+            AgentResponse 包含 interrupt_result 事件資料
         """
         intent = request.params.get("intent", "cancel")
         new_input = request.params.get("new_input")
@@ -2915,59 +2915,59 @@ class JiuWenClawDeepAdapter:
         updated_todos = None
 
         if intent == "pause":
-            # 暂停：通过 StreamEventRail 在下一个 model_call/tool_call checkpoint 阻塞
+            # 暫停：透過 StreamEventRail 在下一個 model_call/tool_call checkpoint 阻塞
             if self._stream_event_rail is not None:
                 self._stream_event_rail.pause()
                 logger.info(
-                    "[JiuWenClawDeepAdapter] interrupt: 已暂停执行 request_id=%s",
+                    "[JiuWenClawDeepAdapter] interrupt: 已暫停執行 request_id=%s",
                     request.request_id,
                 )
-            message = "任务已暂停"
+            message = "任務已暫停"
 
         elif intent == "resume":
-            # 恢复：解除 StreamEventRail 的 pause 阻塞 + 清除 abort 标志
+            # 恢復：解除 StreamEventRail 的 pause 阻塞 + 清除 abort 標誌
             if self._stream_event_rail is not None:
                 self._stream_event_rail.resume()
                 logger.info(
-                    "[JiuWenClawDeepAdapter] interrupt: 已恢复执行 request_id=%s",
+                    "[JiuWenClawDeepAdapter] interrupt: 已恢復執行 request_id=%s",
                     request.request_id,
                 )
-            message = "任务已恢复"
+            message = "任務已恢復"
 
         elif intent == "supplement":
-            # supplement: 停止当前执行，但保留 todo（新任务会根据 todo 待办继续执行）
-            # 1. 通过 rail abort 在 checkpoint 抛 CancelledError，打断当前内层执行
+            # supplement: 停止當前執行，但保留 todo（新任務會根據 todo 待辦繼續執行）
+            # 1. 透過 rail abort 在 checkpoint 拋 CancelledError，打斷當前內層執行
             if self._stream_event_rail is not None:
                 self._stream_event_rail.abort()
-            # 2. 终止 DeepAgent 外层 task loop
+            # 2. 終止 DeepAgent 外層 task loop
             if self._instance is not None:
                 await self._instance.abort()
-            # 3. 不清理 todo — 保留给新任务继续
+            # 3. 不清理 todo — 保留給新任務繼續
             logger.info(
-                "[JiuWenClawDeepAdapter] interrupt(supplement): 已停止执行 request_id=%s",
+                "[JiuWenClawDeepAdapter] interrupt(supplement): 已停止執行 request_id=%s",
                 request.request_id,
             )
-            message = "任务已切换"
+            message = "任務已切換"
 
         else:
-            # cancel（默认）：仅做当前 session 的清理与回执。
-            # 真正停止运行中的任务由 facade 层的 SessionManager.cancel_session_task(session_id) 完成，
-            # 避免共享 DeepAgent 实例上的全局 abort 误伤其它并发 session。
+            # cancel（預設）：僅做當前 session 的清理與回執。
+            # 真正停止執行中的任務由 facade 層的 SessionManager.cancel_session_task(session_id) 完成，
+            # 避免共享 DeepAgent 例項上的全域性 abort 誤傷其它併發 session。
             updated_todos = None
             if request.session_id:
                 try:
                     updated_todos = await self._cancel_pending_todos(request.session_id)
                 except Exception as exc:
-                    logger.warning("[JiuWenClawDeepAdapter] 标记 todo cancelled 失败: %s", exc)
+                    logger.warning("[JiuWenClawDeepAdapter] 標記 todo cancelled 失敗: %s", exc)
 
             logger.info(
-                "[JiuWenClawDeepAdapter] interrupt(cancel): 已停止执行 request_id=%s",
+                "[JiuWenClawDeepAdapter] interrupt(cancel): 已停止執行 request_id=%s",
                 request.request_id,
             )
             if new_input:
-                message = "已切换到新任务"
+                message = "已切換到新任務"
             else:
-                message = "任务已取消"
+                message = "任務已取消"
 
         payload = {
             "event_type": "chat.interrupt_result",
@@ -2979,7 +2979,7 @@ class JiuWenClawDeepAdapter:
         if new_input:
             payload["new_input"] = new_input
 
-        # cancel 后附带更新的 todo 列表，通知前端刷新
+        # cancel 後附帶更新的 todo 列表，通知前端重新整理
         if intent not in ("pause", "resume", "supplement") and updated_todos is not None:
             payload["todos"] = updated_todos
 
@@ -2992,7 +2992,7 @@ class JiuWenClawDeepAdapter:
         )
 
     async def abort_on_gateway_disconnect(self) -> None:
-        """Gateway 与 AgentServer 的 WebSocket 断开时：与 interrupt(cancel) 同样中止 rail 与 DeepAgent 实例。"""
+        """Gateway 與 AgentServer 的 WebSocket 斷開時：與 interrupt(cancel) 同樣中止 rail 與 DeepAgent 例項。"""
         if self._stream_event_rail is not None:
             self._stream_event_rail.abort()
         if self._instance is not None:
@@ -3005,10 +3005,10 @@ class JiuWenClawDeepAdapter:
                 )
 
     def _has_valid_model_config(self, requested_model_name: str = "") -> bool:
-        """检查是否有有效的模型配置。
+        """檢查是否有有效的模型配置。
 
-        优先检查请求中实际要用的模型（requested_model_name），其次检查默认模型，
-        最后从 config.yaml 重新解析。与 _create_model 同源，不独立读取环境变量。
+        優先檢查請求中實際要用的模型（requested_model_name），其次檢查預設模型，
+        最後從 config.yaml 重新解析。與 _create_model 同源，不獨立讀取環境變數。
         """
         def _mcc_obj_looks_usable(mcc_obj: Any) -> bool:
             if not isinstance(mcc_obj, ModelClientConfig):
@@ -3018,18 +3018,18 @@ class JiuWenClawDeepAdapter:
                 "api_base": getattr(mcc_obj, "api_base", None),
             })
 
-        # 优先检查请求中指定的模型（如用户在 UI 切换了模型）
+        # 優先檢查請求中指定的模型（如使用者在 UI 切換了模型）
         if requested_model_name and requested_model_name in self._model_cache:
             m = self._model_cache[requested_model_name]
             if _mcc_obj_looks_usable(getattr(m, "model_client_config", None)):
                 return True
 
-        # 检查默认模型
+        # 檢查預設模型
         if self._model is not None:
             if _mcc_obj_looks_usable(getattr(self._model, "model_client_config", None)):
                 return True
 
-        # 回退：检查 cache 中是否有任意一个有效模型
+        # 回退：檢查 cache 中是否有任意一個有效模型
         for m in self._model_cache.values():
             if _mcc_obj_looks_usable(getattr(m, "model_client_config", None)):
                 return True
@@ -3082,7 +3082,7 @@ class JiuWenClawDeepAdapter:
         if not sid.startswith("heartbeat"):
             return None
 
-        request.params["query"] = "这是一次心跳请求任务"
+        request.params["query"] = "這是一次心跳請求任務"
         logger.info(
             "[JiuWenClawDeepAdapter] heartbeat query injected:" " request_id=%s session_id=%s",
             request.request_id,
@@ -3217,12 +3217,12 @@ class JiuWenClawDeepAdapter:
         if not skill_arg or skill_arg == "list":
             if not skill_names:
                 return {
-                    "output": "当前 skills_base_dir 下未找到任何 Skill 目录。",
+                    "output": "當前 skills_base_dir 下未找到任何 Skill 目錄。",
                     "result_type": "answer",
                 }
             summary = await store.list_pending_summary(skill_names)
             return {
-                "output": f"**Skills 演进记录：**\n\n{summary}",
+                "output": f"**Skills 演進記錄：**\n\n{summary}",
                 "result_type": "answer",
             }
 
@@ -3233,12 +3233,12 @@ class JiuWenClawDeepAdapter:
         user_query = skill_parts[1].strip() if len(skill_parts) > 1 else ""
 
         if skill_name not in skill_names:
-            available = "、".join(skill_names) or "（无可用 Skill）"
+            available = "、".join(skill_names) or "（無可用 Skill）"
             return {
                 "output": (
                     f"在 skills_base_dir 下未找到 Skill '{skill_name}'。\n"
-                    f"当前可用 Skill：{available}\n"
-                    f"可使用 /evolve list 查看所有记录。"
+                    f"當前可用 Skill：{available}\n"
+                    f"可使用 /evolve list 檢視所有記錄。"
                 ),
                 "result_type": "error",
             }
@@ -3264,7 +3264,7 @@ class JiuWenClawDeepAdapter:
         # If no detected signals and no user_query, nothing to evolve
         if not attributed and not user_query:
             return {
-                "output": "当前对话未发现明确的演进信号（无工具执行失败、无用户纠正）。\n",
+                "output": "當前對話未發現明確的演進訊號（無工具執行失敗、無使用者糾正）。\n",
                 "result_type": "answer",
             }
 
@@ -3278,13 +3278,13 @@ class JiuWenClawDeepAdapter:
         except Exception as exc:
             logger.warning("[JiuWenClaw] evolve generate failed (skill=%s): %s", skill_name, exc)
             return {
-                "output": f"演进经验生成失败：{exc}",
+                "output": f"演進經驗生成失敗：{exc}",
                 "result_type": "error",
             }
 
         if not has_records:
             return {
-                "output": "当前对话未发现明确的演进信号（无工具执行失败、无用户纠正）。\n",
+                "output": "當前對話未發現明確的演進訊號（無工具執行失敗、無使用者糾正）。\n",
                 "result_type": "answer",
             }
 
@@ -3292,7 +3292,7 @@ class JiuWenClawDeepAdapter:
         events = await rail.drain_pending_approval_events()
         if not events:
             return {
-                "output": "演进经验生成失败：无法创建审批事件。",
+                "output": "演進經驗生成失敗：無法建立審批事件。",
                 "result_type": "error",
             }
 
@@ -3309,7 +3309,7 @@ class JiuWenClawDeepAdapter:
 
         return {
             "output": (
-                f"已为 Skill '{skill_name}' 生成 {len(questions)} 条演进经验，请审批：\n"
+                f"已為 Skill '{skill_name}' 生成 {len(questions)} 條演進經驗，請審批：\n"
                 f"{summaries}"
             ),
             "result_type": "answer",
@@ -3350,29 +3350,29 @@ class JiuWenClawDeepAdapter:
         skill_name = parts[1] if len(parts) > 1 else ""
         if not skill_name or skill_name.startswith("--"):
             return {
-                "output": "请指定 Skill 名称：`/evolve_list <skill_name>`",
+                "output": "請指定 Skill 名稱：`/evolve_list <skill_name>`",
                 "result_type": "error",
             }
 
         if not store.skill_exists(skill_name):
-            available = "、".join(store.list_skill_names()) or "（无可用 Skill）"
+            available = "、".join(store.list_skill_names()) or "（無可用 Skill）"
             return {
-                "output": f"未找到 Skill '{skill_name}'。当前可用：{available}",
+                "output": f"未找到 Skill '{skill_name}'。當前可用：{available}",
                 "result_type": "error",
             }
 
         records = await store.get_records_by_score(skill_name)
         if not records:
             return {
-                "output": f"Skill '{skill_name}' 暂无演进经验。",
+                "output": f"Skill '{skill_name}' 暫無演進經驗。",
                 "result_type": "answer",
             }
 
         avg_score = sum(r.score for r in records) / len(records)
 
         lines = [
-            f'📊 Skill "{skill_name}" — 经验库摘要\n',
-            f"共 {len(records)} 条经验 | 平均分：{avg_score:.2f}\n",
+            f'📊 Skill "{skill_name}" — 經驗庫摘要\n',
+            f"共 {len(records)} 條經驗 | 平均分：{avg_score:.2f}\n",
             "| # | Score | Used | Effect | Section | Content (preview) |",
             "|---|---:|---|---|---|---|",
         ]
@@ -3394,7 +3394,7 @@ class JiuWenClawDeepAdapter:
                 f"| {i} | {r.score:.2f} | {used_str} | {effect_str} | {section} | {preview} |"
             )
 
-        lines.append(f"\n提示：使用 /evolve_simplify {skill_name} 执行智能整理")
+        lines.append(f"\n提示：使用 /evolve_simplify {skill_name} 執行智慧整理")
         return {
             "output": "\n".join(lines),
             "result_type": "answer",
@@ -3412,14 +3412,14 @@ class JiuWenClawDeepAdapter:
 
         if not skill_name:
             return {
-                "output": "请指定 Skill 名称：`/evolve_simplify <skill_name> [user_intent]`",
+                "output": "請指定 Skill 名稱：`/evolve_simplify <skill_name> [user_intent]`",
                 "result_type": "error",
             }
 
         if not store.skill_exists(skill_name):
-            available = "、".join(store.list_skill_names()) or "（无可用 Skill）"
+            available = "、".join(store.list_skill_names()) or "（無可用 Skill）"
             return {
-                "output": f"未找到 Skill '{skill_name}'。当前可用：{available}",
+                "output": f"未找到 Skill '{skill_name}'。當前可用：{available}",
                 "result_type": "error",
             }
 
@@ -3427,17 +3427,17 @@ class JiuWenClawDeepAdapter:
             request_id = await rail.request_simplify(skill_name, user_intent)
         except Exception as exc:
             logger.warning("[JiuWenClaw] evolve_simplify failed: %s", exc)
-            return {"output": f"智能整理分析失败：{exc}", "result_type": "error"}
+            return {"output": f"智慧整理分析失敗：{exc}", "result_type": "error"}
 
         if not request_id:
             return {
-                "output": f"Skill '{skill_name}' 经验库状态良好，无需整理。",
+                "output": f"Skill '{skill_name}' 經驗庫狀態良好，無需整理。",
                 "result_type": "answer",
             }
 
         approval_chunks = await rail.drain_pending_approval_events()
         return {
-            "output": f"Skill '{skill_name}' 精简方案已生成，请在审批弹框中确认。",
+            "output": f"Skill '{skill_name}' 精簡方案已生成，請在審批彈框中確認。",
             "result_type": "answer",
             "approval_chunks": approval_chunks,
         }
@@ -3454,14 +3454,14 @@ class JiuWenClawDeepAdapter:
 
         if not skill_name:
             return {
-                "output": "请指定 Skill 名称：`/evolve_rebuild <skill_name> [user_intent]`",
+                "output": "請指定 Skill 名稱：`/evolve_rebuild <skill_name> [user_intent]`",
                 "result_type": "error",
             }
 
         if not store.skill_exists(skill_name):
-            available = "、".join(store.list_skill_names()) or "（无可用 Skill）"
+            available = "、".join(store.list_skill_names()) or "（無可用 Skill）"
             return {
-                "output": f"未找到 Skill '{skill_name}'。当前可用：{available}",
+                "output": f"未找到 Skill '{skill_name}'。當前可用：{available}",
                 "result_type": "error",
             }
 
@@ -3469,11 +3469,11 @@ class JiuWenClawDeepAdapter:
             followup_prompt = await rail.request_rebuild(skill_name, user_intent)
         except Exception as exc:
             logger.warning("[JiuWenClaw] evolve_rebuild failed: %s", exc)
-            return {"output": f"重建分析失败：{exc}", "result_type": "error"}
+            return {"output": f"重建分析失敗：{exc}", "result_type": "error"}
 
         if not followup_prompt:
             return {
-                "output": f"Skill '{skill_name}' 未生成可执行的重建指令。",
+                "output": f"Skill '{skill_name}' 未生成可執行的重建指令。",
                 "result_type": "error",
             }
 
@@ -3500,19 +3500,19 @@ class JiuWenClawDeepAdapter:
                 archives = store.list_archives(name)
                 if archives:
                     body_versions = [a for a in archives if a.startswith("SKILL.v")]
-                    archives_hint += f"\n  - **{name}**: {len(body_versions)} 个版本"
+                    archives_hint += f"\n  - **{name}**: {len(body_versions)} 個版本"
             return {
                 "output": (
-                    "请指定 Skill 名称：`/evolve_rollback <skill_name> [version]`"
-                    + (f"\n\n可回滚的 Skill：{archives_hint}" if archives_hint else "")
+                    "請指定 Skill 名稱：`/evolve_rollback <skill_name> [version]`"
+                    + (f"\n\n可回滾的 Skill：{archives_hint}" if archives_hint else "")
                 ),
                 "result_type": "error",
             }
 
         if not store.skill_exists(skill_name):
-            available = "、".join(store.list_skill_names()) or "（无可用 Skill）"
+            available = "、".join(store.list_skill_names()) or "（無可用 Skill）"
             return {
-                "output": f"未找到 Skill '{skill_name}'。当前可用：{available}",
+                "output": f"未找到 Skill '{skill_name}'。當前可用：{available}",
                 "result_type": "error",
             }
 
@@ -3520,13 +3520,13 @@ class JiuWenClawDeepAdapter:
         body_versions = [a for a in archives if a.startswith("SKILL.v")]
         if not body_versions:
             return {
-                "output": f"Skill '{skill_name}' 没有归档版本可回滚。",
+                "output": f"Skill '{skill_name}' 沒有歸檔版本可回滾。",
                 "result_type": "error",
             }
 
         # No version specified → list available versions for user to pick
         if not version:
-            lines = [f"**Skill '{skill_name}' 可用归档版本（最新在前）：**\n"]
+            lines = [f"**Skill '{skill_name}' 可用歸檔版本（最新在前）：**\n"]
             for i, v in enumerate(body_versions):
                 ts = v.replace("SKILL.v", "").replace(".md", "")
                 if len(ts) >= 15:
@@ -3535,8 +3535,8 @@ class JiuWenClawDeepAdapter:
                     display_ts = ts
                 marker = " ← 最近" if i == 0 else ""
                 lines.append(f"  {i+1}. `{v}` ({display_ts}){marker}")
-            lines.append(f"\n用法：`/evolve_rollback {skill_name} SKILL.v<时间戳>.md`")
-            lines.append(f"快捷回滚到最近版本：`/evolve_rollback {skill_name} latest`")
+            lines.append(f"\n用法：`/evolve_rollback {skill_name} SKILL.v<時間戳>.md`")
+            lines.append(f"快捷回滾到最近版本：`/evolve_rollback {skill_name} latest`")
             return {"output": "\n".join(lines), "result_type": "answer"}
 
         # "latest" shorthand → pick newest
@@ -3554,18 +3554,18 @@ class JiuWenClawDeepAdapter:
             success = await rail.rollback_skill(skill_name, version)
         except Exception as exc:
             logger.warning("[JiuWenClaw] evolve_rollback failed: %s", exc)
-            return {"output": f"回滚失败：{exc}", "result_type": "error"}
+            return {"output": f"回滾失敗：{exc}", "result_type": "error"}
 
         if success:
             return {
                 "output": (
-                    f"Skill '{skill_name}' 已成功回滚到 `{version}`。\n\n"
-                    f"（当前状态已自动归档，可再次回滚恢复。）"
+                    f"Skill '{skill_name}' 已成功回滾到 `{version}`。\n\n"
+                    f"（當前狀態已自動歸檔，可再次回滾恢復。）"
                 ),
                 "result_type": "answer",
             }
         return {
-            "output": f"Skill '{skill_name}' 回滚失败，请检查归档版本是否有效。",
+            "output": f"Skill '{skill_name}' 回滾失敗，請檢查歸檔版本是否有效。",
             "result_type": "error",
         }
 
@@ -3578,7 +3578,7 @@ class JiuWenClawDeepAdapter:
             logger.warning("[JiuWenClaw] governance approval failed: no SkillEvolutionRail")
             return False
 
-        accept_labels = {"执行"} if kind == "simplify" else set()
+        accept_labels = {"執行"} if kind == "simplify" else set()
         accepted = any(
             isinstance(ans, dict)
             and bool(accept_labels & set(ans.get("selected_options", [])))
@@ -3616,13 +3616,13 @@ class JiuWenClawDeepAdapter:
         Returns None when the rail is (or becomes) available, or an error message string.
         """
         if mode != "agent.plan":
-            return "agent 模式下演进功能不可用。"
+            return "agent 模式下演進功能不可用。"
         if not self._config_cache.get("evolution", {}).get("enabled", False):
-            return "演进功能未启用。"
+            return "演進功能未啟用。"
         if self._skill_evolution_rail is None:
             self._skill_evolution_rail = self._build_skill_evolution_rail(self._config_cache)
         if self._skill_evolution_rail is None:
-            return "演进功能初始化失败。"
+            return "演進功能初始化失敗。"
 
         # SkillCreateRail requires skill_create config
         if _get_skill_create_enabled(self._config_cache):
@@ -3646,7 +3646,7 @@ class JiuWenClawDeepAdapter:
 
         if stripped.startswith("/evolve_rewrite"):
             return {
-                "output": "`/evolve_rewrite` 已删除，请使用 `/evolve_rebuild <skill_name> [user_intent]`。",
+                "output": "`/evolve_rewrite` 已刪除，請使用 `/evolve_rebuild <skill_name> [user_intent]`。",
                 "result_type": "error",
             }
 
@@ -3683,11 +3683,11 @@ class JiuWenClawDeepAdapter:
         return None
 
     async def _cancel_pending_todos(self, session_id: str) -> list[dict] | None:
-        """将未完成的 todo 项标记为 cancelled.
+        """將未完成的 todo 項標記為 cancelled.
 
         Returns:
-            更新后的 todo 列表（前端格式），用于附加到 interrupt_result 事件通知前端刷新。
-            如果没有 todo 或操作失败，返回 None。
+            更新後的 todo 列表（前端格式），用於附加到 interrupt_result 事件通知前端重新整理。
+            如果沒有 todo 或操作失敗，返回 None。
         """
         if self._instance is None:
             return None
@@ -3727,17 +3727,17 @@ class JiuWenClawDeepAdapter:
             if ids_to_cancel:
                 await modify_tool._cancel_todos(ids_to_cancel, todos)
                 logger.info(
-                    "[JiuWenClawDeepAdapter] 已将 session %s 的未完成任务标记为 cancelled",
+                    "[JiuWenClawDeepAdapter] 已將 session %s 的未完成任務標記為 cancelled",
                     session_id,
                 )
 
-            # 重新加载并返回前端格式的 todo 列表
+            # 重新載入並返回前端格式的 todo 列表
             updated_todos = await modify_tool.load_todos(session_id)
             if updated_todos and self._stream_event_rail is not None:
                 return self._stream_event_rail._format_todos_for_frontend(updated_todos)
             return None
         except Exception as exc:
-            logger.warning("[JiuWenClawDeepAdapter] 标记 todo cancelled 失败: %s", exc)
+            logger.warning("[JiuWenClawDeepAdapter] 標記 todo cancelled 失敗: %s", exc)
             return None
 
     async def process_message_impl(
@@ -3746,14 +3746,14 @@ class JiuWenClawDeepAdapter:
         """Execute a single non-streaming request and return the response.
 
         Args:
-            request: AgentRequest 对象
-            inputs: 已构建好的输入字典，包含 conversation_id 和 query
+            request: AgentRequest 物件
+            inputs: 已構建好的輸入字典，包含 conversation_id 和 query
 
         Returns:
-            AgentResponse 包含执行结果
+            AgentResponse 包含執行結果
         """
         if self._instance is None:
-            raise RuntimeError("JiuWenClawDeepAdapter 未初始化，请先调用 create_instance()")
+            raise RuntimeError("JiuWenClawDeepAdapter 未初始化，請先呼叫 create_instance()")
 
         _req_model = (request.params.get("model_name") or "") if isinstance(request.params, dict) else ""
         if not self._has_valid_model_config(_req_model):
@@ -3761,7 +3761,7 @@ class JiuWenClawDeepAdapter:
                 request_id=request.request_id,
                 channel_id=request.channel_id,
                 ok=False,
-                payload={"error": "模型未正确配置，请先配置模型信息"},
+                payload={"error": "模型未正確配置，請先配置模型資訊"},
                 metadata=request.metadata,
             )
 
@@ -3799,7 +3799,7 @@ class JiuWenClawDeepAdapter:
         )
         token_cid = TOOL_PERMISSION_CHANNEL_ID.set((request.channel_id or "").strip())
         token_perm = setup_permission_context(request)
-        # 按请求选择模型
+        # 按請求選擇模型
         resolved_model = self._resolve_model_for_request(request)
         self._apply_model_to_react_agent(resolved_model)
         try:
@@ -3816,13 +3816,13 @@ class JiuWenClawDeepAdapter:
             result = await Runner.run_agent(agent=self._instance, inputs=inputs)
         except asyncio.CancelledError:
             logger.info(
-                "[JiuWenClawDeepAdapter] Agent 任务被取消: request_id=%s session_id=%s",
+                "[JiuWenClawDeepAdapter] Agent 任務被取消: request_id=%s session_id=%s",
                 request.request_id,
                 session_id,
             )
             raise
         except Exception as e:
-            logger.error("[JiuWenClawDeepAdapter] Agent 任务执行异常: %s", e)
+            logger.error("[JiuWenClawDeepAdapter] Agent 任務執行異常: %s", e)
             raise
         finally:
             TOOL_PERMISSION_CHANNEL_ID.reset(token_cid)
@@ -3845,21 +3845,21 @@ class JiuWenClawDeepAdapter:
         """Execute a streaming request; yield response chunks.
 
         Args:
-            request: AgentRequest 对象
-            inputs: 已构建好的输入字典，包含 conversation_id 和 query
+            request: AgentRequest 物件
+            inputs: 已構建好的輸入字典，包含 conversation_id 和 query
 
         Yields:
-            AgentResponseChunk 流式响应块
+            AgentResponseChunk 流式響應塊
         """
         if self._instance is None:
-            raise RuntimeError("JiuWenClawDeepAdapter 未初始化，请先调用 create_instance()")
+            raise RuntimeError("JiuWenClawDeepAdapter 未初始化，請先呼叫 create_instance()")
 
         _req_model = (request.params.get("model_name") or "") if isinstance(request.params, dict) else ""
         if not self._has_valid_model_config(_req_model):
             yield AgentResponseChunk(
                 request_id=request.request_id,
                 channel_id=request.channel_id,
-                payload={"event_type": "chat.error", "error": "模型未正确配置，请先配置模型信息"},
+                payload={"event_type": "chat.error", "error": "模型未正確配置，請先配置模型資訊"},
                 is_complete=True,
             )
             return
@@ -3870,7 +3870,7 @@ class JiuWenClawDeepAdapter:
         query = request.params.get("query", "")
         mode = request.params.get("mode", "agent.plan")
 
-        # Team 模式处理
+        # Team 模式處理
         if mode == "team":
             from jiuwenclaw.server.runtime.agent_adapter.team_helpers import process_team_message_stream
 
@@ -3887,7 +3887,7 @@ class JiuWenClawDeepAdapter:
                 yield chunk
             return
 
-        # 拦截斜杠命令
+        # 攔截斜槓命令
         slash_result = await self._handle_slash_command(query, session_id, mode)
         if slash_result is not None:
             followup_prompt = self._extract_rebuild_followup_prompt(slash_result)
@@ -3941,7 +3941,7 @@ class JiuWenClawDeepAdapter:
         )
         token_cid = TOOL_PERMISSION_CHANNEL_ID.set((request.channel_id or "").strip())
         token_perm = setup_permission_context(request)
-        # 按请求选择模型
+        # 按請求選擇模型
         resolved_model = self._resolve_model_for_request(request)
         self._apply_model_to_react_agent(resolved_model)
         try:
@@ -4151,13 +4151,13 @@ class JiuWenClawDeepAdapter:
                 self._evolution_watcher_tasks.add(task)
         except asyncio.CancelledError:
             logger.info(
-                "[JiuWenClawDeepAdapter] 流式任务被取消: request_id=%s session_id=%s",
+                "[JiuWenClawDeepAdapter] 流式任務被取消: request_id=%s session_id=%s",
                 rid,
                 session_id,
             )
             raise
         except Exception as exc:
-            logger.exception("[JiuWenClawDeepAdapter] 流式任务异常: %s", exc)
+            logger.exception("[JiuWenClawDeepAdapter] 流式任務異常: %s", exc)
             yield AgentResponseChunk(
                 request_id=rid,
                 channel_id=cid,
@@ -4209,14 +4209,14 @@ class JiuWenClawDeepAdapter:
 
     @staticmethod
     def _parse_stream_chunk(chunk, *, _has_streamed_content: bool = False) -> dict | None:
-        """将 SDK OutputSchema 转为前端可消费的 payload dict.
+        """將 SDK OutputSchema 轉為前端可消費的 payload dict.
 
         Args:
             chunk: OutputSchema 或 dict
-            _has_streamed_content: 是否已通过 llm_output 流式发送过内容
+            _has_streamed_content: 是否已透過 llm_output 流式傳送過內容
 
         Returns:
-            dict  – 含 event_type 的 payload，或 None（需跳过的帧）。
+            dict  – 含 event_type 的 payload，或 None（需跳過的幀）。
         """
         try:
             if hasattr(chunk, "type") and hasattr(chunk, "payload"):
@@ -4231,7 +4231,7 @@ class JiuWenClawDeepAdapter:
                     if inner_val == "task_failed":
                         error = next(
                             (item.text for item in payload.data if hasattr(item, "text")),
-                            "任务执行失败",
+                            "任務執行失敗",
                         )
                         return {"event_type": "chat.error", "error": error}
 
@@ -4266,7 +4266,7 @@ class JiuWenClawDeepAdapter:
                         if payload.get("result_type") == "error":
                             return {
                                 "event_type": "chat.error",
-                                "error": payload.get("output", "未知错误"),
+                                "error": payload.get("output", "未知錯誤"),
                             }
                         output = payload.get("output", {})
                         content = (
@@ -4404,7 +4404,7 @@ class JiuWenClawDeepAdapter:
                 if chunk.get("result_type") == "error":
                     return {
                         "event_type": "chat.error",
-                        "error": chunk.get("output", "未知错误"),
+                        "error": chunk.get("output", "未知錯誤"),
                     }
                 output = chunk.get("output", "")
                 if output:
@@ -4412,25 +4412,25 @@ class JiuWenClawDeepAdapter:
                 return None
 
         except Exception:
-            logger.debug("[_parse_stream_chunk] 解析异常", exc_info=True)
+            logger.debug("[_parse_stream_chunk] 解析異常", exc_info=True)
 
         return None
 
     async def _handle_memory_rail_by_config(self, mode: str):
         config = get_config()
         if get_memory_mode(config) == "local":
-            # 引擎门禁：memory.engine 未放行内置时，等同于禁用
+            # 引擎門禁：memory.engine 未放行內建時，等同於禁用
             builtin_on = is_builtin_memory_allowed(config) and is_memory_enabled(mode, config)
             if builtin_on:
-                # 开启记忆
+                # 開啟記憶
                 if self._memory_rail is not None:
                     cur_memory_type = is_proactive_memory(mode, config)
                     if self._is_proactive_memory != cur_memory_type:
-                        # 当前记忆类型（主动/被动）和之前注册的不一致，重新注册
+                        # 當前記憶型別（主動/被動）和之前註冊的不一致，重新註冊
                         await self._instance.unregister_rail(self._memory_rail)
                         self._memory_rail = None
                     else:
-                        # 已经注册，且记忆类型相同，无需其他操作
+                        # 已經註冊，且記憶型別相同，無需其他操作
                         return
                 if self._memory_rail is None:
                     self._memory_rail = self._build_memory_rail(mode)
@@ -4501,16 +4501,16 @@ class JiuWenClawDeepAdapter:
             self._external_memory_rail_registered = False
 
     async def compress_context(self, session_id: str, session: Any = None) -> dict[str, Any]:
-        """主动触发上下文压缩。
+        """主動觸發上下文壓縮。
 
         Args:
-            session_id: 会话ID
-            session: Session 对象（可选）
+            session_id: 會話ID
+            session: Session 物件（可選）
 
         Returns:
-            包含压缩结果的字典:
+            包含壓縮結果的字典:
             - result: "busy" | "compressed" | "noop"
-            - stats: 压缩统计信息（仅当 result == "compressed" 时）
+            - stats: 壓縮統計資訊（僅當 result == "compressed" 時）
         """
         if self._instance is None or self._instance.react_agent is None:
             raise ValueError("Agent instance not available")
@@ -4555,14 +4555,14 @@ class JiuWenClawDeepAdapter:
         react_agent: Any,
         session_id: str,
     ) -> int:
-        """计算完整上下文的 token 数（包含 system messages + context messages + tools）。
+        """計算完整上下文的 token 數（包含 system messages + context messages + tools）。
         Args:
-            context: ModelContext 对象
-            react_agent: ReActAgent 对象
-            session_id: 会话ID
+            context: ModelContext 物件
+            react_agent: ReActAgent 物件
+            session_id: 會話ID
 
         Returns:
-            完整上下文的 token 总数
+            完整上下文的 token 總數
         """
         from openjiuwen.core.foundation.llm import SystemMessage
         from openjiuwen.core.foundation.tool import ToolInfo
@@ -4570,7 +4570,7 @@ class JiuWenClawDeepAdapter:
         token_counter = context.token_counter()
         total_tokens = 0
 
-        # 1. 计算系统消息的 tokens
+        # 1. 計算系統訊息的 tokens
         system_prompt = ""
         if hasattr(react_agent, "prompt_builder") and react_agent.prompt_builder is not None:
             system_prompt = react_agent.prompt_builder.build()
@@ -4583,7 +4583,7 @@ class JiuWenClawDeepAdapter:
             else:
                 total_tokens += len(system_prompt) // 4
 
-        # 2. 计算对话消息的 tokens
+        # 2. 計算對話訊息的 tokens
         context_messages = context.get_messages()
         if context_messages:
             if token_counter is not None:
@@ -4591,7 +4591,7 @@ class JiuWenClawDeepAdapter:
             else:
                 total_tokens += sum(len(str(msg.content)) // 4 for msg in context_messages)
 
-        # 3. 计算工具定义的 tokens
+        # 3. 計算工具定義的 tokens
         tools: list[ToolInfo] = []
         if hasattr(react_agent, "ability_manager") and react_agent.ability_manager is not None:
             for card in react_agent.ability_manager.list() or []:
@@ -4610,10 +4610,10 @@ class JiuWenClawDeepAdapter:
         return total_tokens
 
     async def _watch_evolution_and_push(self, rid: str, cid: str, session_id: str) -> None:
-        """等待演进后台 task 完成，通过 send_push 推送审批事件。
+        """等待演進後臺 task 完成，透過 send_push 推送審批事件。
 
-        审批事件必须先于 evolution_status:end 推送，否则 Gateway 在清除
-        evolution_in_progress 和标记 pending_approval 之间存在竞争窗口。
+        審批事件必須先於 evolution_status:end 推送，否則 Gateway 在清除
+        evolution_in_progress 和標記 pending_approval 之間存在競爭視窗。
         """
         from jiuwenclaw.server.gateway_push import WebSocketGatewayPushTransport
 

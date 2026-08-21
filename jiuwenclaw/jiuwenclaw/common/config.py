@@ -33,13 +33,13 @@ if str(_CONFIG_MODULE_DIR) not in sys.path:
 
 
 def resolve_env_vars(value: Any) -> Any:
-    """递归解析配置中的环境变量替换语法 ${VAR:-default}.
+    """遞迴解析配置中的環境變數替換語法 ${VAR:-default}.
 
     Args:
-        value: 配置值，可能是字符串、字典或列表
+        value: 配置值，可能是字串、字典或列表
 
     Returns:
-        解析后的值
+        解析後的值
     """
     if isinstance(value, str):
         # 匹配 ${VAR:-default} 格式
@@ -77,10 +77,10 @@ def resolve_env_vars(value: Any) -> Any:
 
 
 def _normalize_config(config: dict[str, Any] | None) -> None:
-    """后处理配置，将需要结构化的字符串字段解析为原生类型。
+    """後處理配置，將需要結構化的字串欄位解析為原生型別。
 
-    例如 custom_headers 在 YAML 中通过环境变量传入时是 JSON 字符串，
-    需要统一解析为 dict。
+    例如 custom_headers 在 YAML 中透過環境變數傳入時是 JSON 字串，
+    需要統一解析為 dict。
     """
     if config is None:
         return
@@ -109,7 +109,7 @@ def get_config():
 
 
 def get_config_raw():
-    """读 config.yaml 原始内容（不解析环境变量），供局部更新后写回。"""
+    """讀 config.yaml 原始內容（不解析環境變數），供區域性更新後寫回。"""
     with open(_CONFIG_YAML_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
@@ -120,7 +120,7 @@ def set_config(config):
 
 
 def _load_yaml_round_trip(config_path: Path):
-    """ruamel 加载 config，保留注释与格式。"""
+    """ruamel 載入 config，保留註釋與格式。"""
     rt = YAML()
     rt.preserve_quotes = True
     with open(config_path, "r", encoding="utf-8") as f:
@@ -128,11 +128,11 @@ def _load_yaml_round_trip(config_path: Path):
 
 
 def _dump_yaml_round_trip(config_path: Path, data: Any) -> None:
-    """ruamel 写回 config，保留注释与格式。"""
+    """ruamel 寫回 config，保留註釋與格式。"""
     rt = YAML()
     rt.preserve_quotes = True
     rt.default_flow_style = False
-    # mapping 2 空格；list 用 sequence=4 + offset=2 保证 dash 前有 2 空格（tools: 下 - todo），否则 list 会变成无缩进
+    # mapping 2 空格；list 用 sequence=4 + offset=2 保證 dash 前有 2 空格（tools: 下 - todo），否則 list 會變成無縮排
     rt.indent(mapping=2, sequence=4, offset=2)
     rt.width = 4096
     with open(config_path, "w", encoding="utf-8") as f:
@@ -140,7 +140,7 @@ def _dump_yaml_round_trip(config_path: Path, data: Any) -> None:
 
 
 def update_heartbeat_in_config(payload: dict[str, Any]) -> None:
-    """只更新 heartbeat 段并写回。"""
+    """只更新 heartbeat 段並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "heartbeat" not in data:
         data["heartbeat"] = {}
@@ -155,7 +155,7 @@ def update_heartbeat_in_config(payload: dict[str, Any]) -> None:
 
 
 def update_channel_in_config(channel_id: str, conf: dict[str, Any]) -> None:
-    """只更新 channels[channel_id] 并写回。"""
+    """只更新 channels[channel_id] 並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "channels" not in data:
         data["channels"] = {}
@@ -173,7 +173,7 @@ def update_channel_subsection_in_config(
     subsection_id: str,
     conf: dict[str, Any],
 ) -> None:
-    """更新 channels[channel_id][subsection_id] 并写回。"""
+    """更新 channels[channel_id][subsection_id] 並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "channels" not in data:
         data["channels"] = {}
@@ -190,7 +190,7 @@ def update_channel_subsection_in_config(
 
 
 def update_preferred_language_in_config(lang: str) -> None:
-    """只更新顶层 preferred_language 并写回。非法值回退为 zh，与 set_preferred_language_in_config_file 一致。"""
+    """只更新頂層 preferred_language 並寫回。非法值回退為 zh，與 set_preferred_language_in_config_file 一致。"""
     normalized = str(lang or "zh").strip().lower()
     if normalized not in ("zh", "en"):
         normalized = "zh"
@@ -200,7 +200,7 @@ def update_preferred_language_in_config(lang: str) -> None:
 
 
 def set_preferred_language_in_config_file(config_path: Path, lang: str) -> None:
-    """将 preferred_language 写入指定 config.yaml（用于 init 等尚未绑定全局路径的场景）。"""
+    """將 preferred_language 寫入指定 config.yaml（用於 init 等尚未繫結全域性路徑的場景）。"""
     lang = str(lang or "zh").strip().lower()
     if lang not in ("zh", "en"):
         lang = "zh"
@@ -212,7 +212,7 @@ def set_preferred_language_in_config_file(config_path: Path, lang: str) -> None:
 
 
 def update_browser_in_config(updates: dict[str, Any]) -> None:
-    """只更新 browser 段（如 chrome_path）并写回。"""
+    """只更新 browser 段（如 chrome_path）並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "browser" not in data:
         data["browser"] = {}
@@ -223,7 +223,7 @@ def update_browser_in_config(updates: dict[str, Any]) -> None:
 
 
 def update_context_engine_enabled_in_config(value: bool) -> None:
-    """更新 react.context_engine_config.enabled（上下文压缩开关）并写回。"""
+    """更新 react.context_engine_config.enabled（上下文壓縮開關）並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "react" not in data:
         data["react"] = {}
@@ -235,7 +235,7 @@ def update_context_engine_enabled_in_config(value: bool) -> None:
 
 
 def update_kv_cache_affinity_enabled_in_config(value: bool) -> None:
-    """更新 react.context_engine_config.enable_kv_cache_release（算力/KV 亲和释放）并写回。"""
+    """更新 react.context_engine_config.enable_kv_cache_release（算力/KV 親和釋放）並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "react" not in data:
         data["react"] = {}
@@ -247,7 +247,7 @@ def update_kv_cache_affinity_enabled_in_config(value: bool) -> None:
 
 
 def update_permissions_enabled_in_config(value: bool) -> None:
-    """更新 permissions.enabled（工具安全护栏开关）并写回。"""
+    """更新 permissions.enabled（工具安全護欄開關）並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "permissions" not in data:
         data["permissions"] = {}
@@ -256,7 +256,7 @@ def update_permissions_enabled_in_config(value: bool) -> None:
 
 
 def update_updater_in_config(updates: dict[str, Any]) -> None:
-    """只更新 updater 段并写回。"""
+    """只更新 updater 段並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "updater" not in data:
         data["updater"] = {}
@@ -267,12 +267,12 @@ def update_updater_in_config(updates: dict[str, Any]) -> None:
 
 
 def update_memory_enabled_in_config(mode: str, value: bool) -> None:
-    """更新 memory.enabled（记忆系统开关）并写回。"""
+    """更新 memory.enabled（記憶系統開關）並寫回。"""
     _update_memory_in_modes_config(mode, "enabled", value)
 
 
 def update_proactive_memory_in_config(mode: str, value: bool) -> None:
-    """更新 memory.proactive_memory（主动记忆开关）并写回。"""
+    """更新 memory.proactive_memory（主動記憶開關）並寫回。"""
     _update_memory_in_modes_config(mode, "is_proactive", value)
 
 
@@ -290,10 +290,10 @@ def _update_memory_in_modes_config(mode: str, item: str, value: bool) -> None:
     _dump_yaml_round_trip(_CONFIG_YAML_PATH, data)
 
 
-# ---------- 数字分身相关配置 ----------
+# ---------- 數字分身相關配置 ----------
 
 def get_permissions_owner_scopes() -> dict[str, Any]:
-    """读取 permissions.owner_scopes 及 deny_guidance_message."""
+    """讀取 permissions.owner_scopes 及 deny_guidance_message."""
     cfg = get_config() or {}
     perm = cfg.get("permissions", {})
     return {
@@ -306,7 +306,7 @@ def update_permissions_owner_scopes_in_config(
     owner_scopes: dict[str, Any],
     deny_guidance_message: str | None = None,
 ) -> None:
-    """更新 permissions.owner_scopes（及可选 deny_guidance_message）并写回。"""
+    """更新 permissions.owner_scopes（及可選 deny_guidance_message）並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "permissions" not in data:
         data["permissions"] = {}
@@ -317,13 +317,13 @@ def update_permissions_owner_scopes_in_config(
 
 
 def get_permissions_deny_guidance() -> str:
-    """读取 permissions.deny_guidance_message."""
+    """讀取 permissions.deny_guidance_message."""
     cfg = get_config() or {}
     return cfg.get("permissions", {}).get("deny_guidance_message", "")
 
 
 def update_permissions_deny_guidance_in_config(msg: str) -> None:
-    """更新 permissions.deny_guidance_message 并写回。"""
+    """更新 permissions.deny_guidance_message 並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "permissions" not in data:
         data["permissions"] = {}
@@ -339,7 +339,7 @@ _RULE_MUTABLE_KEYS = frozenset({"tools", "pattern", "severity", "action", "descr
 
 
 def get_permissions_tools() -> dict[str, Any]:
-    """返回 ``permissions.tools``（原始结构，可能含 legacy dict）。"""
+    """返回 ``permissions.tools``（原始結構，可能含 legacy dict）。"""
     cfg = get_config() or {}
     tools = (cfg.get("permissions") or {}).get("tools")
     if not isinstance(tools, dict):
@@ -348,7 +348,7 @@ def get_permissions_tools() -> dict[str, Any]:
 
 
 def replace_permissions_tools_in_config(tools: Any) -> None:
-    """整表替换 ``permissions.tools``；值仅允许 ``allow|ask|deny``（或 legacy ``{\"*\": level}``）。"""
+    """整表替換 ``permissions.tools``；值僅允許 ``allow|ask|deny``（或 legacy ``{\"*\": level}``）。"""
     normalized = _validate_tools_map(tools)
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "permissions" not in data:
@@ -358,14 +358,14 @@ def replace_permissions_tools_in_config(tools: Any) -> None:
 
 
 def update_permissions_tool_in_config(tool_name: str, level: Any) -> dict[str, Any]:
-    """合并单条工具级别到 ``permissions.tools`` 并写回 YAML。
+    """合併單條工具級別到 ``permissions.tools`` 並寫回 YAML。
 
     Args:
-        tool_name: 工具名（如 ``mcp_exec_command``），与 ``permissions.tools`` 键一致。
-        level: ``allow`` / ``ask`` / ``deny`` 字符串，或 legacy ``{\"*\": level}``。
+        tool_name: 工具名（如 ``mcp_exec_command``），與 ``permissions.tools`` 鍵一致。
+        level: ``allow`` / ``ask`` / ``deny`` 字串，或 legacy ``{\"*\": level}``。
 
     Returns:
-        ``{\"tools\": {...}}`` 更新后的完整 tools 映射（便于前端刷新）。
+        ``{\"tools\": {...}}`` 更新後的完整 tools 對映（便於前端重新整理）。
     """
     name = str(tool_name).strip()
     if not name:
@@ -385,7 +385,7 @@ def update_permissions_tool_in_config(tool_name: str, level: Any) -> dict[str, A
 
 
 def delete_permissions_tool_in_config(tool_name: str) -> bool:
-    """从 ``permissions.tools`` 中删除一个键；不存在则返回 False。"""
+    """從 ``permissions.tools`` 中刪除一個鍵；不存在則返回 False。"""
     name = str(tool_name).strip()
     if not name:
         raise ValueError("tool name must be non-empty")
@@ -429,7 +429,7 @@ def _validate_tools_map(tools: Any) -> dict[str, str]:
 
 
 def get_permissions_rules() -> dict[str, Any]:
-    """返回 ``permissions.rules`` 列表（仅 dict 项）。"""
+    """返回 ``permissions.rules`` 列表（僅 dict 項）。"""
     cfg = get_config() or {}
     rules = (cfg.get("permissions") or {}).get("rules")
     if not isinstance(rules, list):
@@ -438,7 +438,7 @@ def get_permissions_rules() -> dict[str, Any]:
 
 
 def get_permissions_approval_overrides() -> dict[str, Any]:
-    """返回 ``permissions.approval_overrides`` 列表（仅 dict 项）。"""
+    """返回 ``permissions.approval_overrides`` 列表（僅 dict 項）。"""
     cfg = get_config() or {}
     raw = (cfg.get("permissions") or {}).get("approval_overrides")
     if not isinstance(raw, list):
@@ -447,7 +447,7 @@ def get_permissions_approval_overrides() -> dict[str, Any]:
 
 
 def create_permissions_rule_in_config(rule: dict[str, Any]) -> dict[str, Any]:
-    """追加一条 ``permissions.rules`` 项，返回落盘后的规则（含 ``id``）。"""
+    """追加一條 ``permissions.rules`` 項，返回落盤後的規則（含 ``id``）。"""
     if not isinstance(rule, dict):
         raise ValueError("rule must be an object")
     rid = str(rule.get("id") or "").strip() or f"ui_rule_{uuid.uuid4().hex[:12]}"
@@ -480,7 +480,7 @@ def create_permissions_rule_in_config(rule: dict[str, Any]) -> dict[str, Any]:
 
 
 def update_permissions_rule_in_config(rule_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-    """按 ``id`` 合并更新一条 rule。"""
+    """按 ``id`` 合併更新一條 rule。"""
     rid = str(rule_id or "").strip()
     if not rid:
         raise ValueError("id is required")
@@ -528,7 +528,7 @@ def update_permissions_rule_in_config(rule_id: str, patch: dict[str, Any]) -> di
 
 
 def delete_permissions_rule_in_config(rule_id: str) -> bool:
-    """删除 ``permissions.rules`` 中指定 ``id``；若未找到返回 False。"""
+    """刪除 ``permissions.rules`` 中指定 ``id``；若未找到返回 False。"""
     rid = str(rule_id or "").strip()
     if not rid:
         raise ValueError("id is required")
@@ -547,7 +547,7 @@ def delete_permissions_rule_in_config(rule_id: str) -> bool:
 
 
 def delete_permissions_approval_override_in_config(override_id: str) -> bool:
-    """按 ``id`` 删除 ``approval_overrides`` 中一项；若未找到返回 False。"""
+    """按 ``id`` 刪除 ``approval_overrides`` 中一項；若未找到返回 False。"""
     oid = str(override_id or "").strip()
     if not oid:
         raise ValueError("id is required")
@@ -588,13 +588,13 @@ def _normalize_rule_severity_action(rule: dict[str, Any]) -> None:
 
 
 def _parse_custom_headers(value: str | None) -> dict[str, Any] | None:
-    """解析 custom_headers 配置，支持 JSON 字符串格式。
+    """解析 custom_headers 配置，支援 JSON 字串格式。
 
     Args:
-        value: 环境变量值，可以是 None、空字符串或 JSON 字符串
+        value: 環境變數值，可以是 None、空字串或 JSON 字串
 
     Returns:
-        解析后的字典，如果输入为空或解析失败则返回 None
+        解析後的字典，如果輸入為空或解析失敗則返回 None
     """
     if not value or value.strip() == "":
         return None
@@ -610,12 +610,12 @@ def _parse_custom_headers(value: str | None) -> dict[str, Any] | None:
 
 
 def _infer_is_default(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """为模型条目列表推断 is_default 字段。
+    """為模型條目列表推斷 is_default 欄位。
 
-    规则：
-    - 同 model_name 组内仅一个条目 → is_default = True
-    - 同 model_name 组内多个条目 → 第一个为 True，其余为 False
-    - 已有 is_default 字段且为 True 的条目保留，同组内其余置 False
+    規則：
+    - 同 model_name 組內僅一個條目 → is_default = True
+    - 同 model_name 組內多個條目 → 第一個為 True，其餘為 False
+    - 已有 is_default 欄位且為 True 的條目保留，同組內其餘置 False
     """
     from collections import OrderedDict
     import copy
@@ -656,7 +656,7 @@ def _infer_is_default(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _decrypt_model_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """解密模型条目中的 api_key 字段，返回深拷贝不改变原始数据。同时推断 is_default。"""
+    """解密模型條目中的 api_key 欄位，返回深複製不改變原始資料。同時推斷 is_default。"""
     import copy
 
     result = copy.deepcopy(entries)
@@ -685,10 +685,10 @@ def _decrypt_model_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]
 
 
 def get_default_models(config: dict[str, Any] | None = None) -> list[dict[str, Any]]:
-    """获取默认模型列表，兼容新旧格式。
+    """獲取預設模型列表，相容新舊格式。
 
-    优先级：models.defaults（列表） > models.default（单对象） > 环境变量回退
-    返回的 api_key 已解密。每个条目可能含顶层 alias 字段。
+    優先順序：models.defaults（列表） > models.default（單物件） > 環境變數回退
+    返回的 api_key 已解密。每個條目可能含頂層 alias 欄位。
     """
     if config is None:
         config = get_config()
@@ -698,11 +698,11 @@ def get_default_models(config: dict[str, Any] | None = None) -> list[dict[str, A
     if "defaults" in models and isinstance(models["defaults"], list) and models["defaults"]:
         return _decrypt_model_entries(models["defaults"])
 
-    # 旧格式：单个 default 对象 → 包装为列表
+    # 舊格式：單個 default 物件 → 包裝為列表
     if "default" in models and isinstance(models["default"], dict):
         return _decrypt_model_entries([models["default"]])
 
-    # 回退：从环境变量构造（env var 已在 resolve_env_vars 中解密）
+    # 回退：從環境變數構造（env var 已在 resolve_env_vars 中解密）
     alias = os.getenv("MODEL_ALIAS", "")
     entry: dict[str, Any] = {
         "model_client_config": {
@@ -722,7 +722,7 @@ def get_default_models(config: dict[str, Any] | None = None) -> list[dict[str, A
 
 
 def update_default_models_in_config(models_list: list[dict[str, Any]]) -> None:
-    """将默认模型列表写入 config.yaml 的 models.defaults 段。"""
+    """將預設模型列表寫入 config.yaml 的 models.defaults 段。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "models" not in data:
         data["models"] = {}
@@ -756,7 +756,7 @@ def _transform_front_team_model_config(model_raw: dict[str, Any]) -> dict[str, A
     model_client_config: dict[str, Any] = {}
     model_request_config: dict[str, Any] = {}
 
-    # 从 models.defaults 列表中按 #index 查找完整配置
+    # 從 models.defaults 列表中按 #index 查詢完整配置
     model_value = model_raw.get("model")
     if model_value and isinstance(model_value, str) and "#" in model_value:
         sep = model_value.rfind("#")
@@ -782,7 +782,7 @@ def _transform_front_team_model_config(model_raw: dict[str, Any]) -> dict[str, A
                     if isinstance(mco, dict):
                         model_request_config.update(mco)
 
-    # 前端字段覆盖（优先级高于 #index 解析）
+    # 前端欄位覆蓋（優先順序高於 #index 解析）
     if "provider" in model_raw and model_raw["provider"] is not None:
         model_client_config["client_provider"] = model_raw["provider"]
     if "api_base" in model_raw and model_raw["api_base"] is not None:
@@ -790,7 +790,7 @@ def _transform_front_team_model_config(model_raw: dict[str, Any]) -> dict[str, A
     if "api_key" in model_raw and model_raw["api_key"] is not None:
         model_client_config["api_key"] = model_raw["api_key"]
     if "model" in model_raw and model_raw["model"] is not None:
-        # 若包含 #index，提取纯 model_name
+        # 若包含 #index，提取純 model_name
         raw_model = model_raw["model"]
         if isinstance(raw_model, str) and "#" in raw_model:
             model_request_config["model"] = raw_model[:raw_model.rfind("#")]
@@ -956,7 +956,7 @@ def replace_teams_in_config(front_payload: dict[str, Any]) -> None:
 
 
 def get_mcp_servers() -> list[dict[str, Any]]:
-    """读取 config.yaml 中的 mcp.servers（原始结构，不解析环境变量）。"""
+    """讀取 config.yaml 中的 mcp.servers（原始結構，不解析環境變數）。"""
     data = get_config_raw()
     mcp_cfg = data.get("mcp", {})
     if not isinstance(mcp_cfg, dict):
@@ -968,7 +968,7 @@ def get_mcp_servers() -> list[dict[str, Any]]:
 
 
 def upsert_mcp_server_in_config(server: dict[str, Any]) -> tuple[dict[str, Any], bool]:
-    """新增或更新 mcp.servers 条目，返回（条目, 是否创建）。"""
+    """新增或更新 mcp.servers 條目，返回（條目, 是否建立）。"""
     name = str(server.get("name", "")).strip()
     if not name:
         raise ValueError("MCP server name is required")
@@ -997,7 +997,7 @@ def upsert_mcp_server_in_config(server: dict[str, Any]) -> tuple[dict[str, Any],
 
 
 def set_mcp_server_enabled_in_config(name: str, enabled: bool) -> dict[str, Any]:
-    """切换 mcp.servers 指定 name 的 enabled 状态并返回更新后的条目。"""
+    """切換 mcp.servers 指定 name 的 enabled 狀態並返回更新後的條目。"""
     target = str(name or "").strip()
     if not target:
         raise ValueError("MCP server name is required")
@@ -1019,7 +1019,7 @@ def set_mcp_server_enabled_in_config(name: str, enabled: bool) -> dict[str, Any]
 
 
 def get_mcp_server_config(name: str) -> dict[str, Any] | None:
-    """按名称读取单个 mcp server 配置（原始结构）。"""
+    """按名稱讀取單個 mcp server 配置（原始結構）。"""
     target = str(name or "").strip()
     if not target:
         return None
@@ -1030,7 +1030,7 @@ def get_mcp_server_config(name: str) -> dict[str, Any] | None:
 
 
 def remove_mcp_server_in_config(name: str) -> dict[str, Any]:
-    """删除指定 mcp server 配置并返回被删除的条目。"""
+    """刪除指定 mcp server 配置並返回被刪除的條目。"""
     target = str(name or "").strip()
     if not target:
         raise ValueError("MCP server name is required")
@@ -1054,7 +1054,7 @@ def remove_mcp_server_in_config(name: str) -> dict[str, Any]:
 
 
 def update_memory_forbidden_enabled_in_config(value: bool) -> None:
-    """更新 memory.forbidden_memory_definition.enabled（记忆系统敏感信息过滤开关）并写回。"""
+    """更新 memory.forbidden_memory_definition.enabled（記憶系統敏感資訊過濾開關）並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "memory" not in data:
         data["memory"] = {}
@@ -1065,7 +1065,7 @@ def update_memory_forbidden_enabled_in_config(value: bool) -> None:
 
 
 def update_memory_forbidden_description_in_config(description: dict[str, str]) -> None:
-    """更新 memory.forbidden_memory_definition.description（禁止记忆内容描述）并写回。"""
+    """更新 memory.forbidden_memory_definition.description（禁止記憶內容描述）並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "memory" not in data:
         data["memory"] = {}
@@ -1073,7 +1073,7 @@ def update_memory_forbidden_description_in_config(description: dict[str, str]) -
         data["memory"]["forbidden_memory_definition"] = {}
     if "description" not in data["memory"]["forbidden_memory_definition"]:
         data["memory"]["forbidden_memory_definition"]["description"] = {}
-    # 合并描述，保留其他语言的描述
+    # 合併描述，保留其他語言的描述
     current_desc = data["memory"]["forbidden_memory_definition"]["description"] or {}
     if isinstance(current_desc, dict):
         data["memory"]["forbidden_memory_definition"]["description"] = {**current_desc, **description}
@@ -1083,7 +1083,7 @@ def update_memory_forbidden_description_in_config(description: dict[str, str]) -
 
 
 def update_memory_forbidden_in_config(updates: dict[str, Any]) -> None:
-    """更新 memory.forbidden_memory_definition 并写回。"""
+    """更新 memory.forbidden_memory_definition 並寫回。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "memory" not in data:
         data["memory"] = {}
@@ -1190,7 +1190,7 @@ def migrate_config_from_template(
 
 # ---------- 模型配置管理 ----------
 def get_model_names() -> list[str]:
-    """获取可切换的模型名称列表（去重）。优先从 models.defaults 列表读取。"""
+    """獲取可切換的模型名稱列表（去重）。優先從 models.defaults 列表讀取。"""
     data = get_config_raw()
     models = data.get("models", {})
     defaults_list = models.get("defaults")
@@ -1214,7 +1214,7 @@ def get_model_names() -> list[str]:
 
 
 def add_or_update_model_in_config(name: str, model_config: dict[str, Any]) -> None:
-    """新增或更新一个模型配置，写入 config.yaml 的 models.<name> 节点。"""
+    """新增或更新一個模型配置，寫入 config.yaml 的 models.<name> 節點。"""
     data = _load_yaml_round_trip(_CONFIG_YAML_PATH)
     if "models" not in data:
         data["models"] = {}
@@ -1231,11 +1231,11 @@ def add_or_update_model_in_config(name: str, model_config: dict[str, Any]) -> No
 
 
 def get_model_config(name: str, index: int | None = None) -> dict[str, Any] | None:
-    """获取指定模型的原始配置（不解析环境变量）。
+    """獲取指定模型的原始配置（不解析環境變數）。
 
-    优先从 models.defaults 列表中按 model_name 查找。
-    当存在同名模型时，可通过 index 参数指定第几个匹配项（0-based）。
-    若 index 为 None，返回 is_default=True 的条目；若无则返回第一个匹配。
+    優先從 models.defaults 列表中按 model_name 查詢。
+    當存在同名模型時，可透過 index 引數指定第幾個匹配項（0-based）。
+    若 index 為 None，返回 is_default=True 的條目；若無則返回第一個匹配。
     """
     data = get_config_raw()
     models = data.get("models", {})
@@ -1249,7 +1249,7 @@ def get_model_config(name: str, index: int | None = None) -> dict[str, Any] | No
             if resolve_env_vars(str(entry_name)) == name:
                 matches.append((i, entry))
         if not matches:
-            # 按 alias 查找（alias 全局唯一，index 无意义）
+            # 按 alias 查詢（alias 全域性唯一，index 無意義）
             for entry in defaults_list:
                 if not isinstance(entry, dict):
                     continue

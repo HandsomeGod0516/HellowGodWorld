@@ -24,7 +24,7 @@ from jiuwenclaw.common.utils import get_cron_jobs_path
 
 logger = logging.getLogger(__name__)
 
-# 按 asyncio Task 隔离：多 session 并发时不能用单例字段存路由，否则后到的请求会覆盖先到的 session_id。
+# 按 asyncio Task 隔離：多 session 併發時不能用單例欄位存路由，否則後到的請求會覆蓋先到的 session_id。
 _cron_route_ctx: contextvars.ContextVar[CronToolRoute | None] = contextvars.ContextVar(
     "jiuwenclaw_cron_route", default=None
 )
@@ -32,7 +32,7 @@ _cron_route_ctx: contextvars.ContextVar[CronToolRoute | None] = contextvars.Cont
 
 @dataclass(frozen=True, slots=True)
 class CronToolRoute:
-    """当前请求同步到 Gateway 时使用的路由（request_id / channel / session / chat_type）。"""
+    """當前請求同步到 Gateway 時使用的路由（request_id / channel / session / chat_type）。"""
 
     request_id: str = ""
     channel_id: str = CronTargetChannel.WEB.value
@@ -43,10 +43,10 @@ class CronToolRoute:
 class CronTools:
     """Agent-side cron tools with local cron_jobs.json as source of truth.
 
-    路由用 ContextVar 按 Task 隔离（与 interface 中 ``push_cron_route`` / ``reset_cron_route`` 配对）；
-    同进程一套 LocalFunction，并发安全依赖当前 asyncio 任务的上下文而非单例可变字段。
+    路由用 ContextVar 按 Task 隔離（與 interface 中 ``push_cron_route`` / ``reset_cron_route`` 配對）；
+    同程序一套 LocalFunction，併發安全依賴當前 asyncio 任務的上下文而非單例可變欄位。
     
-    包含内置调度器，即使 Gateway 未启动也能执行定时任务。
+    包含內建排程器，即使 Gateway 未啟動也能執行定時任務。
     """
 
     def __init__(
@@ -60,7 +60,7 @@ class CronTools:
         self._local_store = CronJobStore(
             path=get_cron_jobs_path()
         )
-        # 内置调度器，用于在 Agent-side 执行定时任务
+        # 內建排程器，用於在 Agent-side 執行定時任務
         self._scheduler: CronSchedulerService | None = None
         self._agent_client = agent_client
         self._message_handler = message_handler
@@ -129,7 +129,7 @@ class CronTools:
 
     @staticmethod
     def push_cron_route(route: CronToolRoute) -> contextvars.Token:
-        """进入一轮 Agent 执行前调用；须与 ``reset_cron_route`` 配对（通常在 finally 中）。"""
+        """進入一輪 Agent 執行前呼叫；須與 ``reset_cron_route`` 配對（通常在 finally 中）。"""
         return _cron_route_ctx.set(route)
 
     @staticmethod

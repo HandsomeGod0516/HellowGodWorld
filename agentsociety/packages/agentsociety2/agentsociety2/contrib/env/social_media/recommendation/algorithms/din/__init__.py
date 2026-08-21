@@ -1,5 +1,5 @@
 """
-DIN (Deep Interest Network) 算法模块
+DIN (Deep Interest Network) 演算法模組
 """
 
 from .config import DINConfig

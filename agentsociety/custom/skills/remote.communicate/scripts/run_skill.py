@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'cafe']
 TARGET_INTERACTIONS = ['video_call_family', 'chat_over_coffee']
 STATUS = 'remote_comms'
 EMOTION = 'warm'
-SPEECH = '我先远程确认对方情况，再决定下一步。'
+SPEECH = '我先遠端確認對方情況，再決定下一步。'
 MEMORY_TEMPLATE = 'Used remote.communicate: {summary} at {location_id}.'
 
 

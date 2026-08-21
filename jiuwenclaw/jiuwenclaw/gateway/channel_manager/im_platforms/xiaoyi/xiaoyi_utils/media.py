@@ -1,7 +1,7 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""XiaoYi Media Utils - 媒体下载、处理和保存功能。
-基于 TypeScript xiaoyi-media.ts 实现。
+"""XiaoYi Media Utils - 媒體下載、處理和儲存功能。
+基於 TypeScript xiaoyi-media.ts 實現。
 """
 
 import asyncio
@@ -23,7 +23,7 @@ _TMP_MEDIA_PATH = get_xy_tmp_dir()
 # ==================== Configuration ====================
 @dataclass
 class MediaDownloadOptions:
-    """媒体下载选项."""
+    """媒體下載選項."""
     max_bytes: int = 30_000_000  # 30MB default
     timeout_ms: int = 60_000  # 60 seconds default
 
@@ -31,7 +31,7 @@ class MediaDownloadOptions:
 # ==================== Data Classes ====================
 @dataclass
 class DownloadedMedia:
-    """已下载的媒体文件."""
+    """已下載的媒體檔案."""
     path: str
     content_type: str
     placeholder: str
@@ -40,7 +40,7 @@ class DownloadedMedia:
 
 @dataclass
 class MediaFile:
-    """待下载的媒体文件信息."""
+    """待下載的媒體檔案資訊."""
     uri: str
     mime_type: str
     name: str
@@ -48,17 +48,17 @@ class MediaFile:
 
 # ==================== MIME Type Detection ====================
 def is_image_mime_type(mime_type: str | None) -> bool:
-    """检查 MIME 类型是否为图片."""
+    """檢查 MIME 型別是否為圖片."""
     if not mime_type:
         return False
 
     lower = mime_type.lower()
 
-    # 标准格式: image/jpeg, image/png 等
+    # 標準格式: image/jpeg, image/png 等
     if lower.startswith("image/"):
         return True
 
-    # 处理非标准格式，如 "jpeg" 而非 "image/jpeg"
+    # 處理非標準格式，如 "jpeg" 而非 "image/jpeg"
     if "/" in lower:
         subtype = lower.split("/")[1]
     else:
@@ -69,12 +69,12 @@ def is_image_mime_type(mime_type: str | None) -> bool:
 
 
 def is_pdf_mime_type(mime_type: str | None) -> bool:
-    """检查 MIME 类型是否为 PDF."""
+    """檢查 MIME 型別是否為 PDF."""
     return (mime_type or "").lower() == "application/pdf"
 
 
 def is_text_mime_type(mime_type: str | None) -> bool:
-    """检查 MIME 类型是否为文本类型."""
+    """檢查 MIME 型別是否為文字型別."""
     if not mime_type:
         return False
 
@@ -90,7 +90,7 @@ def is_text_mime_type(mime_type: str | None) -> bool:
 
 
 def _infer_placeholder(mime_type: str) -> str:
-    """根据 MIME 类型推断占位符文本。"""
+    """根據 MIME 型別推斷佔位符文字。"""
     if mime_type.startswith("image/"):
         return "<media:image>"
     elif mime_type.startswith("video/"):
@@ -112,7 +112,7 @@ async def _fetch_from_url(
     timeout_ms: int
 ) -> tuple[bytes, str]:
     """
-    从 URL 下载内容。
+    從 URL 下載內容。
 
     Returns:
         tuple[bytes, str]: (buffer, mime_type)
@@ -128,7 +128,7 @@ async def _fetch_from_url(
             ) as response:
                 response.raise_for_status()
 
-                # 检查 content-length header (如果可用)
+                # 檢查 content-length header (如果可用)
                 content_length = response.headers.get("content-length")
                 if content_length:
                     size = int(content_length)
@@ -140,7 +140,7 @@ async def _fetch_from_url(
                 if len(buffer) > max_bytes:
                     raise ValueError(f"File too large: {len(buffer)} bytes (limit: {max_bytes})")
 
-                # 检测 MIME 类型
+                # 檢測 MIME 型別
                 content_type = response.headers.get("content-type", "application/octet-stream")
                 mime_type = content_type.split(";")[0].strip() if ";" in content_type else content_type
 
@@ -163,17 +163,17 @@ async def download_and_save_media(
     save_dir: str | None = None
 ) -> DownloadedMedia:
     """
-    下载并保存媒体文件到本地磁盘。
+    下載並儲存媒體檔案到本地磁碟。
 
     Args:
-        url: 文件 URL
-        mime_type: MIME 类型
-        file_name: 文件名
-        options: 下载选项
-        save_dir: 保存目录 (如果 None，使用临时目录)
+        url: 檔案 URL
+        mime_type: MIME 型別
+        file_name: 檔名
+        options: 下載選項
+        save_dir: 儲存目錄 (如果 None，使用臨時目錄)
 
     Returns:
-        DownloadedMedia: 已下载的媒体信息
+        DownloadedMedia: 已下載的媒體資訊
     """
     if options is None:
         options = MediaDownloadOptions()
@@ -183,13 +183,13 @@ async def download_and_save_media(
     try:
         buffer, detected_mime_type = await _fetch_from_url(url, options.max_bytes, options.timeout_ms)
 
-        # 使用检测到的 MIME 类型（如果提供的类型是通用的）
+        # 使用檢測到的 MIME 型別（如果提供的型別是通用的）
         final_mime_type = detected_mime_type if mime_type == "application/octet-stream" else mime_type
 
         logger.info(f"[XiaoYi Media] Downloaded {len(buffer)} bytes, MIME: {final_mime_type}")
 
-        # 这里简化：由于 Python 版本没有直接访问 runtime.channel.media.saveMediaBuffer 的方式，
-        # 我们返回路径占位符，实际的保存由调用者处理
+        # 這裡簡化：由於 Python 版本沒有直接訪問 runtime.channel.media.saveMediaBuffer 的方式，
+        # 我們返回路徑佔位符，實際的儲存由呼叫者處理
         placeholder = _infer_placeholder(final_mime_type)
         
         if not _TMP_MEDIA_PATH.exists():
@@ -200,7 +200,7 @@ async def download_and_save_media(
             f.write(buffer)
 
         return DownloadedMedia(
-            path=file_path,  # 实际项目中应该保存并返回本地路径
+            path=file_path,  # 實際專案中應該儲存並返回本地路徑
             content_type=final_mime_type,
             placeholder=placeholder,
             file_name=file_name,
@@ -222,14 +222,14 @@ async def download_and_save_media_list(
     options: MediaDownloadOptions | None = None
 ) -> list[DownloadedMedia]:
     """
-    下载并保存多个媒体文件。
+    下載並儲存多個媒體檔案。
 
     Args:
-        files: 待下载的文件列表
-        options: 下载选项
+        files: 待下載的檔案列表
+        options: 下載選項
 
     Returns:
-        list[DownloadedMedia]: 已下载的媒体信息列表
+        list[DownloadedMedia]: 已下載的媒體資訊列表
     """
     if options is None:
         options = MediaDownloadOptions()
@@ -247,7 +247,7 @@ async def download_and_save_media_list(
             results.append(downloaded)
         except Exception as e:
             logger.error(f"[XiaoYi Media] Failed to download {file.name}: {e}")
-            # 继续处理其他文件
+            # 繼續處理其他檔案
 
     return results
 
@@ -255,13 +255,13 @@ async def download_and_save_media_list(
 # ==================== Media Payload Building ====================
 def build_xiaoyi_media_payload(media_list: list[DownloadedMedia]) -> dict[str, Any]:
     """
-    构建入站消息的媒体载荷。
+    構建入站訊息的媒體載荷。
 
     Args:
-        media_list: 已下载的媒体列表
+        media_list: 已下載的媒體列表
 
     Returns:
-        dict: 包含 MediaPath, MediaType, MediaPaths, MediaTypes 等字段的载荷
+        dict: 包含 MediaPath, MediaType, MediaPaths, MediaTypes 等欄位的載荷
     """
     if not media_list:
         return {}
@@ -273,36 +273,36 @@ def build_xiaoyi_media_payload(media_list: list[DownloadedMedia]) -> dict[str, A
 # ==================== Image Extraction ====================
 @dataclass
 class InputImageContent:
-    """用于 AI 处理的图片内容。"""
+    """用於 AI 處理的圖片內容。"""
     type: str = "image"
-    data: str = ""  # Base64 编码的图片数据
+    data: str = ""  # Base64 編碼的圖片資料
     mime_type: str = ""
 
 
 @dataclass
 class ImageLimits:
-    """图片下载限制。"""
+    """圖片下載限制。"""
     max_bytes: int = 10_000_000  # 10MB default
     timeout_ms: int = 30_000  # 30 seconds default
 
 
 async def extract_image_from_url(url: str, limits: ImageLimits | None = None) -> InputImageContent:
     """
-    从 URL 提取图片并返回 Base64 编码数据。
+    從 URL 提取圖片並返回 Base64 編碼資料。
 
     Args:
-        url: 图片 URL
-        limits: 下载限制
+        url: 圖片 URL
+        limits: 下載限制
 
     Returns:
-        InputImageContent: 包含 Base64 编码的图片内容
+        InputImageContent: 包含 Base64 編碼的圖片內容
     """
     if limits is None:
         limits = ImageLimits()
 
     buffer, mime_type = await _fetch_from_url(url, limits.max_bytes, limits.timeout_ms)
 
-    # 验证是否为图片 MIME 类型
+    # 驗證是否為圖片 MIME 型別
     if not is_image_mime_type(mime_type):
         raise ValueError(f"Unsupported image type: {mime_type}")
 
@@ -319,15 +319,15 @@ async def extract_text_from_url(
     timeout_ms: int = 30_000
 ) -> str:
     """
-    从 URL 提取文本内容。
+    從 URL 提取文字內容。
 
     Args:
-        url: 文件 URL
-        max_bytes: 最大字节数 (默认 5MB)
-        timeout_ms: 超时时间 (默认 30 秒)
+        url: 檔案 URL
+        max_bytes: 最大位元組數 (預設 5MB)
+        timeout_ms: 超時時間 (預設 30 秒)
 
     Returns:
-        str: 文本内容
+        str: 文字內容
     """
     buffer, mime_type = await _fetch_from_url(url, max_bytes, timeout_ms)
 

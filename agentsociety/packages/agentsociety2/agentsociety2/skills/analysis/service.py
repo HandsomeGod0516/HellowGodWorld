@@ -1,4 +1,4 @@
-"""编排层：单实验 `Analyzer`、多实验 `Synthesizer`、统一入口 `run_analysis_workflow`。"""
+"""編排層：單實驗 `Analyzer`、多實驗 `Synthesizer`、統一入口 `run_analysis_workflow`。"""
 
 import json
 import re
@@ -45,11 +45,11 @@ from .utils import (
 
 
 class Analyzer:
-    """分析入口：编排统一 AnalysisAgent 与 Reporter，产出单实验图文报告。"""
+    """分析入口：編排統一 AnalysisAgent 與 Reporter，產出單實驗圖文報告。"""
 
     def __init__(self, config: AnalysisConfig):
         """
-        初始化 Analyzer（单实验分析编排入口）。
+        初始化 Analyzer（單實驗分析編排入口）。
 
         Args:
             config: 分析配置
@@ -60,13 +60,13 @@ class Analyzer:
         self.presentation_path = self.workspace_path / DIR_PRESENTATION
         self.presentation_path.mkdir(parents=True, exist_ok=True)
 
-        self.logger.info("分析智能体初始化完成")
-        self.logger.info("  工作空间: %s", self.workspace_path)
-        self.logger.info("  分析产物: %s", self.presentation_path)
+        self.logger.info("分析智慧體初始化完成")
+        self.logger.info("  工作空間: %s", self.workspace_path)
+        self.logger.info("  分析產物: %s", self.presentation_path)
 
         self.agent = AnalysisAgent(config=config, workspace_path=self.workspace_path)
         self.logger.info(
-            "统一 AnalysisAgent 初始化完成，使用模型: %s", self.agent.model_name
+            "統一 AnalysisAgent 初始化完成，使用模型: %s", self.agent.model_name
         )
 
         self.asset_processor = AssetProcessor(self.workspace_path)
@@ -74,12 +74,12 @@ class Analyzer:
     def _find_database_path(
         self, hypothesis_id: str, experiment_id: str
     ) -> Optional[Path]:
-        """查找数据库路径（按约定目录结构）。"""
+        """查詢資料庫路徑（按約定目錄結構）。"""
         paths = experiment_paths(self.workspace_path, hypothesis_id, experiment_id)
         if paths.db_path.exists():
-            self.logger.info("找到数据库: %s", paths.db_path)
+            self.logger.info("找到資料庫: %s", paths.db_path)
             return paths.db_path
-        self.logger.warning("数据库不存在: %s", paths.db_path)
+        self.logger.warning("資料庫不存在: %s", paths.db_path)
         return None
 
     async def analyze(
@@ -91,22 +91,22 @@ class Analyzer:
         on_progress: AnalysisProgressCallback = None,
     ) -> Dict[str, Any]:
         """
-        分析单实验，生成图文报告。
+        分析單實驗，生成圖文報告。
 
-        使用统一的 AnalysisAgent 执行数据优先的分析流程：
-        1. 读取并理解数据结构
-        2. 基于实际数据生成洞察
-        3. 执行数据分析和可视化
-        4. 生成报告
+        使用統一的 AnalysisAgent 執行資料優先的分析流程：
+        1. 讀取並理解資料結構
+        2. 基於實際資料生成洞察
+        3. 執行資料分析和視覺化
+        4. 生成報告
 
         Args:
-            hypothesis_id: 假设ID
-            experiment_id: 实验ID
-            custom_instructions: 可选的自定义分析指令
-            literature_summary: 可选的文献摘要
-            on_progress: 可选的进度回调
+            hypothesis_id: 假設ID
+            experiment_id: 實驗ID
+            custom_instructions: 可選的自定義分析指令
+            literature_summary: 可選的文獻摘要
+            on_progress: 可選的進度回撥
         """
-        self.logger.info("开始分析实验 %s", experiment_id)
+        self.logger.info("開始分析實驗 %s", experiment_id)
 
         async def progress(msg: str) -> None:
             if on_progress:
@@ -122,7 +122,7 @@ class Analyzer:
         pres.charts_dir.mkdir(parents=True, exist_ok=True)
         db_path = self._find_database_path(hypothesis_id, experiment_id)
 
-        # 使用统一的 AnalysisAgent 执行完整分析
+        # 使用統一的 AnalysisAgent 執行完整分析
         await progress("Running unified data-aware analysis...")
         analysis_result, data_analysis_result = await self.agent.analyze(
             context=context,
@@ -135,7 +135,7 @@ class Analyzer:
 
         data_analyzed = db_path is not None and db_path.exists()
 
-        # 收集生成的图表
+        # 收集生成的圖表
         for chart_path in data_analysis_result.get("generated_charts", []):
             asset = ReportAsset(
                 asset_id=f"gen_{chart_path.stem}",
@@ -149,14 +149,14 @@ class Analyzer:
             assets.append(asset)
 
         self.logger.info(
-            "数据分析完成: %s 张图表生成",
+            "資料分析完成: %s 張圖表生成",
             len(data_analysis_result.get("generated_charts", [])),
         )
 
         eda_profile_path = data_analysis_result.get("eda_profile_path")
         eda_sweetviz_path = data_analysis_result.get("eda_sweetviz_path")
 
-        # 如果 EDA 未生成，尝试生成
+        # 如果 EDA 未生成，嘗試生成
         if db_path and (eda_profile_path is None or eda_sweetviz_path is None):
             data_dir = pres.output_dir / DIR_DATA
             data_dir.mkdir(parents=True, exist_ok=True)
@@ -164,11 +164,11 @@ class Analyzer:
             if eda_profile_path is None:
                 eda_profile_path = eda_gen.generate_ydata_profile(db_path, data_dir)
                 if eda_profile_path:
-                    self.logger.info("EDA 概览备选生成: %s", eda_profile_path)
+                    self.logger.info("EDA 概覽備選生成: %s", eda_profile_path)
             if eda_sweetviz_path is None:
                 eda_sweetviz_path = eda_gen.generate_sweetviz_profile(db_path, data_dir)
                 if eda_sweetviz_path:
-                    self.logger.info("Sweetviz EDA 概览备选生成: %s", eda_sweetviz_path)
+                    self.logger.info("Sweetviz EDA 概覽備選生成: %s", eda_sweetviz_path)
 
         await progress("Processing assets...")
         processed_assets = self.asset_processor.process_assets(assets, pres.output_dir)
@@ -193,7 +193,7 @@ class Analyzer:
         )
 
         self.logger.info(
-            "报告生成完成: report_complete=%s, files=%s",
+            "報告生成完成: report_complete=%s, files=%s",
             report_complete,
             list(generated_files.keys()),
         )
@@ -222,7 +222,7 @@ class Analyzer:
         hypothesis_id: str,
         experiment_id: str,
     ) -> ExperimentContext:
-        """从文件和数据库加载实验上下文。"""
+        """從檔案和資料庫載入實驗上下文。"""
         paths = experiment_paths(self.workspace_path, hypothesis_id, experiment_id)
         if not paths.experiment_path.exists():
             raise ValueError(
@@ -251,7 +251,7 @@ class Analyzer:
         experiment_path: Path,
         hypothesis_id: str,
     ) -> ExperimentDesign:
-        """从 HYPOTHESIS.md / EXPERIMENT.md 读取原始 Markdown 文本。"""
+        """從 HYPOTHESIS.md / EXPERIMENT.md 讀取原始 Markdown 文字。"""
         design_data: Dict[str, Any] = {
             "hypothesis": "Hypothesis not specified",
             "objectives": [],
@@ -265,7 +265,7 @@ class Analyzer:
         if hypothesis_md_path.exists():
             content = hypothesis_md_path.read_text(encoding="utf-8")
             design_data["hypothesis_markdown"] = content
-            # 跳过标题行（以 # 开头），取第一条实质性内容作为 hypothesis
+            # 跳過標題行（以 # 開頭），取第一條實質性內容作為 hypothesis
             for line in content.splitlines():
                 s = line.strip()
                 if s and not s.startswith("#"):
@@ -278,14 +278,14 @@ class Analyzer:
                 )
                 if first_non_empty:
                     design_data["hypothesis"] = first_non_empty[:500]
-            self.logger.info("从 %s 加载假设", hypothesis_md_path)
+            self.logger.info("從 %s 載入假設", hypothesis_md_path)
         else:
-            self.logger.warning("假设文件不存在: %s", hypothesis_md_path)
+            self.logger.warning("假設檔案不存在: %s", hypothesis_md_path)
         experiment_md_path = experiment_path / FILE_EXPERIMENT_MD
         if experiment_md_path.exists():
             content = experiment_md_path.read_text(encoding="utf-8")
             design_data["experiment_markdown"] = content
-            self.logger.info("从 %s 加载实验设计", experiment_md_path)
+            self.logger.info("從 %s 載入實驗設計", experiment_md_path)
         return ExperimentDesign(
             hypothesis=design_data.get("hypothesis", "Hypothesis not specified"),
             objectives=design_data.get("objectives", []),
@@ -297,7 +297,7 @@ class Analyzer:
         )
 
     async def _load_runtime_info(self, run_path: Path) -> Optional[float]:
-        """从 pid.json 读取开始/结束时间并计算 duration（以秒为单位）。"""
+        """從 pid.json 讀取開始/結束時間並計算 duration（以秒為單位）。"""
         pid_file = run_path / FILE_PID
         if not pid_file.exists():
             return None
@@ -326,7 +326,7 @@ class Analyzer:
         self,
         run_path: Path,
     ) -> Tuple[ExperimentStatus, float, List[str]]:
-        """从 pid.json 和（可选）sqlite 读取实验状态与完成度；先读库结构再按表查询。"""
+        """從 pid.json 和（可選）sqlite 讀取實驗狀態與完成度；先讀庫結構再按表查詢。"""
         db_path = run_path / FILE_SQLITE
         pid_file = run_path / FILE_PID
         errors: List[str] = []
@@ -348,7 +348,7 @@ class Analyzer:
                     status = ExperimentStatus.UNKNOWN
             except (json.JSONDecodeError, ValueError, OSError) as e:
                 errors.append(f"Failed to read pid.json: {e}")
-        # 补充采集 run/artifacts 与 output.log 中的失败信号，使分析上下文更贴近真实实验运行结果。
+        # 補充採集 run/artifacts 與 output.log 中的失敗訊號，使分析上下文更貼近真實實驗執行結果。
         runtime_errors = self._collect_runtime_failures(run_path)
         for msg in runtime_errors:
             if msg not in errors:
@@ -359,7 +359,7 @@ class Analyzer:
         return status, completion, errors
 
     def _collect_runtime_failures(self, run_path: Path) -> List[str]:
-        """从 run 目录中提取运行期失败信号（ask artifacts / output.log）。"""
+        """從 run 目錄中提取執行期失敗訊號（ask artifacts / output.log）。"""
         failures: List[str] = []
 
         artifacts_dir = run_path / "artifacts"
@@ -404,7 +404,7 @@ class Analyzer:
 
 
 class Synthesizer:
-    """综合子智能体：对多实验/多假设先逐条分析再综合，产出综合报告。"""
+    """綜合子智慧體：對多實驗/多假設先逐條分析再綜合，產出綜合報告。"""
 
     def __init__(
         self,
@@ -427,7 +427,7 @@ class Synthesizer:
         )
 
     def _discover_ids_by_prefix(self, base_path: Path, prefix: str) -> List[str]:
-        """在 base_path 下按 prefix 发现子目录 id 列表。"""
+        """在 base_path 下按 prefix 發現子目錄 id 列表。"""
         if not base_path.exists():
             return []
         ids: List[str] = []
@@ -440,18 +440,18 @@ class Synthesizer:
         return sorted(set(ids))
 
     def _discover_hypotheses(self) -> List[str]:
-        """自动发现工作区下的 hypothesis 目录。"""
+        """自動發現工作區下的 hypothesis 目錄。"""
         return self._discover_ids_by_prefix(self.workspace_path, DIR_HYPOTHESIS_PREFIX)
 
     def _discover_experiments(self, hypothesis_id: str) -> List[str]:
-        """自动发现某个假设下的实验目录（路径经 experiment_paths 清洗）。"""
+        """自動發現某個假設下的實驗目錄（路徑經 experiment_paths 清洗）。"""
         paths = experiment_paths(self.workspace_path, hypothesis_id, "0")
         return self._discover_ids_by_prefix(
             paths.hypothesis_base, DIR_EXPERIMENT_PREFIX
         )
 
     async def _get_hypothesis_text(self, hypothesis_id: str) -> str:
-        """从 HYPOTHESIS.md 抽取一段最关键的假设描述（路径经 experiment_paths 清理）。"""
+        """從 HYPOTHESIS.md 抽取一段最關鍵的假設描述（路徑經 experiment_paths 清理）。"""
         paths = experiment_paths(self.workspace_path, hypothesis_id, "0")
         hyp_file = paths.hypothesis_base / FILE_HYPOTHESIS_MD
         if not hyp_file.exists():
@@ -474,7 +474,7 @@ class Synthesizer:
         service: Analyzer,
         on_progress: AnalysisProgressCallback = None,
     ) -> HypothesisSummary:
-        """分析一个假设下的一组实验，并聚合出总结。"""
+        """分析一個假設下的一組實驗，並聚合出總結。"""
         exp_ids = experiment_ids or self._discover_experiments(hypothesis_id)
         if not exp_ids:
             return HypothesisSummary(
@@ -506,7 +506,7 @@ class Synthesizer:
             except Exception as e:
                 msg = f"analysis exception: {e}"
                 self.logger.warning(
-                    "实验分析异常，已记录并继续: hypothesis=%s, experiment=%s, error=%s",
+                    "實驗分析異常，已記錄並繼續: hypothesis=%s, experiment=%s, error=%s",
                     hypothesis_id,
                     exp_id,
                     e,
@@ -572,7 +572,7 @@ class Synthesizer:
         custom_instructions: Optional[str],
         literature_summary: Optional[str] = None,
     ) -> ExperimentSynthesis:
-        """让分析子智能体基于各假设总结做跨假设综合，可结合文献。"""
+        """讓分析子智慧體基於各假設總結做跨假設綜合，可結合文獻。"""
         synthesis_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         def _fmt_summary(i: int, s: HypothesisSummary) -> str:
@@ -670,7 +670,7 @@ Return only XML in this format:
     def _generate_synthesis_charts(
         self, synthesis: ExperimentSynthesis, output_dir: Path
     ) -> List[Path]:
-        """生成综合分析的可视化图表（跨假设对比），用于综合报告。"""
+        """生成綜合分析的視覺化圖表（跨假設對比），用於綜合報告。"""
         assets_dir = output_dir / "assets"
         assets_dir.mkdir(parents=True, exist_ok=True)
         generated: List[Path] = []
@@ -700,11 +700,11 @@ Return only XML in this format:
             plt.close()
             generated.append(chart_path)
         except Exception as e:
-            self.logger.warning("综合图表生成失败: %s", e)
+            self.logger.warning("綜合圖表生成失敗: %s", e)
         return generated
 
     def _build_synthesis_report_context(self, synthesis: ExperimentSynthesis) -> str:
-        """构建综合报告上下文供分析子智能体使用。"""
+        """構建綜合報告上下文供分析子智慧體使用。"""
         lines: List[str] = []
         lines.append(f"# Synthesis Report ({synthesis.synthesis_id})")
         lines.append(f"- Workspace: {synthesis.workspace_path}")
@@ -775,7 +775,7 @@ Return only XML in this format:
     def _embed_synthesis_charts_in_markdown(
         self, md_path: Path, output_dir: Path, chart_paths: List[Path]
     ) -> None:
-        """将综合报告图表引用嵌入 Markdown。若分析子智能体未生成 ![](assets/...) 则追加。"""
+        """將綜合報告圖表引用嵌入 Markdown。若分析子智慧體未生成 ![](assets/...) 則追加。"""
         if not chart_paths:
             return
         md_content = md_path.read_text(encoding="utf-8")
@@ -792,12 +792,12 @@ Return only XML in this format:
             return
         section = "\n\n## Charts\n\n" + "\n\n".join(lines)
         md_path.write_text(md_content.rstrip() + section + "\n", encoding="utf-8")
-        self.logger.info("已嵌入 %d 张图表到综合报告 Markdown", len(lines))
+        self.logger.info("已嵌入 %d 張圖表到綜合報告 Markdown", len(lines))
 
     def _embed_synthesis_charts_in_html(
         self, html_path: Path, output_dir: Path, chart_paths: List[Path]
     ) -> None:
-        """将综合报告图表嵌入 HTML（base64），确保图表可见。"""
+        """將綜合報告圖表嵌入 HTML（base64），確保圖表可見。"""
         if not chart_paths:
             return
         html_content = html_path.read_text(encoding="utf-8")
@@ -831,7 +831,7 @@ Return only XML in this format:
         html_path.write_text(html_content, encoding="utf-8")
 
     def _has_individual_reports(self, synthesis: ExperimentSynthesis) -> bool:
-        """是否有可引用的单实验报告。"""
+        """是否有可引用的單實驗報告。"""
         for s in synthesis.hypothesis_summaries or []:
             for r in s.experiment_results or []:
                 if r.get("success") and r.get("generated_files"):
@@ -847,7 +847,7 @@ Return only XML in this format:
         chart_count: int,
         synthesis: Optional[ExperimentSynthesis] = None,
     ) -> Any:
-        """LLM 裁判：判断综合报告质量。"""
+        """LLM 裁判：判斷綜合報告質量。"""
         from pydantic import BaseModel
 
         class SynthesisReportJudgment(BaseModel):
@@ -886,16 +886,16 @@ Check: (1) Both MD and HTML present and meaningful? (2) HTML is complete documen
     async def _generate_synthesis_report(
         self, synthesis: ExperimentSynthesis
     ) -> Optional[Path]:
-        """生成综合报告。
+        """生成綜合報告。
 
-        由 LLM 根据综合内容与图表自主决定布局，直接生成 Markdown 与 HTML，
-        经裁判校验。支持重试机制，累积错误历史避免重复问题。
+        由 LLM 根據綜合內容與圖表自主決定佈局，直接生成 Markdown 與 HTML，
+        經裁判校驗。支援重試機制，累積錯誤歷史避免重複問題。
 
         Args:
-            synthesis: 实验综合结果对象。
+            synthesis: 實驗綜合結果物件。
 
         Returns:
-            生成的报告路径，失败时返回 None。
+            生成的報告路徑，失敗時返回 None。
         """
         output_dir = self.workspace_path / self.config.synthesis_output_dir_name
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -921,10 +921,10 @@ Check: (1) Both MD and HTML present and meaningful? (2) HTML is complete documen
                 "Include at least: Overview, Hypothesis Summary, Current Status, and Recommendations."
             )
         max_retries = self.config.max_synthesis_report_retries
-        error_history: list[str] = []  # 累积错误历史
+        error_history: list[str] = []  # 累積錯誤歷史
 
         for attempt in range(max_retries):
-            # 构建包含历史错误的反馈
+            # 構建包含歷史錯誤的反饋
             feedback_block = ""
             if error_history:
                 feedback_block = (
@@ -955,11 +955,11 @@ Use CDATA to wrap content. HTML must be a complete, well-styled document. If cha
                 data = parse_llm_report_response(raw)
             except XmlParseError as e:
                 if attempt >= max_retries - 1:
-                    self.logger.warning("综合报告 XML 解析失败: %s", e)
+                    self.logger.warning("綜合報告 XML 解析失敗: %s", e)
                     return report_md
-                error_history.append(f"XML解析错误: {str(e)[:200]}")
+                error_history.append(f"XML解析錯誤: {str(e)[:200]}")
                 continue
-            # 双语解析：优先取中文；markdown/html 为解析器计算出的聚合字段
+            # 雙語解析：優先取中文；markdown/html 為解析器計算出的聚合欄位
             md_content = (data.get("markdown_zh") or data.get("markdown") or "").strip()
             html_content = (data.get("html_zh") or data.get("html") or "").strip()
             md_content_en = (data.get("markdown_en") or "").strip()
@@ -972,10 +972,10 @@ Use CDATA to wrap content. HTML must be a complete, well-styled document. If cha
             )
             if is_too_short:
                 error_history.append(
-                    "报告内容过短 (< 150 chars)，必须包含完整章节"
+                    "報告內容過短 (< 150 chars)，必須包含完整章節"
                 )
                 self.logger.warning(
-                    "综合报告内容过短 (md=%d, html=%d chars)，正在重试 (%s/%s)",
+                    "綜合報告內容過短 (md=%d, html=%d chars)，正在重試 (%s/%s)",
                     len(md_content),
                     len(html_content),
                     attempt + 1,
@@ -983,7 +983,7 @@ Use CDATA to wrap content. HTML must be a complete, well-styled document. If cha
                 )
                 if attempt >= max_retries - 1:
                     self.logger.warning(
-                        "综合报告在 %d 次尝试后仍为空，保存部分结果。",
+                        "綜合報告在 %d 次嘗試後仍為空，儲存部分結果。",
                         max_retries,
                     )
                     if md_content or html_content:
@@ -1011,7 +1011,7 @@ Use CDATA to wrap content. HTML must be a complete, well-styled document. If cha
                         report_html, output_dir, chart_paths
                     )
                     synthesis.synthesis_report_html_path = str(report_html)
-                # 保存英文版（如存在且与中文不同）
+                # 儲存英文版（如存在且與中文不同）
                 if md_content_en and md_content_en != md_content:
                     en_md = output_dir / f"{FILE_SYNTHESIS_REPORT_PREFIX}{sid}_en.md"
                     en_md.write_text(md_content_en, encoding="utf-8")
@@ -1023,16 +1023,16 @@ Use CDATA to wrap content. HTML must be a complete, well-styled document. If cha
                 md_content, html_content, len(chart_paths), synthesis
             )
             if judgment.success:
-                self.logger.info("综合报告已保存: %s", report_md)
+                self.logger.info("綜合報告已儲存: %s", report_md)
                 return report_md
             if attempt >= max_retries - 1:
                 self.logger.warning(
-                    "综合报告裁判失败，已尝试 %d 次，保留最后输出。",
+                    "綜合報告裁判失敗，已嘗試 %d 次，保留最後輸出。",
                     max_retries,
                 )
                 return report_md
             error_history.append(f"{judgment.reason}. {judgment.retry_instruction}")
-            self.logger.info("综合报告需要改进: %s，正在重试", judgment.reason)
+            self.logger.info("綜合報告需要改進: %s，正在重試", judgment.reason)
 
         return report_md
 
@@ -1045,14 +1045,14 @@ Use CDATA to wrap content. HTML must be a complete, well-styled document. If cha
         on_progress: AnalysisProgressCallback = None,
     ) -> ExperimentSynthesis:
         """
-        执行多假设/多实验综合分析，可结合文献。
+        執行多假設/多實驗綜合分析，可結合文獻。
 
         Args:
-            hypothesis_ids: 指定 hypothesis_id 列表；不传则自动发现
-            experiment_ids: 指定 experiment_id 列表；不传则每个 hypothesis 自动发现
-            custom_instructions: 额外定制说明
-            literature_summary: 可选，文献调研摘要，会纳入单实验分析与综合报告
-            on_progress: 进度回调
+            hypothesis_ids: 指定 hypothesis_id 列表；不傳則自動發現
+            experiment_ids: 指定 experiment_id 列表；不傳則每個 hypothesis 自動發現
+            custom_instructions: 額外定製說明
+            literature_summary: 可選，文獻調研摘要，會納入單實驗分析與綜合報告
+            on_progress: 進度回撥
         """
 
         async def progress(msg: str) -> None:
@@ -1098,10 +1098,10 @@ async def run_analysis(
     on_progress: AnalysisProgressCallback = None,
 ) -> Dict[str, Any]:
     """
-    触发单实验分析，由分析子智能体产出图文报告。可选 literature_summary 结合文献。
+    觸發單實驗分析，由分析子智慧體產出圖文報告。可選 literature_summary 結合文獻。
 
     Returns:
-        分析结果字典（含 success、generated_files、analysis_result 等）
+        分析結果字典（含 success、generated_files、analysis_result 等）
     """
     config = AnalysisConfig(workspace_path=workspace_path)
     service = Analyzer(config)
@@ -1115,7 +1115,7 @@ async def run_analysis(
 
 
 def _discover_experiment_ids(workspace_path: Path, hypothesis_id: str) -> List[str]:
-    """在 hypothesis_<id> 下自动发现 experiment id 列表（仅目录名，不读文件内容）。"""
+    """在 hypothesis_<id> 下自動發現 experiment id 列表（僅目錄名，不讀檔案內容）。"""
     paths = experiment_paths(workspace_path, hypothesis_id, "0")
     base = paths.hypothesis_base
     if not base.exists():
@@ -1135,7 +1135,7 @@ def _discover_experiment_ids(workspace_path: Path, hypothesis_id: str) -> List[s
         except ValueError:
             return (1, x)
 
-    # 统一与路径规则一致的清洗逻辑
+    # 統一與路徑規則一致的清洗邏輯
     from .utils import _sanitize_id as _sanitize
 
     return sorted({_sanitize(eid) for eid in ids}, key=_sort_key)
@@ -1149,12 +1149,12 @@ async def run_analysis_many(
     literature_summary: Optional[str] = None,
     on_progress: AnalysisProgressCallback = None,
 ) -> Dict[str, Any]:
-    """按 hypothesis 批量执行单实验分析（互不覆盖），输出到 `presentation/`。
+    """按 hypothesis 批次執行單實驗分析（互不覆蓋），輸出到 `presentation/`。
 
-    说明：
-    - `run_analysis` 是单实验入口；本函数用于一次性分析一个 hypothesis 下的多个实验。
-    - 若不传 experiment_ids，则自动发现 hypothesis_<id>/experiment_*。
-    - 每个实验的产物固定落在：`presentation/hypothesis_<hid>/experiment_<eid>/`（报告、data、charts、assets）。
+    說明：
+    - `run_analysis` 是單實驗入口；本函式用於一次性分析一個 hypothesis 下的多個實驗。
+    - 若不傳 experiment_ids，則自動發現 hypothesis_<id>/experiment_*。
+    - 每個實驗的產物固定落在：`presentation/hypothesis_<hid>/experiment_<eid>/`（報告、data、charts、assets）。
     """
     config = AnalysisConfig(workspace_path=workspace_path)
     service = Analyzer(config)
@@ -1206,11 +1206,11 @@ async def run_analysis_workflow(
     config: Optional[AnalysisConfig] = None,
     on_progress: AnalysisProgressCallback = None,
 ) -> Dict[str, Any]:
-    """统一分析入口：单实验 / 指定多实验 / 综合（跨 hypothesis）。
+    """統一分析入口：單實驗 / 指定多實驗 / 綜合（跨 hypothesis）。
 
-    - `mode="single"`: 需要 `hypothesis_id` + `experiment_id`，输出到 `presentation/hypothesis_<hid>/experiment_<eid>/`
-    - `mode="batch"`: 需要 `hypothesis_id`；`experiment_ids` 可选（不传则自动发现），逐个输出到各自的 presentation 目录
-    - `mode="synthesize"`: `hypothesis_ids` / `experiment_ids` 可选（不传则自动发现），输出到 `synthesis/`
+    - `mode="single"`: 需要 `hypothesis_id` + `experiment_id`，輸出到 `presentation/hypothesis_<hid>/experiment_<eid>/`
+    - `mode="batch"`: 需要 `hypothesis_id`；`experiment_ids` 可選（不傳則自動發現），逐個輸出到各自的 presentation 目錄
+    - `mode="synthesize"`: `hypothesis_ids` / `experiment_ids` 可選（不傳則自動發現），輸出到 `synthesis/`
     """
     m = (mode or "").strip().lower()
     if m not in {"single", "batch", "synthesize"}:
@@ -1271,7 +1271,7 @@ async def run_synthesis(
     config: Optional[AnalysisConfig] = None,
     on_progress: AnalysisProgressCallback = None,
 ) -> ExperimentSynthesis:
-    """多实验/多假设综合分析便捷函数；可选 literature_summary 结合文献。"""
+    """多實驗/多假設綜合分析便捷函式；可選 literature_summary 結合文獻。"""
     synth = Synthesizer(
         workspace_path=workspace_path,
         config=config or AnalysisConfig(workspace_path=workspace_path),

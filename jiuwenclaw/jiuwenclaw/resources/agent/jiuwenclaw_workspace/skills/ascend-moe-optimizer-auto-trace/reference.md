@@ -1,18 +1,18 @@
-# 昇腾算子自动打点 · 详细参考
+# 昇騰運算元自動打點 · 詳細參考
 
-本文件是 [SKILL.md](SKILL.md) 的延伸：MoeTracing 与 Profiling 规格、编译门禁、打点密度、`trace.json` 与 `point_map` 契约、常见陷阱及固定脚本清单。门禁 G1–G5 与「必须执行的流程」仍以 SKILL 正文为准。
+本檔案是 [SKILL.md](SKILL.md) 的延伸：MoeTracing 與 Profiling 規格、編譯門禁、打點密度、`trace.json` 與 `point_map` 契約、常見陷阱及固定指令碼清單。門禁 G1–G5 與「必須執行的流程」仍以 SKILL 正文為準。
 
-**步骤编号**：下文出现的「步骤 1–7」「步骤 5」「步骤 6」「步骤 7」等，若无特别声明，一律指 **[SKILL.md](SKILL.md)** 中「必须执行的流程」的同名步骤。
+**步驟編號**：下文出現的「步驟 1–7」「步驟 5」「步驟 6」「步驟 7」等，若無特別宣告，一律指 **[SKILL.md](SKILL.md)** 中「必須執行的流程」的同名步驟。
 
-## Skill 根目录与本仓库路径
+## Skill 根目錄與本倉庫路徑
 
-下文中的 `<skill_root>` 表示与本 `SKILL.md` 同级目录。**本仓库**（workspace 根下常见相对路径）示例：`jiuwenclaw/resources/agent/jiuwenclaw_workspace/skills/ascend-moe-optimizer-auto-trace/`。
+下文中的 `<skill_root>` 表示與本 `SKILL.md` 同級目錄。**本倉庫**（workspace 根下常見相對路徑）示例：`jiuwenclaw/resources/agent/jiuwenclaw_workspace/skills/ascend-moe-optimizer-auto-trace/`。
 
-## MoeTracing 运行时规格
+## MoeTracing 執行時規格
 
-MoeTracing 不是简单的空宏。当项目的 base 头文件中缺少 MoeTracing 定义时，必须按以下规格在算子已有的 `_base.h` 文件中补齐（不要新建单独的头文件）。
+MoeTracing 不是簡單的空宏。當專案的 base 標頭檔案中缺少 MoeTracing 定義時，必須按以下規格在運算元已有的 `_base.h` 檔案中補齊（不要新建單獨的標頭檔案）。
 
-### 宏定义
+### 宏定義
 
 ```cpp
 #define ENABLE_MOE_PROFILING 1
@@ -20,9 +20,9 @@ MoeTracing 不是简单的空宏。当项目的 base 头文件中缺少 MoeTraci
 #define ENABLE_MOE_PROFILING_BARRIER true
 ```
 
-### per-core profiling buffer 指针
+### per-core profiling buffer 指標
 
-每个核拥有独立的 profiling buffer，通过 block-local 指针访问：
+每個核擁有獨立的 profiling buffer，透過 block-local 指標訪問：
 
 ```cpp
 __BLOCK_LOCAL__ __inline__ int64_t* g_moeProfilePtr;
@@ -33,11 +33,11 @@ __aicore__ inline int64_t* GetMoeProfilePtr(uint32_t idx = 0)
 }
 ```
 
-如果算子存在 AIC/AIV 分核编译（`SPLIT_CORE_CUBE` / `SPLIT_CORE_VEC`），需要为每种核类型声明独立的指针变量（`g_moeProfilePtrCube` / `g_moeProfilePtrVec`），并在 `GetMoeProfilePtr()` 中根据编译宏选择。
+如果運算元存在 AIC/AIV 分核編譯（`SPLIT_CORE_CUBE` / `SPLIT_CORE_VEC`），需要為每種核型別宣告獨立的指標變數（`g_moeProfilePtrCube` / `g_moeProfilePtrVec`），並在 `GetMoeProfilePtr()` 中根據編譯宏選擇。
 
-### MoeTracing 函数实现
+### MoeTracing 函式實現
 
-MoeTracing 是 **模板函数**，不是宏。模板参数 `sync` 控制是否在记录前插入 `PipeBarrier<PIPE_ALL>()`：
+MoeTracing 是 **模板函式**，不是宏。模板引數 `sync` 控制是否在記錄前插入 `PipeBarrier<PIPE_ALL>()`：
 
 ```cpp
 template <bool sync = ENABLE_MOE_PROFILING_BARRIER>
@@ -54,26 +54,26 @@ __aicore__ inline void MoeTracingWithCycle(int64_t data, int64_t cycle)
 }
 ```
 
-Buffer 布局：`profileData[0]` 是写入索引，**正向写 point_id 数据，反向写 cycle 时间戳**。
+Buffer 佈局：`profileData[0]` 是寫入索引，**正向寫 point_id 資料，反向寫 cycle 時間戳**。
 
-### 三种调用重载
+### 三種呼叫過載
 
 ```cpp
-// 基础调用：记录 point_id + 当前 cycle
+// 基礎呼叫：記錄 point_id + 當前 cycle
 template <bool sync = ENABLE_MOE_PROFILING_BARRIER>
 __aicore__ inline void MoeTracing(int64_t data)
 {
     MoeTracingWithCycle<sync>(data, AscendC::GetSystemCycle());
 }
 
-// 带索引：将 index 编码到 data 高 32 位，用于区分不同 expert group / stage
+// 帶索引：將 index 編碼到 data 高 32 位，用於區分不同 expert group / stage
 template <bool sync = ENABLE_MOE_PROFILING_BARRIER>
 __aicore__ inline void MoeTracing(int64_t data, uint32_t index)
 {
     MoeTracing<sync>(data | (int64_t)(((uint64_t)index) << 32));
 }
 
-// 带 extraId + index：用于同时传递 stageId 和循环索引
+// 帶 extraId + index：用於同時傳遞 stageId 和迴圈索引
 template <bool sync = ENABLE_MOE_PROFILING_BARRIER>
 __aicore__ inline void MoeTracing(int64_t data, uint32_t extraId, uint32_t index)
 {
@@ -81,31 +81,31 @@ __aicore__ inline void MoeTracing(int64_t data, uint32_t extraId, uint32_t index
 }
 ```
 
-### 调用示例
+### 呼叫示例
 
 ```cpp
-// 基础打点（前缀/后缀随算子语义命名，下为示意）
+// 基礎打點（字首/字尾隨運算元語義命名，下為示意）
 MoeTracing(TRACE_POINT("dispatch-phase1 aic", "B"));
 
-// 带 groupIdx（区分不同 expert / tile 组）
+// 帶 groupIdx（區分不同 expert / tile 組）
 MoeTracing(TRACE_POINT("dispatch-phase1 moe-process", "B"), 0, groupIdx);
 
-// 强制 barrier 后再记录（覆盖默认 sync 参数）
+// 強制 barrier 後再記錄（覆蓋預設 sync 引數）
 MoeTracing<true>(TRACE_POINT("combine-phase combine-barrier-all", "E"));
 ```
 
-命名规则与标签示例见 [SKILL.md](SKILL.md)「命名规则」，此处不重复。
+命名規則與標籤示例見 [SKILL.md](SKILL.md)「命名規則」，此處不重複。
 
-## Profiling 数据搬运规格
+## Profiling 資料搬運規格
 
-打点数据写入 per-core 栈上 buffer 后，需要一条完整链路将其搬到 Host 侧。本 skill 要求在算子框架上**显式新增一个 profiling 输出 tensor**，而不是复用已有输入 tensor 的 GM 地址。**默认交付（G2）**：该输出在 **Op 注册的所有 Tensor 输出中排在最后**（第 `N+1` 路）。**ParamType** 可为 OPTIONAL（模式 A）或 REQUIRED（模式 B / 强制采数）；下文代码片段用 OPTIONAL 仅为示意语法，**位次规则不因 OPTIONAL/REQUIRED 改变**。Python 侧 **「图多一路 optional」 vs 「返回值多一项」** 见 [SKILL.md](SKILL.md) 步骤 7。
+打點資料寫入 per-core 棧上 buffer 後，需要一條完整鏈路將其搬到 Host 側。本 skill 要求在運算元框架上**顯式新增一個 profiling 輸出 tensor**，而不是複用已有輸入 tensor 的 GM 地址。**預設交付（G2）**：該輸出在 **Op 註冊的所有 Tensor 輸出中排在最後**（第 `N+1` 路）。**ParamType** 可為 OPTIONAL（模式 A）或 REQUIRED（模式 B / 強制採數）；下文程式碼片段用 OPTIONAL 僅為示意語法，**位次規則不因 OPTIONAL/REQUIRED 改變**。Python 側 **「圖多一路 optional」 vs 「返回值多一項」** 見 [SKILL.md](SKILL.md) 步驟 7。
 
-### 1. 算子框架层：新增 profiling 输出（在既有 output 之后多注册一个）
+### 1. 運算元框架層：新增 profiling 輸出（在既有 output 之後多註冊一個）
 
-在 `op_host` 算子定义中在**全部主输出之后**再注册 profiling（示意可为 OPTIONAL，实际以工程与模式为准）：
+在 `op_host` 運算元定義中在**全部主輸出之後**再註冊 profiling（示意可為 OPTIONAL，實際以工程與模式為準）：
 
 ```cpp
-// op_host/<op>.cpp — 算子注册
+// op_host/<op>.cpp — 運算元註冊
 this->Output("profiling_data")
     .ParamType(OPTIONAL)
     .DataType({ge::DT_INT64, ge::DT_INT64, ge::DT_INT64, ge::DT_INT64})
@@ -113,18 +113,18 @@ this->Output("profiling_data")
     .UnknownShapeFormat({ge::FORMAT_ND, ge::FORMAT_ND, ge::FORMAT_ND, ge::FORMAT_ND});
 ```
 
-在 `op_host/<op>_infer.cpp` 中推导 shape：
+在 `op_host/<op>_infer.cpp` 中推導 shape：
 
-**`totalCores` 必须等于 AIC 核数 + AIV 核数，不能只取其中一种。** kernel 侧 buffer 布局为：AIC 核写 `[0, aicNum)` 区间，AIV 核写 `[aicNum, aicNum + aivNum)` 区间。如果 `totalCores` 只取了 AIC 数量，AIV 核的写入会越界。
+**`totalCores` 必須等於 AIC 核數 + AIV 核數，不能只取其中一種。** kernel 側 buffer 佈局為：AIC 核寫 `[0, aicNum)` 區間，AIV 核寫 `[aicNum, aicNum + aivNum)` 區間。如果 `totalCores` 只取了 AIC 數量，AIV 核的寫入會越界。
 
-**禁止硬编码核数。** 不同硬件型号的核数不同（如 24C+48V=72、20C+40V=60），硬编码任何具体数字都会在其他型号上出错。正确做法按优先级：
+**禁止硬編碼核數。** 不同硬體型號的核數不同（如 24C+48V=72、20C+40V=60），硬編碼任何具體數字都會在其他型號上出錯。正確做法按優先順序：
 
-1. **tiling 函数**（推荐）：通过 `platform_ascendc::PlatformAscendC(context.GetPlatformInfo())` 获取 `GetCoreNumAic()` 和 `GetCoreNumAiv()`，已有的 tiling 流程通常已包含此逻辑。
-2. **kernel 入口**：通过 `AscendC::GetBlockNum()` 获取实际 AIC 核数，AIV 核数 = `GetBlockNum() * GetSubBlockNum()`（1C2V 下 SubBlockNum=2）。
-3. **infer / pybind 侧**：`InferShapeContext` 没有平台查询 API，**不能在 infer 里读到实机的 `GetBlockNum()`**，只能写一个**对运行时 `GetBlockNum()` 的上界**来定 profiling 一维长度。对 **`KERNEL_TYPE_MIX_AIC_1_2`**，kernel 里逻辑槽数约为 **`GetBlockNum() * (1 + GetSubBlockNum())`**（常见 1C2V：`SubBlockNum=2` ⇒ **每路 AIC 组对应 3 个槽**）。这与「物理上有多少颗 Cube」不是同一个数：例如单卡 **24 Cube + 48 Vector** 时，若运行时 `GetBlockNum()` 为 24，则只需 **72** 个槽；历史上若误把「槽数上界」当成「只有 Cube 数」、且该数 **小于** `3 * GetBlockNum()`，AIV 侧 `(GetBlockNum() + GetBlockIdx())` 才可能越界。工程内常量如 **`MAX_INFER_GETBLOCKNUM_UB`** 是对 **`GetBlockNum()` 的 infer 上界约定**，须与 **pybind 分配的元素个数**一致，**不是**从硅片规格直接读出的核数；常见写法 `MAX_PROFILING_CORE_SLOTS = MAX_INFER_GETBLOCKNUM_UB * MIX_AIC_1_2_SLOTS_PER_GROUP`（系数随核类型而变）。
+1. **tiling 函式**（推薦）：透過 `platform_ascendc::PlatformAscendC(context.GetPlatformInfo())` 獲取 `GetCoreNumAic()` 和 `GetCoreNumAiv()`，已有的 tiling 流程通常已包含此邏輯。
+2. **kernel 入口**：透過 `AscendC::GetBlockNum()` 獲取實際 AIC 核數，AIV 核數 = `GetBlockNum() * GetSubBlockNum()`（1C2V 下 SubBlockNum=2）。
+3. **infer / pybind 側**：`InferShapeContext` 沒有平臺查詢 API，**不能在 infer 裡讀到實機的 `GetBlockNum()`**，只能寫一個**對執行時 `GetBlockNum()` 的上界**來定 profiling 一維長度。對 **`KERNEL_TYPE_MIX_AIC_1_2`**，kernel 裡邏輯槽數約為 **`GetBlockNum() * (1 + GetSubBlockNum())`**（常見 1C2V：`SubBlockNum=2` ⇒ **每路 AIC 組對應 3 個槽**）。這與「物理上有多少顆 Cube」不是同一個數：例如單卡 **24 Cube + 48 Vector** 時，若執行時 `GetBlockNum()` 為 24，則只需 **72** 個槽；歷史上若誤把「槽數上界」當成「只有 Cube 數」、且該數 **小於** `3 * GetBlockNum()`，AIV 側 `(GetBlockNum() + GetBlockIdx())` 才可能越界。工程內常量如 **`MAX_INFER_GETBLOCKNUM_UB`** 是對 **`GetBlockNum()` 的 infer 上界約定**，須與 **pybind 分配的元素個數**一致，**不是**從矽片規格直接讀出的核數；常見寫法 `MAX_PROFILING_CORE_SLOTS = MAX_INFER_GETBLOCKNUM_UB * MIX_AIC_1_2_SLOTS_PER_GROUP`（係數隨核型別而變）。
 
 ```cpp
-// op_host/<op>_infer.cpp — infer 上界（命名与工程内已有算子对齐即可）
+// op_host/<op>_infer.cpp — infer 上界（命名與工程內已有運算元對齊即可）
 constexpr uint32_t MAX_INFER_GETBLOCKNUM_UB = 128;
 constexpr uint32_t MIX_AIC_1_2_SLOTS_PER_GROUP = 3;
 constexpr uint32_t MAX_PROFILING_CORE_SLOTS = MAX_INFER_GETBLOCKNUM_UB * MIX_AIC_1_2_SLOTS_PER_GROUP;
@@ -135,31 +135,31 @@ context->SetOutputDataType(OUTPUT_PROFILING_DATA, ge::DT_INT64);
 ```
 
 ```cpp
-// pybind — 模式 B：元素个数与 infer 完全一致；每槽 PROF_SIZE_PER_CORE 如 2048
+// pybind — 模式 B：元素個數與 infer 完全一致；每槽 PROF_SIZE_PER_CORE 如 2048
 constexpr int64_t kProfilingElems = static_cast<int64_t>(MAX_PROFILING_CORE_SLOTS) * PROF_SIZE_PER_CORE;
 at::Tensor profilingData = at::zeros({kProfilingElems}, opts.dtype(at::kLong));
-return {mainOut0, mainOut1, profilingData};  // 主输出个数因算子而异；须与 infer 元素个数一致
+return {mainOut0, mainOut1, profilingData};  // 主輸出個數因運算元而異；須與 infer 元素個數一致
 ```
 
-### 1.1 `aclnn` 外层包装与 `aclnnInner_*`（自动生成）的签名对齐
+### 1.1 `aclnn` 外層包裝與 `aclnnInner_*`（自動生成）的簽名對齊
 
-在 `op_host` 中**增加、删除或调整任一 Output（含 OPTIONAL）** 后，工具链生成的 **`build_out/autogen/aclnnInner_<Op>*.h/.cpp`** 中 `aclnnInner<Op>GetWorkspaceSize` / `aclnnInner<Op>` 的参数列表会随之变化。
+在 `op_host` 中**增加、刪除或調整任一 Output（含 OPTIONAL）** 後，工具鏈生成的 **`build_out/autogen/aclnnInner_<Op>*.h/.cpp`** 中 `aclnnInner<Op>GetWorkspaceSize` / `aclnnInner<Op>` 的引數列表會隨之變化。
 
-若仓库中另有**手写维护**的对外封装（常见于 `pregen/build_out/autogen/aclnn_<op>.h`、`aclnn_<op>.cpp`，或等价路径），其形参顺序与类型必须与 **当前** `aclnnInner_*` **逐参一致**（含 optional profiling 的 `const aclTensor*` 等），否则 **`cust_opapi` 等目标会在完整编译阶段才报错**，`check_compile_safety.py` 未必覆盖。
+若倉庫中另有**手寫維護**的對外封裝（常見於 `pregen/build_out/autogen/aclnn_<op>.h`、`aclnn_<op>.cpp`，或等價路徑），其形參順序與型別必須與 **當前** `aclnnInner_*` **逐參一致**（含 optional profiling 的 `const aclTensor*` 等），否則 **`cust_opapi` 等目標會在完整編譯階段才報錯**，`check_compile_safety.py` 未必覆蓋。
 
-**交工前自检**：改完 `op_host` / `infer` 后，打开最新一次 msopgen 或编译产物中的 `aclnnInner_*` 声明，与 `pregen/.../aclnn_*.h` 中 `aclnn<Op>GetWorkspaceSize` 对比；外层实现应只做薄转发（含将 optional 原样传入 Inner）。
+**交工前自檢**：改完 `op_host` / `infer` 後，開啟最新一次 msopgen 或編譯產物中的 `aclnnInner_*` 宣告，與 `pregen/.../aclnn_*.h` 中 `aclnn<Op>GetWorkspaceSize` 對比；外層實現應只做薄轉發（含將 optional 原樣傳入 Inner）。
 
 ```cpp
-// 示意：Inner 已含 profilingDataOutOptional 时，外层必须多传一格再接到 workspaceSize
+// 示意：Inner 已含 profilingDataOutOptional 時，外層必須多傳一格再接到 workspaceSize
 return aclnnInnerMyOpGetWorkspaceSize(/* ... */, lastMainOutputOut,
     profilingDataOutOptional, workspaceSize, executor);
 ```
 
 ### 2. Kernel 入口（`.cpp`）：buffer 初始化 + 搬出
 
-在 kernel 入口函数中，算子执行**前后**分别处理 profiling buffer：
+在 kernel 入口函式中，運算元執行**前後**分別處理 profiling buffer：
 
-**执行前**——在栈上分配 buffer、初始化写索引和起始时间戳、设置指针：
+**執行前**——在棧上分配 buffer、初始化寫索引和起始時間戳、設定指標：
 
 ```cpp
 #if ENABLE_MOE_PROFILING
@@ -170,13 +170,13 @@ return aclnnInnerMyOpGetWorkspaceSize(/* ... */, lastMainOutputOut,
 #endif
 ```
 
-**执行后**——将栈上 buffer 逐条写到 profiling output tensor 的 GM 地址：
+**執行後**——將棧上 buffer 逐條寫到 profiling output tensor 的 GM 地址：
 
 ```cpp
 #if ENABLE_MOE_PROFILING
     AscendC::GlobalTensor<int64_t> profGlobal;
     profGlobal.SetGlobalBuffer((__gm__ int64_t *)(profiling_data));
-    // AIC 核写前半段，AIV 核写后半段
+    // AIC 核寫前半段，AIV 核寫後半段
     AscendC::GlobalTensor<int64_t> coreGlobal;
     if (g_coreType == AscendC::AIC) {
         coreGlobal = profGlobal[AscendC::GetBlockIdx() * PROF_SIZE_PER_CORE];
@@ -187,11 +187,11 @@ return aclnnInnerMyOpGetWorkspaceSize(/* ... */, lastMainOutputOut,
         coreGlobal(i) = profData[i];
         coreGlobal(PROF_SIZE_PER_CORE - i - 1) = profData[PROF_SIZE_PER_CORE - i - 1];
     }
-    // DataCacheCleanAndInvalid 确保 host 可读
+    // DataCacheCleanAndInvalid 確保 host 可讀
 #endif
 ```
 
-辅助函数 `SetMoeProfilePtr` 的定义放在 `.cpp` 入口文件中，根据分核编译宏选择正确的 block-local 指针：
+輔助函式 `SetMoeProfilePtr` 的定義放在 `.cpp` 入口檔案中，根據分核編譯宏選擇正確的 block-local 指標：
 
 ```cpp
 __aicore__ inline void SetMoeProfilePtr(int64_t *profilePtr)
@@ -210,134 +210,134 @@ __aicore__ inline void SetMoeProfilePtr(int64_t *profilePtr)
 }
 ```
 
-### 3. Host 侧（Python）：读取 + 保存
+### 3. Host 側（Python）：讀取 + 儲存
 
 `trace_utils.py` 中 `save_profiling_data` 需要：
-- 从 `_base.h` 读取 `PROF_SIZE_PER_CORE` 与 `ENABLE_MOE_PROFILING`（若实现里提供 `base_h_path` 参数，**新算子应传入当前算子的 `<op>_base.h` 绝对路径**，避免工具链内写死的相对路径仍指向示例算子）。
-- 将 profiling tensor reshape 为 `(total_cores, PROF_SIZE_PER_CORE)`；`get_core_num_list()` 等若仍为示例中的硬编码或环境变量，需与目标硬件/tiling 一致，否则分组索引会越界或切分错误。
-- 按 AIC/AIV 核类型分组（考虑 1C2V 映射）
-- 保存为 `rank{id}.pt` 供后续解析工具使用
+- 從 `_base.h` 讀取 `PROF_SIZE_PER_CORE` 與 `ENABLE_MOE_PROFILING`（若實現裡提供 `base_h_path` 引數，**新運算元應傳入當前運算元的 `<op>_base.h` 絕對路徑**，避免工具鏈內寫死的相對路徑仍指向示例運算元）。
+- 將 profiling tensor reshape 為 `(total_cores, PROF_SIZE_PER_CORE)`；`get_core_num_list()` 等若仍為示例中的硬編碼或環境變數，需與目標硬體/tiling 一致，否則分組索引會越界或切分錯誤。
+- 按 AIC/AIV 核型別分組（考慮 1C2V 對映）
+- 儲存為 `rank{id}.pt` 供後續解析工具使用
 
 ```python
 from pathlib import Path
 import trace_utils
 
 profiling = profiling_data.cpu()
-out_dir = str(Path("./prof_out").resolve())  # 第三参为输出目录，须绝对路径（见 G5）
+out_dir = str(Path("./prof_out").resolve())  # 第三參為輸出目錄，須絕對路徑（見 G5）
 op_base_h = Path("/repo/.../src/.../<op>_base.h").resolve()
 trace_utils.save_profiling_data(profiling, rank_id, out_dir, base_h_path=str(op_base_h) if op_base_h.is_file() else None)
 ```
 
-### 3.1 Pybind：`EXEC_NPU_CMD` 与 optional 参数的左值约束
+### 3.1 Pybind：`EXEC_NPU_CMD` 與 optional 引數的左值約束
 
-若 pybind 通过 `EXEC_NPU_CMD(aclnnXxx, ...)` 调用 `aclnnXxxGetWorkspaceSize`，宏内部通常会对实参做 `ConvertTypes(...)` 一类展开，**要求可绑定到非 const 左值引用**（具体以项目内 `pytorch_npu_helper.hpp` 为准）。
+若 pybind 透過 `EXEC_NPU_CMD(aclnnXxx, ...)` 呼叫 `aclnnXxxGetWorkspaceSize`，宏內部通常會對實參做 `ConvertTypes(...)` 一類展開，**要求可繫結到非 const 左值引用**（具體以專案內 `pytorch_npu_helper.hpp` 為準）。
 
-因此向 `aclnn*GetWorkspaceSize` 多传一个 **optional profiling tensor** 时：
+因此向 `aclnn*GetWorkspaceSize` 多傳一個 **optional profiling tensor** 時：
 
-- **禁止**写成 `c10::optional<at::Tensor>()` 等**纯右值**直接塞进宏参数列表（典型编译错误：无法绑定到 `optional&`）。
-- **应**在宏外声明具名变量，例如 `c10::optional<at::Tensor> profilingDataOptional;`（默认不采），再传入 `EXEC_NPU_CMD(..., profilingDataOptional)`；若本次要采 profiling，则先对该变量赋值再调用。
+- **禁止**寫成 `c10::optional<at::Tensor>()` 等**純右值**直接塞進宏引數列表（典型編譯錯誤：無法繫結到 `optional&`）。
+- **應**在宏外宣告具名變數，例如 `c10::optional<at::Tensor> profilingDataOptional;`（預設不採），再傳入 `EXEC_NPU_CMD(..., profilingDataOptional)`；若本次要採 profiling，則先對該變數賦值再呼叫。
 
-模式 A（见 [SKILL.md](SKILL.md) 步骤 7）下常用「空 optional + 原 return 个数不变」；模式 B 再与「多返回一个 `at::Tensor`」的 pybind 示意配合。
+模式 A（見 [SKILL.md](SKILL.md) 步驟 7）下常用「空 optional + 原 return 個數不變」；模式 B 再與「多返回一個 `at::Tensor`」的 pybind 示意配合。
 
-## 编译与打包门禁（工程侧）
+## 編譯與打包門禁（工程側）
 
-本节与打点语义无关，但为「[SKILL.md](SKILL.md) 步骤 6 + 完整编译」中反复出现的工程问题；不同仓库脚本名可能不同，以实际 `compile*.sh` / `build.sh` 为准。
+本節與打點語義無關，但為「[SKILL.md](SKILL.md) 步驟 6 + 完整編譯」中反覆出現的工程問題；不同倉庫指令碼名可能不同，以實際 `compile*.sh` / `build.sh` 為準。
 
-- **CANN / msopgen 须在 PATH 中**：`msopgen`、`ccec` 等通常依赖 `source ${ASCEND_HOME_PATH}/bin/setenv.bash`（或项目规定的 setenv）。在 **docker exec 非登录 shell**、CI 裸 `bash -lc` 等场景下，若编译脚本先调用 `msopgen` 再 source，会导致 **`msopgen: command not found`**；应在**首次**调用 `msopgen` **之前**注入环境（由项目统一改 `compile_ascend_proj.sh` 等，或由执行者在同一 shell 中先 source）。
-- **源码属主与构建用户**：`msopgen` 可能对输入 JSON 做「当前用户须为文件 owner」校验。容器内若以 **root** 编译、仓库挂载为普通用户属主，会报错；应以与挂载卷**一致的用户**（如 `docker exec --user <uid>:<gid>`）执行编译，或按团队规范在镜像内对齐属主。
-- **`AddCustom.json` 与 `msopgen`（UMDK 实践）**：`msopgen gen -i .../AddCustom.json` 可能报 **`You are not the owner of path ...`**。本仓库在 **`umdk/build/cam/comm_operator/compile_ascend_proj.sh`** 中于 **`msopgen` 之前** 对 **`./ascend_kernels/AddCustom.json`** 尝试 **`chown $(id -u):$(id -g)`**，失败则 **`sudo chown`**。若以 **root** 成功 `chown`，该文件在工作区可能变为 **root 属主**；若希望挂载卷仍归开发者，优先 **`docker exec -u <与卷一致的 uid>`** 跑整条编译，或事后 **`chown` 回开发用户**。
-- **`build_out` 清理与占位目录**：部分 msopgen 工程的 `build.sh` 会对 `build_out` 做 `rm -rf build_out/*` 后再 `cmake --build`。若 CPack / `cmake_install.cmake` 仍引用 **`op_kernel/binary/config/`** 等路径，而工具链未生成该目录，会在 **package** 阶段失败；可在 **`--target binary` 之后、`package`（或等价）之前** 由项目脚本 `mkdir -p` 占位（空目录即可），具体路径以生成工程为准。
-- **门禁顺序**：工具链部署（[SKILL.md](SKILL.md) 步骤 6）→ **完整编译通过**（算子包 + 若有的 pybind wheel）→ 再视情况跑 [SKILL.md](SKILL.md) 步骤 7 / 设备侧 UT。勿将「仅 validate / check_compile_safety 通过」误认为已满足交付。
+- **CANN / msopgen 須在 PATH 中**：`msopgen`、`ccec` 等通常依賴 `source ${ASCEND_HOME_PATH}/bin/setenv.bash`（或專案規定的 setenv）。在 **docker exec 非登入 shell**、CI 裸 `bash -lc` 等場景下，若編譯指令碼先呼叫 `msopgen` 再 source，會導致 **`msopgen: command not found`**；應在**首次**呼叫 `msopgen` **之前**注入環境（由專案統一改 `compile_ascend_proj.sh` 等，或由執行者在同一 shell 中先 source）。
+- **原始碼屬主與構建使用者**：`msopgen` 可能對輸入 JSON 做「當前使用者須為檔案 owner」校驗。容器內若以 **root** 編譯、倉庫掛載為普通使用者屬主，會報錯；應以與掛載卷**一致的使用者**（如 `docker exec --user <uid>:<gid>`）執行編譯，或按團隊規範在映象內對齊屬主。
+- **`AddCustom.json` 與 `msopgen`（UMDK 實踐）**：`msopgen gen -i .../AddCustom.json` 可能報 **`You are not the owner of path ...`**。本倉庫在 **`umdk/build/cam/comm_operator/compile_ascend_proj.sh`** 中於 **`msopgen` 之前** 對 **`./ascend_kernels/AddCustom.json`** 嘗試 **`chown $(id -u):$(id -g)`**，失敗則 **`sudo chown`**。若以 **root** 成功 `chown`，該檔案在工作區可能變為 **root 屬主**；若希望掛載卷仍歸開發者，優先 **`docker exec -u <與卷一致的 uid>`** 跑整條編譯，或事後 **`chown` 回開發使用者**。
+- **`build_out` 清理與佔位目錄**：部分 msopgen 工程的 `build.sh` 會對 `build_out` 做 `rm -rf build_out/*` 後再 `cmake --build`。若 CPack / `cmake_install.cmake` 仍引用 **`op_kernel/binary/config/`** 等路徑，而工具鏈未生成該目錄，會在 **package** 階段失敗；可在 **`--target binary` 之後、`package`（或等價）之前** 由專案指令碼 `mkdir -p` 佔位（空目錄即可），具體路徑以生成工程為準。
+- **門禁順序**：工具鏈部署（[SKILL.md](SKILL.md) 步驟 6）→ **完整編譯透過**（運算元包 + 若有的 pybind wheel）→ 再視情況跑 [SKILL.md](SKILL.md) 步驟 7 / 裝置側 UT。勿將「僅 validate / check_compile_safety 透過」誤認為已滿足交付。
 
-### UMDK `comm_operator`：pybind whl 标准产物路径（勿默认写 `/tmp`）
+### UMDK `comm_operator`：pybind whl 標準產物路徑（勿預設寫 `/tmp`）
 
-与 **`umdk/build/cam/comm_operator/build_pybind.sh`** 一致，wheel 输出目录为 **`${MODULE_BUILD_OUT_PATH}/dist`**，即仓库内：
+與 **`umdk/build/cam/comm_operator/build_pybind.sh`** 一致，wheel 輸出目錄為 **`${MODULE_BUILD_OUT_PATH}/dist`**，即倉庫內：
 
-- **`umdk/output/cam/comm_operator/dist/`** — 成功构建后在此生成 **`umdk_cam_op_lib-*.whl`**。
+- **`umdk/output/cam/comm_operator/dist/`** — 成功構建後在此生成 **`umdk_cam_op_lib-*.whl`**。
 
-**推荐命令**（在 **`umdk/build/cam`** 下，仅编 pybind、不跑算子 `msopgen`）：
+**推薦命令**（在 **`umdk/build/cam`** 下，僅編 pybind、不跑運算元 `msopgen`）：
 
 ```bash
 ./build.sh comm_operator -p
 ```
 
-安装：
+安裝：
 
 ```bash
 pip install --force-reinstall umdk/output/cam/comm_operator/dist/umdk_cam_op_lib-*.whl
 ```
 
-手工执行 `python3 setup.py bdist_wheel` 时，**`--dist-dir` 应指向上述 `dist`（可先 `mkdir -p`）**，**不要**随意写到 **`/tmp`**，以免与 CI、文档和归档路径脱节。
+手工執行 `python3 setup.py bdist_wheel` 時，**`--dist-dir` 應指向上述 `dist`（可先 `mkdir -p`）**，**不要**隨意寫到 **`/tmp`**，以免與 CI、文件和歸檔路徑脫節。
 
-算子 OPP **`.run`** 由 **`compile_ascend_proj.sh`** 等完整算子链路生成，通常落在 **`umdk/output/cam/comm_operator/run/`**（如 **`CAM_ascend910_93_debian_aarch64.run`**，SOC 名随 `-c` 变化）。**whl 与 `.run` 需分别安装**；仅升级 whl 而不升级已装 OPP 时，注意版本是否匹配。
+運算元 OPP **`.run`** 由 **`compile_ascend_proj.sh`** 等完整運算元鏈路生成，通常落在 **`umdk/output/cam/comm_operator/run/`**（如 **`CAM_ascend910_93_debian_aarch64.run`**，SOC 名隨 `-c` 變化）。**whl 與 `.run` 需分別安裝**；僅升級 whl 而不升級已裝 OPP 時，注意版本是否匹配。
 
-### `import umdk_cam_op_lib`：`libcam.so` 与 Ascend / 驱动库
+### `import umdk_cam_op_lib`：`libcam.so` 與 Ascend / 驅動庫
 
-部分环境打出的 **`umdk_cam_op_lib*.so`** 在 ELF **`DT_NEEDED`** 中会依赖 **`libcam.so`**（CAM host 侧产物）。若运行时 **`LD_LIBRARY_PATH`** 未包含其所在目录，会报 **`ImportError: libcam.so: cannot open shared object file`**。
+部分環境打出的 **`umdk_cam_op_lib*.so`** 在 ELF **`DT_NEEDED`** 中會依賴 **`libcam.so`**（CAM host 側產物）。若執行時 **`LD_LIBRARY_PATH`** 未包含其所在目錄，會報 **`ImportError: libcam.so: cannot open shared object file`**。
 
-- 将含 **`libcam.so`** 的目录加入 **`LD_LIBRARY_PATH`**（常见为各团队 **`comm_operator` host 编译输出目录**，例如部分树布局下的 **`umdk/src/cam/comm_operator/build`**，以实际产物为准）。
-- **本仓库部分示例**在模块加载时调用 **`_prepend_cam_op_native_lib_path()`** 一类辅助：支持环境变量 **`UMDK_CAM_NATIVE_LIB_DIR`**，并在 **`import torch_npu` / `import umdk_cam_op_lib` 之前** 写入 **`LD_LIBRARY_PATH`**（同一进程内、在扩展被 `dlopen` 前生效）；其它仓库按既有 driver 方式处理依赖路径即可。
-- **`torch_npu`** 另需 Ascend CANN **`.../aarch64-linux/lib64`** 及 **`/usr/local/Ascend/driver/lib64`**（及常见子路径 **`.../driver/lib64/driver`**）等；**`docker exec` 非登录 shell** 若未继承镜像登录环境，需显式 **`export LD_LIBRARY_PATH=...`** 或与 **`${ASCEND_HOME_PATH}/bin/setenv.bash`** 一致。
+- 將含 **`libcam.so`** 的目錄加入 **`LD_LIBRARY_PATH`**（常見為各團隊 **`comm_operator` host 編譯輸出目錄**，例如部分樹佈局下的 **`umdk/src/cam/comm_operator/build`**，以實際產物為準）。
+- **本倉庫部分示例**在模組載入時呼叫 **`_prepend_cam_op_native_lib_path()`** 一類輔助：支援環境變數 **`UMDK_CAM_NATIVE_LIB_DIR`**，並在 **`import torch_npu` / `import umdk_cam_op_lib` 之前** 寫入 **`LD_LIBRARY_PATH`**（同一程序內、在擴充套件被 `dlopen` 前生效）；其它倉庫按既有 driver 方式處理依賴路徑即可。
+- **`torch_npu`** 另需 Ascend CANN **`.../aarch64-linux/lib64`** 及 **`/usr/local/Ascend/driver/lib64`**（及常見子路徑 **`.../driver/lib64/driver`**）等；**`docker exec` 非登入 shell** 若未繼承映象登入環境，需顯式 **`export LD_LIBRARY_PATH=...`** 或與 **`${ASCEND_HOME_PATH}/bin/setenv.bash`** 一致。
 
-### Python / `torch.ops`：模式 B 下返回值个数升级
+### Python / `torch.ops`：模式 B 下返回值個數升級
 
-- **模式 B**：pybind 在**同一算子名**上较旧版 **多返回一路 profiling tensor**（ arity = 原主输出数 + 1）。
-- **旧 whl** 仍为旧 arity 时，若写死新长度解包会报错。处理：**重装**与当前 `pybind` / `op_host` 一致的 whl；或在调用处对 **`len(outs)`** 分支兼容（见 [SKILL.md](SKILL.md) 步骤 7 与团队 sample），并在 **rank0** 提示需升级 whl。
+- **模式 B**：pybind 在**同一運算元名**上較舊版 **多返回一路 profiling tensor**（ arity = 原主輸出數 + 1）。
+- **舊 whl** 仍為舊 arity 時，若寫死新長度解包會報錯。處理：**重灌**與當前 `pybind` / `op_host` 一致的 whl；或在呼叫處對 **`len(outs)`** 分支相容（見 [SKILL.md](SKILL.md) 步驟 7 與團隊 sample），並在 **rank0** 提示需升級 whl。
 
-### 端到端 profiling + Chrome（UMDK 可参考；其它仓替换为各自的 sample/driver）
+### 端到端 profiling + Chrome（UMDK 可參考；其它倉替換為各自的 sample/driver）
 
-- **通用约定**（路径、sync、`point_map`）见上文 **「point_map 与 Chrome 解析契约（通用）」**。
-- **本仓库**：在 **`umdk/src/cam/examples/`** 下选择**已接入 profiling** 的 `*_sample.py`（非 pytest；常与数值对拍同文件）；典型 CLI：**`--profiling_dir`**（输出目录，内含 `rank*.pt`）、**`--point_map`**（**真实路径**的 `point_map.json`，与当次编译 OPP 同源）、可选 **`--chrome_trace`**。`trace_utils` / `trace_collector` 由 sample 内嵌路径解析到 **`umdk/build/cam/comm_operator`**；`save_profiling_data` 的 **`base_h`** 指向对应 **`<op>_base.h`**。具体默认路径以该 sample 文件头注释为准。
-- **`MOE_USE_1C2V=1`** 时 **`trace_utils.get_core_num_list()`** 为 **`[24,24,24]`**，否则常见为 **`[24,48]`**；与硬件/核映射解读需一致。
+- **通用約定**（路徑、sync、`point_map`）見上文 **「point_map 與 Chrome 解析契約（通用）」**。
+- **本倉庫**：在 **`umdk/src/cam/examples/`** 下選擇**已接入 profiling** 的 `*_sample.py`（非 pytest；常與數值對拍同檔案）；典型 CLI：**`--profiling_dir`**（輸出目錄，內含 `rank*.pt`）、**`--point_map`**（**真實路徑**的 `point_map.json`，與當次編譯 OPP 同源）、可選 **`--chrome_trace`**。`trace_utils` / `trace_collector` 由 sample 內嵌路徑解析到 **`umdk/build/cam/comm_operator`**；`save_profiling_data` 的 **`base_h`** 指向對應 **`<op>_base.h`**。具體預設路徑以該 sample 檔案頭註釋為準。
+- **`MOE_USE_1C2V=1`** 時 **`trace_utils.get_core_num_list()`** 為 **`[24,24,24]`**，否則常見為 **`[24,48]`**；與硬體/核對映解讀需一致。
 
-## 打点密度与均匀性要求
+## 打點密度與均勻性要求
 
-- **目标标签数（按核类型分别统计）**：对 **AIC 与 AIV 各自**，在「该核实际会执行到的代码路径」上，应能观察到大约 **15～20 个不同的语义阶段名**（即互不相同的 `TRACE_POINT` 标签字符串个数，**不是**全算子 AIC+AIV 混在一起凑总数）。过少（例如某一核类型上**少于 10 个**）不利于看子阶段瓶颈；过多（例如**多于 30 个**）易占满 buffer 且 trace 难读。
-- **均匀性**：按**当前算子**的真实主阶段划分（名称随算子语义而定，如 dispatch、多段 matmul、combine、量化等），各主阶段下的子标签数量应**大致均衡**。若某一主阶段已有多个子点位，而另一主阶段在对应核上仍只有入口/出口两点，说明后者打点不足，应深入该阶段所在实现（含分核 `operator()` 内部）补充子阶段。
-- **"函数级粒度"的正确理解**：指每个有独立语义的阶段函数（如 `SendCoreFunc`、`RecvCoreFunc`、`CompCoreFunc`、`UpdateAndCleanInfo`），不是仅限于调用链第一层入口的 `operator()`。`operator()` 内部如果有多个语义明确的子函数调用，每个都应该有独立的 B/E 点位。
-- **二级拆分**：即使一个子函数已经有了 B/E 点位（如 `某阶段 aiv send`），如果其内部仍有语义可分离的子阶段（如 count-prep vs token-DMA、spin-wait vs data-copy），也应在函数内进一步拆子标签（如 `… aiv send-count` + `… aiv send-token`）。典型的可拆分模式包括：
-  - **count/status 广播** vs **payload 数据搬运**（dispatch、recv）
-  - **spin-wait/polling** vs **实际计算或搬运**（recv-count、group-wait）
-  - **shared expert** vs **routed expert** 的独立执行路径
-  - **metadata load**（index/scale DataCopyPad）vs **per-token reduce 循环**（combine local-copy）
-- **AIV 角色分工**：对于 1C2V 等混合核模式，`operator()<AIV>()` 内部可能通过 `aivIdx`、`GetSubBlockIdx()` 或角色标志（`isSendCore`、`isRecvCore`、`isCompCore`）将不同 AIV 核分配到不同工作路径。每种角色的主要工作阶段都需要独立打点，让 trace 中能区分各类 AIV 核的时间分布。
-- **多变体对齐**：如果同一算子有多个 kernel 变体（如 deep-fuse vs shallow-dispatch），所有变体的 AIV `operator()` 都应该有相似粒度的子阶段标签。不能一个变体有 8 个子标签而另一个只有入口/出口。
-- **自检方法**：打点完成后，**分别**列出 AIC 与 AIV 在各自可达路径上出现的**不同**标签名集合并计数。若某一核类型明显低于上述量级，或某一主业务阶段在该核上仍只有一对 B/E 而无子阶段，则须继续补充（优先大块实现头文件中的阶段边界，见 [SKILL.md](SKILL.md)「插桩覆盖必达清单」与「必须执行的流程」步骤 4）。
+- **目標標籤數（按核型別分別統計）**：對 **AIC 與 AIV 各自**，在「該核實際會執行到的程式碼路徑」上，應能觀察到大約 **15～20 個不同的語義階段名**（即互不相同的 `TRACE_POINT` 標籤字串個數，**不是**全運算元 AIC+AIV 混在一起湊總數）。過少（例如某一核型別上**少於 10 個**）不利於看子階段瓶頸；過多（例如**多於 30 個**）易佔滿 buffer 且 trace 難讀。
+- **均勻性**：按**當前運算元**的真實主階段劃分（名稱隨運算元語義而定，如 dispatch、多段 matmul、combine、量化等），各主階段下的子標籤數量應**大致均衡**。若某一主階段已有多個子點位，而另一主階段在對應核上仍只有入口/出口兩點，說明後者打點不足，應深入該階段所在實現（含分核 `operator()` 內部）補充子階段。
+- **"函式級粒度"的正確理解**：指每個有獨立語義的階段函式（如 `SendCoreFunc`、`RecvCoreFunc`、`CompCoreFunc`、`UpdateAndCleanInfo`），不是僅限於呼叫鏈第一層入口的 `operator()`。`operator()` 內部如果有多個語義明確的子函式呼叫，每個都應該有獨立的 B/E 點位。
+- **二級拆分**：即使一個子函式已經有了 B/E 點位（如 `某階段 aiv send`），如果其內部仍有語義可分離的子階段（如 count-prep vs token-DMA、spin-wait vs data-copy），也應在函式內進一步拆子標籤（如 `… aiv send-count` + `… aiv send-token`）。典型的可拆分模式包括：
+  - **count/status 廣播** vs **payload 資料搬運**（dispatch、recv）
+  - **spin-wait/polling** vs **實際計算或搬運**（recv-count、group-wait）
+  - **shared expert** vs **routed expert** 的獨立執行路徑
+  - **metadata load**（index/scale DataCopyPad）vs **per-token reduce 迴圈**（combine local-copy）
+- **AIV 角色分工**：對於 1C2V 等混合核模式，`operator()<AIV>()` 內部可能透過 `aivIdx`、`GetSubBlockIdx()` 或角色標誌（`isSendCore`、`isRecvCore`、`isCompCore`）將不同 AIV 核分配到不同工作路徑。每種角色的主要工作階段都需要獨立打點，讓 trace 中能區分各類 AIV 核的時間分佈。
+- **多變體對齊**：如果同一運算元有多個 kernel 變體（如 deep-fuse vs shallow-dispatch），所有變體的 AIV `operator()` 都應該有相似粒度的子階段標籤。不能一個變體有 8 個子標籤而另一個只有入口/出口。
+- **自檢方法**：打點完成後，**分別**列出 AIC 與 AIV 在各自可達路徑上出現的**不同**標籤名集合並計數。若某一核型別明顯低於上述量級，或某一主業務階段在該核上仍只有一對 B/E 而無子階段，則須繼續補充（優先大塊實現標頭檔案中的階段邊界，見 [SKILL.md](SKILL.md)「插樁覆蓋必達清單」與「必須執行的流程」步驟 4）。
 
-## 容量与扰动约束
+## 容量與擾動約束
 
-- 每核 profiling buffer 容量有限（`PROF_SIZE_PER_CORE`），禁止默认高密度铺点。
-- 不要默认给每个小 helper 或最内层循环都加点。
-- 优先保证可读性与稳定定位瓶颈能力，而不是追求全覆盖。
+- 每核 profiling buffer 容量有限（`PROF_SIZE_PER_CORE`），禁止預設高密度鋪點。
+- 不要預設給每個小 helper 或最內層迴圈都加點。
+- 優先保證可讀性與穩定定位瓶頸能力，而不是追求全覆蓋。
 
-## 常见陷阱（快速自检）
+## 常見陷阱（快速自檢）
 
-- **因「看起来像数学库/大块计算实现」而整文件跳过**：子目录或文件名**不能**作为免打点依据；凡含 **分核 `operator()<AIC/AIV>`（或等价阶段入口）** 且属于主流程的实现头文件，必须与 tile 内层区分并打点（见 [SKILL.md](SKILL.md) 步骤 4）。
-- **大块实现头未打点**：主耗时往往在 **`#include` 子树**的 workspace / kernel / gemm / epilogue 模板 **`operator()`** 内；仅打外层调度头会导致 trace 看不到真实子阶段——属**高频遗漏**，交工前按 [SKILL.md](SKILL.md) 自维护表中 **「大块实现 / `#include` 子树」** 与 `grep` 自检；若仓库有对照树可 diff，**交工以当前构建树为准**。
-- **`aclnnInner_*` 已变、手写 `pregen/.../aclnn_*.cpp` 未改**：`op_host` 增删 output 后 Inner 签名已更新，外层仍少传 / 错传 `profilingDataOptional` 等参数 → **`cust_opapi` 编译失败**；见上文「Profiling 数据搬运规格」小节 1.1 交工前自检。
-- **`EXEC_NPU_CMD` 传入 `optional` 临时量**：见上文「Profiling 数据搬运规格」小节 3.1，须使用具名 `c10::optional<at::Tensor>` 变量。
-- **infer/pybind 硬编码核数**：用安全上界或动态逻辑；与 kernel 侧 per-core 写入区间一致。
-- **Python 解包 arity**：仅在使用**模式 B**（[SKILL.md](SKILL.md) 步骤 7）时 fusion / profile 脚本比原先多接一个 profiling 张量；原 UT 不解包改时拷贝为 `test_<op>_profile.py`。模式 A 下原 UT arity 不变。
-- **`trace_utils` 静默不落盘**：`_base.h` 路径不对或 `ENABLE_MOE_PROFILING` 为 0；优先检查 `base_h_path` 与宏。
-- **`save_profiling_data` 的相对路径与 cwd 不一致（高频误导）**：`trace_utils.save_profiling_data(..., output_dir)` 若 **`output_dir` 为相对路径**，实现会拼到 **`trace_utils.py` 所在目录**（常为 `build/cam/comm_operator`），**不是** shell 的当前工作目录。表现为：日志里 `Saved: .../comm_operator/.../rank*.pt`，而 `trace_collector` 或用户在 **`examples/`** 下传的 `./prof_out` 为空 → **No rank\*.pt**。**修复**：sample/driver 在 spawn 前将 **`profiling_dir` / `chrome_trace` / `point_map` 设为 `Path(...).resolve()` 绝对路径**，或调用方始终传绝对路径。
-- **工具链未部署仍以为能出 trace**：[SKILL.md](SKILL.md) 步骤 6 未完成则没有预处理后的 `point_map.json` 与可复现的 point_id。
-- **`point_map` 路径错误或占位符**：`load_mapping` 为空 → 全记录跳过；**错用旧工程 / 他机拷贝的 `point_map.json`** → `skipped_no_mapping` 极高，见上文「point_map 与 Chrome 解析契约」。
-- **sync 前落盘 profiling**：见上文「Host 侧何时保存 profiling tensor」；与 map 错配症状不同（前者常表现为 pt 空或 counter≤1，后者 pt 正常但 decode 全跳过）。
-- **未跑完整编译即认为可交付**：[SKILL.md](SKILL.md) 步骤 5 与静态脚本不覆盖 autogen / pybind / CPack 全链路；须满足上文「编译与打包门禁」。
+- **因「看起來像數學庫/大塊計算實現」而整檔案跳過**：子目錄或檔名**不能**作為免打點依據；凡含 **分核 `operator()<AIC/AIV>`（或等價階段入口）** 且屬於主流程的實現標頭檔案，必須與 tile 內層區分並打點（見 [SKILL.md](SKILL.md) 步驟 4）。
+- **大塊實現頭未打點**：主耗時往往在 **`#include` 子樹**的 workspace / kernel / gemm / epilogue 模板 **`operator()`** 內；僅打外層排程頭會導致 trace 看不到真實子階段——屬**高頻遺漏**，交工前按 [SKILL.md](SKILL.md) 自維護表中 **「大塊實現 / `#include` 子樹」** 與 `grep` 自檢；若倉庫有對照樹可 diff，**交工以當前構建樹為準**。
+- **`aclnnInner_*` 已變、手寫 `pregen/.../aclnn_*.cpp` 未改**：`op_host` 增刪 output 後 Inner 簽名已更新，外層仍少傳 / 錯傳 `profilingDataOptional` 等引數 → **`cust_opapi` 編譯失敗**；見上文「Profiling 資料搬運規格」小節 1.1 交工前自檢。
+- **`EXEC_NPU_CMD` 傳入 `optional` 臨時量**：見上文「Profiling 資料搬運規格」小節 3.1，須使用具名 `c10::optional<at::Tensor>` 變數。
+- **infer/pybind 硬編碼核數**：用安全上界或動態邏輯；與 kernel 側 per-core 寫入區間一致。
+- **Python 解包 arity**：僅在使用**模式 B**（[SKILL.md](SKILL.md) 步驟 7）時 fusion / profile 指令碼比原先多接一個 profiling 張量；原 UT 不解包改時複製為 `test_<op>_profile.py`。模式 A 下原 UT arity 不變。
+- **`trace_utils` 靜默不落盤**：`_base.h` 路徑不對或 `ENABLE_MOE_PROFILING` 為 0；優先檢查 `base_h_path` 與宏。
+- **`save_profiling_data` 的相對路徑與 cwd 不一致（高頻誤導）**：`trace_utils.save_profiling_data(..., output_dir)` 若 **`output_dir` 為相對路徑**，實現會拼到 **`trace_utils.py` 所在目錄**（常為 `build/cam/comm_operator`），**不是** shell 的當前工作目錄。表現為：日誌裡 `Saved: .../comm_operator/.../rank*.pt`，而 `trace_collector` 或使用者在 **`examples/`** 下傳的 `./prof_out` 為空 → **No rank\*.pt**。**修復**：sample/driver 在 spawn 前將 **`profiling_dir` / `chrome_trace` / `point_map` 設為 `Path(...).resolve()` 絕對路徑**，或呼叫方始終傳絕對路徑。
+- **工具鏈未部署仍以為能出 trace**：[SKILL.md](SKILL.md) 步驟 6 未完成則沒有預處理後的 `point_map.json` 與可復現的 point_id。
+- **`point_map` 路徑錯誤或佔位符**：`load_mapping` 為空 → 全記錄跳過；**錯用舊工程 / 他機複製的 `point_map.json`** → `skipped_no_mapping` 極高，見上文「point_map 與 Chrome 解析契約」。
+- **sync 前落盤 profiling**：見上文「Host 側何時儲存 profiling tensor」；與 map 錯配症狀不同（前者常表現為 pt 空或 counter≤1，後者 pt 正常但 decode 全跳過）。
+- **未跑完整編譯即認為可交付**：[SKILL.md](SKILL.md) 步驟 5 與靜態指令碼不覆蓋 autogen / pybind / CPack 全鏈路；須滿足上文「編譯與打包門禁」。
 
 ## trace.json 生成流程
 
-打点数据的完整处理链路（从设备到可视化）分 4 步：
+打點資料的完整處理鏈路（從裝置到視覺化）分 4 步：
 
-### Step 1: 预处理（编译前）
+### Step 1: 預處理（編譯前）
 
-`trace_preprocessor.py` 扫描源码，将 `TRACE_POINT("label", "B/E")` 替换为唯一整数 point_id，生成 `point_map.json`：
+`trace_preprocessor.py` 掃描原始碼，將 `TRACE_POINT("label", "B/E")` 替換為唯一整數 point_id，生成 `point_map.json`：
 
 ```bash
 python <skill_root>/scripts/trace_preprocessor.py <operator_src_dir> <output_dir> --modify
 ```
 
-输出 `point_map.json` 格式：
+輸出 `point_map.json` 格式：
 ```json
 {
   "points": {
@@ -347,152 +347,152 @@ python <skill_root>/scripts/trace_preprocessor.py <operator_src_dir> <output_dir
 }
 ```
 
-### Step 2: 运行算子采集 profiling tensor
+### Step 2: 執行運算元採集 profiling tensor
 
-算子执行后，Host 侧获取 profiling output tensor（通常为**最后一个** output，即比插桩前多出来的那一个），调用 `trace_utils.save_profiling_data` 拆分保存：
+運算元執行後，Host 側獲取 profiling output tensor（通常為**最後一個** output，即比插樁前多出來的那一個），呼叫 `trace_utils.save_profiling_data` 拆分儲存：
 
 ```python
 import trace_utils
 from pathlib import Path
 
 profiling = profiling_data.cpu()
-out_dir = str(Path("./prof_out").resolve())  # 须绝对路径；勿传未 resolve 的 "./xxx"
+out_dir = str(Path("./prof_out").resolve())  # 須絕對路徑；勿傳未 resolve 的 "./xxx"
 op_base_h = Path("/abs/or/repo/path/to/<op>_base.h").resolve()
 trace_utils.save_profiling_data(profiling, rank_id, out_dir, base_h_path=str(op_base_h) if op_base_h.is_file() else None)
 ```
 
-也可离线保存：
+也可離線儲存：
 ```bash
 python <skill_root>/scripts/trace_save.py raw_profiling.pt --rank 0 --output profiling_data
 ```
 
 ### Step 3: 生成 Chrome Trace JSON
 
-`trace_collector.py` 读取所有 `rank*.pt` + `point_map.json`，解析 64 位组合 ID（低 32 位 point_id + 高 32 位 extra_id），配对 B/E 事件，生成 Chrome Trace 格式：
+`trace_collector.py` 讀取所有 `rank*.pt` + `point_map.json`，解析 64 位組合 ID（低 32 位 point_id + 高 32 位 extra_id），配對 B/E 事件，生成 Chrome Trace 格式：
 
 ```bash
 python <skill_root>/scripts/trace_collector.py profiling_data point_map.json -o chrome_trace.json
 ```
 
-支持参数：
-- `--clock-divisor 50.0`：时钟频率 MHz（cycle → us 换算）
-- `--extra-mode seq`：extra_id 解析模式（`seq`=高 24 位序号+低 8 位 extra，`legacy`=整体使用）
-- `--depth 0`：区间深度过滤（0=全部，1=仅叶子，2=叶子+父层）
+支援引數：
+- `--clock-divisor 50.0`：時脈頻率 MHz（cycle → us 換算）
+- `--extra-mode seq`：extra_id 解析模式（`seq`=高 24 位序號+低 8 位 extra，`legacy`=整體使用）
+- `--depth 0`：區間深度過濾（0=全部，1=僅葉子，2=葉子+父層）
 
-### Step 4: 可视化
+### Step 4: 視覺化
 
-在 Chrome 浏览器打开 `chrome://tracing`，加载生成的 `chrome_trace.json`。
-每个 rank 对应一个 process，每个核（AIC/AIV × core_id）对应一个 thread。
+在 Chrome 瀏覽器開啟 `chrome://tracing`，載入生成的 `chrome_trace.json`。
+每個 rank 對應一個 process，每個核（AIC/AIV × core_id）對應一個 thread。
 
-### point_map 与 Chrome 解析契约（通用）
+### point_map 與 Chrome 解析契約（通用）
 
-本节与**具体算子名**无关；任意昇腾算子只要走 `TRACE_POINT` → 预处理器 → 设备写整型 ID → `trace_collector` 解码，均适用。
+本節與**具體運算元名**無關；任意昇騰運算元只要走 `TRACE_POINT` → 前處理器 → 裝置寫整型 ID → `trace_collector` 解碼，均適用。
 
-#### `point_map.json` 是什么、生成在哪里
+#### `point_map.json` 是什麼、生成在哪裡
 
-- `trace_preprocessor.py` 扫描**参与当次编译的那份源码树**（常为 msopgen `copy_ops` 之后的生成目录），将 `TRACE_POINT("label","B"|"E")` 替换为**唯一整数 point_id**，并在**输出目录**（CLI 第二参，常与该生成工程根目录相同）写出 **`point_map.json`**（结构一般为 `{"points": {"1": {"label", "event_type", "file", "line", "event_id"}, ...}}`）。
-- **设备侧写入的是预处理后的 point_id**；Host 侧用 JSON **按字符串键**（如 `"149"`）查 `event_type` / `label`。因此：
-  - **解码用的 `point_map.json` 必须与当前运行的内核/OPP 来自同一次预处理 + 同一次编译**。换了一份源码再跑 preprocess、或拷贝了别台机器的 map、或只重装 whl 不重编算子，都会导致 **ID 对不上**。
-- **典型落点**（形态因仓库而异，勿背死路径）：`<…>/build_tmp/<…>/<msopgen_project_name>/point_map.json`，与编译日志里预处理 hook 所操作的目录一致。在目标环境用 `find … -name point_map.json` 或查 `compile_*` 里 `trace_preprocessor` 的第二参数最可靠。
+- `trace_preprocessor.py` 掃描**參與當次編譯的那份原始碼樹**（常為 msopgen `copy_ops` 之後的生成目錄），將 `TRACE_POINT("label","B"|"E")` 替換為**唯一整數 point_id**，並在**輸出目錄**（CLI 第二參，常與該生成工程根目錄相同）寫出 **`point_map.json`**（結構一般為 `{"points": {"1": {"label", "event_type", "file", "line", "event_id"}, ...}}`）。
+- **裝置側寫入的是預處理後的 point_id**；Host 側用 JSON **按字串鍵**（如 `"149"`）查 `event_type` / `label`。因此：
+  - **解碼用的 `point_map.json` 必須與當前執行的核心/OPP 來自同一次預處理 + 同一次編譯**。換了一份原始碼再跑 preprocess、或複製了別臺機器的 map、或只重灌 whl 不重編運算元，都會導致 **ID 對不上**。
+- **典型落點**（形態因倉庫而異，勿背死路徑）：`<…>/build_tmp/<…>/<msopgen_project_name>/point_map.json`，與編譯日誌裡預處理 hook 所操作的目錄一致。在目標環境用 `find … -name point_map.json` 或查 `compile_*` 裡 `trace_preprocessor` 的第二引數最可靠。
 
-#### 使用时的路径（常见误操作）
+#### 使用時的路徑（常見誤操作）
 
-- 传给 `trace_collector.py` 的第二个参数、或各仓 sample/driver 里的 `--point_map`，必须是 **`os.path` 上真实存在的文件**。
-- 文档、注释里的 **`<repo>/...`、`build_tmp/.../point_map.json` 仅表示目录形态**；**禁止**把字面量 **`/path/to/...`** 当作参数——会表现为 `point_map` 加载失败、`point_map keys: 0`、或 `load_mapping` 返回空，进而 **全部记录被跳过**。
-- 建议在调用前做 **`Path(path).is_file()`** 检查并给出清晰错误（各仓 sample 可按需加入）。
+- 傳給 `trace_collector.py` 的第二個引數、或各倉 sample/driver 裡的 `--point_map`，必須是 **`os.path` 上真實存在的檔案**。
+- 文件、註釋裡的 **`<repo>/...`、`build_tmp/.../point_map.json` 僅表示目錄形態**；**禁止**把字面量 **`/path/to/...`** 當作引數——會表現為 `point_map` 載入失敗、`point_map keys: 0`、或 `load_mapping` 返回空，進而 **全部記錄被跳過**。
+- 建議在呼叫前做 **`Path(path).is_file()`** 檢查並給出清晰錯誤（各倉 sample 可按需加入）。
 
-#### Host 侧何时保存 profiling tensor（与设备可见性）
+#### Host 側何時儲存 profiling tensor（與裝置可見性）
 
-- 设备把 profiling 写入 GM 后，若在 **未完成队列同步 / 设备到 Host 可见** 时就在 Python 里读张量并 `save`，可能读到**全零或计数不更新**的缓冲，`trace_collector` 解析条数为 0。
-- **通用做法**：在算子执行返回后、落盘前调用 **`torch_npu.npu.synchronize(device_id)`**（或项目规定的等价同步），再 `cpu()` / `save_profiling_data`。具体插入点因框架而异（例如在 `forward` 外、`synchronize` 之后再写盘）。
+- 裝置把 profiling 寫入 GM 後，若在 **未完成佇列同步 / 裝置到 Host 可見** 時就在 Python 裡讀張量並 `save`，可能讀到**全零或計數不更新**的緩衝，`trace_collector` 解析條數為 0。
+- **通用做法**：在運算元執行返回後、落盤前呼叫 **`torch_npu.npu.synchronize(device_id)`**（或專案規定的等價同步），再 `cpu()` / `save_profiling_data`。具體插入點因框架而異（例如在 `forward` 外、`synchronize` 之後再寫盤）。
 
-#### 如何判断是「映射错了」还是「没采到数」
+#### 如何判斷是「對映錯了」還是「沒采到數」
 
-- 先用 **`inspect_rank_pt.py`**（见下表，与 `comm_operator` 同目录提交）检查 `rank*.pt`：各分组 tensor 的 **非零比例**、**`tensor[core,0]` 计数（counter）**；若大量核 **`counter > 1`**，说明 per-core 上有有效记录，**问题不在设备打点**。
-- 再跑 **`trace_collector.py`**：看 **`otherData.skipped_no_mapping`**。若其值 **接近原始记录总数**，而 `point_map` 键数正常，多为 **base_point_id 与 JSON 键不一致**（错 map / 旧 map）。
-- 工具在 stderr 打印的 **`diagnose:`** 行：`unique base_point_id in rank*.pt`、`point_map keys`、**`intersection`**。**`intersection` 为 0** 且两侧都非空时，可断定 **point_map 与当前内核不是一套**；应改指向**本次编译生成目录**中的 `point_map.json` 并重新生成 trace。
-- **勿与「sync 时机」混淆**：全零 pt → 先查同步；pt 有数据、仅 Chrome 空且 **`skipped_no_mapping` 高** → 先查 **map 路径与版本**。
+- 先用 **`inspect_rank_pt.py`**（見下表，與 `comm_operator` 同目錄提交）檢查 `rank*.pt`：各分組 tensor 的 **非零比例**、**`tensor[core,0]` 計數（counter）**；若大量核 **`counter > 1`**，說明 per-core 上有有效記錄，**問題不在裝置打點**。
+- 再跑 **`trace_collector.py`**：看 **`otherData.skipped_no_mapping`**。若其值 **接近原始記錄總數**，而 `point_map` 鍵數正常，多為 **base_point_id 與 JSON 鍵不一致**（錯 map / 舊 map）。
+- 工具在 stderr 列印的 **`diagnose:`** 行：`unique base_point_id in rank*.pt`、`point_map keys`、**`intersection`**。**`intersection` 為 0** 且兩側都非空時，可斷定 **point_map 與當前核心不是一套**；應改指向**本次編譯生成目錄**中的 `point_map.json` 並重新生成 trace。
+- **勿與「sync 時機」混淆**：全零 pt → 先查同步；pt 有資料、僅 Chrome 空且 **`skipped_no_mapping` 高** → 先查 **map 路徑與版本**。
 
-## 固定脚本
+## 固定指令碼
 
-路径规范：
-- 文档中的**编译/校验命令示例**优先使用**相对路径**（便于换机复现），**不依赖** Cursor 专属绝对路径。
-- **例外（必守）**：`save_profiling_data`、`trace_collector`、sample 的 **`--profiling_dir` / `--chrome_trace` / `--point_map`** 在代码里须 **`resolve()` 成绝对路径**（见 **G5**）。勿在示例里暗示「相对路径一定相对当前 shell」。
+路徑規範：
+- 文件中的**編譯/校驗命令示例**優先使用**相對路徑**（便於換機復現），**不依賴** Cursor 專屬絕對路徑。
+- **例外（必守）**：`save_profiling_data`、`trace_collector`、sample 的 **`--profiling_dir` / `--chrome_trace` / `--point_map`** 在程式碼裡須 **`resolve()` 成絕對路徑**（見 **G5**）。勿在示例裡暗示「相對路徑一定相對當前 shell」。
 
-### 本仓库 UMDK：`build/cam/comm_operator` 与 Skill 脚本的关系
+### 本倉庫 UMDK：`build/cam/comm_operator` 與 Skill 指令碼的關係
 
-本 skill 的 **`scripts/`** 下列出了**完整**工具集；若日常只引用 `<skill_root>/scripts/...` 而**不在算子编译目录提交副本**，会出现「文档里有很多脚本、工程里用不上」的割裂。
+本 skill 的 **`scripts/`** 下列出了**完整**工具集；若日常只引用 `<skill_root>/scripts/...` 而**不在運算元編譯目錄提交副本**，會出現「文件裡有很多指令碼、工程裡用不上」的割裂。
 
-**本仓库约定**：
+**本倉庫約定**：
 
-- **`umdk/build/cam/comm_operator/`**（与 `compile_ascend_proj.sh`、`build.sh` 同目录）应提交与 **编译预处理、profiling 落盘、Chrome 解析、插桩校验**直接相关的脚本；若本仓库另有对照树，**布局与其 `build/cam/comm_operator/` 对齐**，避免工具链分叉。
-- **同名脚本以 Skill 为规范源**；修改行为时优先改 Skill 下文件，再**同步拷贝**到 `umdk/build/cam/comm_operator/`（或合并差异后两边一致）。
+- **`umdk/build/cam/comm_operator/`**（與 `compile_ascend_proj.sh`、`build.sh` 同目錄）應提交與 **編譯預處理、profiling 落盤、Chrome 解析、插樁校驗**直接相關的指令碼；若本倉庫另有對照樹，**佈局與其 `build/cam/comm_operator/` 對齊**，避免工具鏈分叉。
+- **同名指令碼以 Skill 為規範源**；修改行為時優先改 Skill 下檔案，再**同步複製**到 `umdk/build/cam/comm_operator/`（或合併差異後兩邊一致）。
 
-| 文件（`umdk/build/cam/comm_operator/`） | 作用 |
+| 檔案（`umdk/build/cam/comm_operator/`） | 作用 |
 |----------------------------------------|------|
-| `trace_preprocessor.py` | `TRACE_POINT` → `point_id`，生成 `point_map.json`（**`compile_ascend_proj.sh`** 中 hook 调用） |
-| `trace_utils.py` | `save_profiling_data`、从 `*_base.h` 读 `PROF_SIZE_PER_CORE` 等 |
-| `trace_save.py` | 离线原始 `.pt` → 按核拆分输出目录 |
-| `trace_collector.py` | `profiling_data` 目录 + `point_map.json` → `chrome_trace.json`（stderr 含 `diagnose:` 与 `skipped_no_mapping` 提示） |
-| `inspect_rank_pt.py` | 快速查看 `rank*.pt` 形状、非零、每核 counter，判断 pt 是否有有效 profiling（**不依赖**具体算子名） |
-| `validate_trace_points.py` | [SKILL.md](SKILL.md) 步骤 5：标签与 B/E 配对 |
-| `check_compile_safety.py` | [SKILL.md](SKILL.md) 步骤 5：静态安全检查 |
-| `bootstrap_trace_toolchain.py` | 将上表所列 `TOOLCHAIN_FILES` 从**本脚本所在目录**同步到 ``--build-dir``（幂等；``--dry-run`` / ``--list``）；**规范源**与 Skill ``scripts/`` 同名文件一致 |
-| `compile_ascend_proj.sh` / `build.sh` / `build_pybind.sh` / `set_conf.py` | 既有构建与预处理 hook |
+| `trace_preprocessor.py` | `TRACE_POINT` → `point_id`，生成 `point_map.json`（**`compile_ascend_proj.sh`** 中 hook 呼叫） |
+| `trace_utils.py` | `save_profiling_data`、從 `*_base.h` 讀 `PROF_SIZE_PER_CORE` 等 |
+| `trace_save.py` | 離線原始 `.pt` → 按核拆分輸出目錄 |
+| `trace_collector.py` | `profiling_data` 目錄 + `point_map.json` → `chrome_trace.json`（stderr 含 `diagnose:` 與 `skipped_no_mapping` 提示） |
+| `inspect_rank_pt.py` | 快速檢視 `rank*.pt` 形狀、非零、每核 counter，判斷 pt 是否有有效 profiling（**不依賴**具體運算元名） |
+| `validate_trace_points.py` | [SKILL.md](SKILL.md) 步驟 5：標籤與 B/E 配對 |
+| `check_compile_safety.py` | [SKILL.md](SKILL.md) 步驟 5：靜態安全檢查 |
+| `bootstrap_trace_toolchain.py` | 將上表所列 `TOOLCHAIN_FILES` 從**本指令碼所在目錄**同步到 ``--build-dir``（冪等；``--dry-run`` / ``--list``）；**規範源**與 Skill ``scripts/`` 同名檔案一致 |
+| `compile_ascend_proj.sh` / `build.sh` / `build_pybind.sh` / `set_conf.py` | 既有構建與預處理 hook |
 
-**仅保留在 Skill 目录、一般不提交到 UMDK `comm_operator` 的脚手架**（新仓库一次性接入、草稿插桩）：`patch_build_pipeline.py`、`verify_trace_scaffold.py`、`apply_trace_scaffold.sh`、`generate_instrumentation_plan.py`、`instrument_operator.py`。**`bootstrap_trace_toolchain.py`** 在 **Skill 与 `umdk/build/cam/comm_operator/` 各有一份**，修改后应两边对齐。本仓库已对 **`compile_ascend_proj.sh`** 做预处理接入，一般**不必**再对 UMDK 跑 `apply_trace_scaffold`；给其他仓接入时仍从 Skill 路径执行。
+**僅保留在 Skill 目錄、一般不提交到 UMDK `comm_operator` 的腳手架**（新倉庫一次性接入、草稿插樁）：`patch_build_pipeline.py`、`verify_trace_scaffold.py`、`apply_trace_scaffold.sh`、`generate_instrumentation_plan.py`、`instrument_operator.py`。**`bootstrap_trace_toolchain.py`** 在 **Skill 與 `umdk/build/cam/comm_operator/` 各有一份**，修改後應兩邊對齊。本倉庫已對 **`compile_ascend_proj.sh`** 做預處理接入，一般**不必**再對 UMDK 跑 `apply_trace_scaffold`；給其他倉接入時仍從 Skill 路徑執行。
 
-**UMDK 内同步 Skill 工具链到本目录（示例）**：
+**UMDK 內同步 Skill 工具鏈到本目錄（示例）**：
 
 ```bash
-# 从仓库根执行：用 Skill 目录为源，刷新 umdk/build/cam/comm_operator 下各脚本
+# 從倉庫根執行：用 Skill 目錄為源，重新整理 umdk/build/cam/comm_operator 下各指令碼
 python3 <skill_root>/scripts/bootstrap_trace_toolchain.py \
   --build-dir umdk/build/cam/comm_operator
 ```
 
-**本仓库推荐调用方式（任选其一）**：
+**本倉庫推薦呼叫方式（任選其一）**：
 
 ```bash
-# 与工程同目录的副本（推荐；与对照树 layout 一致更佳）
+# 與工程同目錄的副本（推薦；與對照樹 layout 一致更佳）
 cd umdk/build/cam/comm_operator
 python3 validate_trace_points.py ../../../src/cam/comm_operator/ascend_kernels/<op>/op_kernel
 python3 trace_collector.py <profiling_out_dir> <path/to/point_map.json> -o chrome_trace.json
 
-# 或显式使用 Skill 路径（与下表「命令示例」一致）
+# 或顯式使用 Skill 路徑（與下表「命令示例」一致）
 python3 <skill_root>/scripts/validate_trace_points.py ...
 ```
 
-**与 [SKILL.md](SKILL.md)「必须执行的流程」步骤对应（检索用）**：
+**與 [SKILL.md](SKILL.md)「必須執行的流程」步驟對應（檢索用）**：
 
-| 步骤 | 脚本或产物 |
+| 步驟 | 指令碼或產物 |
 |------|----------------|
-| 1–4 辅助（可选） | `generate_instrumentation_plan.py`、`instrument_operator.py` — 规划/草稿插桩，不能替代人工审查 |
-| **5 校验** | `validate_trace_points.py`、`check_compile_safety.py`（**不替代**完整 OPP/pybind 编译；见 [SKILL.md](SKILL.md) 步骤 5 说明与上文「编译与打包门禁」） |
-| **6 工具链 + 编译接入** | **首选**：仓内已有 `trace_*.py` 时只改现有 `compile_*.sh` 注入 hook（见 [SKILL.md](SKILL.md) 步骤 6）。**按需**：`bootstrap_trace_toolchain.py` → `patch_build_pipeline.py` 或手工 hook → `verify_trace_scaffold.py`；一次性 `apply_trace_scaffold.sh`。编译前在构建树拷贝目录跑 `trace_preprocessor.py ... --modify`，生成 `point_map.json`。**通过后须跑通目标仓库完整 `build.sh` / `compile_ascend_proj.sh`（或 CI 等价）** |
-| **6（本仓库 UMDK 已接入）** | `umdk/build/cam/comm_operator/trace_preprocessor.py` 与 **`compile_ascend_proj.sh`** 内 **`# TRACE_PREPROCESSOR_HOOK_START/END`**：在 `copy_ops` 之后、`set_conf.py` 之前，对 **`${MODULE_BUILD_PATH}/${proj_name}`** 执行预处理（**只改当次 msopgen 生成树**，仓内 `src` 源码仍保留 `TRACE_POINT` 字符串）；`point_map.json` 落在该生成树根目录。脚本缺失时打印 WARNING 并跳过。 |
-| 运行后解析 | `trace_save.py`（离线 `.pt`）、`trace_collector.py`（→ `chrome_trace.json`）— 见上文「trace.json 生成流程」 |
-| **7 Profile UT / 联调** | 扩展既有 **`examples/*_sample.py`** / **`test_<op>.py`**：profiling 落盘、可选 Chrome、可选 **`--trace_checks`**；数值 UT 与 profile 入口分离（少增 `*_profile.py`）。详解见 [SKILL.md](SKILL.md) 步骤 7；落盘后经 `trace_collector` 的流程另见上文「trace.json 生成流程」「端到端 profiling + Chrome」。 |
+| 1–4 輔助（可選） | `generate_instrumentation_plan.py`、`instrument_operator.py` — 規劃/草稿插樁，不能替代人工審查 |
+| **5 校驗** | `validate_trace_points.py`、`check_compile_safety.py`（**不替代**完整 OPP/pybind 編譯；見 [SKILL.md](SKILL.md) 步驟 5 說明與上文「編譯與打包門禁」） |
+| **6 工具鏈 + 編譯接入** | **首選**：倉內已有 `trace_*.py` 時只改現有 `compile_*.sh` 注入 hook（見 [SKILL.md](SKILL.md) 步驟 6）。**按需**：`bootstrap_trace_toolchain.py` → `patch_build_pipeline.py` 或手工 hook → `verify_trace_scaffold.py`；一次性 `apply_trace_scaffold.sh`。編譯前在構建樹複製目錄跑 `trace_preprocessor.py ... --modify`，生成 `point_map.json`。**透過後須跑通目標倉庫完整 `build.sh` / `compile_ascend_proj.sh`（或 CI 等價）** |
+| **6（本倉庫 UMDK 已接入）** | `umdk/build/cam/comm_operator/trace_preprocessor.py` 與 **`compile_ascend_proj.sh`** 內 **`# TRACE_PREPROCESSOR_HOOK_START/END`**：在 `copy_ops` 之後、`set_conf.py` 之前，對 **`${MODULE_BUILD_PATH}/${proj_name}`** 執行預處理（**只改當次 msopgen 生成樹**，倉內 `src` 原始碼仍保留 `TRACE_POINT` 字串）；`point_map.json` 落在該生成樹根目錄。指令碼缺失時列印 WARNING 並跳過。 |
+| 執行後解析 | `trace_save.py`（離線 `.pt`）、`trace_collector.py`（→ `chrome_trace.json`）— 見上文「trace.json 生成流程」 |
+| **7 Profile UT / 聯調** | 擴充套件既有 **`examples/*_sample.py`** / **`test_<op>.py`**：profiling 落盤、可選 Chrome、可選 **`--trace_checks`**；數值 UT 與 profile 入口分離（少增 `*_profile.py`）。詳解見 [SKILL.md](SKILL.md) 步驟 7；落盤後經 `trace_collector` 的流程另見上文「trace.json 生成流程」「端到端 profiling + Chrome」。 |
 
-- 生成打点草案（函数树 + 合并决策）：
+- 生成打點草案（函式樹 + 合併決策）：
   - `python <skill_root>/scripts/generate_instrumentation_plan.py --root <operator_dir> --entry <entry_function>`
-- 根据函数边界自动写入打点代码：
+- 根據函式邊界自動寫入打點程式碼：
   - `python <skill_root>/scripts/instrument_operator.py --target <operator_src_file_or_dir> --root-label processing`
-- 校验点位命名与 B/E 配对：
+- 校驗點位命名與 B/E 配對：
   - `python <skill_root>/scripts/validate_trace_points.py <file_or_dir>`
-- 静态编译安全检查（花括号平衡、预处理配对、头文件可达、参数一致性等）：
+- 靜態編譯安全檢查（花括號平衡、預處理配對、標頭檔案可達、引數一致性等）：
   - `python <skill_root>/scripts/check_compile_safety.py <operator_dir>`
-  - 加 `--strict` 将 warnings 也视为错误
-- 预处理（编译前替换 TRACE_POINT 为整数 ID）：
+  - 加 `--strict` 將 warnings 也視為錯誤
+- 預處理（編譯前替換 TRACE_POINT 為整數 ID）：
   - `python <skill_root>/scripts/trace_preprocessor.py <operator_src_dir> <output_dir> --modify`
-- 保存 profiling tensor（离线）：
+- 儲存 profiling tensor（離線）：
   - `python <skill_root>/scripts/trace_save.py <raw_pt_file> --rank <rank_id> --output <profiling_data_dir>`
 - 生成 Chrome Trace JSON：
   - `python <skill_root>/scripts/trace_collector.py <profiling_data_dir> <point_map.json> -o chrome_trace.json`
-- 部署工具链脚本到 build 目录：
+- 部署工具鏈指令碼到 build 目錄：
   - `python <skill_root>/scripts/bootstrap_trace_toolchain.py --build-dir <build_module_dir>`
-- 对编译脚本打补丁并接入预处理（幂等）：
+- 對編譯指令碼打補丁並接入預處理（冪等）：
   - `python <skill_root>/scripts/patch_build_pipeline.py --compile-script <compile_script_path> --preprocessor-cmd "<cmd>"`
-- 校验工具链与编译接入是否就绪：
+- 校驗工具鏈與編譯接入是否就緒：
   - `python <skill_root>/scripts/verify_trace_scaffold.py --build-dir <build_module_dir> --compile-script <compile_script_path>`
-- 一键执行"部署工具链 + 编译接入 + 校验"：
+- 一鍵執行"部署工具鏈 + 編譯接入 + 校驗"：
   - `bash <skill_root>/scripts/apply_trace_scaffold.sh <skill_root> <build_module_dir> <compile_script_path>`

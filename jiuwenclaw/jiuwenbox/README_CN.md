@@ -1,60 +1,60 @@
 # jiuwenbox
 
-`jiuwenbox` 是一个轻量级 Linux 沙箱服务，用于在分层隔离环境中运行
-agent 工具和代码片段。
+`jiuwenbox` 是一個輕量級 Linux 沙箱服務，用於在分層隔離環境中執行
+agent 工具和程式碼片段。
 
-它提供一个 FastAPI 服务，用于管理沙箱生命周期、文件传输、文件
-列表/搜索以及命令执行。每个沙箱命令都会通过一个小型 supervisor
-进程启动，由 supervisor 根据配置好的隔离策略应用沙箱限制。
+它提供一個 FastAPI 服務，用於管理沙箱生命週期、檔案傳輸、檔案
+列表/搜尋以及命令執行。每個沙箱命令都會透過一個小型 supervisor
+程序啟動，由 supervisor 根據配置好的隔離策略應用沙箱限制。
 
 ## 功能特性
 
-- 基于 `bubblewrap` 的进程隔离
-- 基于静态 policy 的文件系统访问控制
-- 通过 `sandbox_workspace` 配置沙箱后端工作目录
-- 可选的 Linux 网络命名空间和防火墙网络隔离
-- 命名空间和 Linux capability 控制
-- 在内核支持时启用 Landlock 文件系统约束
-- Seccomp 系统调用过滤
-- 在运行时存在时支持 Python 和 JavaScript 代码执行
-- 审计日志和持久化的沙箱生命周期状态
-- 推理隐私代理，用于 LLM API 请求路由和自动 API 密钥注入
+- 基於 `bubblewrap` 的程序隔離
+- 基於靜態 policy 的檔案系統訪問控制
+- 透過 `sandbox_workspace` 配置沙箱後端工作目錄
+- 可選的 Linux 網路名稱空間和防火牆網路隔離
+- 名稱空間和 Linux capability 控制
+- 在核心支援時啟用 Landlock 檔案系統約束
+- Seccomp 系統呼叫過濾
+- 在執行時存在時支援 Python 和 JavaScript 程式碼執行
+- 審計日誌和持久化的沙箱生命週期狀態
+- 推理隱私代理，用於 LLM API 請求路由和自動 API 金鑰注入
 
-## 架构
+## 架構
 
 - `server`
-  - FastAPI 应用，负责沙箱生命周期管理、policy 加载、审计日志和 API 路由。
+  - FastAPI 應用，負責沙箱生命週期管理、policy 載入、審計日誌和 API 路由。
 - `server/runtime`
-  - 运行时适配层，负责为每个沙箱命令启动一个 supervisor 进程。
+  - 執行時適配層，負責為每個沙箱命令啟動一個 supervisor 程序。
 - `server/proxy_manager`
-  - 管理推理隐私代理，用于 LLM API 路由和 API 密钥注入。
+  - 管理推理隱私代理，用於 LLM API 路由和 API 金鑰注入。
 - `server/policy_reader`
-  - 共享 policy 文件读取器，供沙箱和代理管理器使用。
+  - 共享 policy 檔案讀取器，供沙箱和代理管理器使用。
 - `supervisor`
-  - 每条命令的启动器，负责将生效的 policy 转换为 `bubblewrap`、Landlock、
-    seccomp 和命名空间配置。
+  - 每條命令的啟動器，負責將生效的 policy 轉換為 `bubblewrap`、Landlock、
+    seccomp 和名稱空間配置。
 - `proxy`
-  - HTTP 推理隐私代理，支持路径路由和 API 密钥注入（支持 OpenAI 和 Anthropic 格式）。
+  - HTTP 推理隱私代理，支援路徑路由和 API 金鑰注入（支援 OpenAI 和 Anthropic 格式）。
 - `models`
-  - 基于 Pydantic 的 policy、沙箱、API 响应和通用状态结构模型。
+  - 基於 Pydantic 的 policy、沙箱、API 響應和通用狀態結構模型。
 
-## 环境要求
+## 環境要求
 
 - Linux
 - Python 3.11+
 - `bubblewrap`
-- 使用 `network.mode: isolated` 时需要 `iproute2`、`iptables` 和 `nftables`
-- 启用 Landlock 和 seccomp 时需要内核支持对应能力
-- 如果需要执行 JavaScript，则需要 `nodejs`
+- 使用 `network.mode: isolated` 時需要 `iproute2`、`iptables` 和 `nftables`
+- 啟用 Landlock 和 seccomp 時需要核心支援對應能力
+- 如果需要執行 JavaScript，則需要 `nodejs`
 
-Ubuntu 安装示例：
+Ubuntu 安裝示例：
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y bubblewrap iproute2 iptables nftables python3-pip python3-venv nodejs
 ```
 
-## 安装
+## 安裝
 
 ```bash
 cd jiuwenclaw/jiuwenbox
@@ -65,73 +65,73 @@ python3 -m build --wheel
 python3 -m pip install dist/jiuwenbox-*.whl
 ```
 
-## 启动服务
+## 啟動服務
 
-### 本地启动
+### 本地啟動
 
-设置默认 policy 路径，并通过 `python -m` 启动已安装的服务：
+設定預設 policy 路徑，並透過 `python -m` 啟動已安裝的服務：
 
 ```bash
 export JIUWENBOX_POLICY_PATH="$(pwd)/configs/default-policy.yaml"
 sudo -E .venv/bin/python -m uvicorn jiuwenbox.server.app:app --host 0.0.0.0 --port 8321 --log-level debug
 ```
 
-如需使用其他 policy 或端口，可修改环境变量或 uvicorn 参数：
+如需使用其他 policy 或埠，可修改環境變數或 uvicorn 引數：
 
 ```bash
 export JIUWENBOX_POLICY_PATH="$(pwd)/configs/jiuwenclaw-policy.yaml"
 sudo -E .venv/bin/python -m uvicorn jiuwenbox.server.app:app --host 0.0.0.0 --port 9000 --log-level debug
 ```
 
-服务会从以下环境变量读取默认 policy 路径：
+服務會從以下環境變數讀取預設 policy 路徑：
 
 ```bash
 JIUWENBOX_POLICY_PATH=/absolute/path/to/policy.yaml
 ```
 
-如果进程管理器会使用环境变量渲染 uvicorn 命令，也可以设置：
+如果程序管理器會使用環境變數渲染 uvicorn 命令，也可以設定：
 
 ```bash
 JIUWENBOX_PORT=9000
 ```
 
-### Docker 启动
+### Docker 啟動
 
-构建镜像：
+構建映象：
 
 ```bash
 cd jiuwenclaw/jiuwenbox/scripts
 sudo ./build_docker.sh
 ```
 
-使用默认 policy 运行：
+使用預設 policy 執行：
 
 ```bash
 sudo ./run_docker.sh
 ```
 
-## Policy 文件
+## Policy 檔案
 
-服务启动时会加载一个静态默认 policy。当前不启用 policy 动态更新功能。
+服務啟動時會載入一個靜態預設 policy。當前不啟用 policy 動態更新功能。
 
-重要字段：
+重要欄位：
 
 - `sandbox_workspace`
-  - 用于服务端管理沙箱后端存储的宿主机目录。
-  - 该值在展开 `~` 和环境变量之后必须是绝对路径。
+  - 用於服務端管理沙箱後端儲存的宿主機目錄。
+  - 該值在展開 `~` 和環境變數之後必須是絕對路徑。
 - `filesystem_policy.directories`
-  - 由服务端创建并在沙箱生命周期内绑定到沙箱中的目录。
+  - 由服務端建立並在沙箱生命週期內繫結到沙箱中的目錄。
 - `filesystem_policy.read_only`
-  - 沙箱内授予只读访问权限的路径；这些条目本身不会挂载 host 路径。
+  - 沙箱內授予只讀訪問許可權的路徑；這些條目本身不會掛載 host 路徑。
 - `filesystem_policy.read_write`
-  - 沙箱内授予读写访问权限的路径；需要通过 `directories` 或 `bind_mounts`
-    让这些路径实际存在于沙箱内。
+  - 沙箱內授予讀寫訪問許可權的路徑；需要透過 `directories` 或 `bind_mounts`
+    讓這些路徑實際存在於沙箱內。
 - `filesystem_policy.bind_mounts`
-  - 显式的宿主机到沙箱路径的 bind mount 配置。
+  - 顯式的宿主機到沙箱路徑的 bind mount 配置。
 - `filesystem_policy.device`
-  - 使用 `bwrap --dev-bind` 暴露到沙箱内的显式设备节点。
+  - 使用 `bwrap --dev-bind` 暴露到沙箱內的顯式裝置節點。
 
-路径字段支持 shell 风格的展开，例如 `~` 和环境变量。
+路徑欄位支援 shell 風格的展開，例如 `~` 和環境變數。
 
 最小示例：
 
@@ -253,59 +253,59 @@ network:
       - 22
 ```
 
-## 推理隐私代理
+## 推理隱私代理
 
-推理隐私代理用于在边缘服务器上安全访问 LLM API：
+推理隱私代理用於在邊緣伺服器上安全訪問 LLM API：
 
-- 路径路由到不同 LLM 提供商（OpenAI、Anthropic、自定义）
-- 自动 API 密钥注入（OpenAI `Authorization: Bearer`、Anthropic `X-Api-Key`）
-- 通过 REST API 热插拔（创建/启动/停止/重启/更新/删除）
-- 通过 policy YAML 配置或REST API 管理
+- 路徑路由到不同 LLM 提供商（OpenAI、Anthropic、自定義）
+- 自動 API 金鑰注入（OpenAI `Authorization: Bearer`、Anthropic `X-Api-Key`）
+- 透過 REST API 熱插拔（建立/啟動/停止/重啟/更新/刪除）
+- 透過 policy YAML 配置或REST API 管理
 
-**架构说明**：
+**架構說明**：
 
-服务端运行一个全局代理进程，监听单一 host:port。
+服務端執行一個全域性代理程序，監聽單一 host:port。
 
-**隐私路由默认 `listen_port=0`（禁用）**，启用时需同时配置 `listen_host`（IP 地址）和 `listen_port`。
+**隱私路由預設 `listen_port=0`（禁用）**，啟用時需同時配置 `listen_host`（IP 地址）和 `listen_port`。
 
-通过 `path_prefix`区分路由（转发规则）。**每条路由有独立状态**（`running` = 启用转发流量；`stopped` = 禁用）。
+透過 `path_prefix`區分路由（轉發規則）。**每條路由有獨立狀態**（`running` = 啟用轉發流量；`stopped` = 禁用）。
 
-**通过 API 创建路由需 `listen_host` 有效且 `listen_port > 0`**，否则返回错误。
+**透過 API 建立路由需 `listen_host` 有效且 `listen_port > 0`**，否則返回錯誤。
 
 ### 代理配置
 
-配置文件yaml文件说明：
+配置檔案yaml檔案說明：
 
 ```yaml
 inference_privacy_proxies:
-  listen_host: ipaddress，绑定的 IP 地址  # 必须
-  listen_port: number：监听端口号         # 必须，非 0 值启用代理
+  listen_host: ipaddress，繫結的 IP 地址  # 必須
+  listen_port: number：監聽埠號         # 必須，非 0 值啟用代理
 
-  # 选填，可在启动后通过RESTAPI管理
+  # 選填，可在啟動後透過RESTAPI管理
   routes:
-   - path_prefix: str，转发规则的路径名称
-      target_endpoint: URL，目标端点
-      api_key: str，转发时用于替换的api key
-      skip_cert_verify: boolean，仅当target_endpoint为https且证书为自签名时跳过证书校验，调试用
+   - path_prefix: str，轉發規則的路徑名稱
+      target_endpoint: URL，目標端點
+      api_key: str，轉發時用於替換的api key
+      skip_cert_verify: boolean，僅當target_endpoint為https且證書為自簽名時跳過證書校驗，除錯用
 ```
 
 ### URL 路由
 
-将
+將
 http://\<listening_host\>:\<listening_port\>/\<path_prefix\>/\<api_path\>
-转发至
+轉發至
 \<target_endpoint\>/\<api_path\>
 
-### API 密钥注入
+### API 金鑰注入
 
-- OpenAI:     将 `Authorization: Bearer <placeholder>` 替换为实际密钥
-- Anthropic: 将 `X-Api-Key: <placeholder>` 替换为实际密钥
+- OpenAI:     將 `Authorization: Bearer <placeholder>` 替換為實際金鑰
+- Anthropic: 將 `X-Api-Key: <placeholder>` 替換為實際金鑰
 
 ### 配置示例
 
-`注意：以下网络端点地址 https://api.openai.com、http://192.168.1.100:9000 均为示例`
+`注意：以下網路端點地址 https://api.openai.com、http://192.168.1.100:9000 均為示例`
 
-#### 配置文件yaml示例
+#### 配置檔案yaml示例
 
 ```yaml
 inference_privacy_proxies:
@@ -322,50 +322,50 @@ inference_privacy_proxies:
       api_key: "sk_sandbox_managed_custom_key"
 ```
 
-边缘服务器可使用 `listen_host: "0.0.0.0"` 接收所有网络接口的连接。
+邊緣伺服器可使用 `listen_host: "0.0.0.0"` 接收所有網路介面的連線。
 
-#### 转发示例
+#### 轉發示例
 
 ```text
-客户端请求:  POST http://127.0.0.1:8322/openai/v1/chat/completions -H "Authorization: Bearer sk_fake_key"
-代理转发:    POST https://api.openai.com/v1/chat/completions       -H "Authorization: Bearer sk_sandbox_managed_openai_key"
+客戶端請求:  POST http://127.0.0.1:8322/openai/v1/chat/completions -H "Authorization: Bearer sk_fake_key"
+代理轉發:    POST https://api.openai.com/v1/chat/completions       -H "Authorization: Bearer sk_sandbox_managed_openai_key"
 
-客户端请求:  POST http://127.0.0.1:8322/custom/v1/chat/completions -H "Authorization: Bearer sk_fake_key"
-代理转发:    POST http://192.168.1.100:9000/v1/chat/completions    -H "Authorization: Bearer sk_sandbox_managed_custom_key"
+客戶端請求:  POST http://127.0.0.1:8322/custom/v1/chat/completions -H "Authorization: Bearer sk_fake_key"
+代理轉發:    POST http://192.168.1.100:9000/v1/chat/completions    -H "Authorization: Bearer sk_sandbox_managed_custom_key"
 ```
 
 #### jiuwenclaw配置示例
 
 
-| 配置项    | 旧值                          | 新值                             |
+| 配置項    | 舊值                          | 新值                             |
 | --------- | ----------------------------- | -------------------------------- |
 | api\_base | http://192.168.1.100:9000/v1/ | http://127.0.0.1:8322/custom/v1/ |
 | api\_key  | sk_sandbox_managed_custom_key | sk_fake_key                      |
 
-## 运行集成测试
+## 執行整合測試
 
-运行指定 policy 对应的集成测试：
+執行指定 policy 對應的整合測試：
 
 ```bash
-./tests/test.sh default # jiuwenbox 使用 default-policy.yaml 作为安全策略运行服务。
-./tests/test.sh yuanrong # jiuwenbox 使用 yuanrong.yaml 运行服务，代理监听端口 8322。
+./tests/test.sh default # jiuwenbox 使用 default-policy.yaml 作為安全策略執行服務。
+./tests/test.sh yuanrong # jiuwenbox 使用 yuanrong.yaml 執行服務，代理監聽埠 8322。
 ```
 
-运行指定测试用例：
+執行指定測試用例：
 
 ```bash
 python3 -m pytest tests/integration/test_server_api_default.py::TestPolicyEnforcement::test_network_mode_isolated_blocks_http_requests -s --server-endpoint 127.0.0.1:8321
 ```
 
-### 性能测试
+### 效能測試
 
-运行日常办公 workload 性能测试：
+執行日常辦公 workload 效能測試：
 
 ```bash
 ./tests/test.sh performance --server-endpoint 127.0.0.1:8321
 ```
 
-可通过脚本参数设置沙箱数量、每个沙箱内的并发数，以及每个任务的循环次数：
+可透過指令碼引數設定沙箱數量、每個沙箱內的併發數，以及每個任務的迴圈次數：
 
 ```bash
 ./tests/test.sh performance \
@@ -375,17 +375,17 @@ python3 -m pytest tests/integration/test_server_api_default.py::TestPolicyEnforc
   --server-endpoint 127.0.0.1:8321
 ```
 
-脚本会把这些参数映射为性能测试 fixture 使用的环境变量：
+指令碼會把這些引數對映為效能測試 fixture 使用的環境變數：
 
-| 脚本参数 | 环境变量 | 默认值 |
+| 指令碼引數 | 環境變數 | 預設值 |
 | -------- | -------- | ------ |
 | `--sandbox-count` | `JIUWENBOX_PERF_SANDBOX_COUNT` | `1` |
 | `--concurrency` | `JIUWENBOX_PERF_CONCURRENCY` | `4` |
 | `--loop` | `JIUWENBOX_PERF_LOOP` | `8` |
 
-### 真实 LLM 集成测试
+### 真實 LLM 整合測試
 
-运行真实 LLM 集成测试需设置以下环境变量，若未设置环境变量，这些测试默认跳过：
+執行真實 LLM 整合測試需設定以下環境變數，若未設定環境變數，這些測試預設跳過：
 
 ```bash
 export JIUWENBOX_TEST_LLM_ENDPOINT="https://api.openai.com"
@@ -393,12 +393,12 @@ export JIUWENBOX_TEST_LLM_API_KEY="sk_sandbox_managed_key"
 export JIUWENBOX_TEST_LLM_MODEL="YOUR_MODEL"
 ```
 
-## 注意事项
+## 注意事項
 
-- 修改启动 policy 文件后，需要重启服务。
-- 已存在的沙箱会继续使用创建时写入的 policy。
-- `/exec` API 会把命令 stderr 作为命令执行结果返回；如果服务端诊断日志
-  可能污染命令 stderr，应使用 debug 级别日志。
+- 修改啟動 policy 檔案後，需要重啟服務。
+- 已存在的沙箱會繼續使用建立時寫入的 policy。
+- `/exec` API 會把命令 stderr 作為命令執行結果返回；如果服務端診斷日誌
+  可能汙染命令 stderr，應使用 debug 級別日誌。
 
 ## License
 

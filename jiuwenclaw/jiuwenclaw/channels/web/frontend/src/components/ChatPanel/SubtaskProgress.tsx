@@ -1,7 +1,7 @@
 /**
- * SubtaskProgress 组件
+ * SubtaskProgress 元件
  *
- * 显示并行子任务的执行进度
+ * 顯示並行子任務的執行進度
  */
 
 import { useChatStore } from '../../stores';
@@ -12,7 +12,7 @@ export function SubtaskProgress() {
   const { t } = useTranslation();
   const { activeSubtasks } = useChatStore();
 
-  // 将 Map 转换为数组并按 index 排序
+  // 將 Map 轉換為陣列並按 index 排序
   const subtasks = Array.from(activeSubtasks.values()).sort(
     (a, b) => a.index - b.index
   );
@@ -21,10 +21,10 @@ export function SubtaskProgress() {
     return null;
   }
 
-  // 获取总数（从第一个子任务）
+  // 獲取總數（從第一個子任務）
   const total = subtasks[0]?.total || subtasks.length;
 
-  // 计算完成数量
+  // 計算完成數量
   const completedCount = total - subtasks.length;
 
   return (

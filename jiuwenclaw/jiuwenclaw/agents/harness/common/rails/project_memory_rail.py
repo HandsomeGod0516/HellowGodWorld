@@ -73,9 +73,9 @@ class ProjectMemoryRail(DeepAgentRail):
         additional_directories: tuple[str, ...] | None = None,
     ) -> None:
         super().__init__()
-        # NOTE: 父类 DeepAgentRail.set_workspace() 会把 self.workspace 替换成
-        # Workspace 对象（DeepAgent.register_rail 内部强制注入）。这里改用
-        # 私有属性 _workspace_path 保存构造期传入的字符串路径，避免被覆盖。
+        # NOTE: 父類 DeepAgentRail.set_workspace() 會把 self.workspace 替換成
+        # Workspace 物件（DeepAgent.register_rail 內部強制注入）。這裡改用
+        # 私有屬性 _workspace_path 儲存構造期傳入的字串路徑，避免被覆蓋。
         self._workspace_path: str = workspace
         self._language: str = language
         self._max_chars: int = max_chars
@@ -162,7 +162,7 @@ class ProjectMemoryRail(DeepAgentRail):
                 additional_directories=self._additional_directories,
             )
         except (OSError, ValueError, TypeError) as exc:
-            # 不能让 rail 崩坏 model call；但要把根因留在日志里，方便排查。
+            # 不能讓 rail 崩壞 model call；但要把根因留在日誌裡，方便排查。
             logger.exception(
                 "[ProjectMemoryRail] discovery failed for workspace=%s: %s",
                 workspace_path,

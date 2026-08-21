@@ -1,38 +1,38 @@
-"""Agent模块 - 提供智能体核心类和基础设施。
+"""Agent模組 - 提供智慧體核心類和基礎設施。
 
-核心组件
+核心元件
 ========
 
 **AgentBase**
-    智能体抽象基类，定义基本接口。
+    智慧體抽象基類，定義基本介面。
 
 **PersonAgent**
-    技能优先型Agent实现，支持独立工作区和渐进式技能发现。
+    技能優先型Agent實現，支援獨立工作區和漸進式技能發現。
 
 配置管理
 ========
 
 **AgentConfig**
-    统一配置管理，整合模型、循环、上下文、持久化、并发等所有配置。
+    統一配置管理，整合模型、迴圈、上下文、持久化、併發等所有配置。
 
     >>> from agentsociety2.agent import AgentConfig
-    >>> config = AgentConfig()  # 使用默认值
+    >>> config = AgentConfig()  # 使用預設值
     >>> config.model.context_window  # 200000
 
 持久化
 ======
 
-**Checkpoint** - 检查点管理，支持崩溃恢复
-**WriteAheadLog** - 预写日志，确保精确恢复
-**WorkspaceCleaner** - 工作区清理
-**SessionRecovery** - 会话恢复上下文构建
+**Checkpoint** - 檢查點管理，支援崩潰恢復
+**WriteAheadLog** - 預寫日誌，確保精確恢復
+**WorkspaceCleaner** - 工作區清理
+**SessionRecovery** - 會話恢復上下文構建
 
-并发控制
+併發控制
 ========
 
-**ParallelExecutor** - 并行工具执行器
+**ParallelExecutor** - 並行工具執行器
 **RateLimiter** - 令牌桶限流器
-**TaskManager** - 后台任务管理器
+**TaskManager** - 後臺工作管理員
 """
 
 from .base import AgentBase
@@ -68,7 +68,7 @@ from .concurrent import (
 from .context import AgentMemory
 
 __all__ = [
-    # 核心类
+    # 核心類
     "AgentBase",
     "PersonAgent",
     # 配置
@@ -91,7 +91,7 @@ __all__ = [
     "WorkspaceCleaner",
     "SessionRecovery",
     "IntentStatus",
-    # 并发
+    # 併發
     "Priority",
     "PrioritizedTask",
     "PriorityScheduler",

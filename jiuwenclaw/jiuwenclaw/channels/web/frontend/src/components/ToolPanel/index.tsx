@@ -1,7 +1,7 @@
 /**
- * ToolPanel 组件
+ * ToolPanel 元件
  *
- * 工具面板，显示 Todo 列表和状态信息
+ * 工具面板，顯示 Todo 列表和狀態資訊
  */
 
 import { useTranslation } from 'react-i18next';
@@ -121,7 +121,7 @@ export function ToolPanel() {
       style={{ width: 'var(--tool-panel-width)' }}
     >
       <div className="h-full bg-panel flex flex-col overflow-hidden">
-        {/* 任务事件日志 */}
+        {/* 任務事件日誌 */}
         {mode === 'team' ? (
           <div className="flex-1 overflow-y-auto mb-4">
             <div className="bg-card rounded-lg border border-border overflow-hidden h-full">
@@ -137,7 +137,7 @@ export function ToolPanel() {
           </div>
         )}
 
-        {/* 团队区域 */}
+        {/* 團隊區域 */}
         {mode === 'team' && (
           <div className="flex-1 overflow-y-auto">
             <div className="bg-card rounded-lg border border-border overflow-hidden h-full">
@@ -148,7 +148,7 @@ export function ToolPanel() {
           </div>
         )}
 
-        {/* 状态显示 */}
+        {/* 狀態顯示 */}
         <div className="toolpanel-status-card">
           <h3 className="toolpanel-status-card__title">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -195,7 +195,7 @@ export function ToolPanel() {
           </div>
         </div>
 
-        {/* 底部信息区：与左侧版本信息保持一致 */}
+        {/* 底部資訊區：與左側版本資訊保持一致 */}
         <div
           className="shrink-0 pt-4 text-text-muted text-center"
           style={{ fontSize: 'var(--font-size-xs)' }}

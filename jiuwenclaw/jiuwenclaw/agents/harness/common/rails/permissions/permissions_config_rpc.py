@@ -1,7 +1,7 @@
-"""Permissions 配置 RPC（宿主侧）。
+"""Permissions 配置 RPC（宿主側）。
 
-这是原 `jiuwenclaw.agents.harness.common.rails.permissions.config_rpc` 的新归档位置，
-用于减少对 legacy permissions 包路径的依赖。
+這是原 `jiuwenclaw.agents.harness.common.rails.permissions.config_rpc` 的新歸檔位置，
+用於減少對 legacy permissions 包路徑的依賴。
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ def _ok(request: AgentRequest, payload: dict[str, Any] | None) -> AgentResponse:
 
 
 def dispatch_permissions_config_request(request: AgentRequest) -> AgentResponse:
-    """执行一条 permissions 配置 RPC（与原先 WebSocket register_method 语义一致）。"""
+    """執行一條 permissions 配置 RPC（與原先 WebSocket register_method 語義一致）。"""
     from jiuwenclaw.common.config import (
         create_permissions_rule_in_config,
         delete_permissions_approval_override_in_config,

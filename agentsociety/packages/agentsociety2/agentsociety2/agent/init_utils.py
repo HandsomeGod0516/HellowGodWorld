@@ -1,7 +1,7 @@
-"""PersonAgent 初始化辅助工具（用于测试/脚手架）。
+"""PersonAgent 初始化輔助工具（用於測試/腳手架）。
 
-该模块为 `agentsociety2.agent.tests` 提供最小的初始化能力：构造 init_state（workspace seed），
-并创建可被 :class:`~agentsociety2.agent.person.PersonAgent` 消费的配置对象。
+該模組為 `agentsociety2.agent.tests` 提供最小的初始化能力：構造 init_state（workspace seed），
+並建立可被 :class:`~agentsociety2.agent.person.PersonAgent` 消費的配置物件。
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ class PersonInitConfig:
     _seed: dict[str, Any] = field(default_factory=dict, repr=False)
 
     def set_state(self, _: str, rel_path: str, value: Any) -> "PersonInitConfig":
-        """写入一个将被 seed 到 workspace 的文件。"""
+        """寫入一個將被 seed 到 workspace 的檔案。"""
         self._seed[str(rel_path).strip()] = value
         return self
 
@@ -35,11 +35,11 @@ class PersonInitConfig:
 
 
 def init_needs_state(*, satiety: float = 0.5, energy: float = 0.5) -> dict[str, Any]:
-    """生成 needs.json 的最小结构（用于测试）。
+    """生成 needs.json 的最小結構（用於測試）。
 
-    :param satiety: 饱腹度（0~1）。
+    :param satiety: 飽腹度（0~1）。
     :param energy: 精力（0~1）。
-    :returns: needs.json 对象。
+    :returns: needs.json 物件。
     """
     current_need = "satiety" if satiety < energy else "energy"
     return {
@@ -54,11 +54,11 @@ def init_needs_state(*, satiety: float = 0.5, energy: float = 0.5) -> dict[str, 
 def init_personality_state(
     *, extraversion: float = 0.5, neuroticism: float = 0.5
 ) -> dict[str, Any]:
-    """生成 personality.json 的最小结构（用于测试）。
+    """生成 personality.json 的最小結構（用於測試）。
 
     :param extraversion: 外向性（0~1）。
-    :param neuroticism: 神经质（0~1）。
-    :returns: personality.json 对象。
+    :param neuroticism: 神經質（0~1）。
+    :returns: personality.json 物件。
     """
     return {
         "traits": {
@@ -72,12 +72,12 @@ def init_personality_state(
 def init_emotion_state(
     *, primary: str = "Hope", valence: float = 0.0, arousal: float = 0.5
 ) -> dict[str, Any]:
-    """生成 emotion.json 的最小结构（用于测试）。
+    """生成 emotion.json 的最小結構（用於測試）。
 
-    :param primary: 主导情绪标签。
-    :param valence: 效价（-1~1）。
-    :param arousal: 唤醒度（0~1）。
-    :returns: emotion.json 对象。
+    :param primary: 主導情緒標籤。
+    :param valence: 效價（-1~1）。
+    :param arousal: 喚醒度（0~1）。
+    :returns: emotion.json 物件。
     """
     return {
         "primary": str(primary),
@@ -100,10 +100,10 @@ def init_emotion_state(
 
 
 def discover_skill_schemas() -> dict[str, list[str]]:
-    """返回测试用的“技能输出文件约定”。
+    """返回測試用的“技能輸出檔案約定”。
 
-    注：真实系统的技能输出由 SKILL.md 定义并由 skill 脚本生成。测试仅需要一个稳定集合
-    来验证 workspace seed/目录创建是否正常。
+    注：真實系統的技能輸出由 SKILL.md 定義並由 skill 指令碼生成。測試僅需要一個穩定集合
+    來驗證 workspace seed/目錄建立是否正常。
     """
     return {
         "needs": ["needs.json"],
@@ -113,7 +113,7 @@ def discover_skill_schemas() -> dict[str, list[str]]:
 
 
 def create_person_agent(config: PersonInitConfig) -> PersonAgent:
-    """基于配置创建 PersonAgent（不初始化 env）。"""
+    """基於配置建立 PersonAgent（不初始化 env）。"""
     agent = PersonAgent(
         id=int(config.agent_id),
         profile=config.profile,

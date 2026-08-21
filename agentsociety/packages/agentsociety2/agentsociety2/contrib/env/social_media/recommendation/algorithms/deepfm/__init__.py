@@ -1,5 +1,5 @@
 """
-DeepFM 算法模块
+DeepFM 演算法模組
 """
 
 from .config import DeepFMConfig

@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""飞书文件服务，负责文件的下载与上传。"""
+"""飛書檔案服務，負責檔案的下載與上傳。"""
 
 import asyncio
 import mimetypes
@@ -11,15 +11,15 @@ from typing import Any
 
 from jiuwenclaw.common.utils import logger
 
-# 类型别名，用于类型提示
-FeishuConfig = Any  # 避免循环导入
+# 型別別名，用於型別提示
+FeishuConfig = Any  # 避免迴圈匯入
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 飞书 file.create API 支持的 file_type 枚举
+# 飛書 file.create API 支援的 file_type 列舉
 # https://open.feishu.cn/document/server-docs/im-v1/file/create
 # ──────────────────────────────────────────────────────────────────────────────
 _EXT_TO_FEISHU_FILE_TYPE: dict[str, str] = {
-    # 音频 —— 飞书原生格式为 opus，其他音频作为 stream（可下载，不可在线播放）
+    # 音訊 —— 飛書原生格式為 opus，其他音訊作為 stream（可下載，不可線上播放）
     ".opus": "opus",
     ".mp3": "stream",
     ".wav": "stream",
@@ -27,12 +27,12 @@ _EXT_TO_FEISHU_FILE_TYPE: dict[str, str] = {
     ".ogg": "stream",
     ".aac": "stream",
     ".m4a": "stream",
-    # 视频
+    # 影片
     ".mp4": "mp4",
     ".mov": "mp4",
     ".avi": "mp4",
     ".mkv": "mp4",
-    # 文档
+    # 文件
     ".pdf": "pdf",
     ".doc": "doc",
     ".docx": "doc",
@@ -42,53 +42,53 @@ _EXT_TO_FEISHU_FILE_TYPE: dict[str, str] = {
     ".pptx": "stream",
 }
 
-# 图片扩展名集合（走 image.create 接口，不走 file.create）
+# 圖片副檔名集合（走 image.create 介面，不走 file.create）
 _IMAGE_EXTENSIONS: frozenset[str] = frozenset(
     {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".svg"}
 )
 
-# 音频扩展名集合（可尝试以 audio msg_type 发送）
+# 音訊副檔名集合（可嘗試以 audio msg_type 傳送）
 _AUDIO_EXTENSIONS: frozenset[str] = frozenset(
     {".opus", ".mp3", ".wav", ".flac", ".ogg", ".aac", ".m4a"}
 )
 
-# 视频扩展名集合（以 media msg_type 发送）
+# 影片副檔名集合（以 media msg_type 傳送）
 _VIDEO_EXTENSIONS: frozenset[str] = frozenset(
     {".mp4", ".mov", ".avi", ".mkv", ".flv", ".wmv", ".webm"}
 )
 
 
 def get_feishu_file_type(file_path: str) -> str:
-    """根据文件扩展名返回飞书 file.create 所需的 file_type。"""
+    """根據副檔名返回飛書 file.create 所需的 file_type。"""
     ext = os.path.splitext(file_path)[1].lower()
     return _EXT_TO_FEISHU_FILE_TYPE.get(ext, "stream")
 
 
 def is_image_file(file_path: str) -> bool:
-    """判断是否为图片文件。"""
+    """判斷是否為圖片檔案。"""
     ext = os.path.splitext(file_path)[1].lower()
     return ext in _IMAGE_EXTENSIONS
 
 
 def is_audio_file(file_path: str) -> bool:
-    """判断是否为音频文件。"""
+    """判斷是否為音訊檔案。"""
     ext = os.path.splitext(file_path)[1].lower()
     return ext in _AUDIO_EXTENSIONS
 
 
 def is_video_file(file_path: str) -> bool:
-    """判断是否为视频文件。"""
+    """判斷是否為影片檔案。"""
     ext = os.path.splitext(file_path)[1].lower()
     return ext in _VIDEO_EXTENSIONS
 
 
 class FeishuFileService:
     """
-    飞书文件服务，负责文件的下载与上传。
+    飛書檔案服務，負責檔案的下載與上傳。
 
     功能：
-    - 从飞书下载用户发送的文件（图片/音频/视频/普通文件）
-    - 上传文件到飞书用于发送
+    - 從飛書下載使用者傳送的檔案（圖片/音訊/影片/普通檔案）
+    - 上傳檔案到飛書用於傳送
     """
 
     def __init__(
@@ -98,28 +98,28 @@ class FeishuFileService:
         workspace_dir: str,
     ):
         """
-        初始化文件服务。
+        初始化檔案服務。
 
         Args:
-            api_client: 飞书 API 客户端（lark.Client 实例）
-            config: 飞书通道配置（FeishuConfig）
-            workspace_dir: 工作空间目录
+            api_client: 飛書 API 客戶端（lark.Client 例項）
+            config: 飛書通道配置（FeishuConfig）
+            workspace_dir: 工作空間目錄
         """
         self._api_client = api_client
         self._config = config
         self._workspace_dir = workspace_dir
-        self._download_semaphore = asyncio.Semaphore(3)  # 限制并发下载数
+        self._download_semaphore = asyncio.Semaphore(3)  # 限制併發下載數
 
     # ──────────────────────────────────────────────────────────────────────────
     # 工具方法
     # ──────────────────────────────────────────────────────────────────────────
     @classmethod
     def _ensure_dir(cls, path: str) -> None:
-        """确保目录存在。"""
+        """確保目錄存在。"""
         os.makedirs(path, exist_ok=True)
 
     def _get_download_dir(self, file_type: str) -> str:
-        """获取下载目录路径，并确保目录存在。"""
+        """獲取下載目錄路徑，並確保目錄存在。"""
         base_dir = os.path.join(self._workspace_dir, "feishu_files", "downloads", file_type)
         self._ensure_dir(base_dir)
         return base_dir
@@ -133,30 +133,30 @@ class FeishuFileService:
         extension: str = "",
     ) -> str:
         """
-        生成本地文件名，确保唯一性。
+        生成本地檔名，確保唯一性。
 
         格式: {message_id}_{safe_file_key}{ext}
         """
         if not extension and original_name:
             extension = os.path.splitext(original_name)[1]
 
-        # 清理 file_key 中的特殊字符，取前 20 位
+        # 清理 file_key 中的特殊字元，取前 20 位
         safe_key = re.sub(r"[^\w\-]", "", file_key[:20])
 
         return f"{message_id}_{safe_key}{extension}"
 
     @classmethod
     def _guess_mime_type(cls, file_name: str) -> str:
-        """根据文件名推断 MIME 类型。"""
+        """根據檔名推斷 MIME 型別。"""
         mime_type, _ = mimetypes.guess_type(file_name)
         return mime_type or "application/octet-stream"
 
     def _get_download_timeout(self) -> int:
-        """获取下载超时时间（秒）。"""
+        """獲取下載超時時間（秒）。"""
         return getattr(self._config, "download_timeout", 60)
 
     # ──────────────────────────────────────────────────────────────────────────
-    # 文件下载（核心工具）
+    # 檔案下載（核心工具）
     # ──────────────────────────────────────────────────────────────────────────
 
     async def _download_with_retry(
@@ -165,21 +165,21 @@ class FeishuFileService:
         max_retries: int = 3,
     ) -> bytes | None:
         """
-        带重试的文件下载（在线程池中执行同步 lark_oapi 调用）。
+        帶重試的檔案下載（線上程池中執行同步 lark_oapi 呼叫）。
 
         Args:
-            download_func: 无参可调用对象，执行后返回 lark_oapi response
-            max_retries: 最大重试次数
+            download_func: 無參可呼叫物件，執行後返回 lark_oapi response
+            max_retries: 最大重試次數
 
         Returns:
-            文件内容 bytes，失败返回 None
+            檔案內容 bytes，失敗返回 None
         """
         loop = asyncio.get_running_loop()
         timeout = self._get_download_timeout()
 
         for attempt in range(max_retries):
             try:
-                # 在线程池执行同步 SDK 调用，并加超时控制
+                # 線上程池執行同步 SDK 呼叫，並加超時控制
                 response = await asyncio.wait_for(
                     loop.run_in_executor(None, download_func),
                     timeout=timeout,
@@ -187,7 +187,7 @@ class FeishuFileService:
 
                 if not response.success():
                     logger.warning(
-                        "飞书文件下载失败 (尝试 %d/%d): code=%s msg=%s",
+                        "飛書檔案下載失敗 (嘗試 %d/%d): code=%s msg=%s",
                         attempt + 1, max_retries,
                         response.code, response.msg,
                     )
@@ -195,7 +195,7 @@ class FeishuFileService:
                         await asyncio.sleep(1 * (attempt + 1))
                     continue
 
-                # 兼容不同的响应结构（lark_oapi 各版本差异）
+                # 相容不同的響應結構（lark_oapi 各版本差異）
                 file_content: bytes | None = None
                 if hasattr(response, "file") and response.file:
                     file_content = response.file.read()
@@ -206,9 +206,9 @@ class FeishuFileService:
                 if file_content:
                     return file_content
 
-                # 响应成功但内容为空——视为可重试的瞬时错误
+                # 響應成功但內容為空——視為可重試的瞬時錯誤
                 logger.warning(
-                    "飞书文件下载响应中无文件内容 (尝试 %d/%d)，稍后重试",
+                    "飛書檔案下載響應中無檔案內容 (嘗試 %d/%d)，稍後重試",
                     attempt + 1, max_retries,
                 )
                 if attempt < max_retries - 1:
@@ -216,14 +216,14 @@ class FeishuFileService:
 
             except asyncio.TimeoutError:
                 logger.warning(
-                    "飞书文件下载超时 %ds (尝试 %d/%d)",
+                    "飛書檔案下載超時 %ds (嘗試 %d/%d)",
                     timeout, attempt + 1, max_retries,
                 )
                 if attempt < max_retries - 1:
                     await asyncio.sleep(2 * (attempt + 1))
             except Exception as e:
                 logger.error(
-                    "飞书文件下载异常 (尝试 %d/%d): %s",
+                    "飛書檔案下載異常 (嘗試 %d/%d): %s",
                     attempt + 1, max_retries, e,
                 )
                 if attempt < max_retries - 1:
@@ -232,7 +232,7 @@ class FeishuFileService:
         return None
 
     # ──────────────────────────────────────────────────────────────────────────
-    # 各类型下载实现
+    # 各型別下載實現
     # ──────────────────────────────────────────────────────────────────────────
 
     async def _download_image_internal(
@@ -241,10 +241,10 @@ class FeishuFileService:
         message_id: str,
     ) -> dict | None:
         """
-        下载图片文件。
+        下載圖片檔案。
 
-        用户发送的图片必须通过 messageResource 接口下载（而非 image.get，
-        后者仅支持应用自己上传的图片）。
+        使用者傳送的圖片必須透過 messageResource 介面下載（而非 image.get，
+        後者僅支援應用自己上傳的圖片）。
         """
         try:
             from lark_oapi.api.im.v1 import GetMessageResourceRequest
@@ -263,7 +263,7 @@ class FeishuFileService:
             if not file_content:
                 return None
 
-            # 通过文件头魔数推断图片格式
+            # 透過檔案頭魔數推斷圖片格式
             extension = self._detect_image_extension(file_content)
 
             local_name = self._generate_local_filename(
@@ -275,7 +275,7 @@ class FeishuFileService:
             with open(file_path, "wb") as f:
                 f.write(file_content)
 
-            logger.info("飞书图片下载成功: %s", file_path)
+            logger.info("飛書圖片下載成功: %s", file_path)
 
             return {
                 "path": file_path,
@@ -287,11 +287,11 @@ class FeishuFileService:
             }
 
         except Exception as e:
-            logger.error("下载飞书图片失败: %s", e)
+            logger.error("下載飛書圖片失敗: %s", e)
             return None
 
     async def download_image(self, file_key: str, message_id: str) -> dict | None:
-        """下载图片文件（公开接口）。"""
+        """下載圖片檔案（公開介面）。"""
         return await self._download_image_internal(file_key, message_id)
 
     async def _download_file_internal(
@@ -301,9 +301,9 @@ class FeishuFileService:
         extra_info: dict[str, Any] | None = None,
     ) -> dict | None:
         """
-        下载普通文件。
+        下載普通檔案。
 
-        用户发送的文件通过 messageResource 接口下载。
+        使用者傳送的檔案透過 messageResource 介面下載。
         """
         try:
             from lark_oapi.api.im.v1 import GetMessageResourceRequest
@@ -311,7 +311,7 @@ class FeishuFileService:
             extra_info = extra_info or {}
             original_name = extra_info.get("file_name", "")
 
-            # 尝试下载文件，即使文件大小为0（可能是飞书端显示问题）
+            # 嘗試下載檔案，即使檔案大小為0（可能是飛書端顯示問題）
             def _do_download():
                 request = (
                     GetMessageResourceRequest.builder()
@@ -333,7 +333,7 @@ class FeishuFileService:
             download_dir = self._get_download_dir("files")
             file_path = os.path.join(download_dir, local_name)
 
-            # 处理文件名冲突
+            # 處理檔名衝突
             if os.path.exists(file_path):
                 base, ext = os.path.splitext(file_path)
                 file_path = f"{base}_{int(time.time())}{ext}"
@@ -341,7 +341,7 @@ class FeishuFileService:
             with open(file_path, "wb") as f:
                 f.write(file_content)
 
-            logger.info("飞书文件下载成功: %s", file_path)
+            logger.info("飛書檔案下載成功: %s", file_path)
 
             return {
                 "path": file_path,
@@ -353,13 +353,13 @@ class FeishuFileService:
             }
 
         except Exception as e:
-            logger.error("下载飞书文件失败: %s", e)
+            logger.error("下載飛書檔案失敗: %s", e)
             return None
 
     async def download_file_resource(
         self, file_key: str, message_id: str, extra_info: dict | None = None
     ) -> dict | None:
-        """下载普通文件（公开接口）。"""
+        """下載普通檔案（公開介面）。"""
         return await self._download_file_internal(file_key, message_id, extra_info)
 
     async def _download_audio_internal(
@@ -368,9 +368,9 @@ class FeishuFileService:
         message_id: str,
     ) -> dict | None:
         """
-        下载音频文件。
+        下載音訊檔案。
 
-        飞书音频消息的原生格式为 Opus，messageResource 返回的也是 opus 编码数据。
+        飛書音訊訊息的原生格式為 Opus，messageResource 返回的也是 opus 編碼資料。
         """
         try:
             from lark_oapi.api.im.v1 import GetMessageResourceRequest
@@ -389,7 +389,7 @@ class FeishuFileService:
             if not file_content:
                 return None
 
-            # 飞书音频原生格式为 opus，通过文件头进一步确认
+            # 飛書音訊原生格式為 opus，透過檔案頭進一步確認
             extension = self._detect_audio_extension(file_content)
 
             local_name = self._generate_local_filename(
@@ -401,7 +401,7 @@ class FeishuFileService:
             with open(file_path, "wb") as f:
                 f.write(file_content)
 
-            logger.info("飞书音频下载成功: %s", file_path)
+            logger.info("飛書音訊下載成功: %s", file_path)
 
             return {
                 "path": file_path,
@@ -413,11 +413,11 @@ class FeishuFileService:
             }
 
         except Exception as e:
-            logger.error("下载飞书音频失败: %s", e)
+            logger.error("下載飛書音訊失敗: %s", e)
             return None
 
     async def download_audio(self, file_key: str, message_id: str) -> dict | None:
-        """下载音频文件（公开接口）。"""
+        """下載音訊檔案（公開介面）。"""
         return await self._download_audio_internal(file_key, message_id)
 
     async def _download_media_internal(
@@ -426,9 +426,9 @@ class FeishuFileService:
         message_id: str,
     ) -> dict | None:
         """
-        下载视频/媒体文件。
+        下載影片/媒體檔案。
 
-        飞书视频消息通过 messageResource 接口下载。
+        飛書影片訊息透過 messageResource 介面下載。
         """
         try:
             from lark_oapi.api.im.v1 import GetMessageResourceRequest
@@ -458,7 +458,7 @@ class FeishuFileService:
             with open(file_path, "wb") as f:
                 f.write(file_content)
 
-            logger.info("飞书视频下载成功: %s", file_path)
+            logger.info("飛書影片下載成功: %s", file_path)
 
             return {
                 "path": file_path,
@@ -470,20 +470,20 @@ class FeishuFileService:
             }
 
         except Exception as e:
-            logger.error("下载飞书视频失败: %s", e)
+            logger.error("下載飛書影片失敗: %s", e)
             return None
 
     async def download_media(self, file_key: str, message_id: str) -> dict | None:
-        """下载视频文件（公开接口）。"""
+        """下載影片檔案（公開介面）。"""
         return await self._download_media_internal(file_key, message_id)
 
     # ──────────────────────────────────────────────────────────────────────────
-    # 文件格式检测辅助方法
+    # 檔案格式檢測輔助方法
     # ──────────────────────────────────────────────────────────────────────────
 
     @staticmethod
     def _detect_image_extension(data: bytes) -> str:
-        """通过文件头魔数推断图片扩展名，默认 .png。"""
+        """透過檔案頭魔數推斷圖片副檔名，預設 .png。"""
         if len(data) < 12:
             return ".png"
         header = data[:12]
@@ -502,9 +502,9 @@ class FeishuFileService:
     @staticmethod
     def _detect_audio_extension(data: bytes) -> str:
         """
-        通过文件头推断音频扩展名。
+        透過檔案頭推斷音訊副檔名。
 
-        飞书音频原生格式为 Opus（OggOpus 容器），默认返回 .opus。
+        飛書音訊原生格式為 Opus（OggOpus 容器），預設返回 .opus。
         """
         if len(data) < 12:
             return ".opus"
@@ -521,12 +521,12 @@ class FeishuFileService:
         # MP3 (ID3 tag or sync frame)
         if header[:3] == b"ID3" or header[:2] == b"\xff\xfb":
             return ".mp3"
-        # 默认为 opus（飞书原生格式）
+        # 預設為 opus（飛書原生格式）
         return ".opus"
 
     @staticmethod
     def _detect_video_extension(data: bytes) -> str:
-        """通过文件头推断视频扩展名，默认 .mp4。"""
+        """透過檔案頭推斷影片副檔名，預設 .mp4。"""
         if len(data) < 12:
             return ".mp4"
         header = data[:12]
@@ -545,21 +545,21 @@ class FeishuFileService:
         return ".mp4"
 
     # ──────────────────────────────────────────────────────────────────────────
-    # 文件上传
+    # 檔案上傳
     # ──────────────────────────────────────────────────────────────────────────
 
     async def _upload_image_internal(self, file_path: str) -> dict | None:
         """
-        上传图片到飞书（图片 API，失败时回退到文件 API）。
+        上傳圖片到飛書（圖片 API，失敗時回退到檔案 API）。
 
-        飞书图片限制：20 MB。
+        飛書圖片限制：20 MB。
         """
         try:
             from lark_oapi.api.im.v1 import CreateImageRequest, CreateImageRequestBody
 
             file_size = os.path.getsize(file_path)
             if file_size > 20 * 1024 * 1024:
-                logger.error("图片超过飞书限制 20MB: %s (%d)", file_path, file_size)
+                logger.error("圖片超過飛書限制 20MB: %s (%d)", file_path, file_size)
                 return None
 
             loop = asyncio.get_running_loop()
@@ -585,25 +585,25 @@ class FeishuFileService:
 
             if response.success():
                 image_key = response.data.image_key
-                logger.info("飞书图片上传成功: %s → %s", file_path, image_key)
+                logger.info("飛書圖片上傳成功: %s → %s", file_path, image_key)
                 return {
                     "image_key": image_key,
                     "file_key": image_key,
                     "file_type": "image",
                 }
 
-            # 图片 API 失败，回退到文件 API
+            # 圖片 API 失敗，回退到檔案 API
             logger.warning(
-                "上传图片失败 (code=%s): %s，回退到文件 API", response.code, response.msg
+                "上傳圖片失敗 (code=%s): %s，回退到檔案 API", response.code, response.msg
             )
             return await self._upload_image_as_file(file_path)
 
         except Exception as e:
-            logger.error("上传图片异常: %s", e)
+            logger.error("上傳圖片異常: %s", e)
             return None
 
     async def _upload_image_as_file(self, file_path: str) -> dict | None:
-        """使用文件 API 上传图片（图片 API 失败时的回退方案）。"""
+        """使用檔案 API 上傳圖片（圖片 API 失敗時的回退方案）。"""
         try:
             from lark_oapi.api.im.v1 import CreateFileRequest, CreateFileRequestBody
 
@@ -632,13 +632,13 @@ class FeishuFileService:
 
             if not response.success():
                 logger.error(
-                    "文件 API 上传图片失败: code=%s msg=%s", response.code, response.msg
+                    "檔案 API 上傳圖片失敗: code=%s msg=%s", response.code, response.msg
                 )
                 return None
 
             file_key = response.data.file_key
             file_size = os.path.getsize(file_path)
-            logger.info("飞书文件 API 上传图片成功: %s → %s", file_path, file_key)
+            logger.info("飛書檔案 API 上傳圖片成功: %s → %s", file_path, file_key)
             return {
                 "file_key": file_key,
                 "file_name": file_name,
@@ -647,26 +647,26 @@ class FeishuFileService:
             }
 
         except Exception as e:
-            logger.error("文件 API 上传图片异常: %s", e)
+            logger.error("檔案 API 上傳圖片異常: %s", e)
             return None
 
     async def upload_image(self, file_path: str) -> dict | None:
-        """上传图片（公开接口）。"""
+        """上傳圖片（公開介面）。"""
         return await self._upload_image_internal(file_path)
 
     async def _upload_file_internal(self, file_path: str) -> dict | None:
         """
-        上传普通文件到飞书（file.create 接口）。
+        上傳普通檔案到飛書（file.create 介面）。
 
-        飞书文件限制：30 MB。
-        根据文件扩展名自动选择合适的 file_type（如 opus/mp4/pdf/doc/xls/ppt/stream）。
+        飛書檔案限制：30 MB。
+        根據副檔名自動選擇合適的 file_type（如 opus/mp4/pdf/doc/xls/ppt/stream）。
         """
         try:
             from lark_oapi.api.im.v1 import CreateFileRequest, CreateFileRequestBody
 
             file_size = os.path.getsize(file_path)
             if file_size > 30 * 1024 * 1024:
-                logger.error("文件超过飞书限制 30MB: %s (%d)", file_path, file_size)
+                logger.error("檔案超過飛書限制 30MB: %s (%d)", file_path, file_size)
                 return None
 
             file_name = os.path.basename(file_path)
@@ -694,12 +694,12 @@ class FeishuFileService:
             response = await loop.run_in_executor(None, _do_upload)
 
             if not response.success():
-                logger.error("上传文件失败: code=%s msg=%s", response.code, response.msg)
+                logger.error("上傳檔案失敗: code=%s msg=%s", response.code, response.msg)
                 return None
 
             file_key = response.data.file_key
             logger.info(
-                "飞书文件上传成功: %s → %s (file_type=%s)", file_path, file_key, feishu_file_type
+                "飛書檔案上傳成功: %s → %s (file_type=%s)", file_path, file_key, feishu_file_type
             )
             return {
                 "file_key": file_key,
@@ -712,9 +712,9 @@ class FeishuFileService:
             }
 
         except Exception as e:
-            logger.error("上传文件异常: %s", e)
+            logger.error("上傳檔案異常: %s", e)
             return None
 
     async def upload_file_resource(self, file_path: str) -> dict | None:
-        """上传普通文件（公开接口）。"""
+        """上傳普通檔案（公開介面）。"""
         return await self._upload_file_internal(file_path)

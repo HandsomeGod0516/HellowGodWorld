@@ -144,7 +144,7 @@ class VolunteerDilemmaEnv(EnvBase):
 
             self._pending_choices[agent_name] = validated_choice
 
-            # 记录提交日志用于调试
+            # 記錄提交日誌用於除錯
             import sys
             print(f"[ENV DEBUG] {agent_name} submitted: {validated_choice} (pending: {len(self._pending_choices)}/{self.num_agents})", file=sys.stderr)
 

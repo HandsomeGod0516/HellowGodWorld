@@ -23,7 +23,7 @@
   ],
   "status": "peer_talking",
   "emotion": "open",
-  "speech": "我用同龄人能接受的方式把话说开。",
+  "speech": "我用同齡人能接受的方式把話說開。",
   "memory_template": "Used peer.communicate: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

@@ -23,7 +23,7 @@ _REGISTERED_BLANK_REGISTRATIONS: dict[tuple[str, str, str], dict[str, str]] = {}
 
 _TEAMMATE_CARD_DESCRIPTION = "Task Planner(team-1)"
 _TEAMMATE_CARD_STATUS = "busy"
-_TEAMMATE_CARD_SKILLS = [{"name": "plan", "description": "子任务拆解"}]
+_TEAMMATE_CARD_SKILLS = [{"name": "plan", "description": "子任務拆解"}]
 
 
 def _normalize_connect_addr(raw: Any) -> str:

@@ -1,13 +1,13 @@
-"""贡献模块 - 提供内置的 Agent 和环境模块实现。
+"""貢獻模組 - 提供內建的 Agent 和環境模組實現。
 
-本模块包含 AgentSociety 2 的内置模块：
+本模組包含 AgentSociety 2 的內建模組：
 
-**contrib/agent/** — 内置 Agent 实现：
-- 各种预定义的 Agent 类
+**contrib/agent/** — 內建 Agent 實現：
+- 各種預定義的 Agent 類
 
-**contrib/env/** — 内置环境模块：
-- ``mobility_space/``: 移动空间模块
-- ``social_media/``: 社交媒体模块（含推荐系统）
+**contrib/env/** — 內建環境模組：
+- ``mobility_space/``: 移動空間模組
+- ``social_media/``: 社交媒體模組（含推薦系統）
 """
 
 __all__ = []

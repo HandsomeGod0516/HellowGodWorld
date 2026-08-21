@@ -168,6 +168,18 @@ Windows 上把 `./scripts/god.sh` 換成 `.\scripts\god.cmd`。
 
 ---
 
+## ❓ 疑難排解
+
+**`./scripts/god.sh: Permission denied`**
+
+腳本遺失了可執行權限（常發生在某些下載方式或 `git` 設定上）。補上就好：
+
+```bash
+chmod +x scripts/god.sh
+```
+
+---
+
 ## ⚙️ 設定
 
 ### `.env`

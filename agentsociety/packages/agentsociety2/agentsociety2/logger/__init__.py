@@ -1,28 +1,28 @@
-"""日志模块 - 提供统一的日志配置和管理。
+"""日誌模組 - 提供統一的日誌配置和管理。
 
-本模块提供 agentsociety 项目的日志功能：
+本模組提供 agentsociety 專案的日誌功能：
 
-主要函数
+主要函式
 --------
 
-- **get_logger**: 获取 agentsociety logger 单例
-- **set_logger_level**: 设置日志级别
-- **setup_logging**: 完整的日志配置（控制台 + 文件）
-- **setup_litellm_logging**: 配置 LiteLLM 日志集成
+- **get_logger**: 獲取 agentsociety logger 單例
+- **set_logger_level**: 設定日誌級別
+- **setup_logging**: 完整的日誌配置（控制檯 + 檔案）
+- **setup_litellm_logging**: 配置 LiteLLM 日誌整合
 
 特性
 ----
 
-- 彩色控制台输出（按日志级别着色）
-- INFO 级别超长日志自动截断
-- 支持文件日志输出
-- LiteLLM API 调用日志集成
+- 彩色控制檯輸出（按日誌級別著色）
+- INFO 級別超長日誌自動截斷
+- 支援檔案日誌輸出
+- LiteLLM API 呼叫日誌整合
 
 使用示例::
 
     from agentsociety2.logger import get_logger, setup_logging
 
-    # 简单使用
+    # 簡單使用
     logger = get_logger()
     logger.info("Hello, world!")
 
@@ -44,7 +44,7 @@ __all__ = [
     "setup_logging",
 ]
 
-# 控制台超长日志：仅 INFO 截断（保留前后），其他级别不截断
+# 控制檯超長日誌：僅 INFO 截斷（保留前後），其他級別不截斷
 _HEAD, _TAIL = 180, 180
 _MAX_LEN = 500
 
@@ -56,15 +56,15 @@ def _shorten(msg: str, level: int) -> str:
 
 
 class ColoredFormatter(logging.Formatter):
-    """按级别着色，仅 INFO 超长时截断（保留前后）。格式 [HH:MM:SS] LEVEL  msg"""
+    """按級別著色，僅 INFO 超長時截斷（保留前後）。格式 [HH:MM:SS] LEVEL  msg"""
 
-    # 颜色方案：INFO 用青色减少视觉疲劳，WARNING/ERROR 用亮色提高可见度
+    # 顏色方案：INFO 用青色減少視覺疲勞，WARNING/ERROR 用亮色提高可見度
     _colors = {
         logging.DEBUG: "\x1b[90m",  # 暗灰，DEBUG 通常量大，弱化
-        logging.INFO: "\x1b[36m",  # 青色，大量 INFO 时比绿色更柔和
-        logging.WARNING: "\x1b[93m",  # 亮黄，比普通黄更醒目
-        logging.ERROR: "\x1b[91m",  # 亮红，比普通红更突出
-        logging.CRITICAL: "\x1b[91;1m",  # 粗体亮红，最高优先级
+        logging.INFO: "\x1b[36m",  # 青色，大量 INFO 時比綠色更柔和
+        logging.WARNING: "\x1b[93m",  # 亮黃，比普通黃更醒目
+        logging.ERROR: "\x1b[91m",  # 亮紅，比普通紅更突出
+        logging.CRITICAL: "\x1b[91;1m",  # 粗體亮紅，最高優先順序
     }
     _reset = "\x1b[0m"
 
@@ -72,37 +72,37 @@ class ColoredFormatter(logging.Formatter):
         """初始化 ColoredFormatter
 
         Args:
-            fmt: 日志格式，默认为 "[%(asctime)s] %(levelname)-7s %(message)s"
-            datefmt: 时间格式，默认为 "%Y-%m-%d %H:%M:%S"
+            fmt: 日誌格式，預設為 "[%(asctime)s] %(levelname)-7s %(message)s"
+            datefmt: 時間格式，預設為 "%Y-%m-%d %H:%M:%S"
         """
         super().__init__(fmt=fmt or "[%(asctime)s] %(levelname)-7s %(message)s", datefmt=datefmt or "%Y-%m-%d %H:%M:%S")
 
     def format(self, record: logging.LogRecord) -> str:
-        # 保存原始消息
+        # 儲存原始訊息
         orig_msg, orig_args = record.msg, record.args
-        # 缩短消息
+        # 縮短訊息
         msg = _shorten(record.getMessage(), record.levelno)
         record.msg, record.args = msg, ()
 
-        # 先使用父类方法格式化（包含时间）
+        # 先使用父類方法格式化（包含時間）
         formatted = super().format(record)
 
-        # 添加颜色
+        # 新增顏色
         use_color = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
         if use_color:
             color = self._colors.get(record.levelno, "")
-            # 为整行添加颜色（时间、级别、消息）
+            # 為整行新增顏色（時間、級別、訊息）
             formatted = color + formatted + self._reset
 
-        # 恢复原始消息
+        # 恢復原始訊息
         record.msg, record.args = orig_msg, orig_args
         return formatted
 
 
 def get_logger():
-    """获取 agentsociety logger 单例。
+    """獲取 agentsociety logger 單例。
 
-    :returns: :class:`logging.Logger`（name 固定为 ``agentsociety``）。
+    :returns: :class:`logging.Logger`（name 固定為 ``agentsociety``）。
     """
     logger = logging.getLogger("agentsociety")
     # check if there is already a handler, avoid duplicate output
@@ -119,27 +119,27 @@ def get_logger():
 
 
 def add_file_handler(log_file: str, level: int = logging.INFO) -> None:
-    """为 agentsociety logger 添加文件处理器（幂等）。
+    """為 agentsociety logger 新增檔案處理器（冪等）。
 
-    :param log_file: 日志文件路径。
-    :param level: 日志级别。
+    :param log_file: 日誌檔案路徑。
+    :param level: 日誌級別。
     """
     logger = logging.getLogger("agentsociety")
 
-    # 检查是否已经有相同文件的文件处理器
+    # 檢查是否已經有相同檔案的檔案處理器
     for handler in logger.handlers:
         if isinstance(handler, logging.FileHandler) and handler.baseFilename == os.path.abspath(log_file):
-            return  # 已存在，不重复添加
+            return  # 已存在，不重複新增
 
-    # 创建日志目录（如果不存在）
+    # 建立日誌目錄（如果不存在）
     log_dir = os.path.dirname(log_file)
     if log_dir:
         os.makedirs(log_dir, exist_ok=True)
 
-    # 创建文件处理器（使用不带颜色的简单格式）
+    # 建立檔案處理器（使用不帶顏色的簡單格式）
     file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
     file_handler.setLevel(level)
-    # 文件中使用简单格式，不带颜色
+    # 檔案中使用簡單格式，不帶顏色
     file_formatter = logging.Formatter(
         "[%(asctime)s] %(levelname)-7s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -148,9 +148,9 @@ def add_file_handler(log_file: str, level: int = logging.INFO) -> None:
 
 
 def set_logger_level(level: str):
-    """设置 agentsociety logger 的日志级别。
+    """設定 agentsociety logger 的日誌級別。
 
-    :param level: 传给 :meth:`logging.Logger.setLevel` 的级别。
+    :param level: 傳給 :meth:`logging.Logger.setLevel` 的級別。
     """
     get_logger().setLevel(level)
 
@@ -175,7 +175,7 @@ class LiteLLMLogger:
         messages: List[Dict[str, Any]],
         kwargs: Dict[str, Any],
     ):
-        """在 API 调用前记录 prompt（DEBUG）。"""
+        """在 API 呼叫前記錄 prompt（DEBUG）。"""
         # Generate a unique call ID for tracking
         call_id = f"{model}_{int(time.time() * 1000000)}"
         self._call_start_times[call_id] = time.time()
@@ -194,7 +194,7 @@ class LiteLLMLogger:
         start_time: float,
         end_time: float,
     ):
-        """在 API 调用后记录 response / tokens / timing（INFO）。"""
+        """在 API 呼叫後記錄 response / tokens / timing（INFO）。"""
         duration = end_time - start_time
         model = kwargs.get("model", "unknown")
 
@@ -227,7 +227,7 @@ class LiteLLMLogger:
         )
 
     def _format_messages(self, messages: List[Dict[str, Any]]) -> str:
-        """将 messages 格式化为可读字符串。"""
+        """將 messages 格式化為可讀字串。"""
         formatted_parts = []
         for i, msg in enumerate(messages):
             role = msg.get("role", "unknown")
@@ -254,7 +254,7 @@ class LiteLLMLogger:
         return "\n".join(formatted_parts)
 
     def _extract_response_content(self, response_obj: Any) -> str:
-        """从 LiteLLM 响应对象中提取主要内容文本。"""
+        """從 LiteLLM 響應物件中提取主要內容文字。"""
         try:
             if hasattr(response_obj, "choices") and response_obj.choices:
                 choice = response_obj.choices[0]
@@ -285,10 +285,10 @@ class LiteLLMLogger:
 
 
 def setup_litellm_logging():
-    """配置 LiteLLM 日志集成。
+    """配置 LiteLLM 日誌整合。
 
-    默认不启用 callbacks（避免部分版本的序列化告警）；可通过环境变量
-    ``AGENTSOCIETY_ENABLE_LITELLM_CALLBACKS=1`` 启用。
+    預設不啟用 callbacks（避免部分版本的序列化告警）；可透過環境變數
+    ``AGENTSOCIETY_ENABLE_LITELLM_CALLBACKS=1`` 啟用。
     """
     try:
         import litellm
@@ -326,13 +326,13 @@ def setup_logging(
     log_format: Optional[str] = None,
     console_output: bool = True,
 ) -> logging.Logger:
-    """初始化应用日志（root + agentsociety + LiteLLM）。
+    """初始化應用日誌（root + agentsociety + LiteLLM）。
 
-    :param log_file: 可选。日志文件路径；为空则只输出到控制台。
-    :param log_level: 日志级别。
-    :param log_format: 可选。自定义格式化串；为空则使用默认格式。
-    :param console_output: 是否输出到控制台。
-    :returns: 配置后的 agentsociety logger 实例。
+    :param log_file: 可選。日誌檔案路徑；為空則只輸出到控制檯。
+    :param log_level: 日誌級別。
+    :param log_format: 可選。自定義格式化串；為空則使用預設格式。
+    :param console_output: 是否輸出到控制檯。
+    :returns: 配置後的 agentsociety logger 例項。
     """
     # Default format
     if log_format is None:

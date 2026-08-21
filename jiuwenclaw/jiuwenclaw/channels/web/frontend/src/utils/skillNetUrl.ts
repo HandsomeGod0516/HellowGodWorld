@@ -1,6 +1,6 @@
 /**
- * 将 SkillNet / GitHub 技能目录 URL 规范化为可比较形式（主机小写、去尾斜杠等）。
- * 用于搜索结果 skill_url 与本地 skills[].origin 对照。
+ * 將 SkillNet / GitHub 技能目錄 URL 規範化為可比較形式（主機小寫、去尾斜槓等）。
+ * 用於搜尋結果 skill_url 與本地 skills[].origin 對照。
  */
 export function normalizeSkillNetUrl(raw: string): string {
   const s = raw.trim();

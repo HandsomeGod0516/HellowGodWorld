@@ -1,16 +1,16 @@
-Backend API 模块
+Backend API 模組
 ================
 
-本模块提供 FastAPI 后端服务。
+本模組提供 FastAPI 後端服務。
 
-FastAPI 应用
+FastAPI 應用
 ------------
 
 .. automodule:: agentsociety2.backend.app
    :members:
    :undoc-members:
 
-路由模块
+路由模組
 --------
 
 Agent Skills 路由
@@ -20,7 +20,7 @@ Agent Skills 路由
    :members:
    :undoc-members:
 
-请求/响应模型
+請求/響應模型
 -------------
 
 SkillItem

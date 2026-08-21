@@ -1,7 +1,7 @@
 /**
- * MessageList 组件
+ * MessageList 元件
  *
- * 消息列表显示：将普通消息与工具执行按时间线交错渲染。
+ * 訊息列表顯示：將普通訊息與工具執行按時間線交錯渲染。
  */
 
 import { useMemo } from 'react';
@@ -43,7 +43,7 @@ type RenderItem =
     };
 
 /**
- * 将普通消息与工具执行合并为统一时间线，按时间升序渲染。
+ * 將普通訊息與工具執行合併為統一時間線，按時間升序渲染。
  */
 function toTimestampMs(value: string | undefined): number {
   if (!value) {

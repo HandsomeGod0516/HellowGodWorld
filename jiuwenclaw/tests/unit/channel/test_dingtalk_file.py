@@ -151,7 +151,7 @@ async def test_handle_picture_message_success():
     )
     
     # Verify return values
-    assert content == "[图片]"
+    assert content == "[圖片]"
     assert files is not None
     assert len(files) == 1
     assert files[0]["name"] == "test_image.png"
@@ -187,7 +187,7 @@ async def test_handle_picture_message_disabled():
     )
 
     # Verify no download was attempted
-    assert content == "[图片: 文件下载功能已禁用]"
+    assert content == "[圖片: 檔案下載功能已禁用]"
     assert files is None
 
 

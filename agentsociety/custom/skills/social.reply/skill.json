@@ -13,7 +13,7 @@
   "target_interactions": [],
   "status": "available",
   "emotion": "warm",
-  "speech": "我收到了，会结合当前情况继续处理。",
+  "speech": "我收到了，會結合當前情況繼續處理。",
   "memory_template": "Handled social message: {message}",
   "failure_strategy": "set_state",
   "strategy": "reply_recent_message",

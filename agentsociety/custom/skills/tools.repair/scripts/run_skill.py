@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['supply_store', 'home']
 TARGET_INTERACTIONS = ['repair_tools', 'inspect_supplies']
 STATUS = 'repairing'
 EMOTION = 'focused'
-SPEECH = '我先找工具检查问题，再决定怎么修。'
+SPEECH = '我先找工具檢查問題，再決定怎麼修。'
 MEMORY_TEMPLATE = 'Used tools.repair: {summary} at {location_id}.'
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Profiling 数据工具集：从 base.h 读取宏配置、核类型映射、profiling tensor 拆分保存。
+Profiling 資料工具集：從 base.h 讀取宏配置、核型別對映、profiling tensor 拆分儲存。
 """
 
 import logging

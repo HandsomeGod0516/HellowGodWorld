@@ -1,30 +1,30 @@
-"""存储模块 - 提供实验数据的存储与回放功能。
+"""儲存模組 - 提供實驗資料的儲存與回放功能。
 
-本模块包含：
+本模組包含：
 
-**ReplayWriter** — 回放数据写入器：
-- 写入 SQLite 数据库
-- 支持动态表注册
+**ReplayWriter** — 回放資料寫入器：
+- 寫入 SQLite 資料庫
+- 支援動態表註冊
 
-**动态表与元数据**：
-- ``ColumnDef``: 列定义与语义元数据
-- ``TableSchema``: 表结构定义
-- ``ReplayDatasetSpec``: 数据集级 replay 元数据
+**動態表與後設資料**：
+- ``ColumnDef``: 列定義與語義後設資料
+- ``TableSchema``: 表結構定義
+- ``ReplayDatasetSpec``: 資料集級 replay 後設資料
 
 使用示例::
 
     from agentsociety2.storage import ReplayWriter, ColumnDef, TableSchema
 
-    # 创建写入器
+    # 建立寫入器
     writer = ReplayWriter("replay.db")
 
-    # 注册动态表
+    # 註冊動態表
     writer.register_table(TableSchema(
         name="custom_data",
         columns=[ColumnDef(name="key", dtype="TEXT")]
     ))
 
-    # 写入数据
+    # 寫入資料
     await writer.write("custom_data", {"key": "value"})
 """
 

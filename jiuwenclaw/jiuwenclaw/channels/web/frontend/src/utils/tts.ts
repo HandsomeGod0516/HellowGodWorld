@@ -1,5 +1,5 @@
 /**
- * TTS 相关工具函数
+ * TTS 相關工具函式
  */
 
 import { webRequest } from '../services/webClient';
@@ -35,7 +35,7 @@ export function sanitizeTtsText(
   }
 
   const sanitized = input
-    .replace(CODE_BLOCK_RE, '代码块已省略')
+    .replace(CODE_BLOCK_RE, '程式碼塊已省略')
     .replace(INLINE_CODE_RE, '')
     .replace(MEDIA_BRACE_RE, '')
     .replace(MEDIA_SIMPLE_RE, '')
@@ -54,7 +54,7 @@ export function sanitizeTtsText(
   return sanitized;
 }
 
-// 全局音频实例，用于打断控制
+// 全域性音訊例項，用於打斷控制
 let globalAudio: HTMLAudioElement | null = null;
 
 export function stopGlobalAudio(): void {
@@ -106,7 +106,7 @@ export async function fetchTtsAudio(
     });
     return response;
   } catch (error) {
-    console.warn('TTS 请求失败:', error);
+    console.warn('TTS 請求失敗:', error);
     return null;
   }
 }
@@ -119,7 +119,7 @@ export async function playAudioBase64(
     return false;
   }
 
-  // 先停止正在播放的音频
+  // 先停止正在播放的音訊
   stopGlobalAudio();
 
   try {
@@ -133,7 +133,7 @@ export async function playAudioBase64(
     await audio.play();
     return true;
   } catch (error) {
-    console.warn('播放音频失败:', error);
+    console.warn('播放音訊失敗:', error);
     return false;
   }
 }

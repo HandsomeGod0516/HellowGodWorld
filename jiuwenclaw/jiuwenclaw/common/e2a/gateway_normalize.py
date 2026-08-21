@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Gateway：Channel Message / 类 Agent 请求字段 → E2AEnvelope；AgentResponse/Chunk → E2AResponse；规范化失败时构造兜底信封。"""
+"""Gateway：Channel Message / 類 Agent 請求欄位 → E2AEnvelope；AgentResponse/Chunk → E2AResponse；規範化失敗時構造兜底信封。"""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# 与 E2A-AgentRequest-log-migration.md §7.4 一致；通道业务勿占用此前缀。
+# 與 E2A-AgentRequest-log-migration.md §7.4 一致；通道業務勿佔用此字首。
 E2A_INTERNAL_CONTEXT_KEY = "_jiuwenclaw"
 E2A_FALLBACK_FAILED_KEY = "normalize_failed"
 E2A_LEGACY_AGENT_REQUEST_KEY = "legacy_agent_request"
@@ -42,7 +42,7 @@ MAX_LEGACY_AGENT_REQUEST_JSON_BYTES = 512_000
 
 
 def message_to_legacy_agent_dict(msg: "Message") -> dict[str, Any]:
-    """从 Message 生成与历史 WebSocket 一致的 dict（用于兜底 legacy_agent_request）。"""
+    """從 Message 生成與歷史 WebSocket 一致的 dict（用於兜底 legacy_agent_request）。"""
     rm = msg.req_method
     rm_val: str | None
     if rm is None:
@@ -89,7 +89,7 @@ def _legacy_payload_within_limit(legacy: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_fallback_e2a(legacy: dict[str, Any]) -> E2AEnvelope:
-    """规范化失败时仍发 E2A 形状：在 channel_context 内携带 legacy 快照。"""
+    """規範化失敗時仍發 E2A 形狀：在 channel_context 內攜帶 legacy 快照。"""
     legacy = _legacy_payload_within_limit(dict(legacy))
     rid = str(legacy.get("request_id") or "")
     internal = {
@@ -110,7 +110,7 @@ def build_fallback_e2a(legacy: dict[str, Any]) -> E2AEnvelope:
 
 
 def message_to_e2a(msg: "Message") -> E2AEnvelope:
-    """Message → E2AEnvelope（不经兜底）。"""
+    """Message → E2AEnvelope（不經兜底）。"""
     d: dict[str, Any] = {
         "request_id": msg.id,
         "channel_id": msg.channel_id,
@@ -122,20 +122,20 @@ def message_to_e2a(msg: "Message") -> E2AEnvelope:
     }
     if msg.req_method is not None:
         d["method"] = msg.req_method.value
-    # 合并 metadata 和独立字段（enable_memory, group_digital_avatar 等）
+    # 合併 metadata 和獨立欄位（enable_memory, group_digital_avatar 等）
     metadata: dict[str, Any] = dict(msg.metadata or {})
 
-    # enable_memory 逻辑：只有当 enable_memory=False 且 group_digital_avatar=True 且 is_group_chat=True 时才禁用记忆
-    # is_group_chat 通过 metadata 中的 avatar_mode 判断
+    # enable_memory 邏輯：只有當 enable_memory=False 且 group_digital_avatar=True 且 is_group_chat=True 時才禁用記憶
+    # is_group_chat 透過 metadata 中的 avatar_mode 判斷
     is_group_chat = bool(metadata.get("avatar_mode", False))
     should_disable_memory = (
-        msg.enable_memory is False  # 配置中明确设置为 false
-        and msg.group_digital_avatar is True  # 数字分身模式
-        and is_group_chat is True  # 群聊消息
+        msg.enable_memory is False  # 配置中明確設定為 false
+        and msg.group_digital_avatar is True  # 數字分身模式
+        and is_group_chat is True  # 群聊訊息
     )
-    # 默认启用记忆，只有在上述三个条件同时满足时才禁用
+    # 預設啟用記憶，只有在上述三個條件同時滿足時才禁用
     final_enable_memory = not should_disable_memory
-    # 只有当 msg.enable_memory 不为 None 时，才将 enable_memory 写入 metadata
+    # 只有當 msg.enable_memory 不為 None 時，才將 enable_memory 寫入 metadata
     if msg.enable_memory is not None:
         metadata["enable_memory"] = final_enable_memory
     logger.info(
@@ -153,7 +153,7 @@ def message_to_e2a(msg: "Message") -> E2AEnvelope:
 
 
 def message_to_e2a_or_fallback(msg: "Message") -> E2AEnvelope:
-    """Message → E2A；失败或校验不通过则 build_fallback_e2a。"""
+    """Message → E2A；失敗或校驗不透過則 build_fallback_e2a。"""
     try:
         env = message_to_e2a(msg)
         if not (env.request_id and str(env.request_id).strip()):
@@ -190,7 +190,7 @@ def e2a_from_agent_fields(
     timestamp: float = 0.0,
     metadata: dict[str, Any] | None = None,
 ) -> E2AEnvelope:
-    """由与 AgentRequest 相同的字段构造 E2A（heartbeat / cron / app 管理请求等）。"""
+    """由與 AgentRequest 相同的欄位構造 E2A（heartbeat / cron / app 管理請求等）。"""
     d: dict[str, Any] = {
         "request_id": request_id,
         "channel_id": channel_id,
@@ -210,7 +210,7 @@ def e2a_from_agent_fields(
 
 
 def channel_context_for_channel_reply(env: E2AEnvelope) -> dict[str, Any] | None:
-    """供流式 chunk 回传到 Channel：去掉内部 _jiuwenclaw，保留 trace 与业务 metadata。"""
+    """供流式 chunk 回傳到 Channel：去掉內部 _jiuwenclaw，保留 trace 與業務 metadata。"""
     ctx = dict(env.channel_context or {})
     ctx.pop(E2A_INTERNAL_CONTEXT_KEY, None)
     return ctx if ctx else None
@@ -224,9 +224,9 @@ def e2a_response_from_agent_response(
     timestamp: str | None = None,
 ) -> E2AResponse:
     """
-    将 ``AgentResponse``（与 ``E:\\logs`` 中 ``AgentResponse: {...}`` 同形）规范为 ``E2AResponse``。
+    將 ``AgentResponse``（與 ``E:\\logs`` 中 ``AgentResponse: {...}`` 同形）規範為 ``E2AResponse``。
 
-    非流式完整响应恒为 ``is_final=True``、``sequence`` 默认 0。
+    非流式完整響應恆為 ``is_final=True``、``sequence`` 預設 0。
     """
     from jiuwenclaw.common.schema.agent import AgentResponse as AgentResponseCls
 
@@ -284,11 +284,11 @@ def e2a_response_from_agent_chunk(
     timestamp: str | None = None,
 ) -> E2AResponse:
     """
-    将 ``AgentResponseChunk``（与 ``E:\\logs`` 中 ``AgentResponseChunk: {...}`` 同形）规范为 ``E2AResponse``。
+    將 ``AgentResponseChunk``（與 ``E:\\logs`` 中 ``AgentResponseChunk: {...}`` 同形）規範為 ``E2AResponse``。
 
-    - 中间帧：``e2a.chunk``，``status=in_progress``，``is_final=False``。
-    - 终止帧（如 ``payload == {\"is_complete\": true}``）：``e2a.complete``。
-    - ``chat.delta``：按 ``source_chunk_type`` 映射 ``body.delta_kind``（``llm_reasoning`` → ``reasoning``）。
+    - 中間幀：``e2a.chunk``，``status=in_progress``，``is_final=False``。
+    - 終止幀（如 ``payload == {\"is_complete\": true}``）：``e2a.complete``。
+    - ``chat.delta``：按 ``source_chunk_type`` 對映 ``body.delta_kind``（``llm_reasoning`` → ``reasoning``）。
     """
     from jiuwenclaw.common.schema.agent import AgentResponseChunk as AgentResponseChunkCls
 
@@ -395,9 +395,9 @@ def e2a_response_from_agent_chunk(
 
 def e2a_response_to_agent_response(e2a: E2AResponse) -> "AgentResponse":
     """
-    ``E2AResponse`` → 非流式 ``AgentResponse``（与 ``e2a_response_from_agent_response`` 对仗）。
+    ``E2AResponse`` → 非流式 ``AgentResponse``（與 ``e2a_response_from_agent_response`` 對仗）。
 
-    仅处理网关 unary 常见 ``response_kind``：``e2a.complete``、``e2a.error``；其它 kind 抛 ``ValueError``。
+    僅處理閘道器 unary 常見 ``response_kind``：``e2a.complete``、``e2a.error``；其它 kind 拋 ``ValueError``。
     """
     from jiuwenclaw.common.schema.agent import AgentResponse
 
@@ -444,9 +444,9 @@ def e2a_response_to_agent_response(e2a: E2AResponse) -> "AgentResponse":
 
 def e2a_response_to_agent_chunk(e2a: E2AResponse) -> "AgentResponseChunk":
     """
-    ``E2AResponse`` → ``AgentResponseChunk``（与 ``e2a_response_from_agent_chunk`` 对仗）。
+    ``E2AResponse`` → ``AgentResponseChunk``（與 ``e2a_response_from_agent_chunk`` 對仗）。
 
-    覆盖：流式 ``e2a.chunk``、终止 ``e2a.complete`` / ``e2a.error``（含 ``chat.error`` 形 ``details``）。
+    覆蓋：流式 ``e2a.chunk``、終止 ``e2a.complete`` / ``e2a.error``（含 ``chat.error`` 形 ``details``）。
     """
     from jiuwenclaw.common.schema.agent import AgentResponseChunk
 

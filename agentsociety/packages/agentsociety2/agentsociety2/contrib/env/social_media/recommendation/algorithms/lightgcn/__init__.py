@@ -1,5 +1,5 @@
 """
-LightGCN 算法模块
+LightGCN 演算法模組
 """
 
 from .config import LightGCNConfig

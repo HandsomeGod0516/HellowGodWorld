@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""统一消息模型."""
+"""統一訊息模型."""
 
 from dataclasses import dataclass
 from enum import Enum
@@ -87,7 +87,7 @@ class ReqMethod(Enum):
     HEARTBEAT_GET_CONF = "heartbeat.get_conf"
     HEARTBEAT_SET_CONF = "heartbeat.set_conf"
 
-    # 安全防护 permissions（与 Web ``register_method`` 同名，经 E2A → AgentServer 处理；owner_scopes 仅走 Web 直连）
+    # 安全防護 permissions（與 Web ``register_method`` 同名，經 E2A → AgentServer 處理；owner_scopes 僅走 Web 直連）
     PERMISSIONS_TOOLS_GET = "permissions.tools.get"
     PERMISSIONS_TOOLS_SET = "permissions.tools.set"
     PERMISSIONS_TOOLS_UPDATE = "permissions.tools.update"
@@ -161,7 +161,7 @@ class Mode(Enum):
 
     @classmethod
     def from_raw(cls, raw_mode: Any, default: "Mode | None" = None) -> "Mode":
-        """解析 mode，仅接受新值(agent.plan/agent.fast/code.plan/code.normal/team)。"""
+        """解析 mode，僅接受新值(agent.plan/agent.fast/code.plan/code.normal/team)。"""
         fallback = default or cls.AGENT_PLAN
         if isinstance(raw_mode, Mode):
             return raw_mode
@@ -176,13 +176,13 @@ class Mode(Enum):
             return fallback
 
     def to_runtime_mode(self) -> str:
-        """输出新 mode 值本身。"""
+        """輸出新 mode 值本身。"""
         return self.value
 
 
 @dataclass
 class Message:
-    """统一消息结构."""
+    """統一訊息結構."""
     id: str
     type: Literal["req", "res", "event"]
     channel_id: str

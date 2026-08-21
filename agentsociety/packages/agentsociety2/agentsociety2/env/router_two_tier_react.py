@@ -1,6 +1,6 @@
 """
 Two-Tier ReAct Router Implementation
-双层ReAct模式：先选择Module，然后再调用函数
+雙層ReAct模式：先選擇Module，然後再呼叫函式
 """
 
 import json
@@ -18,12 +18,12 @@ __all__ = ["TwoTierReActRouter"]
 
 class TwoTierReActRouter(RouterBase):
     """
-    双层ReAct模式Router：先选择Module，然后再调用该模块的函数。
+    雙層ReAct模式Router：先選擇Module，然後再呼叫該模組的函式。
 
     工作流程：
-    1. 第一层：使用LLM选择合适的环境模块
-    2. 第二层：使用ReAct模式调用选中模块的工具
-    3. 如果需要多个模块，可以循环执行
+    1. 第一層：使用LLM選擇合適的環境模組
+    2. 第二層：使用ReAct模式呼叫選中模組的工具
+    3. 如果需要多個模組，可以迴圈執行
     """
 
     def __init__(
@@ -38,7 +38,7 @@ class TwoTierReActRouter(RouterBase):
             max_llm_call_retry=max_llm_call_retry,
         )
 
-        # 预收集模块信息和工具信息
+        # 預收集模組資訊和工具資訊
         self._module_info: Dict[str, Dict[str, Any]] = {}
         self._module_tools: Dict[str, List[Dict[str, Any]]] = {}
         self._module_readonly_tools: Dict[str, List[Dict[str, Any]]] = {}
@@ -48,12 +48,12 @@ class TwoTierReActRouter(RouterBase):
         self._collect_module_info()
 
     def _collect_module_info(self):
-        """收集模块信息和工具信息"""
+        """收集模組資訊和工具資訊"""
         for module in self.env_modules:
             module_name = module.name
             module_description = module.description
 
-            # 收集该模块的所有工具
+            # 收集該模組的所有工具
             all_tools = []
             readonly_tools = []
 
@@ -61,7 +61,7 @@ class TwoTierReActRouter(RouterBase):
             readonly_tools_dict = getattr(module.__class__, "_readonly_tools", {})
 
             for tool_name, tool_obj in registered_tools.items():
-                # 获取工具的LLM格式schema
+                # 獲取工具的LLM格式schema
                 tool_schema = None
                 for llm_tool in module._llm_tools:
                     if llm_tool["function"]["name"] == tool_name:
@@ -92,18 +92,18 @@ class TwoTierReActRouter(RouterBase):
         template_mode: bool = False,
     ) -> Tuple[dict, str]:
         """
-        使用双层ReAct模式处理指令。
+        使用雙層ReAct模式處理指令。
 
         Args:
             ctx: 上下文字典
-            instruction: 指令字符串
-            readonly: 是否只读模式
-            template_mode: 模板模式（TwoTierReActRouter 不使用，仅为签名兼容）
+            instruction: 指令字串
+            readonly: 是否只讀模式
+            template_mode: 模板模式（TwoTierReActRouter 不使用，僅為簽名相容）
 
         Returns:
-            (ctx, answer) 元组
+            (ctx, answer) 元組
         """
-        # 添加当前时间信息到 ctx，以便工具调用可以访问
+        # 新增當前時間資訊到 ctx，以便工具呼叫可以訪問
         self._add_current_time_to_ctx(ctx)
 
         get_logger().info(
@@ -121,7 +121,7 @@ class TwoTierReActRouter(RouterBase):
         results = {}
         step_count = 0
         used_modules = set()
-        execution_log: List[Dict[str, Any]] = []  # 记录执行历史
+        execution_log: List[Dict[str, Any]] = []  # 記錄執行歷史
         error = None
 
         while step_count < self.max_steps:
@@ -130,7 +130,7 @@ class TwoTierReActRouter(RouterBase):
                 f"TwoTierReActRouter: Step {step_count}/{self.max_steps}"
             )
 
-            # 第一层：选择模块
+            # 第一層：選擇模組
             selected_module = await self._select_module(
                 instruction, ctx, used_modules, readonly
             )
@@ -144,7 +144,7 @@ class TwoTierReActRouter(RouterBase):
             used_modules.add(selected_module)
             get_logger().info(f"TwoTierReActRouter: Selected module: {selected_module}")
 
-            # 记录模块选择
+            # 記錄模組選擇
             execution_log.append(
                 {
                     "step": step_count,
@@ -153,12 +153,12 @@ class TwoTierReActRouter(RouterBase):
                 }
             )
 
-            # 第二层：使用ReAct模式调用该模块的工具
+            # 第二層：使用ReAct模式呼叫該模組的工具
             module_result, module_answer = await self._react_with_module(
                 selected_module, instruction, ctx, readonly
             )
 
-            # 记录模块执行结果
+            # 記錄模組執行結果
             execution_log.append(
                 {
                     "step": step_count,
@@ -169,29 +169,29 @@ class TwoTierReActRouter(RouterBase):
                 }
             )
 
-            # 合并结果
+            # 合併結果
             results.update(module_result)
 
-            # 检查是否有明显的错误
+            # 檢查是否有明顯的錯誤
             if isinstance(module_result, dict):
                 for key, value in module_result.items():
                     if isinstance(value, dict) and "error" in value:
                         error = str(value.get("error"))
                         break
 
-            # 检查是否还需要其他模块
+            # 檢查是否還需要其他模組
             if await self._needs_more_modules(
                 instruction, ctx, results, used_modules, readonly
             ):
                 continue
             else:
-                # 构建过程文本
+                # 構建過程文字
                 process_text = (
                     json.dumps(execution_log, indent=2, default=str)
                     if execution_log
                     else ""
                 )
-                # 使用基类的generate_final_answer生成最终答案
+                # 使用基類的generate_final_answer生成最終答案
                 final_answer, determined_status = await self.generate_final_answer(
                     ctx, instruction, results, process_text, "unknown", error
                 )
@@ -200,12 +200,12 @@ class TwoTierReActRouter(RouterBase):
                     results["error"] = error
                 return results, final_answer
 
-        # 达到最大步数或没有更多模块
-        # 构建过程文本
+        # 達到最大步數或沒有更多模組
+        # 構建過程文字
         process_text = (
             json.dumps(execution_log, indent=2, default=str) if execution_log else ""
         )
-        # 使用基类的generate_final_answer生成最终答案
+        # 使用基類的generate_final_answer生成最終答案
         final_answer, determined_status = await self.generate_final_answer(
             ctx, instruction, results, process_text, "unknown", error
         )
@@ -217,8 +217,8 @@ class TwoTierReActRouter(RouterBase):
     async def _select_module(
         self, instruction: str, ctx: dict, used_modules: set, readonly: bool
     ) -> str | None:
-        """第一层：选择合适的环境模块"""
-        # 构建模块选择工具
+        """第一層：選擇合適的環境模組"""
+        # 構建模組選擇工具
         modules_list = [
             {
                 "name": name,
@@ -286,14 +286,14 @@ Selected module:"""
 
             selected = (response.choices[0].message.content or "").strip()  # type: ignore
 
-            # 验证选择的模块是否有效
+            # 驗證選擇的模組是否有效
             if selected in self._module_info and selected not in used_modules:
                 return selected
             else:
                 get_logger().warning(
                     f"TwoTierReActRouter: Invalid module selection: {selected}"
                 )
-                # 如果选择无效，返回第一个未使用的模块
+                # 如果選擇無效，返回第一個未使用的模組
                 for module_name in self._module_info.keys():
                     if module_name not in used_modules:
                         return module_name
@@ -301,7 +301,7 @@ Selected module:"""
 
         except Exception as e:
             get_logger().error(f"TwoTierReActRouter: Failed to select module: {str(e)}")
-            # 返回第一个未使用的模块作为fallback
+            # 返回第一個未使用的模組作為fallback
             for module_name in self._module_info.keys():
                 if module_name not in used_modules:
                     return module_name
@@ -310,8 +310,8 @@ Selected module:"""
     async def _react_with_module(
         self, module_name: str, instruction: str, ctx: dict, readonly: bool
     ) -> Tuple[dict, str]:
-        """第二层：使用ReAct模式调用选中模块的工具"""
-        # 获取该模块的工具
+        """第二層：使用ReAct模式呼叫選中模組的工具"""
+        # 獲取該模組的工具
         available_tools = (
             self._module_readonly_tools.get(module_name, [])
             if readonly
@@ -321,7 +321,7 @@ Selected module:"""
         if not available_tools:
             return {}, f"No available tools in module {module_name}."
 
-        # 添加set_status工具
+        # 新增set_status工具
         set_status_tool = {
             "type": "function",
             "function": {
@@ -346,7 +346,7 @@ Selected module:"""
         }
         tools_with_status = available_tools + [set_status_tool]
 
-        # 构建ReAct对话
+        # 構建ReAct對話
         dialog: List[AllMessageValues] = [
             {
                 "role": "user",
@@ -358,20 +358,20 @@ Selected module:"""
 
         module_results = {}
         react_steps = 0
-        max_react_steps = 5  # 每个模块最多5步ReAct循环
+        max_react_steps = 5  # 每個模組最多5步ReAct迴圈
 
         while react_steps < max_react_steps:
             react_steps += 1
 
-            # 调用LLM
+            # 呼叫LLM
             try:
-                # 只在第一步提供tools，后续步骤通过对话历史传递工具调用信息
+                # 只在第一步提供tools，後續步驟透過對話歷史傳遞工具呼叫資訊
                 tools_for_call = tools_with_status if react_steps == 1 else None
                 call_kwargs = {
                     "model": "coder",
                     "messages": dialog,
                 }
-                # 只有在提供tools时才设置tool_choice
+                # 只有在提供tools時才設定tool_choice
                 if tools_for_call:
                     call_kwargs["tools"] = tools_for_call
                     call_kwargs["tool_choice"] = "auto"
@@ -381,11 +381,11 @@ Selected module:"""
                 get_logger().error(f"TwoTierReActRouter: LLM call failed: {str(e)}")
                 return module_results, f"Error during module execution: {str(e)}"
 
-            # 检查tool calls
+            # 檢查tool calls
             message = response.choices[0].message  # type: ignore
             tool_calls = getattr(message, "tool_calls", None) or []
 
-            # 添加assistant响应
+            # 新增assistant響應
             dialog.append(
                 {
                     "role": "assistant",
@@ -408,14 +408,14 @@ Selected module:"""
                 }
             )
 
-            # 如果没有tool calls，说明完成
+            # 如果沒有tool calls，說明完成
             if not tool_calls:
                 final_answer = (
                     message.content or f"Module {module_name} processing completed."
                 )
                 return module_results, final_answer
 
-            # 执行tool calls
+            # 執行tool calls
             tool_results = []
             for tool_call in tool_calls:
                 func_name = tool_call.function.name
@@ -436,7 +436,7 @@ Selected module:"""
                     )
                     continue
 
-                # 处理set_status工具
+                # 處理set_status工具
                 if func_name == "set_status":
                     status = func_args.get("status", "unknown")
                     reason = func_args.get("reason", "")
@@ -455,7 +455,7 @@ Selected module:"""
                     )
                     get_logger().info(f"TwoTierReActRouter: Status set to {status}")
                 else:
-                    # 执行工具
+                    # 執行工具
                     try:
                         result = await self._execute_tool(
                             func_name, func_args, readonly
@@ -483,7 +483,7 @@ Selected module:"""
 
             dialog.extend(tool_results)
 
-        # 达到最大ReAct步数
+        # 達到最大ReAct步數
         return (
             module_results,
             f"Module {module_name} processing incomplete (max steps reached).",
@@ -492,7 +492,7 @@ Selected module:"""
     def _build_module_react_prompt(
         self, module_name: str, instruction: str, ctx: dict, readonly: bool
     ) -> str:
-        """构建模块ReAct提示词"""
+        """構建模組ReAct提示詞"""
         readonly_note = (
             " (READONLY MODE - you can only use read-only tools)" if readonly else ""
         )
@@ -543,8 +543,8 @@ Let's start!"""
         used_modules: set,
         readonly: bool,
     ) -> bool:
-        """判断是否还需要更多模块"""
-        # 简单策略：如果还有未使用的模块，询问LLM是否需要
+        """判斷是否還需要更多模組"""
+        # 簡單策略：如果還有未使用的模組，詢問LLM是否需要
         unused_modules = set(self._module_info.keys()) - used_modules
         if not unused_modules:
             return False
@@ -579,7 +579,7 @@ Answer:"""
             return False
 
     async def _execute_tool(self, tool_name: str, args: dict, readonly: bool) -> Any:
-        """执行工具调用"""
+        """執行工具呼叫"""
         module = self._tool_name_to_module.get(tool_name)
         if not module:
             raise ValueError(f"Tool {tool_name} not found")

@@ -1,6 +1,6 @@
 # ruff: noqa: E402
 
-"""命令行接口，用于快速启动AgentSociety2模拟实验"""
+"""命令列介面，用於快速啟動AgentSociety2模擬實驗"""
 
 import argparse
 import asyncio
@@ -12,19 +12,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-# 强制禁用遥测（在任何导入之前）
-# 禁用 mem0 遥测（避免连接 Posthog/Facebook）
+# 強制禁用遙測（在任何匯入之前）
+# 禁用 mem0 遙測（避免連線 Posthog/Facebook）
 os.environ["MEM0_TELEMETRY"] = "False"
-# 禁用 ChromaDB 遥测（同样使用 Posthog）
+# 禁用 ChromaDB 遙測（同樣使用 Posthog）
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
 
-# 禁用 Posthog 客户端创建（在导入前）
+# 禁用 Posthog 客戶端建立（在匯入前）
 def _disable_posthog_import():
-    """在模块导入前禁用 Posthog"""
+    """在模組匯入前禁用 Posthog"""
     import sys
 
-    # 创建一个假模块来阻止 posthog 导入
+    # 建立一個假模組來阻止 posthog 匯入
     class FakePosthog:
         class Posthog:
             def __init__(self, *args, **kwargs):
@@ -39,7 +39,7 @@ def _disable_posthog_import():
         def __getattr__(self, *args, **kwargs):
             return self.Posthog()
 
-    # 将 posthog 添加到 sys.modules 以阻止其导入
+    # 將 posthog 新增到 sys.modules 以阻止其匯入
     sys.modules["posthog"] = FakePosthog()
     sys.modules["posthog.client"] = FakePosthog()
     sys.modules["posthog.capture"] = lambda *a, **k: None
@@ -71,30 +71,30 @@ logger = get_logger()
 
 
 def _validate_env_early() -> None:
-    """早期环境变量验证（在 main 入口处调用）"""
+    """早期環境變數驗證（在 main 入口處呼叫）"""
     errors = []
 
-    # 检查主要 LLM API key
+    # 檢查主要 LLM API key
     llm_api_key = os.getenv("AGENTSOCIETY_LLM_API_KEY", "")
     if not llm_api_key or not llm_api_key.strip():
         errors.append("AGENTSOCIETY_LLM_API_KEY")
 
-    # 检查 coder LLM（必须有，因为 CodeGenRouter 需要）
+    # 檢查 coder LLM（必須有，因為 CodeGenRouter 需要）
     coder_api_key = os.getenv("AGENTSOCIETY_CODER_LLM_API_KEY") or llm_api_key
     if not coder_api_key or not coder_api_key.strip():
         errors.append("AGENTSOCIETY_CODER_LLM_API_KEY (or AGENTSOCIETY_LLM_API_KEY)")
 
-    # 检查 nano LLM（用于 fallback）
+    # 檢查 nano LLM（用於 fallback）
     nano_api_key = os.getenv("AGENTSOCIETY_NANO_LLM_API_KEY") or llm_api_key
     if not nano_api_key or not nano_api_key.strip():
         errors.append("AGENTSOCIETY_NANO_LLM_API_KEY (or AGENTSOCIETY_LLM_API_KEY)")
 
-    # 确认 mem0 遥测已禁用
+    # 確認 mem0 遙測已禁用
     mem0_telemetry = os.getenv("MEM0_TELEMETRY", "False").lower()
     if mem0_telemetry not in ("false", "0", "no", ""):
         errors.append(f"MEM0_TELEMETRY must be 'False', currently: {mem0_telemetry}")
 
-    # 确认 ChromaDB 遥测已禁用
+    # 確認 ChromaDB 遙測已禁用
     chroma_telemetry = os.getenv("ANONYMIZED_TELEMETRY", "False").lower()
     if chroma_telemetry not in ("false", "0", "no", ""):
         errors.append(
@@ -113,22 +113,22 @@ def _validate_env_early() -> None:
 
 
 class ExperimentRunner:
-    """实验运行器，负责加载配置、创建实例和执行步骤"""
+    """實驗執行器，負責載入配置、建立例項和執行步驟"""
 
     def __init__(self, run_dir: Path):
         """
-        初始化实验运行器
+        初始化實驗執行器
 
-        :param run_dir: run/ 目录路径，作为实验的 HOME 目录。
+        :param run_dir: run/ 目錄路徑，作為實驗的 HOME 目錄。
         """
         self.run_dir = run_dir
         self.run_dir.mkdir(parents=True, exist_ok=True)
 
-        # 创建必要的子目录
+        # 建立必要的子目錄
         self.artifacts_dir = self.run_dir / "artifacts"
         self.artifacts_dir.mkdir(exist_ok=True)
 
-        # 文件路径
+        # 檔案路徑
         self.pid_file = self.run_dir / "pid.json"
         self.db_file = self.run_dir / "sqlite.db"
 
@@ -136,45 +136,45 @@ class ExperimentRunner:
         self._should_terminate = False
 
     def _validate_environment(self) -> None:
-        """验证所有必需的环境变量，缺漏则报错退出"""
+        """驗證所有必需的環境變數，缺漏則報錯退出"""
         errors = []
 
-        # 检查主要 LLM 配置
+        # 檢查主要 LLM 配置
         llm_api_key = os.getenv("AGENTSOCIETY_LLM_API_KEY", "")
         if not llm_api_key or not llm_api_key.strip():
             errors.append(
                 "Missing required environment variable: AGENTSOCIETY_LLM_API_KEY"
             )
 
-        # 检查 coder LLM 配置（CodeGenRouter 需要）
+        # 檢查 coder LLM 配置（CodeGenRouter 需要）
         coder_api_key = os.getenv("AGENTSOCIETY_CODER_LLM_API_KEY") or llm_api_key
         if not coder_api_key or not coder_api_key.strip():
             errors.append(
                 "Missing required environment variable: AGENTSOCIETY_CODER_LLM_API_KEY or AGENTSOCIETY_LLM_API_KEY"
             )
 
-        # 检查 nano LLM 配置（用于 fallback）
+        # 檢查 nano LLM 配置（用於 fallback）
         nano_api_key = os.getenv("AGENTSOCIETY_NANO_LLM_API_KEY") or llm_api_key
         if not nano_api_key or not nano_api_key.strip():
             errors.append(
                 "Missing required environment variable: AGENTSOCIETY_NANO_LLM_API_KEY or AGENTSOCIETY_LLM_API_KEY"
             )
 
-        # 检查 mem0 遥测是否禁用
+        # 檢查 mem0 遙測是否禁用
         mem0_telemetry = os.getenv("MEM0_TELEMETRY", "False").lower()
         if mem0_telemetry not in ("false", "0", "no", ""):
             errors.append(
                 f"MEM0_TELEMETRY must be disabled (set to 'False'), currently: {mem0_telemetry}"
             )
 
-        # 检查 ChromaDB 遥测是否禁用
+        # 檢查 ChromaDB 遙測是否禁用
         chroma_telemetry = os.getenv("ANONYMIZED_TELEMETRY", "False").lower()
         if chroma_telemetry not in ("false", "0", "no", ""):
             errors.append(
                 f"ANONYMIZED_TELEMETRY must be disabled (set to 'False'), currently: {chroma_telemetry}"
             )
 
-        # 如果有错误，打印详细信息并退出
+        # 如果有錯誤，列印詳細資訊並退出
         if errors:
             logger.error("Environment validation failed:")
             for error in errors:
@@ -192,13 +192,13 @@ class ExperimentRunner:
             sys.exit(1)
 
         logger.info("Environment validation passed")
-        # 确认遥测已禁用
+        # 確認遙測已禁用
         logger.info(
             "Telemetry disabled: MEM0_TELEMETRY=False, ANONYMIZED_TELEMETRY=False"
         )
 
     def _load_config(self, config_path: Path) -> InitConfig:
-        """加载并验证配置文件"""
+        """載入並驗證配置檔案"""
         if not config_path.exists():
             raise FileNotFoundError(f"Config file not found: {config_path}")
 
@@ -212,21 +212,21 @@ class ExperimentRunner:
                     f"Unsupported config file format: {config_path.suffix}"
                 )
 
-        # 使用pydantic验证配置
+        # 使用pydantic驗證配置
         try:
             return InitConfig.model_validate(data)
         except Exception as e:
             raise ValueError(f"Invalid config file format: {e}") from e
 
     def _load_steps(self, steps_path: Path) -> StepsConfig:
-        """加载并验证 steps.yaml"""
+        """載入並驗證 steps.yaml"""
         if not steps_path.exists():
             raise FileNotFoundError(f"Steps file not found: {steps_path}")
 
         with open(steps_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
-        # 使用pydantic验证配置
+        # 使用pydantic驗證配置
         try:
             return StepsConfig.model_validate(data)
         except Exception as e:
@@ -235,7 +235,7 @@ class ExperimentRunner:
     def _create_env_modules(
         self, env_module_types: List[str], env_kwargs: Dict[str, Dict[str, Any]]
     ) -> List[EnvBase]:
-        """创建环境模块实例"""
+        """建立環境模組例項"""
         env_modules = []
         env_type_map = {
             module_type: env_class
@@ -260,7 +260,7 @@ class ExperimentRunner:
         self,
         agent_args: List[Dict[str, Any]],
     ) -> List[AgentBase]:
-        """创建 agent 实例。"""
+        """建立 agent 例項。"""
         agents = []
         agent_type_map = {
             agent_type: agent_class
@@ -301,8 +301,8 @@ class ExperimentRunner:
         return agents
 
     def _update_pid_file(self, status: str, **kwargs):
-        """更新 pid.json 文件"""
-        # 读取现有数据以保留进度信息
+        """更新 pid.json 檔案"""
+        # 讀取現有資料以保留進度資訊
         pid_data = {}
         if self.pid_file.exists():
             try:
@@ -311,7 +311,7 @@ class ExperimentRunner:
             except (json.JSONDecodeError, IOError):
                 pass
 
-        # 更新基本字段
+        # 更新基本欄位
         pid_data.update(
             {
                 "pid": os.getpid(),
@@ -330,7 +330,7 @@ class ExperimentRunner:
             json.dump(pid_data, f, indent=2, ensure_ascii=False)
 
     def _update_progress(self):
-        """更新模拟进度到 pid.json"""
+        """更新模擬進度到 pid.json"""
         if self.society:
             progress_data = {
                 "simulation_time": self.society.current_time.isoformat(),
@@ -345,31 +345,31 @@ class ExperimentRunner:
         experiment_id: Optional[str] = None,
     ):
         """
-        运行实验
+        執行實驗
 
         Args:
-            config_path: 配置文件路径（init_config.json）
-            steps_path: steps.yaml 文件路径
-            experiment_id: 实验ID（可选）
+            config_path: 配置檔案路徑（init_config.json）
+            steps_path: steps.yaml 檔案路徑
+            experiment_id: 實驗ID（可選）
         """
         try:
-            # 验证环境变量（必须在任何操作之前）
+            # 驗證環境變數（必須在任何操作之前）
             self._validate_environment()
 
-            # 更新状态为运行中
+            # 更新狀態為執行中
             self._update_pid_file("running", experiment_id=experiment_id)
 
-            # 加载配置
+            # 載入配置
             logger.info(f"Loading config from {config_path}")
             config = self._load_config(config_path)
 
-            # 提取配置信息（现在config是InitConfig模型）
+            # 提取配置資訊（現在config是InitConfig模型）
             env_modules_config = config.env_modules
             agent_configs = config.agents
             env_module_types = [m.module_type for m in env_modules_config]
             env_kwargs = {m.module_type: m.kwargs for m in env_modules_config}
 
-            # 转换agent配置为字典格式（用于_create_agents方法）
+            # 轉換agent配置為字典格式（用於_create_agents方法）
             agent_args = [
                 {
                     "agent_id": agent.agent_id,
@@ -379,16 +379,16 @@ class ExperimentRunner:
                 for agent in agent_configs
             ]
 
-            # 加载步骤配置
+            # 載入步驟配置
             logger.info(f"Loading steps from {steps_path}")
             steps_config = self._load_steps(steps_path)
 
             start_t = datetime.fromisoformat(steps_config.start_t)
             steps = steps_config.steps
 
-            # 扫描并注册自定义模块（在创建环境模块之前）
+            # 掃描並註冊自定義模組（在建立環境模組之前）
             workspace_path = self.run_dir.resolve()
-            # 向上查找包含 custom/ 目录的工作区根目录
+            # 向上查詢包含 custom/ 目錄的工作區根目錄
             custom_root = workspace_path
             while custom_root.parent != custom_root:
                 if (custom_root / "custom").is_dir():
@@ -400,11 +400,11 @@ class ExperimentRunner:
             else:
                 logger.info("No custom/ directory found, skipping custom module scan")
 
-            # 创建环境模块
+            # 建立環境模組
             logger.info("Creating environment modules...")
             env_modules = self._create_env_modules(env_module_types, env_kwargs)
 
-            # 若启用回放则先创建并初始化 ReplayWriter，再传入 env router
+            # 若啟用回放則先建立並初始化 ReplayWriter，再傳入 env router
             replay_writer: Optional[ReplayWriter] = None
             if self.run_dir is not None:
                 replay_writer = ReplayWriter(self.run_dir / "sqlite.db")
@@ -435,7 +435,7 @@ class ExperimentRunner:
             await self.society.init()
             logger.info("AgentSociety initialized")
 
-            # 执行步骤
+            # 執行步驟
             logger.info(f"Executing {len(steps)} steps...")
 
             for step_idx, step in enumerate(steps):
@@ -445,7 +445,7 @@ class ExperimentRunner:
 
                 step_type = step.type
 
-                # 更新进度到 pid.json
+                # 更新進度到 pid.json
                 self._update_progress()
 
                 try:
@@ -454,7 +454,7 @@ class ExperimentRunner:
                             f"Running {step.num_steps} steps with tick={step.tick}"
                         )
 
-                        # 创建定期更新进度的任务
+                        # 建立定期更新進度的任務
                         async def update_progress_periodically():
                             while not self._should_terminate:
                                 await asyncio.sleep(1)  # 每秒更新一次
@@ -474,7 +474,7 @@ class ExperimentRunner:
                                 await progress_task
                             except asyncio.CancelledError:
                                 pass
-                        # 最终更新进度
+                        # 最終更新進度
                         self._update_progress()
 
                     elif isinstance(step, AskStep):
@@ -482,7 +482,7 @@ class ExperimentRunner:
                         answer = await self.society.ask(step.question)
                         logger.info(f"Answer: {answer}")
 
-                        # 保存结果到artifacts目录，使用模拟时间作为文件命名，Markdown格式
+                        # 儲存結果到artifacts目錄，使用模擬時間作為檔案命名，Markdown格式
                         sim_time = self.society.current_time
                         timestamp = sim_time.strftime("%Y%m%d_%H%M%S")
                         artifact_file = (
@@ -506,7 +506,7 @@ class ExperimentRunner:
                         )
                         logger.info(f"Result: {intervene_result}")
 
-                        # 保存结果到artifacts目录，使用模拟时间作为文件命名，Markdown格式
+                        # 儲存結果到artifacts目錄，使用模擬時間作為檔案命名，Markdown格式
                         sim_time = self.society.current_time
                         timestamp = sim_time.strftime("%Y%m%d_%H%M%S")
                         artifact_file = (
@@ -563,7 +563,7 @@ class ExperimentRunner:
                         logger.warning(f"Unknown step type: {step_type}, skipping")
                         continue
 
-                    # 更新进度到 pid.json（步骤完成）
+                    # 更新進度到 pid.json（步驟完成）
                     self._update_progress()
 
                 except Exception as e:
@@ -572,10 +572,10 @@ class ExperimentRunner:
                         exc_info=True,
                     )
 
-                    # 更新进度到 pid.json（步骤失败）
+                    # 更新進度到 pid.json（步驟失敗）
                     self._update_progress()
 
-            # 关闭society
+            # 關閉society
             await self.society.close()
             logger.info("Experiment completed successfully")
             self._update_pid_file("completed")
@@ -587,8 +587,8 @@ class ExperimentRunner:
 
 
 def main():
-    """命令行入口"""
-    # 早期环境变量验证（在任何操作之前）
+    """命令列入口"""
+    # 早期環境變數驗證（在任何操作之前）
     _validate_env_early()
 
     parser = argparse.ArgumentParser(
@@ -632,10 +632,10 @@ def main():
 
     args = parser.parse_args()
 
-    # 设置日志级别
+    # 設定日誌級別
     set_logger_level(args.log_level)
 
-    # 设置日志文件
+    # 設定日誌檔案
     if args.log_file:
         add_file_handler(args.log_file, level=args.log_level)
 
@@ -643,7 +643,7 @@ def main():
     steps_path = Path(args.steps).resolve()
     run_dir = Path(args.run_dir).resolve()
 
-    # 验证文件存在
+    # 驗證檔案存在
     if not config_path.exists():
         print(f"Error: Config file not found: {config_path}", file=sys.stderr)
         sys.exit(1)
@@ -652,7 +652,7 @@ def main():
         print(f"Error: Steps file not found: {steps_path}", file=sys.stderr)
         sys.exit(1)
 
-    # 运行实验
+    # 執行實驗
     runner = ExperimentRunner(run_dir=run_dir)
     try:
         asyncio.run(

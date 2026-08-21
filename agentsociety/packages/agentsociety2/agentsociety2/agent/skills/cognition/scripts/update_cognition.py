@@ -100,9 +100,9 @@ def build_appraisal(
                 "attack",
                 "accident",
                 "risk",
-                "紧急",
-                "危险",
-                "威胁",
+                "緊急",
+                "危險",
+                "威脅",
             ],
         ),
         1.0 - safety_satisfaction,
@@ -116,9 +116,9 @@ def build_appraisal(
             "cannot",
             "closed",
             "refused",
-            "阻碍",
-            "失败",
-            "迟到",
+            "阻礙",
+            "失敗",
+            "遲到",
         ],
     )
     reward = keyword_score(
@@ -131,8 +131,8 @@ def build_appraisal(
             "paid",
             "finished",
             "成功",
-            "顺利",
-            "被帮助",
+            "順利",
+            "被幫助",
         ],
     )
     novelty = keyword_score(
@@ -149,7 +149,7 @@ def build_appraisal(
         ],
     )
     conflict = keyword_score(
-        text, ["conflict", "argue", "angry", "insult", "betray", "争吵", "冲突", "羞辱"]
+        text, ["conflict", "argue", "angry", "insult", "betray", "爭吵", "衝突", "羞辱"]
     )
 
     active_norms = (

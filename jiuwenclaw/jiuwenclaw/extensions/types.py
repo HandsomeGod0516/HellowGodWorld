@@ -6,14 +6,14 @@ from typing import Any
 
 @dataclass
 class ExtensionMetadata:
-    """扩展元数据"""
-    id: str                      # 扩展唯一标识
-    name: str                    # 扩展名称
-    version: str                 # 扩展版本
-    description: str             # 扩展描述
-    author: str                  # 扩展作者
-    min_jiuwenclaw_version: str  # 最小兼容版本
-    dependencies: dict[str, str]  # 扩展依赖 {"extension_id": ">=1.0.0"}
+    """擴充套件後設資料"""
+    id: str                      # 擴充套件唯一標識
+    name: str                    # 副檔名稱
+    version: str                 # 擴充套件版本
+    description: str             # 擴充套件描述
+    author: str                  # 擴充套件作者
+    min_jiuwenclaw_version: str  # 最小相容版本
+    dependencies: dict[str, str]  # 擴充套件依賴 {"extension_id": ">=1.0.0"}
     config_schema: dict | None   # 配置模式 (JSON Schema)
 
 

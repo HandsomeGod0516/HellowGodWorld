@@ -344,11 +344,11 @@ def format_search_results(articles: list, total: int, query: str) -> str:
         if source:
             content_parts.append(f"   Source: {source}")
         if doi:
-            # DOI 链接格式
+            # DOI 連結格式
             doi_url = f"https://doi.org/{doi}" if not doi.startswith("http") else doi
             content_parts.append(f"   DOI: [{doi}]({doi_url})")
         if url and not doi:
-            # 直接 URL 链接
+            # 直接 URL 連結
             content_parts.append(f"   URL: {url}")
         if avg_sim > 0:
             content_parts.append(f"   Score: {avg_sim:.3f}")

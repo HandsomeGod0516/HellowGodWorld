@@ -1,5 +1,5 @@
 """
-DIN (Deep Interest Network) 推荐算法实现
+DIN (Deep Interest Network) 推薦演算法實現
 
 """
 
@@ -18,7 +18,7 @@ from ..core import RecommenderAlgorithm, RatingMatrix
 from .config import DINConfig
 
 
-# ========== DIN 模型组件 ==========
+# ========== DIN 模型元件 ==========
 
 class Dice(nn.Module):
     """Data Adaptive Activation Function in DIN"""
@@ -49,7 +49,7 @@ class Dice(nn.Module):
 
 
 class FullyConnectedLayer(nn.Module):
-    """多层感知机模块"""
+    """多層感知機模組"""
     
     def __init__(
         self,
@@ -104,7 +104,7 @@ class FullyConnectedLayer(nn.Module):
 
 
 class LocalActivationUnit(nn.Module):
-    """DIN 中的局部激活单元，建模 target item 与历史行为的细粒度交互"""
+    """DIN 中的區域性啟用單元，建模 target item 與歷史行為的細粒度互動"""
     
     def __init__(self, hidden_unit: List[int] = None, embedding_dim: int = 4, batch_norm: bool = False):
         super().__init__()
@@ -137,7 +137,7 @@ class LocalActivationUnit(nn.Module):
 
 
 class AttentionSequencePoolingLayer(nn.Module):
-    """基于注意力的序列池化层"""
+    """基於注意力的序列池化層"""
     
     def __init__(self, embedding_dim: int = 4):
         super().__init__()
@@ -154,7 +154,7 @@ class AttentionSequencePoolingLayer(nn.Module):
         """
         query_ad: [B,1,D]
         user_behavior: [B,T,D]
-        mask: [B,T] ，为 True 的位置会被置 0
+        mask: [B,T] ，為 True 的位置會被置 0
         return: [B,1,D]
         """
         att_score = self.local_att(query_ad, user_behavior)  # [B,T,1]
@@ -186,24 +186,24 @@ class DINModel(nn.Module):
         self.n_items = n_items
         self.embedding_dim = embedding_dim
         
-        # 将总 embedding_dim 分成 3 份（user, item, history）
+        # 將總 embedding_dim 分成 3 份（user, item, history）
         self.emb_dim = embedding_dim // 3
         
-        # 用户、目标物品、历史物品的 embedding
+        # 使用者、目標物品、歷史物品的 embedding
         self.user_embedding = nn.Embedding(n_users, self.emb_dim)
-        # item 以 0 作为 padding id，所以尺寸为 n_items + 1
+        # item 以 0 作為 padding id，所以尺寸為 n_items + 1
         self.item_embedding = nn.Embedding(n_items + 1, self.emb_dim, padding_idx=0)
         self.history_embedding = nn.Embedding(n_items + 1, self.emb_dim, padding_idx=0)
         
-        # 注意力池化层
+        # 注意力池化層
         self.attn = AttentionSequencePoolingLayer(embedding_dim=self.emb_dim)
         
-        # 全连接层（Dice 激活）
+        # 全連線層（Dice 啟用）
         self.fc_layer = FullyConnectedLayer(
             input_size=self.emb_dim * 3,
             hidden_unit=hidden_units + [1],
             batch_norm=False,
-            sigmoid=True,  # 输出概率值（0-1之间）
+            sigmoid=True,  # 輸出機率值（0-1之間）
             activation="dice",
             dropout=drop,
             dice_dim=2,
@@ -212,7 +212,7 @@ class DINModel(nn.Module):
         self._init_weights()
     
     def _init_weights(self):
-        """初始化权重"""
+        """初始化權重"""
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
@@ -228,36 +228,36 @@ class DINModel(nn.Module):
         Args:
             user_ids: [B]
             item_ids: [B]
-            histories: [B, L]  历史物品 id 序列，0 为 padding
+            histories: [B, L]  歷史物品 id 序列，0 為 padding
         Returns:
-            probs: [B]，经过 sigmoid 的概率值（0-1之间）
+            probs: [B]，經過 sigmoid 的機率值（0-1之間）
         """
-        # 基础 embedding
+        # 基礎 embedding
         user_emb = self.user_embedding(user_ids)  # [B, D]
         item_emb = self.item_embedding(item_ids)  # [B, D]
         
-        # 历史物品嵌入 [B, L, D]
+        # 歷史物品嵌入 [B, L, D]
         hist_emb = self.history_embedding(histories)
         
-        # mask：历史为 0 的位置视为 padding
+        # mask：歷史為 0 的位置視為 padding
         mask = histories.eq(0)  # [B,L]
         
         # 注意力池化
         browse_atten = self.attn(item_emb.unsqueeze(1), hist_emb, mask=mask)  # [B,1,D]
         
-        # 拼接特征 [item_emb, att_hist, user_emb]
+        # 拼接特徵 [item_emb, att_hist, user_emb]
         concat_feature = torch.cat(
             [item_emb, browse_atten.squeeze(1), user_emb],
             dim=-1,
         )  # [B, 3D]
         
-        # 返回概率值（经过sigmoid）
+        # 返回機率值（經過sigmoid）
         out = self.fc_layer(concat_feature).squeeze(-1)
         return out
 
 
 class DINDataset(Dataset):
-    """DIN 训练数据集"""
+    """DIN 訓練資料集"""
     
     def __init__(
         self,
@@ -293,23 +293,23 @@ class DINDataset(Dataset):
 
 class DINRecommender(RecommenderAlgorithm):
     """
-    DIN (Deep Interest Network) 推荐算法
+    DIN (Deep Interest Network) 推薦演算法
     
-    使用注意力机制建模用户历史行为与目标物品的交互
+    使用注意力機制建模使用者歷史行為與目標物品的互動
     """
     
     def __init__(self, config: DINConfig = DINConfig()):
         """
-        初始化DIN推荐器
+        初始化DIN推薦器
         
         Args:
-            config: DIN算法配置
+            config: DIN演算法配置
         """
         self.config = config
         self.model: Optional[DINModel] = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        # ID映射
+        # ID對映
         self.user_index_map: Optional[Dict[int, int]] = None
         self.item_index_map: Optional[Dict[int, int]] = None
         self.index_user_map: Optional[Dict[int, int]] = None
@@ -317,10 +317,10 @@ class DINRecommender(RecommenderAlgorithm):
         self.n_users: int = 0
         self.n_items: int = 0
         
-        # 用户历史序列（存储每个用户的正反馈历史，用 item index 表示）
+        # 使用者歷史序列（儲存每個使用者的正反饋歷史，用 item index 表示）
         self.user_history: Dict[int, List[int]] = {}
         
-        # 热门物品（用于冷启动）
+        # 熱門物品（用於冷啟動）
         self._popular_items: List[Tuple[int, float]] = []
         
         get_logger().info(
@@ -331,36 +331,36 @@ class DINRecommender(RecommenderAlgorithm):
     
     def fit(self, data: RatingMatrix) -> None:
         """
-        训练DIN模型
+        訓練DIN模型
         
         Args:
-            data: 评分矩阵
+            data: 評分矩陣
         """
         get_logger().info(
-            f"开始训练 DIN 模型: {data.get_user_count()} 用户, "
-            f"{data.get_item_count()} 物品, {data.get_rating_count()} 评分"
+            f"開始訓練 DIN 模型: {data.get_user_count()} 使用者, "
+            f"{data.get_item_count()} 物品, {data.get_rating_count()} 評分"
         )
         
-        # 1. 构建ID映射
+        # 1. 構建ID對映
         self.user_index_map = data.user_map.copy()
-        self.item_index_map = {iid: idx + 1 for idx, iid in enumerate(sorted(data.item_map.keys()))}  # item从1开始，0是padding
+        self.item_index_map = {iid: idx + 1 for idx, iid in enumerate(sorted(data.item_map.keys()))}  # item從1開始，0是padding
         self.index_user_map = {idx: uid for uid, idx in self.user_index_map.items()}
         self.index_item_map = {idx: iid for iid, idx in self.item_index_map.items()}
         
         self.n_users = len(self.user_index_map)
         self.n_items = len(self.item_index_map)
         
-        # 2. 构建用户历史序列（使用rating >= 3.0作为正反馈）
-        # 假设数据顺序可以作为时间顺序的近似
+        # 2. 構建使用者歷史序列（使用rating >= 3.0作為正反饋）
+        # 假設資料順序可以作為時間順序的近似
         self._build_user_sequences(data)
         
-        # 3. 构建训练数据集
+        # 3. 構建訓練資料集
         train_dataset = self._build_train_dataset(data)
         train_loader = DataLoader(
             train_dataset, batch_size=self.config.batch_size, shuffle=True
         )
         
-        # 4. 创建模型
+        # 4. 建立模型
         self.model = DINModel(
             n_users=self.n_users,
             n_items=self.n_items,
@@ -369,11 +369,11 @@ class DINRecommender(RecommenderAlgorithm):
             drop=self.config.drop,
         ).to(self.device)
         
-        # 5. 优化器和损失函数
+        # 5. 最佳化器和損失函式
         optimizer = optim.Adam(self.model.parameters(), lr=self.config.learning_rate, weight_decay=1e-3)
         criterion = nn.BCELoss()
         
-        # 6. 训练循环
+        # 6. 訓練迴圈
         self.model.train()
         iters_per_epoch = len(train_loader)
         warmup_steps = 200
@@ -386,7 +386,7 @@ class DINRecommender(RecommenderAlgorithm):
             n_batches = 0
             
             for batch_idx, batch in enumerate(train_loader):
-                # 学习率调度
+                # 學習率排程
                 cur_step = epoch * iters_per_epoch + batch_idx
                 if cur_step < warmup_steps:
                     lr = warmup_start_lr + (init_lr - warmup_start_lr) * cur_step / max(warmup_steps, 1)
@@ -404,11 +404,11 @@ class DINRecommender(RecommenderAlgorithm):
                 labels = labels.to(self.device)
                 histories = histories.to(self.device)
                 
-                # 前向传播
+                # 前向傳播
                 probs = self.model(user_ids, item_ids, histories)
                 loss = criterion(probs, labels)
                 
-                # 反向传播
+                # 反向傳播
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -424,24 +424,24 @@ class DINRecommender(RecommenderAlgorithm):
         
         self.model.eval()
         
-        # 7. 计算热门物品
+        # 7. 計算熱門物品
         self._compute_popular_items(data)
         
-        get_logger().info("DIN 模型训练完成")
+        get_logger().info("DIN 模型訓練完成")
     
     def _build_user_sequences(self, data: RatingMatrix) -> None:
-        """从评分矩阵构建用户历史序列（使用rating >= 3.0作为正反馈）"""
+        """從評分矩陣構建使用者歷史序列（使用rating >= 3.0作為正反饋）"""
         self.user_history = {}
         user_sequences = defaultdict(list)
         
-        # 按用户分组，收集正反馈（rating >= 3.0）
+        # 按使用者分組，收集正反饋（rating >= 3.0）
         for user_id, item_id, rating in zip(data.user_ids, data.item_ids, data.ratings):
-            if rating >= 3.0:  # 使用rating >= 3.0作为正反馈阈值
+            if rating >= 3.0:  # 使用rating >= 3.0作為正反饋閾值
                 if user_id in self.user_index_map and item_id in self.item_index_map:
                     item_idx = self.item_index_map[item_id]
                     user_sequences[user_id].append(item_idx)
         
-        # 截断到max_history_len（保留最近的N个）
+        # 截斷到max_history_len（保留最近的N個）
         for user_id, seq in user_sequences.items():
             if len(seq) > self.config.max_history_len:
                 self.user_history[user_id] = seq[-self.config.max_history_len:]
@@ -449,16 +449,16 @@ class DINRecommender(RecommenderAlgorithm):
                 self.user_history[user_id] = seq
     
     def _build_train_dataset(self, data: RatingMatrix) -> DINDataset:
-        """构建训练数据集"""
+        """構建訓練資料集"""
         user_list = []
         item_list = []
         label_list = []
         history_list = []
         
-        # 为每个用户维护一个正反馈历史
+        # 為每個使用者維護一個正反饋歷史
         user_current_history = {uid: hist.copy() for uid, hist in self.user_history.items()}
         
-        # 遍历所有交互，构建训练样本
+        # 遍歷所有互動，構建訓練樣本
         for user_id, item_id, rating in zip(data.user_ids, data.item_ids, data.ratings):
             if user_id not in self.user_index_map or item_id not in self.item_index_map:
                 continue
@@ -466,10 +466,10 @@ class DINRecommender(RecommenderAlgorithm):
             user_idx = self.user_index_map[user_id]
             item_idx = self.item_index_map[item_id]
             
-            # 获取当前历史（在添加当前交互之前）
+            # 獲取當前歷史（在新增當前互動之前）
             history = user_current_history.get(user_id, [])
             
-            # 构建历史序列（padding到max_history_len）
+            # 構建歷史序列（padding到max_history_len）
             if len(history) == 0:
                 hist_indices = [0] * self.config.max_history_len
             else:
@@ -478,15 +478,15 @@ class DINRecommender(RecommenderAlgorithm):
             
             user_list.append(user_idx)
             item_list.append(item_idx)
-            label_list.append(1.0 if rating >= 3.0 else 0.0)  # 使用rating >= 3.0作为正样本
+            label_list.append(1.0 if rating >= 3.0 else 0.0)  # 使用rating >= 3.0作為正樣本
             history_list.append(hist_indices)
             
-            # 如果当前是正反馈，则加入历史
+            # 如果當前是正反饋，則加入歷史
             if rating >= 3.0:
                 if user_id not in user_current_history:
                     user_current_history[user_id] = []
                 user_current_history[user_id].append(item_idx)
-                # 保持历史长度不超过max_history_len
+                # 保持歷史長度不超過max_history_len
                 if len(user_current_history[user_id]) > self.config.max_history_len:
                     user_current_history[user_id] = user_current_history[user_id][-self.config.max_history_len:]
         
@@ -498,7 +498,7 @@ class DINRecommender(RecommenderAlgorithm):
         return DINDataset(user_arr, item_arr, label_arr, hist_arr)
     
     def _get_user_sequence(self, user_id: int) -> np.ndarray:
-        """获取用户的历史序列（padding到max_history_len）"""
+        """獲取使用者的歷史序列（padding到max_history_len）"""
         history = self.user_history.get(user_id, [])
         
         if len(history) == 0:
@@ -510,19 +510,19 @@ class DINRecommender(RecommenderAlgorithm):
     
     def predict(self, user_id: int, item_id: int) -> float:
         """
-        预测用户对物品的评分
+        預測使用者對物品的評分
         
         Args:
-            user_id: 用户ID
+            user_id: 使用者ID
             item_id: 物品ID
             
         Returns:
-            预测评分 (1.0-5.0)
+            預測評分 (1.0-5.0)
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,请先调用 fit()")
+            raise RuntimeError("模型尚未訓練,請先呼叫 fit()")
         
-        # 冷启动处理
+        # 冷啟動處理
         if user_id not in self.user_index_map:
             return 2.5
         if item_id not in self.item_index_map:
@@ -538,9 +538,9 @@ class DINRecommender(RecommenderAlgorithm):
         
         self.model.eval()
         with torch.no_grad():
-            # 模型输出概率值（0-1），映射到1-5评分
+            # 模型輸出機率值（0-1），對映到1-5評分
             prob = self.model(user_tensor, item_tensor, hist_tensor).item()
-            rating = 1.0 + prob * 4.0  # 映射到 [1, 5]
+            rating = 1.0 + prob * 4.0  # 對映到 [1, 5]
         
         return max(1.0, min(5.0, rating))
     
@@ -551,20 +551,20 @@ class DINRecommender(RecommenderAlgorithm):
         exclude_ids: Set[int]
     ) -> List[Tuple[int, float]]:
         """
-        为用户生成推荐列表
+        為使用者生成推薦列表
         
         Args:
-            user_id: 用户ID
-            n: 推荐数量
+            user_id: 使用者ID
+            n: 推薦數量
             exclude_ids: 要排除的物品ID集合
             
         Returns:
             [(item_id, score), ...] 按 score 降序排列
         """
         if self.model is None:
-            raise RuntimeError("模型尚未训练,请先调用 fit()")
+            raise RuntimeError("模型尚未訓練,請先呼叫 fit()")
         
-        # 冷启动: 新用户返回热门物品
+        # 冷啟動: 新使用者返回熱門物品
         if user_id not in self.user_index_map:
             return [
                 (item_id, score)
@@ -578,7 +578,7 @@ class DINRecommender(RecommenderAlgorithm):
         user_tensor = torch.tensor([user_idx], dtype=torch.long, device=self.device)
         hist_tensor = torch.tensor(hist_np.reshape(1, -1), dtype=torch.long, device=self.device)
         
-        # 对所有物品打分
+        # 對所有物品打分
         all_item_indices = np.arange(1, self.n_items + 1, dtype="int64")
         item_tensor = torch.tensor(all_item_indices, dtype=torch.long, device=self.device)
         user_batch = user_tensor.repeat(item_tensor.size(0))
@@ -586,9 +586,9 @@ class DINRecommender(RecommenderAlgorithm):
         
         self.model.eval()
         with torch.no_grad():
-            # 模型输出概率值（0-1），映射到1-5评分
+            # 模型輸出機率值（0-1），對映到1-5評分
             probs = self.model(user_batch, item_tensor, hist_batch).cpu().numpy()
-            scores = 1.0 + probs * 4.0  # 映射到 [1, 5]
+            scores = 1.0 + probs * 4.0  # 對映到 [1, 5]
         
         recommendations = [
             (self.index_item_map[i_idx], float(score))
@@ -596,14 +596,14 @@ class DINRecommender(RecommenderAlgorithm):
             if self.index_item_map[i_idx] not in exclude_ids
         ]
         
-        # 按评分降序排序
+        # 按評分降序排序
         recommendations.sort(key=lambda x: x[1], reverse=True)
         return recommendations[:n]
     
     def save(self, path: str) -> None:
-        """保存模型到文件"""
+        """儲存模型到檔案"""
         if self.model is None:
-            raise RuntimeError("模型尚未训练,无法保存")
+            raise RuntimeError("模型尚未訓練,無法儲存")
         
         checkpoint = {
             'model_state_dict': self.model.state_dict(),
@@ -621,10 +621,10 @@ class DINRecommender(RecommenderAlgorithm):
         with open(path, 'wb') as f:
             pickle.dump(checkpoint, f)
         
-        get_logger().info(f"DIN 模型已保存到 {path}")
+        get_logger().info(f"DIN 模型已儲存到 {path}")
     
     def load(self, path: str) -> None:
-        """从文件加载模型"""
+        """從檔案載入模型"""
         with open(path, 'rb') as f:
             checkpoint = pickle.load(f)
         
@@ -650,10 +650,10 @@ class DINRecommender(RecommenderAlgorithm):
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
         
-        get_logger().info(f"DIN 模型已从 {path} 加载")
+        get_logger().info(f"DIN 模型已從 {path} 載入")
     
     def _compute_popular_items(self, data: RatingMatrix) -> None:
-        """计算热门物品（用于冷启动）"""
+        """計算熱門物品（用於冷啟動）"""
         item_ratings: Dict[int, List[float]] = {}
         
         for item_id, rating in zip(data.item_ids, data.ratings):
@@ -668,10 +668,10 @@ class DINRecommender(RecommenderAlgorithm):
             popularity = avg_rating * np.log(count + 1)
             popular_scores.append((item_id, popularity))
         
-        # 按热门度降序排序
+        # 按熱門度降序排序
         popular_scores.sort(key=lambda x: x[1], reverse=True)
         
-        # 归一化到[1.0, 5.0]
+        # 歸一化到[1.0, 5.0]
         if popular_scores:
             max_score = popular_scores[0][1]
             min_score = popular_scores[-1][1]
@@ -685,5 +685,5 @@ class DINRecommender(RecommenderAlgorithm):
         else:
             self._popular_items = []
         
-        get_logger().debug(f"计算了 {len(self._popular_items)} 个热门物品")
+        get_logger().debug(f"計算了 {len(self._popular_items)} 個熱門物品")
 

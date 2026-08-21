@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['school', 'library']
 TARGET_INTERACTIONS = ['attend_class', 'study_after_class']
 STATUS = 'learning'
 EMOTION = 'focused'
-SPEECH = '我先把今天该学的内容跟上。'
+SPEECH = '我先把今天該學的內容跟上。'
 MEMORY_TEMPLATE = 'Used class.learn: {summary} at {location_id}.'
 
 

@@ -1,14 +1,14 @@
-"""仿真社会编排模块。
+"""模擬社會編排模組。
 
-本模块提供 :class:`AgentSociety` 类，是 AgentSociety2 框架的核心编排器，
-负责协调智能体和环境模块的仿真运行。
+本模組提供 :class:`AgentSociety` 類，是 AgentSociety2 框架的核心編排器，
+負責協調智慧體和環境模組的模擬執行。
 
 主要功能：
 
-- **仿真初始化**: 初始化智能体、环境路由器和回放写入器
-- **时间推进**: 通过 ``step()`` 和 ``run()`` 方法推进仿真时间
-- **交互接口**: 提供 ``ask()`` 和 ``intervene()`` 方法与仿真交互
-- **状态持久化**: 支持 ``dump()`` 和 ``load()`` 保存和恢复仿真状态
+- **模擬初始化**: 初始化智慧體、環境路由器和回放寫入器
+- **時間推進**: 透過 ``step()`` 和 ``run()`` 方法推進模擬時間
+- **互動介面**: 提供 ``ask()`` 和 ``intervene()`` 方法與模擬互動
+- **狀態持久化**: 支援 ``dump()`` 和 ``load()`` 儲存和恢復模擬狀態
 
 Example::
 
@@ -16,7 +16,7 @@ Example::
     from pathlib import Path
     from agentsociety2.society import AgentSociety
 
-    # 创建仿真
+    # 建立模擬
     society = AgentSociety(
         agents=[agent1, agent2],
         env_router=router,
@@ -24,10 +24,10 @@ Example::
         run_dir=Path("./run"),
     )
 
-    # 使用上下文管理器运行
+    # 使用上下文管理器執行
     async with society:
         await society.run(num_steps=100, tick=3600)
-        answer = await society.ask("当前有多少智能体？")
+        answer = await society.ask("當前有多少智慧體？")
 """
 
 import asyncio
@@ -70,18 +70,18 @@ def _json_safe_profile(profile: Any) -> dict[str, Any]:
 
 
 class AgentSociety:
-    """仿真社会编排器，协调智能体和环境模块的仿真运行。
+    """模擬社會編排器，協調智慧體和環境模組的模擬執行。
 
-    AgentSociety 是框架的核心类，负责管理仿真生命周期：
+    AgentSociety 是框架的核心類，負責管理模擬生命週期：
 
-    - 初始化智能体和环境模块
-    - 推进仿真时间
-    - 处理外部问答和干预请求
-    - 持久化仿真状态
+    - 初始化智慧體和環境模組
+    - 推進模擬時間
+    - 處理外部問答和干預請求
+    - 持久化模擬狀態
 
     Attributes:
-        current_time: 当前仿真时间
-        step_count: 已执行的仿真步数
+        current_time: 當前模擬時間
+        step_count: 已執行的模擬步數
 
     Example::
 
@@ -109,15 +109,15 @@ class AgentSociety:
         enable_replay: bool = True,
         replay_writer: Optional[ReplayWriter] = None,
     ):
-        """创建仿真编排器。
+        """建立模擬編排器。
 
-        :param agents: 智能体列表。
-        :param env_router: 环境路由器。
-        :param start_t: 仿真开始时间。
-        :param run_dir: 可选。运行目录（用于落地回放 sqlite 等）。
-        :param enable_replay: 是否启用回放记录。
-        :param replay_writer: 可选。外部传入的回放写入器；若提供则不会在 :meth:`init` 内部创建。
-            该写入器仅用于环境模块回放。
+        :param agents: 智慧體列表。
+        :param env_router: 環境路由器。
+        :param start_t: 模擬開始時間。
+        :param run_dir: 可選。執行目錄（用於落地回放 sqlite 等）。
+        :param enable_replay: 是否啟用回放記錄。
+        :param replay_writer: 可選。外部傳入的回放寫入器；若提供則不會在 :meth:`init` 內部建立。
+            該寫入器僅用於環境模組回放。
         """
         self._env_router = env_router
         self._agents = list(agents)
@@ -138,12 +138,12 @@ class AgentSociety:
 
     @property
     def current_time(self) -> datetime:
-        """:returns: 当前仿真时间。"""
+        """:returns: 當前模擬時間。"""
         return self._t
 
     @property
     def step_count(self) -> int:
-        """:returns: 已执行的仿真步数。"""
+        """:returns: 已執行的模擬步數。"""
         return self._step_count
 
     async def _persist_agent_profiles_once(self) -> None:
@@ -278,9 +278,9 @@ class AgentSociety:
         await self.close()
 
     async def step(self, tick: int):
-        """推进一次仿真步（先 agents 后 env）。
+        """推進一次模擬步（先 agents 後 env）。
 
-        :param tick: 本步时间跨度（秒）。
+        :param tick: 本步時間跨度（秒）。
         """
         tasks = []
         for agent in self._agents:
@@ -292,10 +292,10 @@ class AgentSociety:
         self._step_count += 1
 
     async def run(self, num_steps: int, tick: int):
-        """运行多步仿真。
+        """執行多步模擬。
 
-        :param num_steps: 运行步数上限。
-        :param tick: 每步时间跨度（秒）。
+        :param num_steps: 執行步數上限。
+        :param tick: 每步時間跨度（秒）。
         """
         for _ in range(num_steps):
             if self._should_terminate:
@@ -303,18 +303,18 @@ class AgentSociety:
             await self.step(tick)
 
     async def ask(self, question: str) -> str:
-        """向仿真系统提问（由 helper 协调 agents/env 作答）。
+        """向模擬系統提問（由 helper 協調 agents/env 作答）。
 
-        :param question: 问题文本。
-        :returns: 答案文本。
+        :param question: 問題文字。
+        :returns: 答案文字。
         """
         return await self._helper.ask(question)
 
     async def intervene(self, instruction: str) -> str:
-        """对仿真进行干预（由 helper 协调执行）。
+        """對模擬進行干預（由 helper 協調執行）。
 
-        :param instruction: 干预指令文本。
-        :returns: 执行结果/反馈文本。
+        :param instruction: 干預指令文字。
+        :returns: 執行結果/反饋文字。
         """
         return await self._helper.intervene(instruction)
 
@@ -323,7 +323,7 @@ class AgentSociety:
         questionnaire: Questionnaire,
         target_agent_ids: list[int] | None = None,
     ) -> QuestionnaireResponse:
-        """向目标 agents 发放问卷并返回结构化结果。"""
+        """向目標 agents 發放問卷並返回結構化結果。"""
         return await self._questionnaire_runner.run(
             questionnaire,
             self._agents,
@@ -334,7 +334,7 @@ class AgentSociety:
 
     # ---- Dump & Load ----
     async def dump(self) -> dict:
-        """导出可序列化的仿真状态。
+        """匯出可序列化的模擬狀態。
 
         :returns: 包含 ``society``、``env_router``、``agents`` 的字典。
         """
@@ -360,9 +360,9 @@ class AgentSociety:
         }
 
     async def load(self, dump_data: dict):
-        """从 :meth:`dump` 的输出恢复仿真状态。
+        """從 :meth:`dump` 的輸出恢復模擬狀態。
 
-        :param dump_data: 由 :meth:`dump` 产生的字典。
+        :param dump_data: 由 :meth:`dump` 產生的字典。
         """
         try:
             soc = dump_data.get("society") or {}

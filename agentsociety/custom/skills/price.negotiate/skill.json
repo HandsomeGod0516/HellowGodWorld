@@ -20,7 +20,7 @@
   ],
   "status": "negotiating",
   "emotion": "sharp",
-  "speech": "我先问清价格和数量，再试着谈一个双方都能接受的价。",
+  "speech": "我先問清價格和數量，再試著談一個雙方都能接受的價。",
   "memory_template": "Used price.negotiate: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

@@ -148,7 +148,7 @@ class MobilitySpace(EnvBase):
     The environment, including map data, simulator clients, and environment variables.
     """
 
-    # 声明式状态持久化
+    # 宣告式狀態持久化
     _agent_state_columns: ClassVar[list[ColumnDef]] = [
         ColumnDef("lng", "REAL"),
         ColumnDef("lat", "REAL"),
@@ -198,7 +198,7 @@ class MobilitySpace(EnvBase):
         self._lock = asyncio.Lock()
         """lock for routing process"""
 
-        # 位置跟踪存储（用于benchmark数据收集）
+        # 位置跟蹤儲存（用於benchmark資料收集）
         self._person_trajectories: dict[int, list[Tuple[float, float]]] = {
             p["id"] if isinstance(p, dict) else p.id: [] for p in persons
         }
@@ -291,7 +291,7 @@ class MobilitySpace(EnvBase):
         if person_id not in self._persons:
             return
 
-        # Initialize if not already present（处理动态添加的person）
+        # Initialize if not already present（處理動態新增的person）
         if person_id not in self._person_trajectories:
             self._person_trajectories[person_id] = []
         if person_id not in self._person_visited_aois:
@@ -834,7 +834,7 @@ class MobilitySpace(EnvBase):
                         xy.x, xy.y, inverse=True
                     )
 
-            # 【关键】每步记录person的位置（用于轨迹收集）
+            # 【關鍵】每步記錄person的位置（用於軌跡收集）
             self.record_person_position(person.id)
             
             # Write position to replay database

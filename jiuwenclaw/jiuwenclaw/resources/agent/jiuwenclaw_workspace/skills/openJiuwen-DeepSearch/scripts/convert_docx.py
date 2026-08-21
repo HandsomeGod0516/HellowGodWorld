@@ -34,7 +34,7 @@ def ensure_pandoc():
 
 
 # =========================
-# Mermaid 配置与清洗
+# Mermaid 配置與清洗
 # =========================
 DEFAULT_CONFIG = {
     "theme": "base",
@@ -82,7 +82,7 @@ def _dump_frontmatter(config_dict: dict) -> str:
             default_flow_style=False,
         ).strip()
         return f"---\n{text}\n---\n"
-    # 最小兜底：手写一个稳定配置块
+    # 最小兜底：手寫一個穩定配置塊
     tv = config_dict.get("themeVariables", {})
     xy = tv.get("xyChart", {})
     return (
@@ -108,9 +108,9 @@ def _dump_frontmatter(config_dict: dict) -> str:
 
 def _normalize_xychart_body(body: str) -> str:
     """
-    针对 xychart 做保守优化：
-    - 不再把 xychart-beta 改成 xychart，避免和服务端版本不兼容
-    - 对极大数字的 y-axis 标题做轻量增强
+    針對 xychart 做保守最佳化：
+    - 不再把 xychart-beta 改成 xychart，避免和服務端版本不相容
+    - 對極大數字的 y-axis 標題做輕量增強
     """
     text = body.strip()
 
@@ -162,12 +162,12 @@ def _build_merged_frontmatter(frontmatter: str, body: str) -> str:
     if "config" in parsed and isinstance(parsed["config"], dict):
         existing_config = parsed["config"]
     else:
-        # 少数情况下用户直接把 config 项写在根层，尽量兼容
+        # 少數情況下使用者直接把 config 項寫在根層，儘量相容
         existing_config = parsed if isinstance(parsed, dict) else {}
 
     merged_config = _deep_merge(DEFAULT_CONFIG, existing_config)
 
-    # 一些高对比默认值，如果用户没设则保留默认；用户设了就尊重用户
+    # 一些高對比預設值，如果使用者沒設則保留預設；使用者設了就尊重使用者
     merged_config.setdefault("theme", "base")
     merged_config.setdefault("look", "classic")
     merged_config.setdefault("themeVariables", {})
@@ -188,7 +188,7 @@ def clean_mermaid_code(code: str) -> str:
 
 
 # =========================
-# 图片增强
+# 圖片增強
 # =========================
 def enhance_image(image_path: str):
     if not PIL_AVAILABLE:
@@ -298,7 +298,7 @@ def render_mermaid(code: str, output_path: str) -> bool:
 
 
 # =========================
-# 标题修复（保守版）
+# 標題修復（保守版）
 # =========================
 def normalize_headings(content: str) -> str:
     content = content.replace("\r\n", "\n").replace("\r", "\n")
@@ -358,7 +358,7 @@ def normalize_headings(content: str) -> str:
 
 
 # =========================
-# Mermaid 替换
+# Mermaid 替換
 # =========================
 def replace_mermaid_blocks(content: str, tmp_dir: Path):
     pattern = re.compile(r"```mermaid\s*\n(.*?)```", re.DOTALL | re.IGNORECASE)
@@ -391,7 +391,7 @@ def convert_md_to_docx(md_path: str, docx_path: str):
     docx_path = Path(docx_path).resolve()
 
     if not md_path.exists():
-        raise FileNotFoundError(f"找不到 Markdown 文件: {md_path}")
+        raise FileNotFoundError(f"找不到 Markdown 檔案: {md_path}")
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)

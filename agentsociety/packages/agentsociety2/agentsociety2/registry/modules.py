@@ -1,10 +1,10 @@
-"""模块自动发现与注册。
+"""模組自動發現與註冊。
 
-该模块负责：
+該模組負責：
 
-- 自动发现并注册 ``contrib`` 下的内置环境模块与 agent；
-- 扫描并注册 ``custom`` 下的用户自定义模块；
-- 提供一组便捷函数给后端/CLI 调用（list/reload/get）。
+- 自動發現並註冊 ``contrib`` 下的內建環境模組與 agent；
+- 掃描並註冊 ``custom`` 下的使用者自定義模組；
+- 提供一組便捷函式給後端/CLI 呼叫（list/reload/get）。
 """
 
 from __future__ import annotations
@@ -31,13 +31,13 @@ def _load_custom_class(
     class_name: str,
     module_prefix: str,
 ) -> type[Any]:
-    """从 workspace 文件加载自定义类。
+    """從 workspace 檔案載入自定義類。
 
-    :param file_path: 文件路径。
-    :param class_name: 目标类名。
-    :param module_prefix: 注入到 sys.modules 的模块名前缀（用于隔离）。
-    :returns: 加载到的 class 对象。
-    :raises ImportError: 无法构建 import spec 时抛出。
+    :param file_path: 檔案路徑。
+    :param class_name: 目標類名。
+    :param module_prefix: 注入到 sys.modules 的模組名字首（用於隔離）。
+    :returns: 載入到的 class 物件。
+    :raises ImportError: 無法構建 import spec 時丟擲。
     """
 
     spec = importlib.util.spec_from_file_location(
@@ -57,11 +57,11 @@ def register_scanned_custom_modules(
     scan_result: Dict[str, Any],
     registry: Optional[ModuleRegistry] = None,
 ) -> Dict[str, Any]:
-    """注册 scanner 已发现的自定义模块。
+    """註冊 scanner 已發現的自定義模組。
 
-    :param scan_result: scanner 输出（包含 envs/agents/errors）。
-    :param registry: 可选注册中心；为空则使用全局 registry。
-    :returns: 更新后的 scan_result（会追加 registration_errors）。
+    :param scan_result: scanner 輸出（包含 envs/agents/errors）。
+    :param registry: 可選註冊中心；為空則使用全域性 registry。
+    :returns: 更新後的 scan_result（會追加 registration_errors）。
     """
 
     if registry is None:
@@ -114,9 +114,9 @@ def register_scanned_custom_modules(
 
 
 def _discover_contrib_env_modules() -> Dict[str, Type[EnvBase]]:
-    """发现 contrib.env 下所有环境模块。
+    """發現 contrib.env 下所有環境模組。
 
-    :returns: ``{class_name: class}`` 映射。
+    :returns: ``{class_name: class}`` 對映。
     """
     modules = {}
 
@@ -158,9 +158,9 @@ def _discover_contrib_env_modules() -> Dict[str, Type[EnvBase]]:
 
 
 def _discover_contrib_agents() -> Dict[str, Type[AgentBase]]:
-    """发现 contrib.agent 下所有 agent 类。
+    """發現 contrib.agent 下所有 agent 類。
 
-    :returns: ``{class_name: class}`` 映射。
+    :returns: ``{class_name: class}`` 對映。
     """
     agents = {}
 
@@ -200,7 +200,7 @@ def _discover_contrib_agents() -> Dict[str, Type[AgentBase]]:
 
 
 def _discover_builtin_agents() -> Dict[str, Type[AgentBase]]:
-    """发现内置 agent（例如 PersonAgent）。"""
+    """發現內建 agent（例如 PersonAgent）。"""
     agents = {}
 
     try:
@@ -218,7 +218,7 @@ def _discover_builtin_agents() -> Dict[str, Type[AgentBase]]:
 
 
 def _class_name_to_type(class_name: str) -> Optional[str]:
-    """将类名转换为 type identifier（CamelCase -> snake_case）。"""
+    """將類名轉換為 type identifier（CamelCase -> snake_case）。"""
     import re
 
     # Handle special cases
@@ -241,9 +241,9 @@ def _class_name_to_type(class_name: str) -> Optional[str]:
 
 
 def discover_and_register_builtin_modules(registry: Optional[ModuleRegistry] = None) -> None:
-    """发现并注册所有内置模块（contrib + 内置 agent）。
+    """發現並註冊所有內建模組（contrib + 內建 agent）。
 
-    :param registry: 可选注册中心；为空则使用全局 registry。
+    :param registry: 可選註冊中心；為空則使用全域性 registry。
     """
     if registry is None:
         registry = get_registry()
@@ -270,11 +270,11 @@ def discover_and_register_builtin_modules(registry: Optional[ModuleRegistry] = N
 def scan_and_register_custom_modules(
     workspace_path: Path, registry: Optional[ModuleRegistry] = None
 ) -> Dict[str, Any]:
-    """扫描并注册 custom/ 下的自定义模块。
+    """掃描並註冊 custom/ 下的自定義模組。
 
-    :param workspace_path: workspace 路径。
-    :param registry: 可选注册中心；为空则使用全局 registry。
-    :returns: scan 结果（包含 envs/agents/errors）。
+    :param workspace_path: workspace 路徑。
+    :param registry: 可選註冊中心；為空則使用全域性 registry。
+    :returns: scan 結果（包含 envs/agents/errors）。
     """
     if registry is None:
         registry = get_registry()
@@ -302,26 +302,26 @@ def scan_and_register_custom_modules(
 # Convenience functions
 
 def get_registered_env_modules() -> List[Tuple[str, Type[EnvBase]]]:
-    """:returns: 已注册环境模块列表 ``[(module_type, module_class), ...]``。"""
+    """:returns: 已註冊環境模組列表 ``[(module_type, module_class), ...]``。"""
     return get_registry().list_env_modules()
 
 
 def get_registered_agent_modules() -> List[Tuple[str, Type[AgentBase]]]:
-    """:returns: 已注册 agent 列表 ``[(agent_type, agent_class), ...]``。"""
+    """:returns: 已註冊 agent 列表 ``[(agent_type, agent_class), ...]``。"""
     return get_registry().list_agent_modules()
 
 
 def get_env_module_class(module_type: str) -> Optional[Type[EnvBase]]:
-    """按 type 获取环境模块类。
+    """按 type 獲取環境模組類。
 
     :param module_type: type identifier。
-    :returns: 环境模块 class；未找到返回 ``None``。
+    :returns: 環境模組 class；未找到返回 ``None``。
     """
     return get_registry().get_env_module(module_type)
 
 
 def get_agent_module_class(agent_type: str) -> Optional[Type[AgentBase]]:
-    """按 type 获取 agent 类。
+    """按 type 獲取 agent 類。
 
     :param agent_type: type identifier。
     :returns: agent class；未找到返回 ``None``。
@@ -330,7 +330,7 @@ def get_agent_module_class(agent_type: str) -> Optional[Type[AgentBase]]:
 
 
 def list_all_modules() -> Dict[str, List[Dict[str, Any]]]:
-    """列出所有已注册模块（含描述与是否 custom 标记）。"""
+    """列出所有已註冊模組（含描述與是否 custom 標記）。"""
     registry = get_registry()
 
     env_modules = []
@@ -366,9 +366,9 @@ def list_all_modules() -> Dict[str, List[Dict[str, Any]]]:
 
 
 def reload_modules(workspace_path: Optional[Path] = None) -> None:
-    """清空并重新发现模块（按需加载）。
+    """清空並重新發現模組（按需載入）。
 
-    :param workspace_path: 可选 workspace 路径（用于 custom 模块）。
+    :param workspace_path: 可選 workspace 路徑（用於 custom 模組）。
     """
     registry = get_registry()
 

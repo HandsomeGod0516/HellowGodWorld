@@ -120,9 +120,9 @@ class SkillInfo:
     skill_md_loaded: bool = field(default=False, repr=False)
 
     def copy(self) -> "SkillInfo":
-        """创建浅拷贝，列表字段重新创建以避免共享。
+        """建立淺複製，列表欄位重新建立以避免共享。
 
-        :return: 新的 SkillInfo 实例。
+        :return: 新的 SkillInfo 例項。
         """
         return SkillInfo(
             name=self.name,
@@ -150,9 +150,9 @@ class SkillInfo:
         )
 
 
-# 全局子进程并发限制：所有 agent 的 registry 共享同一个 semaphore，
-# 避免 N 个 agent 各自拥有 16 个配额导致 N×16 个子进程。
-# 使用懒初始化确保在 asyncio 事件循环启动后才创建。
+# 全域性子程序併發限制：所有 agent 的 registry 共享同一個 semaphore，
+# 避免 N 個 agent 各自擁有 16 個配額導致 N×16 個子程序。
+# 使用懶初始化確保在 asyncio 事件迴圈啟動後才建立。
 _global_subprocess_semaphore: asyncio.Semaphore | None = None
 
 
@@ -197,10 +197,10 @@ class SkillRegistry:
         self.scan_builtin()
 
     def copy_from(self, other: "SkillRegistry") -> None:
-        """从另一个 registry 复制所有技能。
+        """從另一個 registry 複製所有技能。
 
-        使用浅拷贝共享 SkillInfo 实例，减少内存占用。
-        每个 SkillInfo 的列表字段会重新创建以避免意外共享。
+        使用淺複製共享 SkillInfo 例項，減少記憶體佔用。
+        每個 SkillInfo 的列表欄位會重新建立以避免意外共享。
 
         :param other: 源 registry。
         """
@@ -541,19 +541,19 @@ class SkillRegistry:
             Callable[[dict[str, Any]], Awaitable[dict[str, Any]]] | None
         ) = None,
     ) -> dict[str, Any]:
-        """执行指定技能。
+        """執行指定技能。
 
-        根据技能配置选择执行方式：
-        - executor="codegen": 通过环境执行
-        - 有 script 字段: 执行 Python 脚本
-        - 无 script: 返回空成功结果
+        根據技能配置選擇執行方式：
+        - executor="codegen": 透過環境執行
+        - 有 script 欄位: 執行 Python 指令碼
+        - 無 script: 返回空成功結果
 
-        :param skill_name: 技能名称。
-        :param args: 传递给技能的参数。
-        :param agent_work_dir: Agent 工作目录。
-        :param timeout_sec: 执行超时秒数。
-        :param codegen_executor: codegen 执行器回调。
-        :return: 执行结果字典，包含 ok、exit_code、stdout、stderr、artifacts 等字段。
+        :param skill_name: 技能名稱。
+        :param args: 傳遞給技能的引數。
+        :param agent_work_dir: Agent 工作目錄。
+        :param timeout_sec: 執行超時秒數。
+        :param codegen_executor: codegen 執行器回撥。
+        :return: 執行結果字典，包含 ok、exit_code、stdout、stderr、artifacts 等欄位。
         :rtype: dict[str, Any]
         """
         info = self._skills.get(skill_name)
@@ -588,7 +588,7 @@ class SkillRegistry:
             str(p.relative_to(work_dir)) for p in work_dir.rglob("*") if p.is_file()
         }
 
-        # 使用环境变量白名单，避免泄露敏感信息
+        # 使用環境變數白名單，避免洩露敏感資訊
         env = {k: v for k, v in os.environ.items() if k in ALLOWED_ENV_VARS}
         env["SKILL_NAME"] = skill_name
         env["SKILL_DIR"] = str(skill_root)
@@ -645,13 +645,13 @@ def _error(error_type: str, message: str) -> dict[str, Any]:
 
 
 def _discover_skills(root: Path, source: str) -> list[SkillInfo]:
-    """发现指定目录下的所有技能。
+    """發現指定目錄下的所有技能。
 
-    扫描目录中的子目录，查找 SKILL.md 文件并解析 frontmatter。
+    掃描目錄中的子目錄，查詢 SKILL.md 檔案並解析 frontmatter。
 
-    :param root: 要扫描的根目录。
-    :param source: 技能来源标识（"builtin"、"custom" 或 "env:<name>"）。
-    :return: 发现的 SkillInfo 列表。
+    :param root: 要掃描的根目錄。
+    :param source: 技能來源標識（"builtin"、"custom" 或 "env:<name>"）。
+    :return: 發現的 SkillInfo 列表。
     :rtype: list[SkillInfo]
     """
     result: list[SkillInfo] = []
@@ -660,7 +660,7 @@ def _discover_skills(root: Path, source: str) -> list[SkillInfo]:
     for child in sorted(root.iterdir()):
         if not child.is_dir() or child.name.startswith(("_", ".")):
             continue
-        # 新架构要求必须有 SKILL.md
+        # 新架構要求必須有 SKILL.md
         skill_md = child / "SKILL.md"
         if not skill_md.exists():
             continue

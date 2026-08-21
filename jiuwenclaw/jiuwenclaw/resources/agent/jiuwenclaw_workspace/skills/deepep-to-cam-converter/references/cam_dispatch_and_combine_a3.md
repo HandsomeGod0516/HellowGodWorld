@@ -1,19 +1,19 @@
-# CAM dispatch & combine A3算子
-## 使用场景
-提供在A3环境上运行的一对协同工作dispatch&&combine算子，主要用于混合专家模型(Moe, Mixture of Experts)中用于专家并行（Expert Parallelism）带来的动态路由问题。在如下约束下可使用
-1. 运行环境为昇腾A3环境
-2. 当前Moe场景中不存在共享专家
-3. 当前Moe场景需要满足如下取值要求
- - Moe会选择概率最高的K个专家，将token通过dispatch算子分发给对应的专家并通过combine算子收回，当前这套算子需要保证这个top_k取值范围为(0， 16]
- - 假设当前Moe通信域的rank数定义为num_ranks，num_ranks取值范围为[2, 384]
- - 假设当前Moe通信域的专家数为num_experts，num_experts取值范围的取值范围是(0, 512]，并且需要满足num_experts % num_ranks ==0 和 num_experts >= num_ranks
- - 假设当前本卡要发送的token形状为(batch_size, hidden_size), batch_size的取值范围需要满足(0, 8000], hidden_size的取值范围需要满足(0， 7168]且(hidden_size % 32) == 0
- - 在进行dispatch & combine过程中batch_size的取值范围需要满足[1, 4K]
+# CAM dispatch & combine A3運算元
+## 使用場景
+提供在A3環境上執行的一對協同工作dispatch&&combine運算元，主要用於混合專家模型(Moe, Mixture of Experts)中用於專家並行（Expert Parallelism）帶來的動態路由問題。在如下約束下可使用
+1. 執行環境為昇騰A3環境
+2. 當前Moe場景中不存在共享專家
+3. 當前Moe場景需要滿足如下取值要求
+ - Moe會選擇機率最高的K個專家，將token透過dispatch運算元分發給對應的專家並透過combine運算元收回，當前這套運算元需要保證這個top_k取值範圍為(0， 16]
+ - 假設當前Moe通訊域的rank數定義為num_ranks，num_ranks取值範圍為[2, 384]
+ - 假設當前Moe通訊域的專家數為num_experts，num_experts取值範圍的取值範圍是(0, 512]，並且需要滿足num_experts % num_ranks ==0 和 num_experts >= num_ranks
+ - 假設當前本卡要傳送的token形狀為(batch_size, hidden_size), batch_size的取值範圍需要滿足(0, 8000], hidden_size的取值範圍需要滿足(0， 7168]且(hidden_size % 32) == 0
+ - 在進行dispatch & combine過程中batch_size的取值範圍需要滿足[1, 4K]
 
-## api说明
-当前提供算子已提供torch扩展包，需要import umdk_cam_op_lib，调用时使用torch.ops.umdk_cam_op_lib.xxx进行调用
+## api說明
+當前提供運算元已提供torch擴充套件包，需要import umdk_cam_op_lib，呼叫時使用torch.ops.umdk_cam_op_lib.xxx進行呼叫
 ### 2.1 get_dispatch_layout ▶
-#### 2.1.1 接口原型 
+#### 2.1.1 介面原型 
 ```python
 get_dispatch_layout(
     Tensor topk_idx, 
@@ -21,33 +21,33 @@ get_dispatch_layout(
     int num_ranks)
 -> output: tuple(Tensor, Tensor)
 ```
-#### 2.1.2 接口描述 
-A3代际Prefill阶段Dispatch使用的前置接口，用以在当前rank将Token拓展TopK份之后按照专家粒度重排，方便后续的分发操作。该接口需配合moe_dispatch_prefill和moe_combine_prefill使用。
-#### 2.1.3 入参 
-| **📌参数** | **🔧类型** | **✅是否必选** | **📋取值说明** | **📝描述** |
+#### 2.1.2 介面描述 
+A3代際Prefill階段Dispatch使用的前置介面，用以在當前rank將Token拓展TopK份之後按照專家粒度重排，方便後續的分發操作。該介面需配合moe_dispatch_prefill和moe_combine_prefill使用。
+#### 2.1.3 入參 
+| **📌引數** | **🔧型別** | **✅是否必選** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|--------------|----------|
-|topk_idx|Tensor|必选|形状:(batch_size, topk)， int64类型|目标专家的ID信息|
-|num_experts|int|必选|取值范围：(0, 512]|MOE专家数|
-|num_ranks|int|必选|取值范围：[1, 384]|EP通信域rank数|
+|topk_idx|Tensor|必選|形狀:(batch_size, topk)， int64型別|目標專家的ID資訊|
+|num_experts|int|必選|取值範圍：(0, 512]|MOE專家數|
+|num_ranks|int|必選|取值範圍：[1, 384]|EP通訊域rank數|
 #### 2.1.4 返回值 
-函数返回值是一个2个Tensor构成的Tuple，分别存放：number_tokens_per_expert和send_token_idx.
-| **📌参数** | **🔧类型** | **📋取值说明** | **📝描述** |
+函式返回值是一個2個Tensor構成的Tuple，分別存放：number_tokens_per_expert和send_token_idx.
+| **📌引數** | **🔧型別** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|----------|
-|number_tokens_per_expert|Tensor|形状：（num_experts）|当前rank上发送给每个专家的token个数|
-|send_token_idx|Tensor|形状：(batch_size, top_k)|当前rank上，发送给每个专家的token在以专家重排分桶后，其在桶里的第几个位置|
-#### 2.1.5 约束和注意事项 ⚠️
-1. 入参形状需严格满足上述入参描述中的形状定义。
-2. 当前接口只支持A3环境调用。
-4. 当前接口不支持并发调用。
-5. 当前接口不支持入图使用。
-6. 除满足上述形状约束外，其他参数取值要求：
- - top_k取值范围：(0， 16]
- - batch_size取值范围：(0, 8000]
- - 需要满足: num_experts % num_ranks == 0
- - 需要满足：num_experts >= num_ranks
+|number_tokens_per_expert|Tensor|形狀：（num_experts）|當前rank上傳送給每個專家的token個數|
+|send_token_idx|Tensor|形狀：(batch_size, top_k)|當前rank上，傳送給每個專家的token在以專家重排分桶後，其在桶裡的第幾個位置|
+#### 2.1.5 約束和注意事項 ⚠️
+1. 入參形狀需嚴格滿足上述入參描述中的形狀定義。
+2. 當前介面只支援A3環境呼叫。
+4. 當前介面不支援併發呼叫。
+5. 當前介面不支援入圖使用。
+6. 除滿足上述形狀約束外，其他引數取值要求：
+ - top_k取值範圍：(0， 16]
+ - batch_size取值範圍：(0, 8000]
+ - 需要滿足: num_experts % num_ranks == 0
+ - 需要滿足：num_experts >= num_ranks
 
 ### 2.2 moe_dispatch_prefill ▶
-#### 2.2.1 接口原型 
+#### 2.2.1 介面原型 
 ```python
 moe_dispatch_prefill(
     Tensor x, 
@@ -61,45 +61,45 @@ moe_dispatch_prefill(
     bool use_quant) 
 -> output: tuple(Tensor, Tensor, Tensor, Tensor, Tensor)
 ```
-#### 2.2.2 接口描述 
-A3代际Prefill阶段Dispatch接口，将Token按照topk_idx的规则发送给对应专家。
-#### 2.2.3 入参 
-| **📌参数** | **🔧类型** | **✅是否必选** | **📋取值说明** | **📝描述** |
+#### 2.2.2 介面描述 
+A3代際Prefill階段Dispatch介面，將Token按照topk_idx的規則傳送給對應專家。
+#### 2.2.3 入參 
+| **📌引數** | **🔧型別** | **✅是否必選** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|--------------|----------|
-|x|Tensor|必选|形状:(batch_size, hidden_size), 支持bf16, float16类型|本卡发送的token|
-|topk_idx|Tensor|必选|形状:(batch_size, topk)， 数据类型为int64|每个token的目标专家ID信息|
-|topk_weights|Tensor|必选|形状:(batch_size, topk)， 数据类型为float32|每个token的topk个目标专家的权重信息|
-|number_tokens_per_expert|Tensor|必选|形状：（num_experts），数据类型为int|当前rank上发送给每个专家的token个数|
-|send_token_idx_small|Tensor|必选|形状：(batch_size, top_k), 数据类型为int|当前rank上，发送给每个专家的token在以专家重排分桶后，其在桶里的第几个位置|
-|group_ep|str|必选|--|HCCL通信域名称|
-|rank|int|必选|[0, num_ranks)|本卡在通信域中的rankID|
-|num_ranks|int|必选|[2, 384]|EP通信域rank数|
-|use_quant|bool|必选|True: 开启量化； False: 关闭量化|Dispatch量化指示符|
+|x|Tensor|必選|形狀:(batch_size, hidden_size), 支援bf16, float16型別|本卡傳送的token|
+|topk_idx|Tensor|必選|形狀:(batch_size, topk)， 資料型別為int64|每個token的目標專家ID資訊|
+|topk_weights|Tensor|必選|形狀:(batch_size, topk)， 資料型別為float32|每個token的topk個目標專家的權重資訊|
+|number_tokens_per_expert|Tensor|必選|形狀：（num_experts），資料型別為int|當前rank上傳送給每個專家的token個數|
+|send_token_idx_small|Tensor|必選|形狀：(batch_size, top_k), 資料型別為int|當前rank上，傳送給每個專家的token在以專家重排分桶後，其在桶裡的第幾個位置|
+|group_ep|str|必選|--|HCCL通訊域名稱|
+|rank|int|必選|[0, num_ranks)|本卡在通訊域中的rankID|
+|num_ranks|int|必選|[2, 384]|EP通訊域rank數|
+|use_quant|bool|必選|True: 開啟量化； False: 關閉量化|Dispatch量化指示符|
 #### 2.2.4 返回值 
-函数返回值是一个5个Tensor构成的Tuple，分别存放：recv_x, dynamic_scales_out, expand_idx_out, recv_count, recv_token_per_expert.
-| **📌参数** | **🔧类型** | **📋取值说明** | **📝描述** |
+函式返回值是一個5個Tensor構成的Tuple，分別存放：recv_x, dynamic_scales_out, expand_idx_out, recv_count, recv_token_per_expert.
+| **📌引數** | **🔧型別** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|----------|
-|recv_x|Tensor|形状：(recv_token_num, hidden_size), 其中recv_token_num为本卡收到的token个数。当use_quant为true时，数据类型为int8, false时数据类型与入参x一致|当前rank上收到的token信息|
-|dynamic_scales_out|Tensor|形状：(recv_token_num), 数据类型为float.当use_quant为false时该值没有意义。|当前rank上收到token的动态量化scale信息|
-|expand_idx_out|Tensor|形状：(recv_token_num * 3), 数据类型为int|本卡收到的token信息三元组，每组三个数的含义依次为：token的源rank, token在源rank的序号（BS视角），token在源rank时topk专家扩展重排后的序号（专家视角）|
-|recv_count|Tensor|形状：(num_experts), 数据类型为int|当前rank上每个专家从每个rank收到的收到token数，为前缀和|
-|recv_tokens_per_expert|Tensor|形状：(local_expert_num), 数据类型为int64|当前rank上每个专家收到的token信息|
-#### 2.2.5 约束和注意事项 ⚠️
-1. 入参形状需严格满足上述入参描述中的形状定义。
-2. 当前接口只支持A3环境调用。
-3. 当前接口不支持并发调用。
-4. 当前接口不支持入图使用。
-5. 除满足上述形状约束外，其他参数取值要求：
- - 需要满足：BS取值范围[1, 8K]
- - 需要满足: num_ranks取值范围[2, 384]
- - 需要满足: num_experts取值范围(0, 512]
- - 需要满足: topk取值范围(0, 16]
- - 需要满足: (num_experts % num_ranks) == 0
- - 需要满足: 配置全局宏HCCL_BUFFERSIZE=4096
- - 需要满足：num_experts >= num_ranks
+|recv_x|Tensor|形狀：(recv_token_num, hidden_size), 其中recv_token_num為本卡收到的token個數。當use_quant為true時，資料型別為int8, false時資料型別與入參x一致|當前rank上收到的token資訊|
+|dynamic_scales_out|Tensor|形狀：(recv_token_num), 資料型別為float.當use_quant為false時該值沒有意義。|當前rank上收到token的動態量化scale資訊|
+|expand_idx_out|Tensor|形狀：(recv_token_num * 3), 資料型別為int|本卡收到的token資訊三元組，每組三個數的含義依次為：token的源rank, token在源rank的序號（BS視角），token在源rank時topk專家擴充套件重排後的序號（專家視角）|
+|recv_count|Tensor|形狀：(num_experts), 資料型別為int|當前rank上每個專家從每個rank收到的收到token數，為字首和|
+|recv_tokens_per_expert|Tensor|形狀：(local_expert_num), 資料型別為int64|當前rank上每個專家收到的token資訊|
+#### 2.2.5 約束和注意事項 ⚠️
+1. 入參形狀需嚴格滿足上述入參描述中的形狀定義。
+2. 當前介面只支援A3環境呼叫。
+3. 當前介面不支援併發呼叫。
+4. 當前介面不支援入圖使用。
+5. 除滿足上述形狀約束外，其他引數取值要求：
+ - 需要滿足：BS取值範圍[1, 8K]
+ - 需要滿足: num_ranks取值範圍[2, 384]
+ - 需要滿足: num_experts取值範圍(0, 512]
+ - 需要滿足: topk取值範圍(0, 16]
+ - 需要滿足: (num_experts % num_ranks) == 0
+ - 需要滿足: 配置全域性宏HCCL_BUFFERSIZE=4096
+ - 需要滿足：num_experts >= num_ranks
 
 ### 2.3 moe_combine_prefill ▶
-#### 2.3.1 接口原型 
+#### 2.3.1 介面原型 
 ```python
 moe_combine_prefill(
     Tensor x, 
@@ -112,41 +112,41 @@ moe_combine_prefill(
     int num_ranks) 
 -> output: Tensor
 ```
-#### 2.3.2 接口描述 
-A3代际Prefill阶段Combine接口，将按照topk_idx的规则发送给对应专家的token，按照topk_weights指定的权重收回。
-#### 2.3.3 入参 
-| **📌参数** | **🔧类型** | **✅是否必选** | **📋取值说明** | **📝描述** |
+#### 2.3.2 介面描述 
+A3代際Prefill階段Combine介面，將按照topk_idx的規則傳送給對應專家的token，按照topk_weights指定的權重收回。
+#### 2.3.3 入參 
+| **📌引數** | **🔧型別** | **✅是否必選** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|--------------|----------|
-|x|Tensor|必选|形状:(recv_token_num, hidden_size), 支持bf16, float16类型|本卡dispatch阶段收集到的token|
-|topk_idx|Tensor|必选|形状:(batch_size, topk)， 数据类型为int64|每个token的目标专家ID信息|
-|topk_weights|Tensor|必选|形状:(batch_size, topk)， 数据类型为float32|每个token的topk个目标专家的权重信息|
-|src_idx|Tensor|形状：(recv_token_num * 3), 数据类型为int|本卡收到的token信息三元组，每组三个数的含义依次为：token的源rank, token在源rank的序号（BS视角），token在源rank时topk专家扩展重排后的序号（专家视角）。对应moe_dispatch_prefill的出参expand_idx_out|
-|send_head|Tensor|形状：(num_experts), 数据类型为int|当前rank上每个专家从每个rank收到的收到token的动态量化scale信息，该信息按照一维排开。对应moe_dispatch_prefill的出参recv_count|
-|group_ep|str|必选|--|HCCL通信域名称|
-|rank|int|必选|[0, num_ranks)|本卡在通信域中的rankID|
-|num_ranks|int|必选|[2, 384]|EP通信域rank数|
+|x|Tensor|必選|形狀:(recv_token_num, hidden_size), 支援bf16, float16型別|本卡dispatch階段收集到的token|
+|topk_idx|Tensor|必選|形狀:(batch_size, topk)， 資料型別為int64|每個token的目標專家ID資訊|
+|topk_weights|Tensor|必選|形狀:(batch_size, topk)， 資料型別為float32|每個token的topk個目標專家的權重資訊|
+|src_idx|Tensor|形狀：(recv_token_num * 3), 資料型別為int|本卡收到的token資訊三元組，每組三個數的含義依次為：token的源rank, token在源rank的序號（BS視角），token在源rank時topk專家擴充套件重排後的序號（專家視角）。對應moe_dispatch_prefill的出參expand_idx_out|
+|send_head|Tensor|形狀：(num_experts), 資料型別為int|當前rank上每個專家從每個rank收到的收到token的動態量化scale資訊，該資訊按照一維排開。對應moe_dispatch_prefill的出參recv_count|
+|group_ep|str|必選|--|HCCL通訊域名稱|
+|rank|int|必選|[0, num_ranks)|本卡在通訊域中的rankID|
+|num_ranks|int|必選|[2, 384]|EP通訊域rank數|
 #### 2.3.4 返回值 
-函数返回值是一个Tensor，存放combine_x信息。
-| **📌参数** | **🔧类型** | **📋取值说明** | **📝描述** |
+函式返回值是一個Tensor，存放combine_x資訊。
+| **📌引數** | **🔧型別** | **📋取值說明** | **📝描述** |
 |----------|----------|--------------|----------|
-|combine_x|Tensor|形状：(batch_size, hidden_size)。数据类型与x一致|当前rank上收到的token信息|
-#### 2.3.5 约束和注意事项 ⚠️
-1. 入参形状需严格满足上述入参描述中的形状定义。
-2. 当前接口只支持A3环境调用。
-3. 当前接口不支持并发调用。
-4. 当前接口不支持入图使用。
-5. 除满足上述形状约束外，其他参数取值要求：
- - 需要满足：BS取值范围[1, 8K]
- - 需要满足: num_ranks取值范围[2, 384]
- - 需要满足: num_experts取值范围(0, 512]
- - 需要满足: topk取值范围(0, 16]
- - 需要满足: (num_experts % num_ranks) == 0
- - 需要满足: 配置全局宏HCCL_BUFFERSIZE=4096
- - 需要满足：num_experts >= num_ranks
+|combine_x|Tensor|形狀：(batch_size, hidden_size)。資料型別與x一致|當前rank上收到的token資訊|
+#### 2.3.5 約束和注意事項 ⚠️
+1. 入參形狀需嚴格滿足上述入參描述中的形狀定義。
+2. 當前介面只支援A3環境呼叫。
+3. 當前介面不支援併發呼叫。
+4. 當前介面不支援入圖使用。
+5. 除滿足上述形狀約束外，其他引數取值要求：
+ - 需要滿足：BS取值範圍[1, 8K]
+ - 需要滿足: num_ranks取值範圍[2, 384]
+ - 需要滿足: num_experts取值範圍(0, 512]
+ - 需要滿足: topk取值範圍(0, 16]
+ - 需要滿足: (num_experts % num_ranks) == 0
+ - 需要滿足: 配置全域性宏HCCL_BUFFERSIZE=4096
+ - 需要滿足：num_experts >= num_ranks
 
-## 替换示例
-### 示例1：deep ep dispatch & combine算子替换为 cam dispatch & combine a3算子
-替换前：
+## 替換示例
+### 示例1：deep ep dispatch & combine運算元替換為 cam dispatch & combine a3運算元
+替換前：
 ```python
 import argparse
 import os
@@ -199,22 +199,22 @@ def init_dist(local_rank: int, num_local_ranks: int):
     return dist.get_rank(), dist.get_world_size(), dist.new_group(list(range(num_local_ranks * num_nodes)))
 
 def test_main(args, num_sms, local_rank, num_local_ranks, num_ranks, num_nodes, rank, buffer, group):
-    # 配置参数
+    # 配置引數
     num_tokens, hidden = args.num_tokens, args.hidden
     num_topk_groups, num_topk, num_experts = args.num_topk_groups, args.num_topk, args.num_experts
 
-    # 准备随机数据
+    # 準備隨機資料
     x = torch.randn((num_tokens, hidden), dtype=torch.bfloat16, device='cuda')
     scores = torch.randn((num_tokens, num_experts), dtype=torch.float32, device='cuda').abs() + 1
     
-    # 计算 top-k 索引
+    # 計算 top-k 索引
     group_scores = scores.view(num_tokens, num_nodes, -1).amax(dim=-1)
     group_idx = torch.topk(group_scores, k=num_topk_groups, dim=-1, sorted=False).indices
     masked_scores = create_grouped_scores(scores, group_idx, num_nodes)
     topk_idx = torch.topk(masked_scores, num_topk, dim=-1, largest=True, sorted=False)[1].to(deep_ep.topk_idx_t)
     topk_weights = torch.ones((num_tokens, num_topk), dtype=torch.bfloat16, device='cuda')
 
-    # 计算 rank 索引
+    # 計算 rank 索引
     rank_idx = (topk_idx // (num_experts // num_ranks)).to(torch.int64)
     rank_idx.masked_fill_(topk_idx == -1, -1)
     inplace_unique(rank_idx, num_ranks)
@@ -233,7 +233,7 @@ def test_main(args, num_sms, local_rank, num_local_ranks, num_ranks, num_nodes, 
     rdma_buffer_size, nvl_buffer_size = 128, 512
     config = deep_ep.Config(num_sms, 8, nvl_buffer_size, 16, rdma_buffer_size)
 
-    # 测试 dispatch
+    # 測試 dispatch
     dispatch_args = {
         'x': x,
         'num_tokens_per_rank': num_tokens_per_rank,
@@ -252,7 +252,7 @@ def test_main(args, num_sms, local_rank, num_local_ranks, num_ranks, num_nodes, 
     if local_rank == 0:
         print(f"[dispatch] Completed, received {recv_x.size(0)} tokens")
 
-    # 测试 combine
+    # 測試 combine
     combine_args = {
         'x': recv_x,
         'bias': (torch.ones_like(recv_x), torch.zeros_like(recv_x)),
@@ -301,7 +301,7 @@ if __name__ == '__main__':
     torch.multiprocessing.spawn(test_loop, args=(args.num_processes, args), nprocs=args.num_processes)
 ```
 
-替换后：
+替換後：
 ```python
 import argparse
 import os
@@ -352,15 +352,15 @@ def init_dist(local_rank: int, num_local_ranks: int):
     return dist.get_rank(), dist.get_world_size(), dist.new_group(list(range(num_local_ranks * num_nodes)))
 
 def test_main(args, local_rank, num_local_ranks, num_ranks, num_nodes, rank, group):
-    # 配置参数
+    # 配置引數
     num_tokens, hidden = args.num_tokens, args.hidden
     num_topk_groups, num_topk, num_experts = args.num_topk_groups, args.num_topk, args.num_experts
     
-    # 准备随机数据
+    # 準備隨機資料
     x = torch.randn((num_tokens, hidden), dtype=torch.bfloat16, device='npu')
     scores = torch.randn((num_tokens, num_experts), dtype=torch.float32, device='npu').abs() + 1
     
-    # 计算 top-k 索引
+    # 計算 top-k 索引
     group_scores = scores.view(num_tokens, num_nodes, -1).amax(dim=-1)
     group_idx = torch.topk(group_scores, k=num_topk_groups, dim=-1, sorted=False).indices
     masked_scores = create_grouped_scores(scores, group_idx, num_nodes)
@@ -371,7 +371,7 @@ def test_main(args, local_rank, num_local_ranks, num_ranks, num_nodes, rank, gro
     rank_idx.masked_fill_(topk_idx == -1, -1)
     inplace_unique(rank_idx, num_ranks)
     
-    # 使用新的 get_dispatch_layout 算子
+    # 使用新的 get_dispatch_layout 運算元
     num_tokens_per_expert, send_token_idx = torch.ops.umdk_cam_op_lib.get_dispatch_layout(
         topk_idx, num_experts, num_ranks
     )
@@ -379,7 +379,7 @@ def test_main(args, local_rank, num_local_ranks, num_ranks, num_nodes, rank, gro
     if local_rank == 0:
         print(f"[layout] Verified get_dispatch_layout")
 
-    # 使用新的 moe_dispatch_prefill 算子
+    # 使用新的 moe_dispatch_prefill 運算元
     use_quant = False
     ep_hcomm_info = group._get_backend(torch.device('npu')).get_hccl_comm_name(rank)
     ep_hcomm_info = ep_hcomm_info.encode('utf-8')

@@ -1,11 +1,11 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Agent Team 模块 - 多智能体协作团队支持.
+"""Agent Team 模組 - 多智慧體協作團隊支援.
 
-此模块提供：
-- Team 配置加载
-- Team 生命周期管理 (Persistent模式)
-- Team Monitor 集成
+此模組提供：
+- Team 配置載入
+- Team 生命週期管理 (Persistent模式)
+- Team Monitor 整合
 """
 
 from __future__ import annotations

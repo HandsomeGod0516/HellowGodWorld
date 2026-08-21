@@ -1,10 +1,10 @@
-"""权限配置落盘（宿主侧）。
+"""許可權配置落盤（宿主側）。
 
-openjiuwen 的 PermissionInterruptRail 在「总是允许」时会通过 ToolPermissionHost.persist_allow_rule
-把合并后的整份 permissions 配置交给宿主写盘。与此同时，JiuWenClaw 仍有 CLI/WS 的一些入口需要
-“记住目录/外部路径”等能力。
+openjiuwen 的 PermissionInterruptRail 在「總是允許」時會透過 ToolPermissionHost.persist_allow_rule
+把合併後的整份 permissions 配置交給宿主寫盤。與此同時，JiuWenClaw 仍有 CLI/WS 的一些入口需要
+“記住目錄/外部路徑”等能力。
 
-这里集中提供这些“落盘 helper”，避免继续依赖 legacy 的 permissions 引擎实现。
+這裡集中提供這些“落盤 helper”，避免繼續依賴 legacy 的 permissions 引擎實現。
 """
 
 from __future__ import annotations
@@ -99,16 +99,16 @@ def _append_override_if_missing(
 
 
 def build_command_allow_pattern(cmd: str) -> str:
-    """构建匹配完整命令的通配符模式."""
+    """構建匹配完整命令的萬用字元模式."""
     return cmd.strip() + " *"
 
 
 def _normalize_tool_args(tool_args: Any) -> dict[str, Any]:
-    """将工具入参规范化为 dict。
+    """將工具入參規範化為 dict。
 
-    - dict: 原样返回（仅保证类型）
-    - str/bytes: 尝试解析 JSON；失败返回空 dict
-    - 其它类型: 返回空 dict
+    - dict: 原樣返回（僅保證型別）
+    - str/bytes: 嘗試解析 JSON；失敗返回空 dict
+    - 其它型別: 返回空 dict
     """
     if isinstance(tool_args, dict):
         return tool_args
@@ -130,7 +130,7 @@ def _normalize_tool_args(tool_args: Any) -> dict[str, Any]:
 
 
 def persist_permission_allow_rule(tool_name: str, tool_args: dict | str) -> bool:
-    """用户选择「总是允许」时，将 allow 规则写入 config.yaml 的 permissions 段。"""
+    """使用者選擇「總是允許」時，將 allow 規則寫入 config.yaml 的 permissions 段。"""
     tool_args = _normalize_tool_args(tool_args)
 
     data, yaml_path = _load_config_yaml_round_trip()
@@ -151,7 +151,7 @@ def persist_permission_allow_rule(tool_name: str, tool_args: dict | str) -> bool
 
 
 def persist_external_directory_allow(paths: list[str]) -> None:
-    """用户选择「总是允许」外部路径时，写入 external_directory 配置。"""
+    """使用者選擇「總是允許」外部路徑時，寫入 external_directory 配置。"""
     if not paths:
         return
 
@@ -167,10 +167,10 @@ def persist_external_directory_allow(paths: list[str]) -> None:
 
 
 def persist_cli_trusted_directory(raw_path: str) -> dict[str, Any]:
-    """CLI `command.add_dir`：全局信任目录子树。
+    """CLI `command.add_dir`：全域性信任目錄子樹。
 
-    写入：
-    - `permissions.external_directory`：目录 allow
+    寫入：
+    - `permissions.external_directory`：目錄 allow
     """
     if not isinstance(raw_path, str) or not raw_path.strip():
         return {"ok": False, "error": "path is empty"}
@@ -199,11 +199,11 @@ def persist_cli_trusted_directory(raw_path: str) -> dict[str, Any]:
 
 
 def persist_cli_trusted_directory_with_overrides(raw_path: str) -> dict[str, Any]:
-    """CLI `command.add_dir`：全局信任目录子树（包含覆盖规则）。
+    """CLI `command.add_dir`：全域性信任目錄子樹（包含覆蓋規則）。
 
-    写入：
-    - `permissions.external_directory`：目录 allow
-    - `permissions.approval_overrides`：追加 path/command 两条 allow override
+    寫入：
+    - `permissions.external_directory`：目錄 allow
+    - `permissions.approval_overrides`：追加 path/command 兩條 allow override
     """
     if not isinstance(raw_path, str) or not raw_path.strip():
         return {"ok": False, "error": "path is empty"}
@@ -228,7 +228,7 @@ def persist_cli_trusted_directory_with_overrides(raw_path: str) -> dict[str, Any
     path_pattern = "re:^" + re.escape(dir_norm) + r"(?:$|/)"
     shell_pattern = "re:" + rf".*{re.escape(dir_norm)}.*"
 
-    # 是否写 approval_overrides（沿用你们 config.yaml 的约定）
+    # 是否寫 approval_overrides（沿用你們 config.yaml 的約定）
     schema_key = str(permissions.get("schema") or permissions.get("version") or "").strip().lower()
     tiered = schema_key in {"tiered_policy", "v_cc", "v4.2", ""}
 

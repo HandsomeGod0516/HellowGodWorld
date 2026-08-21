@@ -64,7 +64,7 @@ function logDevWsTraffic(entry: DevWsLogEntry): void {
     body: JSON.stringify(body),
     keepalive: true,
   }).catch(() => {
-    // 仅用于本地调试日志，失败时不影响业务逻辑
+    // 僅用於本地除錯日誌，失敗時不影響業務邏輯
   });
 }
 
@@ -426,11 +426,11 @@ class WebClient {
     this.reconnectAttempts += 1;
     this.updateState('reconnecting');
 
-    // 前 N 次使用指数退避，超过后改为固定间隔持续重试，后端恢复后能自动检测并恢复连接
+    // 前 N 次使用指數退避，超過後改為固定間隔持續重試，後端恢復後能自動檢測並恢復連線
     const delay =
       this.reconnectAttempts <= MAX_RECONNECT_ATTEMPTS
         ? Math.min(1000 * 2 ** (this.reconnectAttempts - 1), 30000)
-        : 2000; // 每 2 秒持续尝试
+        : 2000; // 每 2 秒持續嘗試
 
     this.reconnectTimer = window.setTimeout(() => {
       void this.connect(this.lastConnectOptions);

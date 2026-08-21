@@ -168,7 +168,7 @@ type WecomConfig = {
   allow_from: string[];
   enable_streaming: boolean;
   send_thinking_message: boolean;
-  /** 心跳/定时推送目标 chatid，不填则用最近一次聊天的 last_chat_id */
+  /** 心跳/定時推送目標 chatid，不填則用最近一次聊天的 last_chat_id */
   default_chat_id: string;
   group_digital_avatar: boolean;
   my_user_id: string;
@@ -2148,7 +2148,7 @@ export function ChannelsPanel({ isConnected }: ChannelsPanelProps) {
                         </table>
                       )}
 
-                      {/* 数字分身权限编辑器 — 放在 table 外部 */}
+                      {/* 數字分身許可權編輯器 — 放在 table 外部 */}
                       {draft.group_digital_avatar && (
                         <div className="mt-4 px-4 py-3 border-t border-border">
                           <h5 className="text-xs font-medium text-text-muted mb-2">{t("ownerScopes.toolPermissions")}</h5>

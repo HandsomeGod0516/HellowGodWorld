@@ -258,10 +258,10 @@ LATIN_UNITS = [
 ]
 
 CHINESE_UNITS = [
-    "亿美元", "万亿美元", "美元", "亿元",
-    "太瓦时", "瓦时",
+    "億美元", "萬億美元", "美元", "億元",
+    "太瓦時", "瓦時",
     "吉瓦", "兆瓦", "千瓦",
-    "万人", "万台", "倍", "%"
+    "萬人", "萬臺", "倍", "%"
 ]
 
 
@@ -280,7 +280,7 @@ def read_text_with_fallback(path: Path) -> str:
         getattr(last_error, "object", b""),
         getattr(last_error, "start", 0),
         getattr(last_error, "end", 0),
-        f"无法正确解码文件：{path}",
+        f"無法正確解碼檔案：{path}",
     )
 
 
@@ -354,8 +354,8 @@ def looks_like_mermaid_xychart(lines: list[str]) -> bool:
 
 def smart_timeline_summary(text: str, max_len: int = 18) -> str:
     """
-    生成适合 timeline 色块的短标签。
-    优先取第一个分句；太长则做轻度压缩。
+    生成適合 timeline 色塊的短標籤。
+    優先取第一個分句；太長則做輕度壓縮。
     """
     text = text.strip()
     if len(text) <= max_len:
@@ -369,13 +369,13 @@ def smart_timeline_summary(text: str, max_len: int = 18) -> str:
         text = first
 
     replacements = {
-        "英伟达宣布为中国推出": "英伟达推中国特供",
-        "英伟达宣布": "英伟达宣布",
-        "中国网信办表达安全关切": "网信办表关切",
+        "英偉達宣佈為中國推出": "英偉達推中國特供",
+        "英偉達宣佈": "英偉達宣佈",
+        "中國網信辦表達安全關切": "網信辦表關切",
         "BIS初步管制": "BIS初步管制",
-        "BIS批准H20在华销售": "BIS批准H20在华销售",
-        "BIS就B30及B40咨询英伟达": "BIS咨询B30/B40",
-        "英伟达研发": "英伟达研发",
+        "BIS批准H20在華銷售": "BIS批准H20在華銷售",
+        "BIS就B30及B40諮詢英偉達": "BIS諮詢B30/B40",
+        "英偉達研發": "英偉達研發",
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
@@ -387,8 +387,8 @@ def smart_timeline_summary(text: str, max_len: int = 18) -> str:
         text.replace("和", "/")
             .replace("以及", "/")
             .replace("及", "/")
-            .replace("芯片", "")
-            .replace("中国", "中")
+            .replace("晶片", "")
+            .replace("中國", "中")
     )
 
     if len(compact) <= max_len:
@@ -399,7 +399,7 @@ def smart_timeline_summary(text: str, max_len: int = 18) -> str:
 
 def preprocess_timeline_mermaid(code: str) -> tuple[str, str]:
     """
-    timeline 节点只保留短标签，完整说明放到图下注释。
+    timeline 節點只保留短標籤，完整說明放到圖下注釋。
     """
     lines = code.splitlines()
     new_lines = []
@@ -444,7 +444,7 @@ def preprocess_timeline_mermaid(code: str) -> tuple[str, str]:
     if notes:
         notes_html = (
             '<div class="timeline-notes">'
-            '<div class="timeline-notes-title">时间轴说明</div>'
+            '<div class="timeline-notes-title">時間軸說明</div>'
             '<ul>'
             + "".join(notes) +
             '</ul></div>'
@@ -605,7 +605,7 @@ def convert_md_to_html(input_md: str | Path, output_html: str | Path) -> None:
     output_path = Path(output_html)
 
     if not input_path.exists():
-        raise FileNotFoundError(f"Markdown 文件不存在: {input_path}")
+        raise FileNotFoundError(f"Markdown 檔案不存在: {input_path}")
 
     md_content = read_text_with_fallback(input_path)
     md_content = preprocess_markdown(md_content)

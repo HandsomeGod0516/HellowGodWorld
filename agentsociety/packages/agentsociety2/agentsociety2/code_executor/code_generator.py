@@ -1,8 +1,8 @@
 """
-代码生成器（LLM -> Python 脚本）。
+程式碼生成器（LLM -> Python 指令碼）。
 
-该模块提供 :class:`~agentsociety2.code_executor.code_generator.CodeGenerator`，用于把“任务描述 + 可选参考文件/上下文”
-转成一段 **可执行** 的 Python 代码字符串。
+該模組提供 :class:`~agentsociety2.code_executor.code_generator.CodeGenerator`，用於把“任務描述 + 可選參考檔案/上下文”
+轉成一段 **可執行** 的 Python 程式碼字串。
 """
 
 import os
@@ -17,16 +17,16 @@ logger = get_logger()
 
 
 class CodeGenerator:
-    """基于大模型的 Python 代码生成器。
+    """基於大模型的 Python 程式碼生成器。
 
-    该类内部通过 :func:`agentsociety2.config.get_llm_router_and_model` 读取 ``coder`` 路由配置，
-    并使用 LiteLLM Router 发起异步补全请求。
+    該類內部透過 :func:`agentsociety2.config.get_llm_router_and_model` 讀取 ``coder`` 路由配置，
+    並使用 LiteLLM Router 發起非同步補全請求。
     """
 
     def __init__(
         self,
     ):
-        """初始化代码生成器。"""
+        """初始化程式碼生成器。"""
         self._router, self._model_name = get_llm_router_and_model("coder")
 
     async def generate(
@@ -35,20 +35,20 @@ class CodeGenerator:
         input_files: Optional[list[str]] = None,
         additional_context: Optional[str] = None,
     ) -> str:
-        """生成 Python 代码。
+        """生成 Python 程式碼。
 
-        :param description: 任务描述/约束条件。
-        :param input_files: 可选。参考文件路径列表；存在的文件会被读入提示词。
-        :param additional_context: 可选。追加上下文（例如运行环境、输入输出约定等）。
-        :returns: 生成的 Python 代码（尽量为纯代码文本；若模型返回 Markdown，会自动提取代码块）。
-        :raises Exception: 当底层 LLM 调用失败或返回空内容时抛出。
+        :param description: 任務描述/約束條件。
+        :param input_files: 可選。參考檔案路徑列表；存在的檔案會被讀入提示詞。
+        :param additional_context: 可選。追加上下文（例如執行環境、輸入輸出約定等）。
+        :returns: 生成的 Python 程式碼（儘量為純程式碼文字；若模型返回 Markdown，會自動提取程式碼塊）。
+        :raises Exception: 當底層 LLM 呼叫失敗或返回空內容時丟擲。
         """
-        # 构建提示词
+        # 構建提示詞
         prompt = self._build_prompt(description, input_files, additional_context)
 
-        logger.info(f"开始生成代码，使用模型: {self._model_name}")
+        logger.info(f"開始生成程式碼，使用模型: {self._model_name}")
 
-        # 调用大模型
+        # 呼叫大模型
         messages: list[AllMessageValues] = [{"role": "user", "content": prompt}]
 
         try:
@@ -61,16 +61,16 @@ class CodeGenerator:
             generated_code = response.choices[0].message.content  # type: ignore
 
             if not generated_code:
-                raise ValueError("模型返回空内容")
+                raise ValueError("模型返回空內容")
 
-            # 提取代码块（如果返回的是markdown格式）
+            # 提取程式碼塊（如果返回的是markdown格式）
             code = self._extract_code(generated_code)
 
-            logger.info(f"代码生成成功，长度: {len(code)} 字符")
+            logger.info(f"程式碼生成成功，長度: {len(code)} 字元")
             return code
 
         except Exception as e:
-            logger.error(f"代码生成失败: {e}")
+            logger.error(f"程式碼生成失敗: {e}")
             raise
 
     def _build_prompt(
@@ -79,7 +79,7 @@ class CodeGenerator:
         input_files: Optional[list[str]] = None,
         additional_context: Optional[str] = None,
     ) -> str:
-        """构建生成代码所用提示词。"""
+        """構建生成程式碼所用提示詞。"""
         prompt_parts = []
 
         # Base prompt
@@ -111,9 +111,9 @@ Requirements:
                             f"### File: {file_path}\n```\n{content}\n```\n\n"
                         )
                     except Exception as e:
-                        logger.warning(f"无法读取文件 {file_path}: {e}")
+                        logger.warning(f"無法讀取檔案 {file_path}: {e}")
                 else:
-                    logger.warning(f"文件不存在: {file_path}")
+                    logger.warning(f"檔案不存在: {file_path}")
 
         # Add additional context
         if additional_context:
@@ -133,20 +133,20 @@ Generated code:
         return "".join(prompt_parts)
 
     def _extract_code(self, generated_text: str) -> str:
-        """从模型输出中提取“可直接执行”的代码文本。"""
+        """從模型輸出中提取“可直接執行”的程式碼文字。"""
         import re
 
-        # 尝试提取markdown代码块
+        # 嘗試提取markdown程式碼塊
         # 匹配 ```python ... ``` 或 ``` ... ```
         code_block_pattern = r"```(?:python|py)?\s*\n(.*?)```"
         matches = re.findall(code_block_pattern, generated_text, re.DOTALL)
 
         if matches:
-            # 返回最长的代码块（更可能是完整代码）
+            # 返回最長的程式碼塊（更可能是完整程式碼）
             code = max(matches, key=len).strip()
             return code
 
-        # 如果没有代码块，返回原文本（去除首尾空白）
+        # 如果沒有程式碼塊，返回原文字（去除首尾空白）
         return generated_text.strip()
 
     async def generate_with_feedback(
@@ -158,25 +158,25 @@ Generated code:
         error_feedback: Optional[List[str]] = None,
         previous_code: Optional[str] = None,
     ) -> tuple[str, bool]:
-        """带反馈的多轮生成（失败后可携带错误信息重试）。
+        """帶反饋的多輪生成（失敗後可攜帶錯誤資訊重試）。
 
-        :param initial_description: 初始任务描述。
-        :param input_files: 可选。参考文件路径列表。
-        :param additional_context: 可选。追加上下文。
-        :param max_retries: 最大重试次数（不含首次尝试）。
-        :param error_feedback: 可选。上一轮执行/校验得到的错误信息列表。
-        :param previous_code: 可选。上一轮生成的代码文本。
-        :returns: ``(code, ok)``，其中 ``ok`` 表示是否成功得到非空代码。
+        :param initial_description: 初始任務描述。
+        :param input_files: 可選。參考檔案路徑列表。
+        :param additional_context: 可選。追加上下文。
+        :param max_retries: 最大重試次數（不含首次嘗試）。
+        :param error_feedback: 可選。上一輪執行/校驗得到的錯誤資訊列表。
+        :param previous_code: 可選。上一輪生成的程式碼文字。
+        :returns: ``(code, ok)``，其中 ``ok`` 表示是否成功得到非空程式碼。
         """
-        # 构建初始提示词
+        # 構建初始提示詞
         initial_prompt = self._build_prompt(
             initial_description, input_files, additional_context
         )
 
-        # 初始化对话历史
+        # 初始化對話歷史
         messages: list[AllMessageValues] = [{"role": "user", "content": initial_prompt}]
 
-        # 如果有之前的代码和错误反馈，添加到对话历史
+        # 如果有之前的程式碼和錯誤反饋，新增到對話歷史
         if previous_code and error_feedback:
             messages.append({"role": "assistant", "content": previous_code})
             error_message = self._build_error_feedback_message(error_feedback)
@@ -186,7 +186,7 @@ Generated code:
         while retry_count <= max_retries:
             try:
                 logger.info(
-                    f"开始生成代码（尝试 {retry_count + 1}/{max_retries + 1}），使用模型: {self._model_name}"
+                    f"開始生成程式碼（嘗試 {retry_count + 1}/{max_retries + 1}），使用模型: {self._model_name}"
                 )
 
                 response = await self._router.acompletion(
@@ -201,29 +201,29 @@ Generated code:
                     if retry_count < max_retries:
                         retry_count += 1
                         logger.warning(
-                            f"模型返回空内容，重试 {retry_count}/{max_retries}"
+                            f"模型返回空內容，重試 {retry_count}/{max_retries}"
                         )
                         continue
                     return "", False
 
-                # 提取代码块（如果返回的是markdown格式）
+                # 提取程式碼塊（如果返回的是markdown格式）
                 code = self._extract_code(generated_code)
 
-                logger.info(f"代码生成成功，长度: {len(code)} 字符")
+                logger.info(f"程式碼生成成功，長度: {len(code)} 字元")
                 return code, True
 
             except Exception as e:
-                logger.error(f"代码生成失败: {e}")
+                logger.error(f"程式碼生成失敗: {e}")
                 if retry_count < max_retries:
                     retry_count += 1
-                    logger.warning(f"代码生成异常，重试 {retry_count}/{max_retries}")
+                    logger.warning(f"程式碼生成異常，重試 {retry_count}/{max_retries}")
                     continue
                 return "", False
 
         return "", False
 
     def _build_error_feedback_message(self, errors: List[str]) -> str:
-        """把错误列表整理成可用于下一轮生成的提示词片段。"""
+        """把錯誤列表整理成可用於下一輪生成的提示詞片段。"""
         error_parts = [
             "The previous code execution failed with the following error(s):",
             "",

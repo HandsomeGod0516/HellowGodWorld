@@ -1,7 +1,7 @@
 /**
  * WebSocket Hook
  *
- * 管理 WebSocket 连接和消息处理
+ * 管理 WebSocket 連線和訊息處理
  */
 
 import { useEffect, useRef, useCallback, useState } from 'react';
@@ -174,7 +174,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   const handleTtsPlayback = useCallback(
     (messageId: string, content: string) => {
       const sanitized = sanitizeTtsText(content);
-      if (!sanitized || sanitized.startsWith('[任务已中断]')) {
+      if (!sanitized || sanitized.startsWith('[任務已中斷]')) {
         return;
       }
 
@@ -240,7 +240,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     [setAvailableTools, setConnected]
   );
 
-  // 断开连接
+  // 斷開連線
   const disconnect = useCallback(() => {
     webClient.disconnect();
   }, [setConnected]);
@@ -256,7 +256,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     []
   );
 
-  // 发送聊天消息
+  // 傳送聊天訊息
   const sendMessage = useCallback(
     async (content: string, sessionId: string) => {
       if (!content.trim()) return;
@@ -264,7 +264,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       userInputVersionRef.current += 1;
       stopAllTts();
 
-      // 添加用户消息
+      // 新增使用者訊息
       addMessage({
         id: `user-${Date.now()}`,
         role: 'user',
@@ -272,13 +272,13 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         timestamp: new Date().toISOString(),
       });
 
-      // 不再预先创建助手消息，而是在收到第一个 content_chunk 时创建
-      // 这样工具调用会先显示，然后才是助手的回复
+      // 不再預先建立助手訊息，而是在收到第一個 content_chunk 時建立
+      // 這樣工具呼叫會先顯示，然後才是助手的回覆
 
       setProcessing(true);
       setThinking(true);
       
-      // 正常调用接口
+      // 正常呼叫介面
       const currentMode = useSessionStore.getState().mode;
       const selectedModel = useSessionStore.getState().selectedModelName;
       try {
@@ -306,12 +306,12 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     [addMessage, request, setProcessing, setThinking]
   );
 
-  // 存储sendMessage函数到ref
+  // 儲存sendMessage函式到ref
   useEffect(() => {
     sendMessageRef.current = sendMessage;
   }, [sendMessage]);
 
-  // 统一中断接口 - pause/cancel/supplement/resume
+  // 統一中斷介面 - pause/cancel/supplement/resume
   const interrupt = useCallback(
     async (
       sessionId: string,
@@ -349,7 +349,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     [addMessage, request, setConnectionStats]
   );
 
-  // 暂停 - 显式暂停当前任务
+  // 暫停 - 顯式暫停當前任務
   const pause = useCallback(
     async (sessionId: string) => {
       try {
@@ -389,7 +389,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     [interrupt, setConnectionStats]
   );
 
-  // 恢复 - 恢复暂停的任务
+  // 恢復 - 恢復暫停的任務
   const resume = useCallback(
     async (sessionId: string) => {
       try {
@@ -404,20 +404,20 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     [interrupt, setConnectionStats, setPaused]
   );
 
-  // 切换模式
+  // 切換模式
   const switchMode = useCallback(
     async (sessionId: string, mode: AgentMode) => {
-      // 标记正在切换模式
+      // 標記正在切換模式
       useChatStore.getState().setSwitchingMode(true);
       
-      // 只有在有任务执行时才调用 interrupt
+      // 只有在有任務執行時才呼叫 interrupt
       if (sessionId && sessionId !== 'new') {
         const state = useChatStore.getState();
         if (state.isProcessing || state.isPaused) {
           try {
             await interrupt(sessionId, 'cancel');
           } catch {
-            // 忽略中断错误
+            // 忽略中斷錯誤
           }
         }
       }
@@ -426,7 +426,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       if (sessionId && sessionId !== 'new') {
         updateSession(sessionId, { mode });
       }
-      // 延迟重置标志
+      // 延遲重置標誌
       setTimeout(() => {
         useChatStore.getState().setSwitchingMode(false);
       }, 300);
@@ -434,11 +434,11 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     [setMode, updateSession, interrupt]
   );
 
-  // 发送用户回答
+  // 傳送使用者回答
   const sendUserAnswer = useCallback(
     async (sessionId: string, requestId: string, answers: UserAnswer[], source?: string) => {
       try {
-        // 如果是工具权限确认，发送 chat.send
+        // 如果是工具許可權確認，傳送 chat.send
         if (source === 'permission_interrupt') {
           await request('chat.send', {
             session_id: sessionId,
@@ -447,7 +447,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
             answers: answers,
           });
         } else {
-          // 否则发送 chat.user_answer（自进化确认）
+          // 否則傳送 chat.user_answer（自進化確認）
           await request('chat.user_answer', {
             session_id: sessionId,
             request_id: requestId,
@@ -468,7 +468,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     activeSessionIdRef.current = activeSessionId;
   }, [activeSessionId]);
 
-  // 会话切换时不再重置上下文压缩信息，保持本地存储的状态
+  // 會話切換時不再重置上下文壓縮資訊，保持本地儲存的狀態
   // useEffect(() => {
   //   setContextCompressionStats(null);
   // }, [activeSessionId, setContextCompressionStats]);
@@ -487,7 +487,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       const lastSeen = recent.get(dedupKey);
       recent.set(dedupKey, now);
 
-      // 控制 map 大小，避免长期运行后无限增长
+      // 控制 map 大小，避免長期執行後無限增長
       if (recent.size > 400) {
         for (const [key, ts] of recent) {
           if (now - ts > EVENT_DEDUP_WINDOW_MS * 6) {
@@ -526,7 +526,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         const currentMode = useSessionStore.getState().mode;
         const content = typeof payload.content === 'string' ? payload.content : '';
         
-        // team 模式下，累积 chat.delta 内容
+        // team 模式下，累積 chat.delta 內容
         if (currentMode === 'team' && content) {
           setThinking(false);
           
@@ -578,7 +578,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         const currentMode = useSessionStore.getState().mode;
         const content = normalizeFinalContent(payload);
         
-        // team 模式下，将 chat.final 作为 team_leader 消息处理
+        // team 模式下，將 chat.final 作為 team_leader 訊息處理
         if (currentMode === 'team' && content) {
           setThinking(false);
           
@@ -605,8 +605,8 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         const { currentStreamId, messages } = useChatStore.getState();
         const payloadSessionId =
           typeof payload.session_id === 'string' ? payload.session_id.trim() : '';
-        // 仅当有明确会话绑定时才把 final 合并进当前流式气泡。
-        // 定时任务等广播的 session_id 为空/null，若仍走 currentStreamId 会写到错误气泡甚至“无可见更新”。
+        // 僅當有明確會話繫結時才把 final 合併進當前流式氣泡。
+        // 定時任務等廣播的 session_id 為空/null，若仍走 currentStreamId 會寫到錯誤氣泡甚至“無可見更新”。
         const streamId = currentStreamId;
         if (streamId && payloadSessionId) {
           updateMessage(streamId, { ...(content ? { content } : {}), isStreaming: false });
@@ -620,9 +620,9 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           const cronMeta = payload.cron as Record<string, unknown> | undefined;
           const cronRunId =
             typeof cronMeta?.run_id === 'string' ? cronMeta.run_id.trim() : '';
-          const isCronPlaceholderContent = /^\[cron\].*正在执行中/.test(content);
+          const isCronPlaceholderContent = /^\[cron\].*正在執行中/.test(content);
 
-          // 正式结果：替换同 run_id 的占位气泡，或最近的 [cron]…正在执行中…
+          // 正式結果：替換同 run_id 的佔位氣泡，或最近的 [cron]…正在執行中…
           if (!isCronPlaceholderContent) {
             let placeholderId: string | null = null;
             if (cronRunId) {
@@ -633,7 +633,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
               for (let i = messages.length - 1; i >= 0; i -= 1) {
                 const msg = messages[i];
                 if (msg.role !== 'assistant' || typeof msg.content !== 'string') continue;
-                if (/^\[cron\].*正在执行中/.test(msg.content)) {
+                if (/^\[cron\].*正在執行中/.test(msg.content)) {
                   placeholderId = msg.id;
                   break;
                 }
@@ -667,7 +667,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
             return;
           }
 
-          // 去重：若上一条已是相同内容的助手消息（同一回复被收到两次），不再追加
+          // 去重：若上一條已是相同內容的助手訊息（同一回覆被收到兩次），不再追加
           const last = messages[messages.length - 1];
           if (last?.role === 'assistant' && last.content === content) {
             return;
@@ -756,7 +756,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       webClient.on('heartbeat.relay', ({ payload }) => {
         const heartbeatText =
           typeof payload.heartbeat === 'string' ? payload.heartbeat : '';
-        // 只要成功收到 relay 即表示已成功发到前端，始终为 ok，不存在 alert
+        // 只要成功收到 relay 即表示已成功發到前端，始終為 ok，不存在 alert
         setHeartbeatStatus(
           'ok',
           heartbeatText || null,
@@ -775,7 +775,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       webClient.on('chat.processing_status', ({ payload }) => {
         if (!shouldHandleSessionEvent(payload)) return;
         if (shouldDropDuplicatedEvent('chat.processing_status', payload)) return;
-        // 切换模式时忽略处理状态更新
+        // 切換模式時忽略處理狀態更新
         if (useChatStore.getState().switchingMode) return;
         const isProcessingNow = Boolean(payload.is_processing);
         setProcessing(isProcessingNow);
@@ -783,16 +783,16 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           setThinking(false);
           clearSubtasks();
           
-          // 检查是否有等待的任务队列
+          // 檢查是否有等待的任務佇列
           const currentMode = useSessionStore.getState().mode;
           const { taskQueue } = useChatStore.getState();
           if (currentMode === 'agent.fast' && taskQueue.length > 0) {
-            // 智能执行模式下，自动处理队列中的下一个任务
+            // 智慧執行模式下，自動處理佇列中的下一個任務
             const nextTask = taskQueue[0];
             if (nextTask && activeSessionIdRef.current && sendMessageRef.current) {
-              // 从队列中移除该任务
+              // 從佇列中移除該任務
               removeFromTaskQueue(nextTask.id);
-              // 发送下一个任务
+              // 傳送下一個任務
               sendMessageRef.current(nextTask.content, activeSessionIdRef.current);
             }
           }
@@ -809,7 +809,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         setThinking(false);
         const errorMsg =
           typeof payload.error === 'string' ? payload.error : i18n.t('network.unknownError');
-        // 忽略 "invalid page_idx or session history not found" 错误，因为这是新会话的正常情况
+        // 忽略 "invalid page_idx or session history not found" 錯誤，因為這是新會話的正常情況
         if (errorMsg.includes('invalid page_idx or session history not found')) {
           return;
         }
@@ -824,7 +824,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       webClient.on('chat.interrupt_result', ({ payload }) => {
         if (!shouldHandleSessionEvent(payload)) return;
         if (shouldDropDuplicatedEvent('chat.interrupt_result', payload)) return;
-        // 切换模式时忽略中断结果
+        // 切換模式時忽略中斷結果
         if (useChatStore.getState().switchingMode) return;
         const resultPayload = payload as unknown as InterruptResultPayload;
         setInterruptResult(resultPayload);
@@ -854,7 +854,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         if (!shouldHandleSessionEvent(payload)) return;
         setPendingQuestion(payload as unknown as AskUserQuestionPayload);
       }),
-      // 同时监听 session_result 事件，以处理后端可能发送的不同格式
+      // 同時監聽 session_result 事件，以處理後端可能傳送的不同格式
       webClient.on('session_result', ({ payload }) => {
         setThinking(false);
         const sessionId =
@@ -862,7 +862,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         const description =
           typeof payload.description === 'string' ? payload.description : '';
         const result = typeof payload.result === 'string' ? payload.result : '';
-        // 创建工具调用对象
+        // 建立工具呼叫物件
         const toolCallId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const sessionToolCall: ToolCall = {
           id: toolCallId,
@@ -871,13 +871,13 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
             session_id: sessionId,
             description: description,
           },
-          description: description || '会话完成',
-          formatted_args: `会话任务：【${description || '未知任务'}】`,
+          description: description || '會話完成',
+          formatted_args: `會話任務：【${description || '未知任務'}】`,
         };
         addToolCall(sessionToolCall);
-        // 组合 description 和 result 作为完整结果
+        // 組合 description 和 result 作為完整結果
         const fullResult = description
-          ? `描述: ${description}\n\n结果: ${result}`
+          ? `描述: ${description}\n\n結果: ${result}`
           : result;
         const sessionResult: ToolResult = {
           toolName: 'session',
@@ -898,7 +898,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         const description =
           typeof payload.description === 'string' ? payload.description : '';
         const result = typeof payload.result === 'string' ? payload.result : '';
-        // 创建工具调用对象
+        // 建立工具呼叫物件
         const toolCallId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const sessionToolCall: ToolCall = {
           id: toolCallId,
@@ -907,13 +907,13 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
             session_id: sessionId,
             description: description,
           },
-          description: description || '会话完成',
-          formatted_args: `会话任务：【${description || '未知任务'}】`,
+          description: description || '會話完成',
+          formatted_args: `會話任務：【${description || '未知任務'}】`,
         };
         addToolCall(sessionToolCall);
-        // 组合 description 和 result 作为完整结果
+        // 組合 description 和 result 作為完整結果
         const fullResult = description
-          ? `描述: ${description}\n\n结果: ${result}`
+          ? `描述: ${description}\n\n結果: ${result}`
           : result;
         const sessionResult: ToolResult = {
           toolName: 'session',
@@ -1069,7 +1069,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       clearTodos();
       clearSubtasks();
       setConnected(false);
-      // 不再重置上下文压缩信息，保持本地存储的状态
+      // 不再重置上下文壓縮資訊，保持本地儲存的狀態
       // setContextCompressionStats(null);
       setHeartbeatStatus('unknown', null, null);
       setConnectionStats({ state: 'closed', inflight: 0 });

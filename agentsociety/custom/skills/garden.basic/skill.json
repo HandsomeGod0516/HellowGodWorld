@@ -21,7 +21,7 @@
   ],
   "status": "gardening",
   "emotion": "calm",
-  "speech": "我去照看一下植物，也顺便让自己安静下来。",
+  "speech": "我去照看一下植物，也順便讓自己安靜下來。",
   "memory_template": "Used garden.basic: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

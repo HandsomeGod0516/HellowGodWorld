@@ -1,28 +1,28 @@
-存储和回放系统
+儲存和回放系統
 =========================
 
-AgentSociety 2 目前有两条持久化路径：
+AgentSociety 2 目前有兩條持久化路徑：
 
-* **ReplayWriter / SQLite**: 用于环境模块回放数据和 replay catalog 元数据。
-* **PersonAgent workspace**: 用于每个 agent 的本地工作目录和会话文件。
+* **ReplayWriter / SQLite**: 用於環境模組回放資料和 replay catalog 後設資料。
+* **PersonAgent workspace**: 用於每個 agent 的本地工作目錄和會話檔案。
 
-其中，``ReplayWriter`` 不再为新实验写入 ``agent_profile``、``agent_status``、
-``agent_dialog`` 这三张 agent 框架表；这些旧表仅用于兼容读取历史实验数据库。
+其中，``ReplayWriter`` 不再為新實驗寫入 ``agent_profile``、``agent_status``、
+``agent_dialog`` 這三張 agent 框架表；這些舊錶僅用於相容讀取歷史實驗資料庫。
 
 概述
 --------
 
-``ReplayWriter`` 负责以下内容：
+``ReplayWriter`` 負責以下內容：
 
 * replay catalog 表：
 
   * ``replay_dataset_catalog``
   * ``replay_column_catalog``
 
-* 环境模块注册的动态 replay 表
-* 这些表的行级写入与批量写入
+* 環境模組註冊的動態 replay 表
+* 這些表的行級寫入與批次寫入
 
-``PersonAgent`` 本地工作目录通常位于 ``<run_dir>/agents/agent_0001/``，常见文件包括：
+``PersonAgent`` 本地工作目錄通常位於 ``<run_dir>/agents/agent_0001/``，常見檔案包括：
 
 * ``agent_config.json``
 * ``init_state.json``
@@ -32,7 +32,7 @@ AgentSociety 2 目前有两条持久化路径：
 * ``tool_calls.jsonl``
 * ``thread_messages.jsonl``
 
-存储架构
+儲存架構
 ~~~~~~~~~~~~~~~~~
 
 .. graphviz::
@@ -42,12 +42,12 @@ AgentSociety 2 目前有两条持久化路径：
        node [shape=box, style=rounded];
 
        subgraph cluster_db {
-           label = "SQLite 数据库 (experiment.db)";
+           label = "SQLite 資料庫 (experiment.db)";
            style=filled;
            color=lightblue;
 
            Catalog [label="replay_dataset_catalog\nreplay_column_catalog"];
-           Custom [label="环境模块 replay 表"];
+           Custom [label="環境模組 replay 表"];
        }
 
        subgraph cluster_workspace {
@@ -62,7 +62,7 @@ AgentSociety 2 目前有两条持久化路径：
        }
 
        ReplayWriter [label="ReplayWriter"];
-       Env [label="环境模块"];
+       Env [label="環境模組"];
        Person [label="PersonAgent"];
 
        Env -> ReplayWriter;
@@ -74,7 +74,7 @@ AgentSociety 2 目前有两条持久化路径：
        Person -> Logs;
    }
 
-数据写入流程
+資料寫入流程
 ~~~~~~~~~~~~~~~~~
 
 .. graphviz::
@@ -83,10 +83,10 @@ AgentSociety 2 目前有两条持久化路径：
        rankdir=LR;
        node [shape=box, style=rounded];
 
-       Env [label="环境模块状态/事件"];
+       Env [label="環境模組狀態/事件"];
        ReplayWriter [label="ReplayWriter.write()"];
-       SQLite [label="SQLite 写入"];
-       Disk [label="磁盘存储", shape=cylinder];
+       SQLite [label="SQLite 寫入"];
+       Disk [label="磁碟儲存", shape=cylinder];
 
        Person [label="PersonAgent step"];
        Workspace [label="workspace JSON / JSONL"];
@@ -102,7 +102,7 @@ AgentSociety 2 目前有两条持久化路径：
 基本使用
 -----------
 
-**启用环境回放：**
+**啟用環境回放：**
 
 .. code-block:: python
 
@@ -139,13 +139,13 @@ AgentSociety 2 目前有两条持久化路径：
    await society.run(num_steps=100, tick=3600)
    await society.close()
 
-**查看 replay catalog：**
+**檢視 replay catalog：**
 
 .. code-block:: bash
 
    sqlite3 experiment.db "SELECT dataset_id, table_name, kind FROM replay_dataset_catalog;"
 
-**查看某个环境表：**
+**檢視某個環境表：**
 
 .. code-block:: bash
 
@@ -154,19 +154,19 @@ AgentSociety 2 目前有两条持久化路径：
 Replay catalog
 ----------------
 
-``ReplayWriter`` 会自动维护两张 catalog 表：
+``ReplayWriter`` 會自動維護兩張 catalog 表：
 
-* ``replay_dataset_catalog``: 记录每个 dataset 的表名、模块名、kind、capabilities、排序键等
-* ``replay_column_catalog``: 记录每一列的 sqlite 类型、逻辑类型、分析角色、描述等
+* ``replay_dataset_catalog``: 記錄每個 dataset 的表名、模組名、kind、capabilities、排序鍵等
+* ``replay_column_catalog``: 記錄每一列的 sqlite 型別、邏輯型別、分析角色、描述等
 
-这两张表是 replay API 和后续分析的入口，推荐优先读取它们来发现当前实验实际生成了哪些数据表。
+這兩張表是 replay API 和後續分析的入口，推薦優先讀取它們來發現當前實驗實際生成了哪些資料表。
 
-自定义表
+自定義表
 -------------
 
-环境模块可以注册自定义 replay 表：
+環境模組可以註冊自定義 replay 表：
 
-**注册自定义表：**
+**註冊自定義表：**
 
 .. code-block:: python
 
@@ -186,7 +186,7 @@ Replay catalog
 
    await writer.register_table(schema)
 
-**注册 dataset 元数据：**
+**註冊 dataset 後設資料：**
 
 .. code-block:: python
 
@@ -209,7 +209,7 @@ Replay catalog
        schema.columns,
    )
 
-**写入自定义表：**
+**寫入自定義表：**
 
 .. code-block:: python
 
@@ -231,19 +231,19 @@ Replay catalog
        ],
    )
 
-读取与导出
+讀取與匯出
 -----------
 
-``ReplayWriter`` 当前是写入器，不提供通用 ``read()`` 接口。读取 replay 数据有两种推荐方式：
+``ReplayWriter`` 當前是寫入器，不提供通用 ``read()`` 介面。讀取 replay 資料有兩種推薦方式：
 
-**方式 1：通过后端 replay API**
+**方式 1：透過後端 replay API**
 
 .. code-block:: text
 
    GET /api/v1/replay/{hypothesis_id}/{experiment_id}/datasets
    GET /api/v1/replay/{hypothesis_id}/{experiment_id}/datasets/{dataset_id}/rows
 
-**方式 2：直接查询 SQLite**
+**方式 2：直接查詢 SQLite**
 
 .. code-block:: python
 
@@ -259,39 +259,39 @@ Replay catalog
 PersonAgent workspace
 ----------------------
 
-``PersonAgent`` 不会把自身 step 状态写入 SQLite replay 表。它会把本地状态写到 workspace：
+``PersonAgent`` 不會把自身 step 狀態寫入 SQLite replay 表。它會把本地狀態寫到 workspace：
 
-* ``agent_config.json``: 能力参数、init state、技能可见性覆盖、已激活技能
-* ``session_state.json``: 最近一次 step 的可见技能与激活技能
-* ``session_state_history.jsonl``: 会话状态时间线
-* ``step_replay.jsonl``: 每个 step 的工具历史
-* ``tool_calls.jsonl``: 工具调用日志
-* ``thread_messages.jsonl``: 最近 thread 消息
-* ``AGENT_CONTEXT.md``: 动态维护的上下文文件（身份、状态摘要、最近事件）
-* ``AGENT_FILES.md``: 工作区文件清单（每 10 步自动更新）
+* ``agent_config.json``: 能力引數、init state、技能可見性覆蓋、已啟用技能
+* ``session_state.json``: 最近一次 step 的可見技能與啟用技能
+* ``session_state_history.jsonl``: 會話狀態時間線
+* ``step_replay.jsonl``: 每個 step 的工具歷史
+* ``tool_calls.jsonl``: 工具呼叫日誌
+* ``thread_messages.jsonl``: 最近 thread 訊息
+* ``AGENT_CONTEXT.md``: 動態維護的上下文檔案（身份、狀態摘要、最近事件）
+* ``AGENT_FILES.md``: 工作區檔案清單（每 10 步自動更新）
 
-**状态文件 (state/)**：
+**狀態檔案 (state/)**：
 
-内置状态文件通过配置定义，支持用户扩展：
+內建狀態檔案透過配置定義，支援使用者擴充套件：
 
-* ``emotion.json``: 情绪状态
-* ``intention.json``: 意图状态
-* ``needs.json``: 需求状态
-* ``plan_state.json``: 规划状态
-* 用户自定义: 任何 ``state/*.json`` 文件都会被自动发现
+* ``emotion.json``: 情緒狀態
+* ``intention.json``: 意圖狀態
+* ``needs.json``: 需求狀態
+* ``plan_state.json``: 規劃狀態
+* 使用者自定義: 任何 ``state/*.json`` 檔案都會被自動發現
 
 **WAL (Write-Ahead Log)**：
 
-* ``wal/wal.jsonl``: 操作日志（追加写入，内存索引）
+* ``wal/wal.jsonl``: 操作日誌（追加寫入，記憶體索引）
 * ``wal/index.json``: 操作索引
 
-这些文件适合调试 agent 行为、恢复 thread 上下文、检查技能执行过程。
+這些檔案適合除錯 agent 行為、恢復 thread 上下文、檢查技能執行過程。
 
-历史兼容说明
+歷史相容說明
 ----------------
 
-旧版本实验可能仍然包含 ``agent_profile``、``agent_status``、``agent_dialog`` 三张表。
+舊版本實驗可能仍然包含 ``agent_profile``、``agent_status``、``agent_dialog`` 三張表。
 
-* 新实验不会再写入这些表
-* 后端 replay API 仍会在读取旧数据库时兼容它们
-* 若旧表不存在，replay API 会优先从具备 ``agent_snapshot`` capability 的动态 dataset 回退读取
+* 新實驗不會再寫入這些表
+* 後端 replay API 仍會在讀取舊資料庫時相容它們
+* 若舊錶不存在，replay API 會優先從具備 ``agent_snapshot`` capability 的動態 dataset 回退讀取

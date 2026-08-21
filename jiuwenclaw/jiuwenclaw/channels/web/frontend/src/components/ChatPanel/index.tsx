@@ -1,7 +1,7 @@
 /**
- * ChatPanel 组件
+ * ChatPanel 元件
  *
- * 聊天面板，包含消息列表和输入区域
+ * 聊天面板，包含訊息列表和輸入區域
  */
 
 import React, { useRef, useEffect, useLayoutEffect, useCallback } from 'react';
@@ -29,7 +29,7 @@ interface ChatPanelProps {
   isProcessing: boolean;
   onNewSession: () => Promise<void>;
   onUserAnswer: (requestId: string, answers: UserAnswer[]) => void;
-  /** 自会话管理恢复历史后出现；支持分页加载更早消息 */
+  /** 自會話管理恢復歷史後出現；支援分頁載入更早訊息 */
   historyPager?: ChatHistoryPagerProps | null;
 }
 
@@ -85,29 +85,29 @@ export function ChatPanel({
     t('chat.welcomeSuggestions.skills'),
   ];
 
-  // 跟踪用户是否正在查看历史消息（不在底部）
+  // 跟蹤使用者是否正在檢視歷史訊息（不在底部）
   const userScrolledUpRef = useRef(false);
 
-  // 检测用户滚动位置
+  // 檢測使用者滾動位置
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
     
-    // 检查是否在底部（有 40px 的阈值）
+    // 檢查是否在底部（有 40px 的閾值）
     const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
     userScrolledUpRef.current = !atBottom;
     
-    // 当滚动到顶部且有更多历史消息时，加载更多
+    // 當滾動到頂部且有更多歷史訊息時，載入更多
     if (el.scrollTop === 0 && historyPager && historyPager.loadedPages < historyPager.totalPages && !historyPager.loadingMore) {
       void historyPager.onLoadMore();
     }
   }, [historyPager]);
 
-  // 检测鼠标滚轮事件，即使没有滚动条也能触发加载更多
+  // 檢測滑鼠滾輪事件，即使沒有捲軸也能觸發載入更多
   const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-    // 只有向上滚动时才触发
+    // 只有向上滾動時才觸發
     if (e.deltaY < 0 && historyPager && historyPager.loadedPages < historyPager.totalPages && !historyPager.loadingMore) {
-      // 检查是否已经在顶部（没有滚动条时 scrollTop 始终为 0）
+      // 檢查是否已經在頂部（沒有捲軸時 scrollTop 始終為 0）
       const el = scrollContainerRef.current;
       if (el && el.scrollTop === 0) {
         void historyPager.onLoadMore();
@@ -121,7 +121,7 @@ export function ChatPanel({
       return;
     }
     
-    // 只有当用户在底部时才自动滚动
+    // 只有當使用者在底部時才自動滾動
     if (!userScrolledUpRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
@@ -156,13 +156,13 @@ export function ChatPanel({
     wasHistoryLoadingRef.current = false;
   }, [historyPager, messages.length]);
 
-  // 包装发送消息函数，添加滚动逻辑
+  // 包裝傳送訊息函式，新增滾動邏輯
   const handleSendMessage = useCallback((content: string) => {
     setIsSending(true);
     onSendMessage(content);
   }, [onSendMessage]);
 
-  // 当发送消息时强制滚动到底部
+  // 當傳送訊息時強制滾動到底部
   useEffect(() => {
     if (isSending) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -193,7 +193,7 @@ export function ChatPanel({
               <>
                 <MessageList messages={messages} />
                 <SubtaskProgress />
-                {/* 内联审批卡片（演进审批 & 权限审批共用） */}
+                {/* 內聯審批卡片（演進審批 & 許可權審批共用） */}
                 <InlineQuestionCard onSubmit={onUserAnswer} />
                 {/* 思考中指示器 */}
                 {isThinking && <ThinkingIndicator />}

@@ -1,33 +1,33 @@
-Agent Skills（智能体技能）
+Agent Skills（智慧體技能）
 =================================
 
 概述
 ------
 
-Agent Skills 是 PersonAgent 的能力插件系统。PersonAgent 本身是轻量编排器，
-真正的认知与行为能力由独立 skill 提供（如 observation、needs、cognition、plan、memory）。
+Agent Skills 是 PersonAgent 的能力外掛系統。PersonAgent 本身是輕量編排器，
+真正的認知與行為能力由獨立 skill 提供（如 observation、needs、cognition、plan、memory）。
 
-当前实现采用两条核心原则：
+當前實現採用兩條核心原則：
 
-1. **Metadata-first**：选择阶段只读取技能元数据，不加载完整内容。
-2. **Selected-only**：每步只执行 LLM 选中的技能，不存在固定 always/dynamic/finalize 层。
+1. **Metadata-first**：選擇階段只讀取技能後設資料，不載入完整內容。
+2. **Selected-only**：每步只執行 LLM 選中的技能，不存在固定 always/dynamic/finalize 層。
 
-这意味着：技能是否执行由当前上下文决定，而不是由“预设层级”决定。
+這意味著：技能是否執行由當前上下文決定，而不是由“預設層級”決定。
 
 
-设计目标
+設計目標
 ---------
 
-* **按需加载**：降低每步不必要的加载与执行开销。
-* **可解释选择**：选择依据来自 SKILL.md 元数据，便于调试与治理。
-* **热更新友好**：支持运行时扫描、导入、启用/禁用与重载。
-* **依赖可控**：用 requires 声明依赖，避免硬编码耦合。
+* **按需載入**：降低每步不必要的載入與執行開銷。
+* **可解釋選擇**：選擇依據來自 SKILL.md 後設資料，便於除錯與治理。
+* **熱更新友好**：支援執行時掃描、匯入、啟用/禁用與過載。
+* **依賴可控**：用 requires 宣告依賴，避免硬編碼耦合。
 
 
-Skill 目录结构
+Skill 目錄結構
 ----------------
 
-内置技能位于包内目录，自定义技能位于工作区目录：
+內建技能位於包內目錄，自定義技能位於工作區目錄：
 
 .. code-block:: text
 
@@ -48,16 +48,16 @@ Skill 目录结构
        └── scripts/
            └── my_skill.py
 
-Skill 的两种模式（与当前 PersonAgent skills-first 设计一致）：
+Skill 的兩種模式（與當前 PersonAgent skills-first 設計一致）：
 
-1. **Prompt-only（推荐）**：不声明 ``script``。当模型选择并 activate skill 后，SKILL.md 作为行为指南注入上下文，模型使用内置原子工具（bash/codegen/workspace_* 等）完成任务。
-2. **Subprocess script（确定性计算/解析用）**：在 frontmatter 中声明 ``script: scripts/my_skill.py``。执行时以子进程运行脚本，参数通过 ``--args-json`` 传入，产物写入 agent workspace（``AGENT_WORK_DIR``）。
+1. **Prompt-only（推薦）**：不宣告 ``script``。當模型選擇並 activate skill 後，SKILL.md 作為行為指南注入上下文，模型使用內建原子工具（bash/codegen/workspace_* 等）完成任務。
+2. **Subprocess script（確定性計算/解析用）**：在 frontmatter 中宣告 ``script: scripts/my_skill.py``。執行時以子程序執行指令碼，引數透過 ``--args-json`` 傳入，產物寫入 agent workspace（``AGENT_WORK_DIR``）。
 
 
 SKILL.md 格式
 --------------
 
-每个 skill 目录应包含 ``SKILL.md``。文件头部使用 YAML frontmatter 描述元数据：
+每個 skill 目錄應包含 ``SKILL.md``。檔案頭部使用 YAML frontmatter 描述後設資料：
 
 .. code-block:: markdown
 
@@ -71,55 +71,55 @@ SKILL.md 格式
    # Cognition Skill
    ...
 
-字段说明：
+欄位說明：
 
 .. list-table::
    :widths: 24 76
    :header-rows: 1
 
-   * - 字段
-     - 说明
+   * - 欄位
+     - 說明
    * - ``name``
-     - Skill 名称（唯一标识）。
+     - Skill 名稱（唯一標識）。
    * - ``description``
-     - 给选择器看的功能描述，尽量具体、可判别。
+     - 給選擇器看的功能描述，儘量具體、可判別。
    * - ``inputs``
-     - 可选，依赖的输入文件列表（如 ``["state/emotion.json"]``）。
+     - 可選，依賴的輸入檔案列表（如 ``["state/emotion.json"]``）。
    * - ``outputs``
-     - 可选，输出的文件列表（如 ``["memory/episodic.json"]``）。
+     - 可選，輸出的檔案列表（如 ``["memory/episodic.json"]``）。
    * - ``script``
-     - 可选，脚本路径（如 ``scripts/main.py``）。
+     - 可選，指令碼路徑（如 ``scripts/main.py``）。
    * - ``executor``
-     - 可选，执行器类型（如 ``codegen``）。
+     - 可選，執行器型別（如 ``codegen``）。
    * - ``disable_model_invocation``
-     - 可选，是否禁用模型调用。
+     - 可選，是否禁用模型呼叫。
    * - ``requires``
-     - 依赖的其他 skill 名称列表。
+     - 依賴的其他 skill 名稱列表。
 
 
-每步执行流程
+每步執行流程
 --------------
 
 PersonAgent.step() 的流程如下：
 
-1. 注入 L0 技能目录（metadata）+ 工作区状态 + 最近工具历史。
-2. 进入 tool-loop：模型每轮选择一个工具调用（activate/read/execute/workspace_* 等）。
-3. 当调用某个 skill 时：
-   - 运行时会按需加载 SKILL.md（L1）与 skill 目录文件（L2）。
-   - 若 skill 声明 ``requires``，运行时会自动激活其依赖；缺依赖则拒绝调用并返回 missing 列表。
-4. 达到 done 或轮次上限后结束本 step，并持久化最小会话状态与工具历史。
+1. 注入 L0 技能目錄（metadata）+ 工作區狀態 + 最近工具歷史。
+2. 進入 tool-loop：模型每輪選擇一個工具呼叫（activate/read/execute/workspace_* 等）。
+3. 當呼叫某個 skill 時：
+   - 執行時會按需載入 SKILL.md（L1）與 skill 目錄檔案（L2）。
+   - 若 skill 宣告 ``requires``，執行時會自動啟用其依賴；缺依賴則拒絕呼叫並返回 missing 列表。
+4. 達到 done 或輪次上限後結束本 step，並持久化最小會話狀態與工具歷史。
 
-关键点：
+關鍵點：
 
-* **技能是能力目录 + 行为规范 +（可选）子进程脚本**，而不是框架内 pipeline。
-* **L0/L1/L2 渐进披露** 用于减少上下文负担。
-* **requires 是运行时行为** （自动补齐依赖/缺依赖阻止），而不是仅展示字段。
+* **技能是能力目錄 + 行為規範 +（可選）子程序指令碼**，而不是框架內 pipeline。
+* **L0/L1/L2 漸進披露** 用於減少上下文負擔。
+* **requires 是執行時行為** （自動補齊依賴/缺依賴阻止），而不是僅展示欄位。
 
 
-依赖管理
+依賴管理
 ----------
 
-使用 ``requires`` 声明依赖的其他 skill 名称：
+使用 ``requires`` 宣告依賴的其他 skill 名稱：
 
 .. code-block:: yaml
 
@@ -129,45 +129,45 @@ PersonAgent.step() 的流程如下：
      - observation
    ---
 
-推荐实践：
+推薦實踐：
 
-* 用 ``requires`` 明确最小前置条件。
+* 用 ``requires`` 明確最小前置條件。
 * 保持 ``description`` 可操作，避免”泛描述”。
 
 
-Memory 语义
+Memory 語義
 ------------
 
-认知相关技能通常先把内容写入 ``_cognition_memory`` 缓冲：
+認知相關技能通常先把內容寫入 ``_cognition_memory`` 緩衝：
 
-* 当 ``memory`` 技能在本步被选中执行时，缓冲会被 flush 到长期记忆。
-* 当 ``memory`` 未被选中时，缓冲不会丢失，会保留到后续 step。
-* 在 Agent ``close()`` 时，会执行兜底 flush，避免遗留缓冲丢失。
+* 當 ``memory`` 技能在本步被選中執行時，緩衝會被 flush 到長期記憶。
+* 當 ``memory`` 未被選中時，緩衝不會丟失，會保留到後續 step。
+* 在 Agent ``close()`` 時，會執行兜底 flush，避免遺留緩衝丟失。
 
-因此，memory 行为不再是固定“Finalize 层”，而是由选择结果驱动。
+因此，memory 行為不再是固定“Finalize 層”，而是由選擇結果驅動。
 
 
-运行时管理 API
+執行時管理 API
 ----------------
 
-后端提供 Agent Skills 管理接口（前缀 ``/api/v1/agent-skills``）：
+後端提供 Agent Skills 管理介面（字首 ``/api/v1/agent-skills``）：
 
 * ``GET /list``：列出技能（builtin + custom）
-* ``POST /enable``：启用技能
+* ``POST /enable``：啟用技能
 * ``POST /disable``：禁用技能
-* ``POST /scan``：扫描 ``{workspace}/custom/skills``
-* ``POST /import``：从外部目录导入技能
-* ``POST /reload``：热重载单个技能
-* ``POST /remove``：删除自定义技能
-* ``GET /{name}/info``：查看技能详细信息（含 SKILL.md 内容）
+* ``POST /scan``：掃描 ``{workspace}/custom/skills``
+* ``POST /import``：從外部目錄匯入技能
+* ``POST /reload``：熱過載單個技能
+* ``POST /remove``：刪除自定義技能
+* ``GET /{name}/info``：檢視技能詳細資訊（含 SKILL.md 內容）
 
-这些接口同时被 VS Code 扩展与手动调试流程使用。
+這些介面同時被 VS Code 擴充套件與手動除錯流程使用。
 
 
-自定义 Skill 最小示例
+自定義 Skill 最小示例
 ----------------------
 
-目录：
+目錄：
 
 .. code-block:: text
 
@@ -209,21 +209,21 @@ Memory 语义
    if __name__ == "__main__":
        raise SystemExit(main())
 
-导入并启用后，主 LLM 会在合适上下文中选择它执行。
+匯入並啟用後，主 LLM 會在合適上下文中選擇它執行。
 
 
-最佳实践
+最佳實踐
 ---------
 
-1. ``description`` 写成”触发条件 + 输出结果”，便于选择器判断。
-2. ``requires`` 只声明必要依赖，避免过度耦合。
-3. Skill 代码尽量幂等，避免重复执行造成状态污染。
-4. 对关键技能保留清晰日志，便于复盘每步选择与执行。
+1. ``description`` 寫成”觸發條件 + 輸出結果”，便於選擇器判斷。
+2. ``requires`` 只宣告必要依賴，避免過度耦合。
+3. Skill 程式碼儘量冪等，避免重複執行造成狀態汙染。
+4. 對關鍵技能保留清晰日誌，便於覆盤每步選擇與執行。
 
 
-参考
+參考
 ------
 
-* :doc:`agents` - PersonAgent 使用说明
+* :doc:`agents` - PersonAgent 使用說明
 * :doc:`api/skills` - SkillRegistry API
-* :doc:`development` - 开发指南
+* :doc:`development` - 開發指南

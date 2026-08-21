@@ -1,13 +1,13 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
 """
-将 ACP JSON-RPC、A2A SendMessage 等外部形态转换为 E2A，并写入 provenance。
+將 ACP JSON-RPC、A2A SendMessage 等外部形態轉換為 E2A，並寫入 provenance。
 
-``envelope_from_a2a_send_message`` 的参数 ``metadata`` 仅对应 E2A 的 ``a2a_metadata``（A2A 规范侧），
-与网关通道上的 ``metadata`` / ``channel_context`` 无关。
+``envelope_from_a2a_send_message`` 的引數 ``metadata`` 僅對應 E2A 的 ``a2a_metadata``（A2A 規範側），
+與閘道器通道上的 ``metadata`` / ``channel_context`` 無關。
 
-``e2a_response_to_acp_jsonrpc_response`` / ``e2a_response_to_a2a_stream_payload`` 将 ``E2AResponse`` 投影为
-外协议形状；不适用时返回 ``None``（见 ``docs/zh/E2A-protocol.md`` §8、§12）。
+``e2a_response_to_acp_jsonrpc_response`` / ``e2a_response_to_a2a_stream_payload`` 將 ``E2AResponse`` 投影為
+外協議形狀；不適用時返回 ``None``（見 ``docs/zh/E2A-protocol.md`` §8、§12）。
 """
 
 
@@ -50,7 +50,7 @@ def envelope_from_acp_jsonrpc(
     converter: str | None = None,
     extra_provenance_details: dict[str, Any] | None = None,
 ) -> E2AEnvelope:
-    """由 ACP JSON-RPC 调用构造 E2A；provenance 标明来源为 acp。"""
+    """由 ACP JSON-RPC 呼叫構造 E2A；provenance 標明來源為 acp。"""
     p = dict(params or {})
     sid = session_id or p.get("session_id")
     details: dict[str, Any] = {
@@ -90,9 +90,9 @@ def envelope_from_a2a_send_message(
     extra_provenance_details: dict[str, Any] | None = None,
 ) -> E2AEnvelope:
     """
-    将 A2A SendMessage 语义转为 E2A；provenance 标明来源为 a2a。
+    將 A2A SendMessage 語義轉為 E2A；provenance 標明來源為 a2a。
 
-    默认 method 为 ``session/prompt``，完整 message/configuration 保留在 params 与 a2a_metadata。
+    預設 method 為 ``session/prompt``，完整 message/configuration 保留在 params 與 a2a_metadata。
     """
     meta = dict(metadata or {})
     accepted: list[str] = []
@@ -126,10 +126,10 @@ def envelope_from_a2a_send_message(
 
 def envelope_to_acp_jsonrpc_call(envelope: E2AEnvelope) -> dict[str, Any]:
     """
-    将信封转为 JSON-RPC 风格单条调用描述（日志或下游 ACP 端点）。
+    將信封轉為 JSON-RPC 風格單條呼叫描述（日誌或下游 ACP 端點）。
 
-    若 ``envelope.method`` 为网关 RPC（如 ``chat.send``），输出中的 ``method`` 对纯 ACP 端可能无效，
-    需在业务层先映射为 ACP method（如 ``session/prompt``）再发送。
+    若 ``envelope.method`` 為閘道器 RPC（如 ``chat.send``），輸出中的 ``method`` 對純 ACP 端可能無效，
+    需在業務層先對映為 ACP method（如 ``session/prompt``）再傳送。
     """
     method = envelope.ext_method if envelope.method == "ext" and envelope.ext_method else envelope.method
     params = merge_params_to_acp_prompt(envelope) if envelope.method == "session/prompt" else dict(envelope.params)
@@ -143,14 +143,14 @@ def envelope_to_acp_jsonrpc_call(envelope: E2AEnvelope) -> dict[str, Any]:
 
 def e2a_response_to_acp_jsonrpc_response(response: E2AResponse) -> dict[str, Any] | None:
     """
-    将 ``E2AResponse`` 转为单条 JSON-RPC 2.0 **响应**对象（仅 ``result`` 或 ``error``，无 ``method``）。
+    將 ``E2AResponse`` 轉為單條 JSON-RPC 2.0 **響應**物件（僅 ``result`` 或 ``error``，無 ``method``）。
 
-    优先使用 ``projections.acp``：若为已组装的完整响应（含 ``jsonrpc`` 与 ``result``/``error``），原样返回副本。
-    否则按 ``response_kind`` 从 ``body`` 构造：
+    優先使用 ``projections.acp``：若為已組裝的完整響應（含 ``jsonrpc`` 與 ``result``/``error``），原樣返回副本。
+    否則按 ``response_kind`` 從 ``body`` 構造：
 
     - ``acp.prompt_result`` → ``result`` = ``body``
-    - ``acp.jsonrpc_error`` → ``error`` = ``body``（须含 JSON-RPC 所需字段）
-    - ``e2a.error`` → ``error``：``code`` 非 int 时用 ``-32603``，字符串码写入 ``data.e2a_code``
+    - ``acp.jsonrpc_error`` → ``error`` = ``body``（須含 JSON-RPC 所需欄位）
+    - ``e2a.error`` → ``error``：``code`` 非 int 時用 ``-32603``，字串碼寫入 ``data.e2a_code``
     """
     proj = response.projections.get("acp") if isinstance(response.projections, dict) else None
     if isinstance(proj, dict) and proj.get("jsonrpc") == "2.0":
@@ -192,12 +192,12 @@ def e2a_response_to_acp_jsonrpc_response(response: E2AResponse) -> dict[str, Any
 
 def e2a_response_to_a2a_stream_payload(response: E2AResponse) -> dict[str, Any] | None:
     """
-    将 ``response_kind == \"a2a.stream_event\"`` 的 ``E2AResponse`` 转为 A2A ``StreamResponse`` 形 JSON：
+    將 ``response_kind == \"a2a.stream_event\"`` 的 ``E2AResponse`` 轉為 A2A ``StreamResponse`` 形 JSON：
 
-    外层键为 ``task`` / ``message`` / ``statusUpdate`` / ``artifactUpdate`` 之一（与常见 JSON 绑定一致）。
+    外層鍵為 ``task`` / ``message`` / ``statusUpdate`` / ``artifactUpdate`` 之一（與常見 JSON 繫結一致）。
 
-    若 ``projections.a2a`` 已为四选一单键对象，则原样返回副本。
-    ``body.branch`` 须为 ``E2A_A2A_STREAM_BRANCHES`` 之一；``body.payload`` 为对应分支对象。
+    若 ``projections.a2a`` 已為四選一單鍵物件，則原樣返回副本。
+    ``body.branch`` 須為 ``E2A_A2A_STREAM_BRANCHES`` 之一；``body.payload`` 為對應分支物件。
     """
     if response.response_kind != E2A_RESPONSE_KIND_A2A_STREAM_EVENT:
         return None

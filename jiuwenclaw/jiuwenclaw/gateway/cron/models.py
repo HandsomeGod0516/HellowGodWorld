@@ -6,7 +6,7 @@ from typing import Any
 
 
 class CronTargetChannel(str, Enum):
-    """推送频道枚举。"""
+    """推送頻道列舉。"""
 
     WEB = "web"
     FEISHU = "feishu"
@@ -18,7 +18,7 @@ class CronTargetChannel(str, Enum):
 
 
 def _feishu_enterprise_app_id(s: str) -> str:
-    """feishu_enterprise 通道键仅为 feishu_enterprise:<app_id>；忽略 :chat: 等后续后缀。"""
+    """feishu_enterprise 通道鍵僅為 feishu_enterprise:<app_id>；忽略 :chat: 等後續字尾。"""
     parts = str(s or "").strip().split(":")
     if len(parts) < 2 or parts[0].strip().lower() != "feishu_enterprise":
         return ""
@@ -55,7 +55,7 @@ def normalize_target_channel_id(raw: str, *, default: str = CronTargetChannel.WE
 
 
 def _normalize_targets_str(raw: str) -> str:
-    """将 targets 字符串规范为 CronTargetChannel 枚举值，非法则默认 web。"""
+    """將 targets 字串規範為 CronTargetChannel 列舉值，非法則預設 web。"""
     return normalize_target_channel_id(raw, default=CronTargetChannel.WEB.value)
 
 
@@ -96,17 +96,17 @@ class CronJob:
     # For one-shot schedules where croniter has no "next" after the run.
     expired: bool = False
     # Target channel ID to push results to (e.g. "web").
-    # JSON 字段名仍然叫 targets，用字符串保存频道 ID，兼容旧数据。
+    # JSON 欄位名仍然叫 targets，用字串儲存頻道 ID，相容舊資料。
     targets: str = ""
-    # SessionMap 形态（如 feishu::chat_id::bot_id::...），仅 feishu_enterprise 投递用；由 AgentServer 上下文写入。
+    # SessionMap 形態（如 feishu::chat_id::bot_id::...），僅 feishu_enterprise 投遞用；由 AgentServer 上下文寫入。
     session_id: str | None = None
     created_at: float | None = None
     updated_at: float | None = None
-    # 记录定时任务是在群聊("group")还是私聊("p2p")中创建的，用于推送时决定是否走 IMOutboundPipeline
+    # 記錄定時任務是在群聊("group")還是私聊("p2p")中建立的，用於推送時決定是否走 IMOutboundPipeline
     chat_type: str | None = None
-    # 定时任务执行时使用的 mode（"plan" 或 "agent"），创建时从对话上下文继承；无上下文时默认 "agent"
+    # 定時任務執行時使用的 mode（"plan" 或 "agent"），建立時從對話上下文繼承；無上下文時預設 "agent"
     mode: str = "agent"
-    # 执行一次后自动删除（用于提醒类任务）
+    # 執行一次後自動刪除（用於提醒類任務）
     delete_after_run: bool = False
 
     def to_dict(self) -> dict[str, Any]:
@@ -152,7 +152,7 @@ class CronJob:
 
         description = str(data.get("description") or "")
 
-        # targets 新格式是字符串；旧格式是 list[dict]，此处做兼容。
+        # targets 新格式是字串；舊格式是 list[dict]，此處做相容。
         targets_raw = data.get("targets", "")
         targets_str = ""
         if isinstance(targets_raw, str):

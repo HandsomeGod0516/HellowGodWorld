@@ -1,10 +1,10 @@
 """PersonAgent：skills-first 工具代理。
 
 核心特性：
-- 独立工作区：每个 agent 的文件与日志隔离
-- 独立会话线程：维护短上下文，必要时 LLM 压缩
-- 渐进式 skill 发现：先看 catalog，再按需激活
-- 工具循环：产出 ToolDecision → 执行 → 回写结果，直到 done
+- 獨立工作區：每個 agent 的檔案與日誌隔離
+- 獨立會話執行緒：維護短上下文，必要時 LLM 壓縮
+- 漸進式 skill 發現：先看 catalog，再按需啟用
+- 工具迴圈：產出 ToolDecision → 執行 → 回寫結果，直到 done
 """
 
 from __future__ import annotations
@@ -73,15 +73,15 @@ logger = get_logger()
 
 
 class PersonAgent(AgentBase):
-    """Person 场景下的 skills-first 工具代理。
+    """Person 場景下的 skills-first 工具代理。
 
-    设计目标是让每个 Person 拥有独立线程、独立工作区和独立技能可见性，
-    在每个 step 内通过工具循环完成“观察-推理-行动”。
+    設計目標是讓每個 Person 擁有獨立執行緒、獨立工作區和獨立技能可見性，
+    在每個 step 內透過工具迴圈完成“觀察-推理-行動”。
     """
 
     @classmethod
     def mcp_description(cls) -> str:
-        """返回 MCP 候选列表中的简短描述。"""
+        """返回 MCP 候選列表中的簡短描述。"""
         return (
             "PersonAgent: Minimal skills-first agent. "
             "Uses progressive skill loading and isolated agent workspace."
@@ -97,31 +97,31 @@ class PersonAgent(AgentBase):
     ):
         """初始化 PersonAgent。
 
-        :param id: Agent 唯一标识。
-        :param profile: 画像对象（dict 或可序列化对象）。
-        :param name: 可选显示名。
-        :param init_state: 可选初始状态（会写入 workspace，默认不覆盖已存在文件）。
-        :param capability_kwargs: 行为/能力参数（节选）：
+        :param id: Agent 唯一標識。
+        :param profile: 畫像物件（dict 或可序列化物件）。
+        :param name: 可選顯示名。
+        :param init_state: 可選初始狀態（會寫入 workspace，預設不覆蓋已存在檔案）。
+        :param capability_kwargs: 行為/能力引數（節選）：
 
-            - ``max_tool_rounds``：单步最大工具轮数（默认 24）
-            - ``preload_workspace_paths``：预读文件列表（注入 system prompt 的 workspace 快照）
-            - ``thread_key_state_paths``：thread 压缩时附带的 KEY_STATE_JSON 文件路径列表
-            - ``catalog_working_set_json``：用于 skill 的 ``paths`` 匹配信号文件（如 ``working_set.json``）
-            - ``system_prompt_max_identity_chars``：Agent Identity JSON 总长度上限（默认 10000）
-            - ``workspace_read_chunk_chars``：``workspace_read`` / ``read_skill`` 单段最大字符数（默认 32768，上限 96000）
-            - ``tool_result_thread_budget_chars``：单条 TOOL_RESULT_JSON 序列化预算（默认 65536）
-            - ``profile_truncate_chars``：profile 超过该长度时截断再进 Identity（默认 8000）
-            - ``bash_timeout_retries``：bash 超时后的额外重试次数（默认 1，即最多 2 次执行）
-            - ``llm_transient_retries``：thread 压缩等直连 ``acompletion`` 遇瞬时错误时的最大重试次数（默认 2）
-            - ``tool_decision_max_retries``：传给 ``acompletion_with_pydantic_validation`` 的 max_retries（默认 10）
-            - ``model`` / ``llm_model``：LiteLLM 路由模型名（用于 token_counter 与 tiktoken 回退）
-            - ``tiktoken_encoding``：强制指定 tiktoken 编码名（可选）
+            - ``max_tool_rounds``：單步最大工具輪數（預設 24）
+            - ``preload_workspace_paths``：預讀檔案列表（注入 system prompt 的 workspace 快照）
+            - ``thread_key_state_paths``：thread 壓縮時附帶的 KEY_STATE_JSON 檔案路徑列表
+            - ``catalog_working_set_json``：用於 skill 的 ``paths`` 匹配訊號檔案（如 ``working_set.json``）
+            - ``system_prompt_max_identity_chars``：Agent Identity JSON 總長度上限（預設 10000）
+            - ``workspace_read_chunk_chars``：``workspace_read`` / ``read_skill`` 單段最大字元數（預設 32768，上限 96000）
+            - ``tool_result_thread_budget_chars``：單條 TOOL_RESULT_JSON 序列化預算（預設 65536）
+            - ``profile_truncate_chars``：profile 超過該長度時截斷再進 Identity（預設 8000）
+            - ``bash_timeout_retries``：bash 超時後的額外重試次數（預設 1，即最多 2 次執行）
+            - ``llm_transient_retries``：thread 壓縮等直連 ``acompletion`` 遇瞬時錯誤時的最大重試次數（預設 2）
+            - ``tool_decision_max_retries``：傳給 ``acompletion_with_pydantic_validation`` 的 max_retries（預設 10）
+            - ``model`` / ``llm_model``：LiteLLM 路由模型名（用於 token_counter 與 tiktoken 回退）
+            - ``tiktoken_encoding``：強制指定 tiktoken 編碼名（可選）
         """
         super().__init__(id=id, profile=profile, name=name)
         self._agent_state: dict[str, Any] = self._coerce_llm_dict(init_state)
         self._capability_kwargs: dict[str, Any] = dict(capability_kwargs)
 
-        # ── 统一配置管理 ──
+        # ── 統一配置管理 ──
         self._config = AgentConfig.from_kwargs(capability_kwargs)
         self._ctx_config = self._config.context
 
@@ -138,7 +138,7 @@ class PersonAgent(AgentBase):
 
         self._step_count = 0
         self._last_selected_skills: set[str] = set()
-        # 统一从 AgentConfig 读取循环配置
+        # 統一從 AgentConfig 讀取迴圈配置
         self._max_tool_rounds = max(1, self._config.loop.max_rounds)
         self._bash_timeout_retries = max(0, self._config.loop.bash_retries)
         self._llm_transient_retries = max(0, self._config.loop.llm_transient_retries)
@@ -146,69 +146,69 @@ class PersonAgent(AgentBase):
             0, self._config.loop.tool_decision_max_retries
         )
 
-        # LLM 历史记录配置（供 AgentBase._record_llm_interaction 使用）
+        # LLM 歷史記錄配置（供 AgentBase._record_llm_interaction 使用）
         self._llm_history_enabled = self._config.persistence.enable_llm_history
         self._llm_history_max_entries = self._config.persistence.llm_history_max_entries
 
-        # 上下文缓存：避免重复读取相同文件（LRU 淘汰）
-        # 使用 threading.Lock 因为缓存操作都在同一个事件循环中顺序执行
+        # 上下文快取：避免重複讀取相同檔案（LRU 淘汰）
+        # 使用 threading.Lock 因為快取操作都在同一個事件迴圈中順序執行
         self._workspace_cache: OrderedDict[str, str] = OrderedDict()
         self._cache_valid_paths: set[str] = set()
         self._cache_max_entries: int = self._ctx_config.workspace_cache_max_entries
         self._cache_lock = threading.Lock()
-        # 当前 step 的上下文快照（在 step 开始时构建）
+        # 當前 step 的上下文快照（在 step 開始時構建）
         self._step_context: dict[str, Any] = {}
-        # workspace 状态版本：每次可能改动工作区后递增，避免模型使用过期上下文
+        # workspace 狀態版本：每次可能改動工作區後遞增，避免模型使用過期上下文
         self._workspace_state_version: int = 0
-        # 环境工具经 Router 改写后的世界描述，在 init 时拉取并注入 system prompt
+        # 環境工具經 Router 改寫後的世界描述，在 init 時拉取並注入 system prompt
         self._world_description: str = ""
-        # 本步 get_system_prompt 用：_prepare_prompt_sidecars 写入（长 prose 走 LLM 压缩）
+        # 本步 get_system_prompt 用：_prepare_prompt_sidecars 寫入（長 prose 走 LLM 壓縮）
         self._world_description_for_prompt: str = ""
         self._workspace_snapshot_for_prompt: dict[str, Any] = {}
         self._profile_for_prompt: Any = None
 
-        # ── 上下文管理改进 ──
-        # 持久化记忆（类似 CLAUDE.md）
+        # ── 上下文管理改進 ──
+        # 持久化記憶（類似 CLAUDE.md）
         self._memory: Optional[AgentMemory] = None
-        # 结构化摘要
+        # 結構化摘要
         self._structured_summary: Optional[StructuredSummary] = None
-        # 上下文利用率追踪
+        # 上下文利用率追蹤
         self._last_utilization: float = 0.0
         self._compact_count: int = 0
-        # 跨压缩轮次的滚动摘要（增量合并，持久化见 .runtime/logs/thread_compact_state.json）
+        # 跨壓縮輪次的滾動摘要（增量合併，持久化見 .runtime/logs/thread_compact_state.json）
         self._rolling_thread_summary: str = ""
 
-        # ── 系统提示词缓存（使用单一版本号简化逻辑）──
+        # ── 系統提示詞快取（使用單一版本號簡化邏輯）──
         self._prompt_cache: str | None = None
-        self._prompt_cache_version: int = 0  # 单一版本号，任何变化递增
-        # 分段 system prompt 的静态段缓存（与 PromptBuilder 内容哈希联动）
+        self._prompt_cache_version: int = 0  # 單一版本號，任何變化遞增
+        # 分段 system prompt 的靜態段快取（與 PromptBuilder 內容雜湊聯動）
         self._prompt_cache_manager = PromptCacheManager()
 
-        # ── 循环检测 ──
+        # ── 迴圈檢測 ──
         self._loop_detector = LoopDetectionService(self._config.loop_detection)
 
-        # ── 检查点与会话恢复（延迟初始化，需要workspace路径） ──
+        # ── 檢查點與會話恢復（延遲初始化，需要workspace路徑） ──
         self._checkpoint: Optional[Checkpoint] = None
         self._session_recovery: Optional[SessionRecovery] = None
 
-        # ── Workspace 清理（延迟初始化） ──
+        # ── Workspace 清理（延遲初始化） ──
         self._cleaner: Optional[WorkspaceCleaner] = None
 
-        # ── 并发控制 ──
+        # ── 併發控制 ──
         self._parallel_executor = ParallelExecutor(self._config)
         self._rate_limiter = RateLimiter(self._config.concurrency.rate_limit_rps)
         self._tool_policy = ToolPolicy()
 
-        # ── 当前工具 trace 上下文（仅用于统一观测，不进入业务逻辑）──
+        # ── 當前工具 trace 上下文（僅用於統一觀測，不進入業務邏輯）──
         self._current_trace_id: str | None = None
         self._current_tool_span_id: str | None = None
         self._current_tool_started_at: float | None = None
 
     def _update_workspace_cache(self, path: str, content: str) -> None:
-        """更新缓存并执行 LRU 淘汰。
+        """更新快取並執行 LRU 淘汰。
 
-        :param path: 文件路径。
-        :param content: 文件内容。
+        :param path: 檔案路徑。
+        :param content: 檔案內容。
         """
         with self._cache_lock:
             if path in self._workspace_cache:
@@ -221,19 +221,19 @@ class PersonAgent(AgentBase):
                 self._cache_valid_paths.discard(oldest)
 
     def _all_visible_skill_names(self) -> set[str]:
-        """返回当前 agent 可见技能名集合副本。"""
+        """返回當前 agent 可見技能名集合副本。"""
         return set(self._selectable_skill_names)
 
     def _invalidate_prompt_cache(self) -> None:
-        """失效系统提示词缓存，递增版本号。"""
+        """失效系統提示詞快取，遞增版本號。"""
         self._prompt_cache = None
         self._prompt_cache_version += 1
         self._prompt_cache_manager.invalidate()
 
     def _need_rebuild_prompt(self, cached_version: int) -> bool:
-        """判断是否需要重建系统提示词。
+        """判斷是否需要重建系統提示詞。
 
-        :param cached_version: 之前缓存时的版本号
+        :param cached_version: 之前快取時的版本號
         :return: 是否需要重建
         """
         if self._prompt_cache is None:
@@ -243,30 +243,30 @@ class PersonAgent(AgentBase):
         return False
 
     def _workspace_preload_paths(self) -> list[str]:
-        """获取预加载的 workspace 文件路径列表。
+        """獲取預載入的 workspace 檔案路徑列表。
 
-        从 config.context.preload_workspace_paths 读取。
+        從 config.context.preload_workspace_paths 讀取。
 
-        :return: 路径字符串列表。
+        :return: 路徑字串列表。
         """
         return self._config.context.preload_workspace_paths
 
     def _thread_key_state_paths(self) -> list[str]:
-        """获取 thread 压缩时写入 KEY_STATE_JSON 的文件路径列表。
+        """獲取 thread 壓縮時寫入 KEY_STATE_JSON 的檔案路徑列表。
 
-        从 config.context.thread_key_state_paths 读取。
+        從 config.context.thread_key_state_paths 讀取。
 
-        :return: 路径字符串列表。
+        :return: 路徑字串列表。
         """
         return self._config.context.thread_key_state_paths
 
     def _build_step_context(self) -> dict[str, Any]:
-        """构建当前 step 的上下文快照。
+        """構建當前 step 的上下文快照。
 
-        预读 capability_kwargs['preload_workspace_paths'] 列出的路径，
-        同时更新缓存供后续操作使用。单个文件读取失败不会中断整体构建。
+        預讀 capability_kwargs['preload_workspace_paths'] 列出的路徑，
+        同時更新快取供後續操作使用。單個檔案讀取失敗不會中斷整體構建。
 
-        结果总大小受配置限制。
+        結果總大小受配置限制。
         """
         max_chars = self._config.context.workspace_read_chunk_cap
 
@@ -278,7 +278,7 @@ class PersonAgent(AgentBase):
                 if self._skill_runtime.workspace_exists(path):
                     content = self._skill_runtime.workspace_read(path)
                     if content:
-                        # 检查大小限制
+                        # 檢查大小限制
                         content_chars = (
                             len(content)
                             if isinstance(content, str)
@@ -305,18 +305,18 @@ class PersonAgent(AgentBase):
         return context
 
     def _invalidate_workspace_cache(self, path: str) -> None:
-        """失效指定路径的缓存。
+        """失效指定路徑的快取。
 
-        :param path: 文件路径。
+        :param path: 檔案路徑。
         """
         self._cache_valid_paths.discard(path)
         self._step_context.pop(path, None)
 
     def _get_cached_workspace_content(self, path: str) -> Optional[str]:
-        """从缓存获取文件内容（LRU 访问）。
+        """從快取獲取檔案內容（LRU 訪問）。
 
-        :param path: 文件路径。
-        :return: 缓存内容，未命中返回 None。
+        :param path: 檔案路徑。
+        :return: 快取內容，未命中返回 None。
         """
         if path in self._cache_valid_paths and path in self._workspace_cache:
             self._workspace_cache.move_to_end(path)
@@ -324,14 +324,14 @@ class PersonAgent(AgentBase):
         return None
 
     def _invalidate_all_workspace_cache(self) -> None:
-        """清空全部 workspace 缓存。"""
+        """清空全部 workspace 快取。"""
         self._cache_valid_paths.clear()
         self._workspace_cache.clear()
         self._step_context = {}
 
     @staticmethod
     def _tail_jsonl(raw: str, *, limit: int = 10) -> list[Any]:
-        """读取 JSONL 文本的最后若干条记录。"""
+        """讀取 JSONL 文字的最後若干條記錄。"""
         lines = [line.strip() for line in raw.splitlines() if line.strip()]
         recent = lines[-limit:]
         parsed: list[Any] = []
@@ -343,7 +343,7 @@ class PersonAgent(AgentBase):
         return parsed
 
     def _build_external_question_context(self, t: datetime) -> dict[str, Any]:
-        """构造带 workspace 记忆的外部问答上下文。"""
+        """構造帶 workspace 記憶的外部問答上下文。"""
         context = super()._build_external_question_context(t)
 
         workspace_context: dict[str, Any] = {}
@@ -397,23 +397,23 @@ class PersonAgent(AgentBase):
         return context
 
     def _bump_workspace_state_version(self) -> int:
-        """递增 workspace 状态版本号并返回新值。"""
+        """遞增 workspace 狀態版本號並返回新值。"""
         self._workspace_state_version += 1
         return self._workspace_state_version
 
     def _workspace_read_chunk_cap(self) -> int:
-        """获取单次文件读取的字符上限。"""
+        """獲取單次檔案讀取的字元上限。"""
         return self._ctx_config.workspace_read_chunk_cap
 
     def _tool_result_thread_budget_chars(self) -> int:
-        """获取单条工具结果的字符预算。"""
+        """獲取單條工具結果的字元預算。"""
         return self._ctx_config.tool_result_thread_budget
 
     @staticmethod
     def _coerce_llm_dict(raw: Any) -> dict[str, Any]:
-        """把「应为 dict」的字段归一成 dict。
+        """把「應為 dict」的欄位歸一成 dict。
 
-        用于 ToolDecision.arguments、codegen.ctx、execute_skill.args 等。
+        用於 ToolDecision.arguments、codegen.ctx、execute_skill.args 等。
 
         :param raw: 原始值。
         :return: dict。
@@ -432,7 +432,7 @@ class PersonAgent(AgentBase):
 
     @staticmethod
     def _sanitize_profile_for_prompt(profile: Any) -> Any:
-        """过滤 profile 中的潜在指令注入。
+        """過濾 profile 中的潛在指令注入。
 
         :param profile: 原始 profile。
         :return: 安全的 profile。
@@ -467,9 +467,9 @@ class PersonAgent(AgentBase):
         return profile
 
     def _agent_identity_json_for_prompt(self) -> str:
-        """生成用于 system prompt 的智能体身份 JSON。
+        """生成用於 system prompt 的智慧體身份 JSON。
 
-        profile 过长时硬切并标记省略。
+        profile 過長時硬切並標記省略。
         """
         max_total = max(2000, self._config.context.system_prompt_max_identity_chars)
         raw_profile = (
@@ -477,7 +477,7 @@ class PersonAgent(AgentBase):
             if self._profile_for_prompt is not None
             else self.get_profile()
         )
-        # 安全过滤
+        # 安全過濾
         safe_profile = self._sanitize_profile_for_prompt(raw_profile)
         agent_identity: dict[str, Any] = {
             "id": self.id,
@@ -506,9 +506,9 @@ class PersonAgent(AgentBase):
     # ── System Prompt ──────────────────────────────────────────────────────────
 
     def _build_prompt_static_segment(self, builder: PromptBuilder) -> None:
-        """构建 prompt 静态段（可缓存）。
+        """構建 prompt 靜態段（可快取）。
 
-        :param builder: PromptBuilder 实例。
+        :param builder: PromptBuilder 例項。
         """
         wd = (self._world_description_for_prompt or self._world_description).strip()
         if wd:
@@ -540,10 +540,10 @@ class PersonAgent(AgentBase):
         builder.add_skill_catalog(catalog)
 
     def _build_prompt_dynamic_segment(self, builder: PromptBuilder, tick: int) -> None:
-        """构建 prompt 动态段（每次重建）。
+        """構建 prompt 動態段（每次重建）。
 
-        :param builder: PromptBuilder 实例。
-        :param tick: 当前仿真步时间跨度（秒）。
+        :param builder: PromptBuilder 例項。
+        :param tick: 當前模擬步時間跨度（秒）。
         """
         builder.add_identity(
             self.id, self._name, self._agent_identity_json_for_prompt()
@@ -580,14 +580,14 @@ class PersonAgent(AgentBase):
             builder.add_constraints(constraints)
 
     def get_system_prompt(self, tick: int, t: datetime) -> str:
-        """构建本步 system prompt。
+        """構建本步 system prompt。
 
-        注入 world description、agent identity、工具协议、skill catalog、已激活技能列表。
-        使用分段缓存机制优化 Token 消耗。
+        注入 world description、agent identity、工具協議、skill catalog、已啟用技能列表。
+        使用分段快取機制最佳化 Token 消耗。
 
-        :param tick: 当前仿真步时间跨度（秒）。
-        :param t: 当前仿真时间。
-        :return: system prompt 文本。
+        :param tick: 當前模擬步時間跨度（秒）。
+        :param t: 當前模擬時間。
+        :return: system prompt 文字。
         """
         if (
             not self._need_rebuild_prompt(self._prompt_cache_version)
@@ -604,18 +604,18 @@ class PersonAgent(AgentBase):
         result = base + builder.build()
 
         self._prompt_cache = result
-        # 版本号在 _invalidate_prompt_cache 中已递增，此处无需更新
+        # 版本號在 _invalidate_prompt_cache 中已遞增，此處無需更新
 
         return result
 
     def get_system_prompt_segmented(self, tick: int, t: datetime) -> tuple[str, str]:
-        """分段构建 system prompt，支持 Prompt Caching。
+        """分段構建 system prompt，支援 Prompt Caching。
 
-        返回静态段和动态段，静态段可添加 cache_control 实现 Token 缓存。
+        返回靜態段和動態段，靜態段可新增 cache_control 實現 Token 快取。
 
-        :param tick: 当前仿真步时间跨度（秒）。
-        :param t: 当前仿真时间。
-        :return: (静态段, 动态段) 元组。
+        :param tick: 當前模擬步時間跨度（秒）。
+        :param t: 當前模擬時間。
+        :return: (靜態段, 動態段) 元組。
         """
         base = super().get_system_prompt(tick, t)
         builder = PromptBuilder()
@@ -634,12 +634,12 @@ class PersonAgent(AgentBase):
         t: datetime,
         result_obj: dict[str, Any],
     ) -> None:
-        """将工具结果写入 thread（同时写磁盘与内存窗口）。
+        """將工具結果寫入 thread（同時寫磁碟與記憶體視窗）。
 
-        :param thread_messages: thread 消息列表。
-        :param tick: 当前仿真步的时间尺度（秒）。
-        :param t: 当前仿真时间。
-        :param result_obj: 工具执行结果字典。
+        :param thread_messages: thread 訊息列表。
+        :param tick: 當前模擬步的時間尺度（秒）。
+        :param t: 當前模擬時間。
+        :param result_obj: 工具執行結果字典。
         """
         enriched = dict(result_obj)
         enriched.setdefault("workspace_state_version", self._workspace_state_version)
@@ -683,7 +683,7 @@ class PersonAgent(AgentBase):
 
     @staticmethod
     def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
-        """生成工具结果摘要，避免把大内容写入 trace。"""
+        """生成工具結果摘要，避免把大內容寫入 trace。"""
         summary: dict[str, Any] = {
             "ok": bool(result.get("ok", False)),
         }
@@ -713,10 +713,10 @@ class PersonAgent(AgentBase):
         return summary
 
     def _prepare_prompt_sidecars(self) -> None:
-        """准备 prompt 侧车数据。
+        """準備 prompt 側車資料。
 
-        对 world_description、workspace_snapshot、profile 做硬切处理，
-        这些是非关键数据，无需 LLM 压缩。
+        對 world_description、workspace_snapshot、profile 做硬切處理，
+        這些是非關鍵資料，無需 LLM 壓縮。
         """
         wd = self._world_description.strip()
         self._world_description_for_prompt = (
@@ -750,11 +750,11 @@ class PersonAgent(AgentBase):
             )
 
     def _catalog_paths_match(self, patterns: list[str]) -> bool:
-        """检查当前工作集是否匹配任一模式。
+        """檢查當前工作集是否匹配任一模式。
 
-        用于 skill 的 paths 过滤。若无工作集信号，返回 True 以避免意外隐藏 skill。
+        用於 skill 的 paths 過濾。若無工作集訊號，返回 True 以避免意外隱藏 skill。
 
-        :param patterns: 路径模式列表。
+        :param patterns: 路徑模式列表。
         :return: 是否匹配。
         """
         if not patterns:
@@ -790,10 +790,10 @@ class PersonAgent(AgentBase):
         return False
 
     def _is_model_invocable_skill(self, skill_name: str) -> bool:
-        """检查 skill 是否可被模型自动调用。
+        """檢查 skill 是否可被模型自動呼叫。
 
-        :param skill_name: skill 名称。
-        :return: 是否可自动调用。
+        :param skill_name: skill 名稱。
+        :return: 是否可自動呼叫。
         """
         info = self._skill_registry.get_skill_info(skill_name, load_content=False)
         if info is None:
@@ -801,7 +801,7 @@ class PersonAgent(AgentBase):
         return not bool(getattr(info, "disable_model_invocation", False))
 
     def _allowed_tools_for_active_scope(self) -> set[str] | None:
-        """获取当前 scope 的 allowed-tools。
+        """獲取當前 scope 的 allowed-tools。
 
         :return: allowed-tools 集合，None 表示不限制。
         """
@@ -815,10 +815,10 @@ class PersonAgent(AgentBase):
 
     @staticmethod
     def _split_skill_arguments(raw: Any) -> tuple[str, list[str]]:
-        """解析 activate_skill 的 arguments 为原始串与分词数组。
+        """解析 activate_skill 的 arguments 為原始串與分詞陣列。
 
         :param raw: 原始 arguments（None、list 或 str）。
-        :return: 元组 (原始串, 分词数组)。
+        :return: 元組 (原始串, 分詞陣列)。
         """
         if raw is None:
             return "", []
@@ -835,12 +835,12 @@ class PersonAgent(AgentBase):
     def _inject_skill_arguments(
         content: str, arguments_raw: str, arguments_parts: list[str]
     ) -> str:
-        """将 $ARGUMENTS/$ARGUMENTS[N]/$N 占位符渲染到 skill 内容。
+        """將 $ARGUMENTS/$ARGUMENTS[N]/$N 佔位符渲染到 skill 內容。
 
-        :param content: skill 原始内容。
-        :param arguments_raw: 原始参数字符串。
-        :param arguments_parts: 分词后的参数数组。
-        :return: 渲染后的内容。
+        :param content: skill 原始內容。
+        :param arguments_raw: 原始引數字串。
+        :param arguments_parts: 分詞後的引數陣列。
+        :return: 渲染後的內容。
         """
         rendered = content.replace("$ARGUMENTS", arguments_raw)
 
@@ -859,12 +859,12 @@ class PersonAgent(AgentBase):
         return rendered
 
     async def _inject_skill_command_outputs(self, content: str) -> str:
-        """注入 !`cmd` 动态上下文。
+        """注入 !`cmd` 動態上下文。
 
-        命令失败则激活失败。仅允许安全命令（禁止管道、重定向、命令替换等）。
+        命令失敗則啟用失敗。僅允許安全命令（禁止管道、重定向、命令替換等）。
 
-        :param content: 包含 !`cmd` 占位符的 skill 内容。
-        :return: 渲染后的内容。
+        :param content: 包含 !`cmd` 佔位符的 skill 內容。
+        :return: 渲染後的內容。
         """
         security_checker = BashSecurityChecker()
         pattern = re.compile(r"!\`([^`\n]+)\`")
@@ -898,13 +898,13 @@ class PersonAgent(AgentBase):
         thread_messages: list[dict[str, str]],
         skill_name: str,
     ) -> dict[str, Any]:
-        """确保 skill 的 requires 依赖已激活。
+        """確保 skill 的 requires 依賴已啟用。
 
-        :param tick: 当前仿真步的时间尺度（秒）。
-        :param t: 当前仿真时间。
-        :param thread_messages: thread 消息列表。
-        :param skill_name: 需要检查依赖的 skill 名称。
-        :return: 包含 ok, requires, activated, missing 字段的字典。
+        :param tick: 當前模擬步的時間尺度（秒）。
+        :param t: 當前模擬時間。
+        :param thread_messages: thread 訊息列表。
+        :param skill_name: 需要檢查依賴的 skill 名稱。
+        :return: 包含 ok, requires, activated, missing 欄位的字典。
         """
         info = self._skill_registry.get_skill_info(skill_name, load_content=False)
         requires = list(getattr(info, "requires", []) or []) if info else []
@@ -960,14 +960,14 @@ class PersonAgent(AgentBase):
     async def _run_bash_in_workspace(
         self, command: str, timeout_sec: int
     ) -> dict[str, Any]:
-        """在 agent workspace 执行 bash 命令并施加安全限制。
+        """在 agent workspace 執行 bash 命令並施加安全限制。
 
-        :param command: bash 命令（在 workspace 根目录执行）。
-        :param timeout_sec: 超时秒数。
+        :param command: bash 命令（在 workspace 根目錄執行）。
+        :param timeout_sec: 超時秒數。
         :returns: ``{ok, exit_code, stdout, stderr}``。
 
         .. note::
-           这里的护栏是“轻量”的：主要避免越界路径与明显危险 token。
+           這裡的護欄是“輕量”的：主要避免越界路徑與明顯危險 token。
         """
         command = command.strip()
         if not command:
@@ -1023,11 +1023,11 @@ class PersonAgent(AgentBase):
     async def _run_codegen(
         self, instruction: str, ctx: dict[str, Any], template_mode: bool
     ) -> dict[str, Any]:
-        """调用环境路由器执行 codegen 指令。
+        """呼叫環境路由器執行 codegen 指令。
 
-        :param instruction: 指令文本。
-        :param ctx: 上下文对象（会与 agent identity overlay 合并）。
-        :param template_mode: 是否启用模板模式（由 RouterBase 决定如何解释指令）。
+        :param instruction: 指令文字。
+        :param ctx: 上下文物件（會與 agent identity overlay 合併）。
+        :param template_mode: 是否啟用模板模式（由 RouterBase 決定如何解釋指令）。
         :returns: ``{ok, stdout, stderr, ctx?}``。
         """
         if self._env is None:
@@ -1061,10 +1061,10 @@ class PersonAgent(AgentBase):
         return result
 
     def _glob_in_workspace(self, pattern: str, root: str) -> dict[str, Any]:
-        """在 workspace 内做 glob 检索（带路径越界保护）。
+        """在 workspace 內做 glob 檢索（帶路徑越界保護）。
 
         :param pattern: glob 模式。
-        :param root: 相对根目录。
+        :param root: 相對根目錄。
         :return: 包含 ok, count, matches 的字典。
         """
         work_dir = self._skill_runtime.workspace_root()
@@ -1083,13 +1083,13 @@ class PersonAgent(AgentBase):
     def _grep_in_workspace(
         self, pattern: str, root: str, file_glob: str
     ) -> dict[str, Any]:
-        """在 workspace 内做内容检索。
+        """在 workspace 內做內容檢索。
 
-        限制扫描文件数、匹配数、单文件大小。
+        限制掃描檔案數、匹配數、單檔案大小。
 
-        :param pattern: 正则匹配模式。
-        :param root: 相对根目录。
-        :param file_glob: 文件名 glob 模式。
+        :param pattern: 正則匹配模式。
+        :param root: 相對根目錄。
+        :param file_glob: 檔名 glob 模式。
         :return: 包含 ok, count, matches, truncated 的字典。
         """
         work_dir = self._skill_runtime.workspace_root()
@@ -1137,7 +1137,7 @@ class PersonAgent(AgentBase):
     # ── Skill Visibility ──────────────────────────────────────────────────────
 
     def _merged_person_step_constraints(self) -> Optional[PersonStepConstraints]:
-        """合并当前路由器上各环境模块对本步的 Person 约束。"""
+        """合併當前路由器上各環境模組對本步的 Person 約束。"""
         if self._env is None:
             return None
         return merge_person_step_constraints(
@@ -1145,9 +1145,9 @@ class PersonAgent(AgentBase):
         )
 
     def _refresh_selectable_skills(self) -> None:
-        """根据 enabled/override 条件刷新可见技能集合。
+        """根據 enabled/override 條件重新整理可見技能集合。
 
-        所有启用的 skill 默认可见，除非被 override 显式禁用。
+        所有啟用的 skill 預設可見，除非被 override 顯式禁用。
         """
         c = self._merged_person_step_constraints()
         hidden = c.hide_skills if c else set()
@@ -1180,26 +1180,26 @@ class PersonAgent(AgentBase):
     # ── Lifecycle ─────────────────────────────────────────────────────────────
 
     async def init(self, env: RouterBase):
-        """初始化运行时目录，加载持久配置并扫描 custom/env skills。
+        """初始化執行時目錄，載入持久配置並掃描 custom/env skills。
 
         流程：
-        1. 调用父类 init
-        2. 确保 agent 工作目录存在
-        3. 从 init_state 初始化 workspace
-        4. 加载持久化的 agent_config.json
-        5. 扫描环境模块提供的 skills
-        6. 刷新可见技能列表
-        7. 激活环境模块声明的默认技能
-        8. 获取世界描述
+        1. 呼叫父類 init
+        2. 確保 agent 工作目錄存在
+        3. 從 init_state 初始化 workspace
+        4. 載入持久化的 agent_config.json
+        5. 掃描環境模組提供的 skills
+        6. 重新整理可見技能列表
+        7. 啟用環境模組宣告的預設技能
+        8. 獲取世界描述
 
-        :param env: 环境路由器实例。
+        :param env: 環境路由器例項。
         """
         await super().init(env=env)
         self._skill_runtime.ensure_agent_work_dir(self._env)
         self._skill_runtime.ensure_standard_workspace_dirs()
 
-        # init_state 用于“出生时”的初始内在状态设定。
-        # 仅在对应文件不存在时写入，避免覆盖实验过程中已经演化出的状态。
+        # init_state 用於“出生時”的初始內在狀態設定。
+        # 僅在對應檔案不存在時寫入，避免覆蓋實驗過程中已經演化出的狀態。
         self._seed_workspace_from_init_state()
 
         existing_cfg = self._skill_runtime.read_json("agent_config.json", {})
@@ -1216,7 +1216,7 @@ class PersonAgent(AgentBase):
                 }
         self._persist_agent_config()
 
-        # 扫描 custom skills（与后端 /scan 路径约定一致：<workspace>/custom/skills）。
+        # 掃描 custom skills（與後端 /scan 路徑約定一致：<workspace>/custom/skills）。
         custom_scan_roots: list[Path] = []
         run_dir = getattr(self._env, "run_dir", None)
         if run_dir:
@@ -1237,7 +1237,7 @@ class PersonAgent(AgentBase):
                     f"Agent {self.id}: loaded custom skills from {root_abs}: {added}"
                 )
 
-        # 扫描环境模块提供的 skills
+        # 掃描環境模組提供的 skills
         for module in env.env_modules:
             skills_dirs = module.get_agent_skills_dirs()
             for skills_dir in skills_dirs:
@@ -1251,7 +1251,7 @@ class PersonAgent(AgentBase):
 
         self._refresh_selectable_skills()
 
-        # 激活环境模块声明的默认技能
+        # 啟用環境模組宣告的預設技能
         for module in env.env_modules:
             skill_name = module.get_default_skill()
             if skill_name and skill_name in self._all_visible_skill_names():
@@ -1267,18 +1267,18 @@ class PersonAgent(AgentBase):
         if self._env is not None:
             self._world_description = await self._env.get_world_description()
 
-        # 初始化检查点和会话恢复
+        # 初始化檢查點和會話恢復
         workspace_root = self._skill_runtime.workspace_root()
         self._checkpoint = Checkpoint(workspace_root, self._config)
         self._session_recovery = SessionRecovery(workspace_root, self._checkpoint)
         self._cleaner = WorkspaceCleaner(workspace_root, self._config)
 
-        # 初始化预写日志（WAL）
+        # 初始化預寫日誌（WAL）
         self._wal = WriteAheadLog(
             workspace_root, max_entries=self._config.persistence.checkpoint_max * 10
         )
 
-        # 尝试从最近的检查点恢复
+        # 嘗試從最近的檢查點恢復
         latest_tick = self._checkpoint.latest_tick()
         if latest_tick is not None:
             logger.info(f"Agent {self.id}: found checkpoint at tick {latest_tick}")
@@ -1288,7 +1288,7 @@ class PersonAgent(AgentBase):
                     f"Agent {self.id}: restored from checkpoint at tick {latest_tick}"
                 )
 
-        # 初始化持久化记忆
+        # 初始化持久化記憶
         try:
             self._memory = AgentMemory(self._skill_runtime.workspace_root())
         except Exception as e:
@@ -1323,14 +1323,14 @@ class PersonAgent(AgentBase):
         return key_state
 
     def _collect_checkpoint_state(self) -> dict[str, Any]:
-        """收集用于检查点保存的状态数据。"""
+        """收集用於檢查點儲存的狀態資料。"""
         state: dict[str, Any] = {
             "step_count": self._step_count,
             "activated_skills": sorted(self._activated_skills),
             "active_skill_scope": self._active_skill_scope,
         }
 
-        # 动态收集 state 目录下的所有 JSON 文件
+        # 動態收集 state 目錄下的所有 JSON 檔案
         state_files = self._skill_runtime.workspace_list("state")
         for path in state_files:
             if path.endswith(".json"):
@@ -1345,26 +1345,26 @@ class PersonAgent(AgentBase):
         return state
 
     def _restore_from_checkpoint(self, tick: int) -> bool:
-        """从检查点恢复 agent 状态。
+        """從檢查點恢復 agent 狀態。
 
-        恢复持久化状态，可重建状态在下次 step 时自动重建。
+        恢復持久化狀態，可重建狀態在下次 step 時自動重建。
 
-        **持久化状态（从检查点恢复）**：
-        - step_count: 步骤计数
-        - activated_skills: 已激活技能集合
-        - active_skill_scope: 活跃技能范围
-        - state/*.json: 所有状态文件
+        **持久化狀態（從檢查點恢復）**：
+        - step_count: 步驟計數
+        - activated_skills: 已啟用技能集合
+        - active_skill_scope: 活躍技能範圍
+        - state/*.json: 所有狀態檔案
 
-        **可重建状态（不持久化，下次 step 时自动重建）**：
-        - _workspace_cache: 工作区缓存（LRU，按需填充）
-        - _prompt_cache: 提示词缓存（已失效重建）
-        - _step_context: 步骤上下文（step 开始时构建）
-        - _memory: 记忆内容（从 memory/ 目录读取）
-        - _structured_summary: 结构化摘要（从文件读取）
-        - _rolling_thread_summary: 滚动摘要（从 .runtime/logs/thread_compact_state.json 读取）
+        **可重建狀態（不持久化，下次 step 時自動重建）**：
+        - _workspace_cache: 工作區快取（LRU，按需填充）
+        - _prompt_cache: 提示詞快取（已失效重建）
+        - _step_context: 步驟上下文（step 開始時構建）
+        - _memory: 記憶內容（從 memory/ 目錄讀取）
+        - _structured_summary: 結構化摘要（從檔案讀取）
+        - _rolling_thread_summary: 滾動摘要（從 .runtime/logs/thread_compact_state.json 讀取）
 
-        :param tick: 检查点的 tick 值。
-        :return: 是否成功恢复。
+        :param tick: 檢查點的 tick 值。
+        :return: 是否成功恢復。
         """
         if self._checkpoint is None:
             return False
@@ -1377,18 +1377,18 @@ class PersonAgent(AgentBase):
         if not isinstance(state, dict):
             return False
 
-        # 恢复基本状态
+        # 恢復基本狀態
         self._step_count = state.get("step_count", 0)
 
-        # 恢复激活的技能
+        # 恢復啟用的技能
         activated_skills = state.get("activated_skills", [])
         if isinstance(activated_skills, list):
             self._activated_skills = set(activated_skills)
 
-        # 恢复活跃技能范围
+        # 恢復活躍技能範圍
         self._active_skill_scope = state.get("active_skill_scope", "")
 
-        # 动态恢复状态文件（所有以 state/ 开头的路径）
+        # 動態恢復狀態檔案（所有以 state/ 開頭的路徑）
         for key, value in state.items():
             if key.startswith("state/") and key.endswith(".json"):
                 try:
@@ -1396,17 +1396,17 @@ class PersonAgent(AgentBase):
                 except Exception as e:
                     logger.warning(f"Agent {self.id}: failed to restore {key}: {e}")
 
-        # 刷新可见技能列表
+        # 重新整理可見技能列表
         self._refresh_selectable_skills()
         self._invalidate_prompt_cache()
 
         return True
 
     def _seed_workspace_from_init_state(self) -> None:
-        """从 init_state 初始化 workspace。
+        """從 init_state 初始化 workspace。
 
-        写入 init_state.json 和 workspace_seed 中定义的文件。
-        仅在文件不存在时写入（除非 init_state_force 为 True）。
+        寫入 init_state.json 和 workspace_seed 中定義的檔案。
+        僅在檔案不存在時寫入（除非 init_state_force 為 True）。
         """
         state = self._agent_state if isinstance(self._agent_state, dict) else {}
         if not state:
@@ -1445,7 +1445,7 @@ class PersonAgent(AgentBase):
         t: datetime,
         focus_instruction: str = "",
     ) -> list[dict[str, str]]:
-        """分层压缩逻辑见 :mod:`agentsociety2.agent.context` 中 ``run_thread_compaction``。"""
+        """分層壓縮邏輯見 :mod:`agentsociety2.agent.context` 中 ``run_thread_compaction``。"""
 
         async def _run_compact_llm(msgs: list[dict[str, str]]):
             if self._llm_transient_retries > 0:
@@ -1490,11 +1490,11 @@ class PersonAgent(AgentBase):
         return r.messages
 
     def clear_session(self, keep_memory: bool = True) -> None:
-        """重置会话，类似 Claude Code 的 /clear。
+        """重置會話，類似 Claude Code 的 /clear。
 
-        :param keep_memory: 是否保留持久化记忆。
+        :param keep_memory: 是否保留持久化記憶。
         """
-        # 清空 thread 消息文件
+        # 清空 thread 訊息檔案
         if self._skill_runtime._agent_work_dir is not None:
             thread_file = (
                 self._skill_runtime._agent_work_dir
@@ -1513,10 +1513,10 @@ class PersonAgent(AgentBase):
             if compact_state.exists():
                 compact_state.unlink()
 
-        # 清空 workspace 缓存
+        # 清空 workspace 快取
         self._invalidate_all_workspace_cache()
 
-        # 重置状态
+        # 重置狀態
         self._activated_skills.clear()
         self._active_skill_scope = ""
         self._structured_summary = None
@@ -1529,19 +1529,19 @@ class PersonAgent(AgentBase):
         logger.info(f"Agent {self.id}: session cleared (keep_memory={keep_memory})")
 
     def handoff_to_memory(self) -> None:
-        """将当前状态写入持久化记忆，类似 Claude Code 的 session handoff。"""
+        """將當前狀態寫入持久化記憶，類似 Claude Code 的 session handoff。"""
         if not self._memory:
             return
 
-        # 更新当前任务
+        # 更新當前任務
         if self._structured_summary:
             self._memory.set_current_task(self._structured_summary.primary_goal)
 
-            # 记录已完成的动作
+            # 記錄已完成的動作
             for action in self._structured_summary.completed_actions:
                 self._memory.complete_task(action)
 
-            # 记录错误
+            # 記錄錯誤
             for error in self._structured_summary.errors_encountered:
                 self._memory.add_error(error)
 
@@ -1556,17 +1556,17 @@ class PersonAgent(AgentBase):
         t: datetime,
         thread_messages: list[dict[str, str]],
     ) -> dict[str, Any]:
-        """批量执行多个操作，减少 LLM 调用次数。
+        """批次執行多個操作，減少 LLM 呼叫次數。
 
-        :param operations: 操作列表，每个操作包含 tool_name 和 arguments。
-        :param tick: 当前 tick。
-        :param t: 当前时间。
-        :param thread_messages: thread 消息列表。
-        :return: 包含所有操作结果的字典。
+        :param operations: 操作列表，每個操作包含 tool_name 和 arguments。
+        :param tick: 當前 tick。
+        :param t: 當前時間。
+        :param thread_messages: thread 訊息列表。
+        :return: 包含所有操作結果的字典。
         """
         results: list[dict[str, Any]] = []
 
-        # 先做 policy 阻断 + 再并行化只读工具（workspace_write 仍顺序执行）
+        # 先做 policy 阻斷 + 再並行化只讀工具（workspace_write 仍順序執行）
         work_dir = str(self._skill_runtime.workspace_root())
 
         async def exec_one(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
@@ -1581,7 +1581,7 @@ class PersonAgent(AgentBase):
             if blocked is not None:
                 return {"tool_name": tool_name, **blocked}
 
-            # 复用当前 batch 内既有实现（仅覆盖只读工具；写入保持顺序）
+            # 複用當前 batch 內既有實現（僅覆蓋只讀工具；寫入保持順序）
             if tool_name == "workspace_read":
                 paths = args.get("paths", [])
                 if not paths:
@@ -1666,7 +1666,7 @@ class PersonAgent(AgentBase):
                     "patterns": grep_results,
                 }
 
-            # 其他工具不在 batch 内并行执行范围，保守返回不支持
+            # 其他工具不在 batch 內並行執行範圍，保守返回不支援
             return {
                 "tool_name": tool_name,
                 "ok": False,
@@ -1688,7 +1688,7 @@ class PersonAgent(AgentBase):
                 parallel_ops.append((tool_name, args))
 
         if parallel_ops:
-            # 并行执行只读工具
+            # 並行執行只讀工具
             outcomes = await self._parallel_executor.execute(
                 parallel_ops,
                 executor=lambda tname, a: exec_one(
@@ -1697,7 +1697,7 @@ class PersonAgent(AgentBase):
             )
             results.extend(outcomes)
 
-        # workspace_write：顺序执行（有副作用，且需要逐条 bump 版本/失效缓存）
+        # workspace_write：順序執行（有副作用，且需要逐條 bump 版本/失效快取）
         for op in sequential_writes:
             tool_name = op.get("tool_name", "")
             args = self._coerce_llm_dict(op.get("arguments", {}))
@@ -1759,11 +1759,11 @@ class PersonAgent(AgentBase):
         tick: int,
         t: datetime,
     ) -> tuple[list[str], list[dict[str, Any]]]:
-        """执行单个 step 的工具循环。
+        """執行單個 step 的工具迴圈。
 
-        :param tick: 当前仿真步的时间尺度（秒）。
-        :param t: 当前仿真时间。
-        :return: 元组 (logs, tool_history)。
+        :param tick: 當前模擬步的時間尺度（秒）。
+        :param t: 當前模擬時間。
+        :return: 元組 (logs, tool_history)。
         """
         logs: list[str] = []
         history: list[dict[str, Any]] = []
@@ -1787,14 +1787,14 @@ class PersonAgent(AgentBase):
             },
         )
 
-        # 每步重置循环检测器
+        # 每步重置迴圈檢測器
         self._loop_detector.reset()
 
         for i in range(self._max_tool_rounds):
-            # 全局节流：避免短时间内过度请求（LLM/子进程/IO）导致 429 或资源争用
+            # 全域性節流：避免短時間內過度請求（LLM/子程序/IO）導致 429 或資源爭用
             await self._rate_limiter.acquire()
 
-            # 滑动摘要：当 thread 过长时压缩旧消息
+            # 滑動摘要：當 thread 過長時壓縮舊訊息
             thread_messages = await self._compact_thread_if_needed(
                 thread_messages, tick, t
             )
@@ -1841,8 +1841,8 @@ class PersonAgent(AgentBase):
             self._current_tool_span_id = span_id
             self._current_tool_started_at = time.monotonic()
 
-            # ── tool_name 语义校验（避免 Pydantic 校验失败导致重试） ────────────────
-            # 允许模型犯错：把错误变成 TOOL_RESULT_JSON，给模型在同一步内纠正的机会。
+            # ── tool_name 語義校驗（避免 Pydantic 校驗失敗導致重試） ────────────────
+            # 允許模型犯錯：把錯誤變成 TOOL_RESULT_JSON，給模型在同一步內糾正的機會。
             if action not in VALID_TOOL_NAMES:
                 normalized = (
                     action.lower()
@@ -1852,14 +1852,14 @@ class PersonAgent(AgentBase):
                     .strip("_")
                 )
                 candidates = list(VALID_TOOL_NAMES)
-                # 1) 可确定的归一化命中：直接纠正并继续（不需要额外一轮）
+                # 1) 可確定的歸一化命中：直接糾正並繼續（不需要額外一輪）
                 if normalized in VALID_TOOL_NAMES:
                     logger.info(
                         f"Agent {self.id}: normalized tool_name '{action}' -> '{normalized}'"
                     )
                     action = normalized
                 else:
-                    # 2) done=true 但 tool_name 写错：直接结束本步，避免无谓循环
+                    # 2) done=true 但 tool_name 寫錯：直接結束本步，避免無謂迴圈
                     if bool(getattr(decision, "done", False)):
                         logs.append(f"done:{decision.summary or 'step_complete'}")
                         break
@@ -1884,7 +1884,7 @@ class PersonAgent(AgentBase):
                     logs.append(f"invalid_tool:{action}")
                     continue
 
-            # 发送行为追踪事件
+            # 傳送行為追蹤事件
             self._skill_runtime.emit_behavior_event(
                 "tool_call",
                 {
@@ -1903,7 +1903,7 @@ class PersonAgent(AgentBase):
                 },
             )
 
-            # ── 循环检测 ──
+            # ── 迴圈檢測 ──
             loop_result = self._loop_detector.check_tool_loop(action, args)
             if loop_result.is_loop:
                 logger.warning(
@@ -1911,7 +1911,7 @@ class PersonAgent(AgentBase):
                 )
                 logs.append(f"loop_detected:{loop_result.loop_type}")
 
-                # 尝试恢复：重置活跃技能范围，给模型一个干净的上下文
+                # 嘗試恢復：重置活躍技能範圍，給模型一個乾淨的上下文
                 if self._active_skill_scope:
                     prev_scope = self._active_skill_scope
                     self._active_skill_scope = ""
@@ -1920,7 +1920,7 @@ class PersonAgent(AgentBase):
                         f"Agent {self.id}: reset active_skill_scope from '{prev_scope}' to recover from loop"
                     )
 
-                # 构建详细的错误信息和恢复建议
+                # 構建詳細的錯誤資訊和恢復建議
                 error_parts = [f"Loop detected: {loop_result.details}"]
                 if loop_result.root_cause:
                     error_parts.append(f"Root cause: {loop_result.root_cause}")
@@ -1939,7 +1939,7 @@ class PersonAgent(AgentBase):
                 }
                 history.append(result_obj)
                 self._append_tool_result_to_thread(thread_messages, tick, t, result_obj)
-                # 不立即 break，给模型一次恢复机会，但记录循环次数
+                # 不立即 break，給模型一次恢復機會，但記錄迴圈次數
                 self._loop_consecutive_count = (
                     getattr(self, "_loop_consecutive_count", 0) + 1
                 )
@@ -1951,11 +1951,11 @@ class PersonAgent(AgentBase):
                     break
                 continue
             else:
-                # 重置连续循环计数
+                # 重置連續迴圈計數
                 self._loop_consecutive_count = 0
 
-            # 仅当显式选择 done 工具时立即结束。done=true 与具体工具并列时表示
-            # 「执行本工具后本仿真步结束」，不得在派发工具之前 break（否则工具不会执行）。
+            # 僅當顯式選擇 done 工具時立即結束。done=true 與具體工具並列時表示
+            # 「執行本工具後本模擬步結束」，不得在派發工具之前 break（否則工具不會執行）。
             if action == "done":
                 logs.append(f"done:{decision.summary or 'step_complete'}")
                 break
@@ -2139,7 +2139,7 @@ class PersonAgent(AgentBase):
                     self._active_skill_scope = skill_name
                     self._invalidate_prompt_cache()
                     self._persist_agent_config()
-                    # 发送 skill 激活事件
+                    # 傳送 skill 啟用事件
                     self._skill_runtime.emit_behavior_event(
                         "skill_activate",
                         {
@@ -2250,7 +2250,7 @@ class PersonAgent(AgentBase):
                 payload.setdefault("tick", tick)
                 payload.setdefault("time", t.isoformat())
 
-                # WAL: 记录执行意图
+                # WAL: 記錄執行意圖
                 intent_id = self._wal.log_intent(
                     action, {"skill_name": skill_name, "args": payload}, tick
                 )
@@ -2258,10 +2258,10 @@ class PersonAgent(AgentBase):
                 out = await self.execute(skill_name, payload)
                 ok = bool(out.get("ok"))
 
-                # WAL: 记录执行结果
+                # WAL: 記錄執行結果
                 self._wal.log_result(intent_id, out, success=ok)
 
-                # skill 执行可能修改多个文件：统一失效缓存并更新版本
+                # skill 執行可能修改多個檔案：統一失效快取並更新版本
                 self._invalidate_all_workspace_cache()
                 self._bump_workspace_state_version()
                 if ok:
@@ -2362,14 +2362,14 @@ class PersonAgent(AgentBase):
                 path = str(args.get("path", ""))
                 content = str(args.get("content", ""))
 
-                # WAL: 记录写入意图
+                # WAL: 記錄寫入意圖
                 intent_id = self._wal.log_intent(
                     action, {"path": path, "size": len(content)}, tick
                 )
 
                 try:
                     self._skill_runtime.workspace_write(path, content)
-                    # 失效缓存，确保下次读取时获取最新内容
+                    # 失效快取，確保下次讀取時獲取最新內容
                     self._invalidate_workspace_cache(path)
                     self._bump_workspace_state_version()
                     result_obj = {
@@ -2465,7 +2465,7 @@ class PersonAgent(AgentBase):
                 timeout_sec = int(args.get("timeout_sec", 20))
                 timeout_sec = max(1, min(120, timeout_sec))
 
-                # WAL: 记录 bash 执行意图
+                # WAL: 記錄 bash 執行意圖
                 intent_id = self._wal.log_intent(
                     action, {"command": command[:200]}, tick
                 )
@@ -2484,7 +2484,7 @@ class PersonAgent(AgentBase):
                     "stderr": trunc_str(be, self._ctx_config.stderr_max_chars),
                 }
 
-                # WAL: 记录执行结果
+                # WAL: 記錄執行結果
                 self._wal.log_result(intent_id, result_obj, success=ok)
 
                 history.append(result_obj)
@@ -2638,13 +2638,13 @@ class PersonAgent(AgentBase):
     # ── Public API ────────────────────────────────────────────────────────────
 
     async def execute(self, skill_name: str, args: dict[str, Any]) -> dict[str, Any]:
-        """执行技能（转发到 runtime/registry）。
+        """執行技能（轉發到 runtime/registry）。
 
-        :param skill_name: 技能名称。
-        :param args: 技能参数。
-        :returns: 执行结果字典。
+        :param skill_name: 技能名稱。
+        :param args: 技能引數。
+        :returns: 執行結果字典。
         """
-        # 为 executor: codegen 类型的技能提供回调
+        # 為 executor: codegen 型別的技能提供回撥
         return await self._skill_runtime.execute(
             skill_name=skill_name,
             args=args,
@@ -2652,10 +2652,10 @@ class PersonAgent(AgentBase):
         )
 
     async def _codegen_executor(self, args: dict[str, Any]) -> dict[str, Any]:
-        """执行 codegen 类型技能的回调。
+        """執行 codegen 型別技能的回撥。
 
-        :param args: 包含 instruction 和 ctx 的参数字典。
-        :returns: codegen 执行结果。
+        :param args: 包含 instruction 和 ctx 的引數字典。
+        :returns: codegen 執行結果。
         """
         instruction = args.get("instruction", "")
         ctx = self._coerce_llm_dict(args.get("ctx", {}))
@@ -2666,21 +2666,21 @@ class PersonAgent(AgentBase):
         )
 
     async def step(self, tick: int, t: datetime) -> str:
-        """执行一个仿真步并持久化会话状态与回放记录。
+        """執行一個模擬步並持久化會話狀態與回放記錄。
 
         流程：
-        1. 步数递增，重置技能作用域
-        2. 刷新可见技能列表
-        3. 构建上下文快照（预读取文件）
-        4. 执行工具循环（带超时保护）
-        5. 持久化会话状态和回放记录
+        1. 步數遞增，重置技能作用域
+        2. 重新整理可見技能列表
+        3. 構建上下文快照（預讀取檔案）
+        4. 執行工具迴圈（帶超時保護）
+        5. 持久化會話狀態和回放記錄
 
-        :param tick: 当前仿真步时间跨度（秒）。
-        :param t: 当前仿真时间。
-        :returns: 工具执行日志拼接字符串；如无操作返回 ``"no-action"``。
+        :param tick: 當前模擬步時間跨度（秒）。
+        :param t: 當前模擬時間。
+        :returns: 工具執行日誌拼接字串；如無操作返回 ``"no-action"``。
         """
         self._step_count += 1
-        # 每步重新进入自由工具选择，避免上一步 skill 的 allowed-tools 作用域跨步泄漏。
+        # 每步重新進入自由工具選擇，避免上一步 skill 的 allowed-tools 作用域跨步洩漏。
         self._active_skill_scope = ""
         self._refresh_selectable_skills()
         pc = self._merged_person_step_constraints()
@@ -2690,11 +2690,11 @@ class PersonAgent(AgentBase):
                 self._active_skill_scope = pin
         self._last_selected_skills = set(self._selectable_skill_names)
 
-        # 构建上下文快照：预读取常用文件，注入到 system prompt
+        # 構建上下文快照：預讀取常用檔案，注入到 system prompt
         self._build_step_context()
         self._prepare_prompt_sidecars()
 
-        # 执行工具循环，带超时保护
+        # 執行工具迴圈，帶超時保護
         step_timeout = self._config.loop.step_timeout
         try:
             async with asyncio.timeout(step_timeout):
@@ -2706,7 +2706,7 @@ class PersonAgent(AgentBase):
             logs = [f"step timeout after {step_timeout}s"]
             tool_history = []
 
-        # 使用 tool loop 结束后的最终技能状态
+        # 使用 tool loop 結束後的最終技能狀態
         self._build_step_context()
         self._skill_runtime.persist_session_state(
             tick=tick,
@@ -2736,16 +2736,16 @@ class PersonAgent(AgentBase):
             tool_history=tool_history,
         )
 
-        # 将当前状态写入持久化记忆
+        # 將當前狀態寫入持久化記憶
         self.handoff_to_memory()
 
-        # 自动同步状态和文件清单
+        # 自動同步狀態和檔案清單
         try:
             self._skill_runtime.refresh_workspace_documents()
         except Exception as e:
             logger.debug(f"Agent {self.id}: refresh_workspace_documents failed: {e}")
 
-        # 检查点保存
+        # 檢查點儲存
         if (
             self._checkpoint
             and tick % self._config.persistence.checkpoint_interval == 0
@@ -2774,12 +2774,12 @@ class PersonAgent(AgentBase):
         return " | ".join(logs)
 
     async def ask(self, message: str, readonly: bool = True) -> str:
-        """通过环境路由器问答（须已 :meth:`init`）。
+        """透過環境路由器問答（須已 :meth:`init`）。
 
-        :param message: 问题文本。
-        :param readonly: 是否只读（只读时应避免改变环境状态）。
-        :returns: 环境/系统返回的答案文本。
-        :raises RuntimeError: 未初始化环境时抛出。
+        :param message: 問題文字。
+        :param readonly: 是否只讀（只讀時應避免改變環境狀態）。
+        :returns: 環境/系統返回的答案文字。
+        :raises RuntimeError: 未初始化環境時丟擲。
         """
         if self._env is None:
             raise RuntimeError("PersonAgent.ask requires an initialized environment")
@@ -2787,7 +2787,7 @@ class PersonAgent(AgentBase):
         return answer
 
     async def dump(self) -> dict:
-        """导出最小运行状态快照（用于外部持久化/调试）。
+        """匯出最小執行狀態快照（用於外部持久化/除錯）。
 
         :returns: 可序列化字典。
         """
@@ -2800,9 +2800,9 @@ class PersonAgent(AgentBase):
         }
 
     async def load(self, dump_data: dict):
-        """从 :meth:`dump` 结果恢复轻量运行状态。
+        """從 :meth:`dump` 結果恢復輕量執行狀態。
 
-        :param dump_data: dump 数据。
+        :param dump_data: dump 資料。
         """
         self._step_count = int(dump_data.get("step_count", 0))
         self._last_selected_skills = set(dump_data.get("last_selected_skills", []))

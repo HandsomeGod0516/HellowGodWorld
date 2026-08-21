@@ -19,33 +19,33 @@ logger = logging.getLogger(__name__)
 _CHUNK_CONTEXT_SLACK = 1100
 
 _CHUNK_PARTIAL_PROMPT = """\
-你是企业 SOP 结构化分析专家。以下为完整 SOP 文档的第 {chunk_index}/{chunk_total} 段（section_id={section_id}）。
-正文仍以本段为准，但你还会看到少量前后文提示，用于理解代词、省略项、前置条件和“见上一节/下文”的依赖关系。不要编造正文中不存在的规则；只能用前后文来补全本段中已经显式出现但脱离上下文就难以理解的信息。
+你是企業 SOP 結構化分析專家。以下為完整 SOP 文件的第 {chunk_index}/{chunk_total} 段（section_id={section_id}）。
+正文仍以本段為準，但你還會看到少量前後文提示，用於理解代詞、省略項、前置條件和“見上一節/下文”的依賴關係。不要編造正文中不存在的規則；只能用前後文來補全本段中已經顯式出現但脫離上下文就難以理解的資訊。
 
-## 关于 steps 与 knowledge_items 的区分
+## 關於 steps 與 knowledge_items 的區分
 
-- `steps`：只放**按时间顺序执行的具体操作动作**（某人/系统在某时间做的事）。
-- `knowledge_items`：放**规则、标准、阈值、条件、处罚、速查参数**等非流程性参考知识。每条必须自包含，保留原文中的具体数字/金额/比例。
-- `sections`：本段中可见的章节/小节标题和编号。
+- `steps`：只放**按時間順序執行的具體操作動作**（某人/系統在某時間做的事）。
+- `knowledge_items`：放**規則、標準、閾值、條件、處罰、速查引數**等非流程性參考知識。每條必須自包含，保留原文中的具體數字/金額/比例。
+- `sections`：本段中可見的章節/小節標題和編號。
 
-如果不确定某内容是 step 还是 knowledge_item，优先放 knowledge_items。
+如果不確定某內容是 step 還是 knowledge_item，優先放 knowledge_items。
 
-## 邻近上下文提示（仅用于补足依赖关系）
+## 鄰近上下文提示（僅用於補足依賴關係）
 
 ### 前文提示
 {prev_context}
 
-### 当前段标题
+### 當前段標題
 {current_heading}
 
-### 后文提示
+### 後文提示
 {next_context}
 
 ## 本段原文
 
 {chunk_text}
 
-## 输出 JSON（仅本段可见内容）
+## 輸出 JSON（僅本段可見內容）
 
 ```json
 {{
@@ -65,13 +65,13 @@ _CHUNK_PARTIAL_PROMPT = """\
     }}
   ],
   "knowledge_items": [
-    "自包含的规则/标准/阈值语句"
+    "自包含的規則/標準/閾值語句"
   ],
   "sections": [
     {{
       "id": "2.1",
-      "title": "章节标题",
-      "content_summary": "一句话概述"
+      "title": "章節標題",
+      "content_summary": "一句話概述"
     }}
   ],
   "decision_points": [],
@@ -81,15 +81,15 @@ _CHUNK_PARTIAL_PROMPT = """\
 ```
 
 要求：
-- **step_number 与 sections[].id 必须是 JSON 字符串（双引号）**，例如 `"1.1"`、`"2.3.1"`。禁止写未加引号的 `1.1.1`（非法 JSON，会导致整段无法解析）。
-- steps 中的 step_number 尽量与原文中的步骤编号一致（全局编号）。
-- 若本段只有某步骤的续行而没有编号，可省略该步或合并到 notes。
-- knowledge_items 中保留原文的具体数字、金额、比例、时间限制。宁多勿少。
-- 若正文中的规则依赖前文定义的主体、标准、适用范围、例外条件，请把补全后的条件写成自包含的 knowledge_item，或写入对应 step 的 notes。
-- 若正文存在“在上述情况下”“按前述标准”“同前审批路径”之类表达，请结合邻近上下文改写成完整含义。
-- 附加字段: "section_id": {section_id}
+- **step_number 與 sections[].id 必須是 JSON 字串（雙引號）**，例如 `"1.1"`、`"2.3.1"`。禁止寫未加引號的 `1.1.1`（非法 JSON，會導致整段無法解析）。
+- steps 中的 step_number 儘量與原文中的步驟編號一致（全域性編號）。
+- 若本段只有某步驟的續行而沒有編號，可省略該步或合併到 notes。
+- knowledge_items 中保留原文的具體數字、金額、比例、時間限制。寧多勿少。
+- 若正文中的規則依賴前文定義的主體、標準、適用範圍、例外條件，請把補全後的條件寫成自包含的 knowledge_item，或寫入對應 step 的 notes。
+- 若正文存在“在上述情況下”“按前述標準”“同前審批路徑”之類表達，請結合鄰近上下文改寫成完整含義。
+- 附加欄位: "section_id": {section_id}
 
-只输出 JSON。"""
+只輸出 JSON。"""
 
 
 def _chunk_prompt_overhead() -> int:
@@ -168,34 +168,34 @@ def _enrich_chunks(chunk_texts: list[str]) -> list[dict[str, Any]]:
 
 
 _RECONCILE_PROMPT = """\
-以下 JSON 是由多段 SOP 文本分别抽取后合并的初稿，可能存在：
-- 重复步骤或顺序错乱
-- 重复的 knowledge_items（同一规则在不同段被提取）
-- 章节 sections 的编号冲突
+以下 JSON 是由多段 SOP 文字分別抽取後合併的初稿，可能存在：
+- 重複步驟或順序錯亂
+- 重複的 knowledge_items（同一規則在不同段被提取）
+- 章節 sections 的編號衝突
 
-请输出**一份**整理后的 JSON：
-1. 合并重复的 steps，修正顺序和编号
-2. 合并重复的 knowledge_items（含义相同的只保留更完整的那条）
-3. 合并 sections（同 id 只保留更完整的 content_summary）
-4. 保留所有不重复的决策点/异常/引用
-5. 确定最终的 sop_type（procedural / knowledge / hybrid）
-6. 如果后文规则依赖前文定义的适用范围、审批条件、标准或前置动作，请把这种依赖补成自包含表述，不要留下“上述情况”“按前述规则”这类孤立措辞
-7. 不要丢失长文档后半段的规则；如果发现 merged 初稿中信息不足，可依据分块摘要恢复更完整的标题、范围、决策与异常
+請輸出**一份**整理後的 JSON：
+1. 合併重複的 steps，修正順序和編號
+2. 合併重複的 knowledge_items（含義相同的只保留更完整的那條）
+3. 合併 sections（同 id 只保留更完整的 content_summary）
+4. 保留所有不重複的決策點/異常/引用
+5. 確定最終的 sop_type（procedural / knowledge / hybrid）
+6. 如果後文規則依賴前文定義的適用範圍、審批條件、標準或前置動作，請把這種依賴補成自包含表述，不要留下“上述情況”“按前述規則”這類孤立措辭
+7. 不要丟失長文件後半段的規則；如果發現 merged 初稿中資訊不足，可依據分塊摘要恢復更完整的標題、範圍、決策與異常
 
-合并稿:
+合併稿:
 {merged_json}
 
-输出格式与标准 SOP 抽取相同（不要 section_id），只输出 JSON。"""
+輸出格式與標準 SOP 抽取相同（不要 section_id），只輸出 JSON。"""
 
 
 def _context_snippet(text: str, *, from_end: bool, max_chars: int = 400, max_lines: int = 6) -> str:
     if not text.strip():
-        return "无"
+        return "無"
     normalized = text.strip()
     snippet = normalized[-max_chars:] if from_end else normalized[:max_chars]
     lines = [line.strip() for line in snippet.splitlines() if line.strip()]
     if not lines:
-        return "无"
+        return "無"
     if from_end:
         lines = lines[-max_lines:]
     else:
@@ -209,7 +209,7 @@ def _heading_for_chunk(text: str) -> str:
         if not line:
             continue
         return line[:120]
-    return "无"
+    return "無"
 
 
 def split_semantic_chunks(
@@ -224,8 +224,8 @@ def split_semantic_chunks(
                 "section_id": 0,
                 "chunk_text": text,
                 "current_heading": _heading_for_chunk(text),
-                "prev_context": "无",
-                "next_context": "无",
+                "prev_context": "無",
+                "next_context": "無",
             }
         ]
     text = text.strip()
@@ -235,8 +235,8 @@ def split_semantic_chunks(
                 "section_id": 0,
                 "chunk_text": text,
                 "current_heading": _heading_for_chunk(text),
-                "prev_context": "无",
-                "next_context": "无",
+                "prev_context": "無",
+                "next_context": "無",
             }
         ]
 

@@ -169,7 +169,7 @@ class _CronToolsCronBackend(CronToolBackend):
         return {"queued": True}
 
     async def ensure_scheduler_started(self) -> None:
-        """确保scheduler已启动，如果未启动则异步启动"""
+        """確保scheduler已啟動，如果未啟動則非同步啟動"""
         await self._cron_tools.ensure_scheduler()
 
     @staticmethod
@@ -359,7 +359,7 @@ class CronRuntimeBridge:
         return backend
 
     def ensure_scheduler_started(self) -> None:
-        """确保scheduler已启动，如果未启动则异步启动"""
+        """確保scheduler已啟動，如果未啟動則非同步啟動"""
         backend = self.get_backend()
         if backend is None:
             return

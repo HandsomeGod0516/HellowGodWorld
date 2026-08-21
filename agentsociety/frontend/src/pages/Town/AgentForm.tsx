@@ -27,6 +27,7 @@ export type AgentFormValues = {
     api_key?: string;
     temperature: number;
     decision_interval_s: number;
+    behavior_hint: string;
 };
 
 const DEFAULT_BASE_URL: Record<Provider, string> = {
@@ -52,6 +53,7 @@ const initialValues = (
         api_key: undefined,
         temperature: agent?.llm.temperature ?? 0.8,
         decision_interval_s: agent?.decision_interval_s ?? 8,
+        behavior_hint: agent?.behavior_hint ?? defaults?.behavior_hint ?? '',
     };
 };
 
@@ -66,7 +68,7 @@ type Props = {
     onSubmit: (values: AgentFormValues) => void;
 };
 
-/** 新增/编辑一个小人。提交前可以先按「测试连接」确认端点通。 */
+/** 新增/編輯一個小人。提交前可以先按「測試連線」確認端點通。 */
 const AgentForm = ({ open, agent, rooms, sprites, defaults, submitting, onCancel, onSubmit }: Props) => {
     const { t } = useTranslation();
     const [form] = Form.useForm<AgentFormValues>();
@@ -112,9 +114,10 @@ const AgentForm = ({ open, agent, rooms, sprites, defaults, submitting, onCancel
             }}
             onOk={() => form.submit()}
             width={620}
-            destroyOnClose
+            destroyOnHidden
         >
             <Form
+                key={agent?.id ?? 'create'}
                 form={form}
                 layout="vertical"
                 preserve={false}
@@ -146,6 +149,14 @@ const AgentForm = ({ open, agent, rooms, sprites, defaults, submitting, onCancel
 
                 <Form.Item name="persona" label={t('town.form.persona')}>
                     <Input.TextArea rows={3} placeholder={t('town.form.personaPlaceholder')} />
+                </Form.Item>
+
+                <Form.Item
+                    name="behavior_hint"
+                    label={t('town.form.behaviorHint')}
+                    extra={t('town.form.behaviorHintHelp')}
+                >
+                    <Input.TextArea rows={2} placeholder={t('town.form.behaviorHintPlaceholder')} />
                 </Form.Item>
 
                 <Space size="middle" style={{ display: 'flex' }}>

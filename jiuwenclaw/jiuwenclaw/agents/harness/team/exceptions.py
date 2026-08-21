@@ -1,48 +1,48 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Team 异常定义.
+"""Team 異常定義.
 
-定义 Team 模块中使用的各种异常类型.
+定義 Team 模組中使用的各種異常型別.
 """
 
 from __future__ import annotations
 
 
 class TeamError(Exception):
-    """Team 基础异常类."""
+    """Team 基礎異常類."""
     pass
 
 
 class TeamCreateError(TeamError):
-    """Team 创建失败."""
+    """Team 建立失敗."""
     pass
 
 
 class TeamRecoverError(TeamError):
-    """Team 恢复失败."""
+    """Team 恢復失敗."""
     pass
 
 
 class TeamInteractError(TeamError):
-    """Team 交互失败."""
+    """Team 互動失敗."""
     pass
 
 
 class TeamConfigError(TeamError):
-    """Team 配置错误."""
+    """Team 配置錯誤."""
     pass
 
 
 class TeamMonitorError(TeamError):
-    """Team Monitor 错误."""
+    """Team Monitor 錯誤."""
     pass
 
 
 class TeamSessionError(TeamError):
-    """Team 会话错误."""
+    """Team 會話錯誤."""
     pass
 
 
 class TeamStorageError(TeamError):
-    """Team 存储错误."""
+    """Team 儲存錯誤."""
     pass

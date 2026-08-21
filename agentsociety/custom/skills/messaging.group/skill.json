@@ -23,7 +23,7 @@
   ],
   "status": "messaging_group",
   "emotion": "clear",
-  "speech": "我把这件事简短同步到群里，方便大家配合。",
+  "speech": "我把這件事簡短同步到群裡，方便大家配合。",
   "memory_template": "Used messaging.group: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

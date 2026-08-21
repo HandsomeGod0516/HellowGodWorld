@@ -47,7 +47,7 @@ tui.setClearOnShrink(true);
 let closed = false;
 let screen: AppScreen | null = null;
 
-/** 退出 CLI 前先向服务端发 `chat.interrupt`，结束当前会话中正在运行的 agent 任务（已连接时；idle 时多为 no-op）。 */
+/** 退出 CLI 前先向服務端發 `chat.interrupt`，結束當前會話中正在執行的 agent 任務（已連線時；idle 時多為 no-op）。 */
 async function cancelBeforeExit(): Promise<void> {
   if (appState.getSnapshot().connectionStatus !== "connected") {
     return;
@@ -104,7 +104,7 @@ tui.setFocus(screen);
 process.on("SIGTERM", () => {
   void closeUi(0);
 });
-// 双击 Ctrl+C 退出：第一次中断当前任务，1 秒内再按一次退出进程。
+// 雙擊 Ctrl+C 退出：第一次中斷當前任務，1 秒內再按一次退出程序。
 let lastInterruptTime = 0;
 process.on("SIGINT", () => {
   const now = Date.now();

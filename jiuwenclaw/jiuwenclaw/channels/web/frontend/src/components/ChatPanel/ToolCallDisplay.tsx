@@ -1,7 +1,7 @@
 /**
- * ToolCallDisplay 组件
+ * ToolCallDisplay 元件
  *
- * 工具调用和结果显示
+ * 工具呼叫和結果顯示
  */
 
 import { useState } from 'react';
@@ -20,13 +20,13 @@ export function ToolCallDisplay({ toolCall, toolResult }: ToolCallDisplayProps) 
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (toolCall) {
-    // session 类型：仅显示 会话任务：【description】，不显示 "session" 名称
+    // session 型別：僅顯示 會話任務：【description】，不顯示 "session" 名稱
     const isSession = toolCall.name === 'session';
     const displayTitle = isSession
-      ? (toolCall.formatted_args || '会话任务已完成')
+      ? (toolCall.formatted_args || '會話任務已完成')
       : (toolCall.description ? `${toolCall.name}: ${toolCall.description}` : toolCall.name);
 
-    // 使用格式化的参数摘要（session 类型时 subtitle 已融入 title，不再重复显示）
+    // 使用格式化的引數摘要（session 型別時 subtitle 已融入 title，不再重複顯示）
     const displaySubtitle = isSession ? '' : (toolCall.formatted_args || '');
 
     return (
@@ -64,7 +64,7 @@ export function ToolCallDisplay({ toolCall, toolResult }: ToolCallDisplayProps) 
   }
 
   if (toolResult) {
-    // 使用格式化的摘要或默认显示（session 类型优先用 summary，避免出现 "session 完成"）
+    // 使用格式化的摘要或預設顯示（session 型別優先用 summary，避免出現 "session 完成"）
     const displaySummary = toolResult.summary
       ? toolResult.summary
       : (toolResult.toolName === 'session'

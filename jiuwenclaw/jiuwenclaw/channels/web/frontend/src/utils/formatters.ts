@@ -1,10 +1,10 @@
 /**
- * 格式化工具函数
+ * 格式化工具函式
  */
 import i18n from '../i18n';
 
 /**
- * 格式化时间戳
+ * 格式化時間戳
  */
 export function formatTimestamp(timestamp: string): string {
   const date = new Date(timestamp);
@@ -28,7 +28,7 @@ export function formatDate(timestamp: string): string {
 }
 
 /**
- * 格式化相对时间
+ * 格式化相對時間
  */
 export function formatRelativeTime(timestamp: string): string {
   const date = new Date(timestamp);
@@ -47,7 +47,7 @@ export function formatRelativeTime(timestamp: string): string {
 }
 
 /**
- * 截断文本
+ * 截斷文字
  */
 export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
@@ -55,7 +55,7 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 /**
- * 格式化工具参数
+ * 格式化工具引數
  */
 export function formatToolArguments(args: Record<string, unknown>): string {
   try {
@@ -66,7 +66,7 @@ export function formatToolArguments(args: Record<string, unknown>): string {
 }
 
 /**
- * 格式化工具结果（截断长结果）
+ * 格式化工具結果（截斷長結果）
  */
 export function formatToolResult(result: string, maxLength = 60000): string {
   if (result.length <= maxLength) return result;

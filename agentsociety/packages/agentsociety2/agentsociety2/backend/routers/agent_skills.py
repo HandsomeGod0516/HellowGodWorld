@@ -1,24 +1,24 @@
 """
 Agent Skills API 路由
 
-提供 agent skill 的列表、启用/禁用、扫描自定义 skill、导入/创建/上传 skill 的 API 端点。
+提供 agent skill 的列表、啟用/禁用、掃描自定義 skill、匯入/建立/上傳 skill 的 API 端點。
 
-关联文件：
-- @packages/agentsociety2/agentsociety2/agent/skills/__init__.py - Skill 注册表
-- @extension/src/apiClient.ts - VSCode 扩展 API 客户端
-- @frontend/src/pages/Skills/index.tsx - Web 前端 Skill 管理页
+關聯檔案：
+- @packages/agentsociety2/agentsociety2/agent/skills/__init__.py - Skill 登錄檔
+- @extension/src/apiClient.ts - VSCode 擴充套件 API 客戶端
+- @frontend/src/pages/Skills/index.tsx - Web 前端 Skill 管理頁
 
-API 端点：
+API 端點：
 - GET  /api/v1/agent-skills/list       — 列出所有 agent skill
-- POST /api/v1/agent-skills/enable     — 启用指定 skill
+- POST /api/v1/agent-skills/enable     — 啟用指定 skill
 - POST /api/v1/agent-skills/disable    — 禁用指定 skill
-- POST /api/v1/agent-skills/scan       — 扫描 workspace/custom/skills/ 下的自定义 skill
-- POST /api/v1/agent-skills/import     — 从路径导入 skill 目录
-- POST /api/v1/agent-skills/create     — 在线创建新 skill（SKILL.md + 可选脚本）
-- POST /api/v1/agent-skills/upload     — 上传 zip 包导入 skill
-- POST /api/v1/agent-skills/reload     — 热重载指定 skill
-- GET  /api/v1/agent-skills/{name}/info — 获取 SKILL.md 内容
-- POST /api/v1/agent-skills/remove     — 移除自定义 skill
+- POST /api/v1/agent-skills/scan       — 掃描 workspace/custom/skills/ 下的自定義 skill
+- POST /api/v1/agent-skills/import     — 從路徑匯入 skill 目錄
+- POST /api/v1/agent-skills/create     — 線上建立新 skill（SKILL.md + 可選指令碼）
+- POST /api/v1/agent-skills/upload     — 上傳 zip 包匯入 skill
+- POST /api/v1/agent-skills/reload     — 熱過載指定 skill
+- GET  /api/v1/agent-skills/{name}/info — 獲取 SKILL.md 內容
+- POST /api/v1/agent-skills/remove     — 移除自定義 skill
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ logger = get_logger()
 router = APIRouter(prefix="/api/v1/agent-skills", tags=["agent-skills"])
 
 
-# ── 请求/响应模型 ──
+# ── 請求/響應模型 ──
 
 
 class SkillItem(BaseModel):
@@ -68,11 +68,11 @@ class ListResponse(BaseModel):
 
 
 class NameRequest(BaseModel):
-    name: str = Field(..., description="skill 名称")
+    name: str = Field(..., description="skill 名稱")
 
 
 class ScanRequest(BaseModel):
-    workspace_path: str | None = Field(None, description="工作区路径")
+    workspace_path: str | None = Field(None, description="工作區路徑")
 
 
 class ScanResponse(BaseModel):
@@ -83,8 +83,8 @@ class ScanResponse(BaseModel):
 
 
 class ImportRequest(BaseModel):
-    source_path: str = Field(..., description="skill 目录的绝对路径")
-    workspace_path: str | None = Field(None, description="工作区路径")
+    source_path: str = Field(..., description="skill 目錄的絕對路徑")
+    workspace_path: str | None = Field(None, description="工作區路徑")
 
 
 class ImportResponse(BaseModel):
@@ -94,15 +94,15 @@ class ImportResponse(BaseModel):
 
 
 class CreateRequest(BaseModel):
-    name: str = Field(..., description="skill 名称（也作为目录名）")
+    name: str = Field(..., description="skill 名稱（也作為目錄名）")
     description: str = Field("", description="skill 描述")
-    requires: list[str] = Field(default_factory=list, description="依赖的其他 skill")
-    script: str = Field("", description="subprocess 脚本相对路径（留空则为 prompt-only）")
-    effects: list[str] = Field(default_factory=list, description="允许该 skill 返回的 effect 类型")
-    shared: bool = Field(False, description="是否可作为所有 agent 共享 skill")
-    body: str = Field("", description="SKILL.md 正文（frontmatter 之后的内容）")
-    script_content: str = Field("", description="脚本文件内容（当 script 非空时使用）")
-    workspace_path: str | None = Field(None, description="工作区路径")
+    requires: list[str] = Field(default_factory=list, description="依賴的其他 skill")
+    script: str = Field("", description="subprocess 指令碼相對路徑（留空則為 prompt-only）")
+    effects: list[str] = Field(default_factory=list, description="允許該 skill 返回的 effect 型別")
+    shared: bool = Field(False, description="是否可作為所有 agent 共享 skill")
+    body: str = Field("", description="SKILL.md 正文（frontmatter 之後的內容）")
+    script_content: str = Field("", description="指令碼檔案內容（當 script 非空時使用）")
+    workspace_path: str | None = Field(None, description="工作區路徑")
 
 
 class SimpleResponse(BaseModel):
@@ -110,12 +110,12 @@ class SimpleResponse(BaseModel):
     message: str
 
 
-# ── API 端点 ──
+# ── API 端點 ──
 
 
 @router.get("/list", response_model=ListResponse)
 async def list_skills():
-    """列出所有已发现的 Agent Skill（builtin + custom + env）。"""
+    """列出所有已發現的 Agent Skill（builtin + custom + env）。"""
     from pathlib import Path as PathLib
 
     reg = get_skill_registry()
@@ -146,7 +146,7 @@ async def list_skills():
 
 @router.post("/enable", response_model=SimpleResponse)
 async def enable_skill(req: NameRequest):
-    """启用指定的 Agent Skill。"""
+    """啟用指定的 Agent Skill。"""
     reg = get_skill_registry()
     if reg.enable(req.name):
         logger.info(f"[Skills] Enabled: {req.name}")
@@ -166,7 +166,7 @@ async def disable_skill(req: NameRequest):
 
 @router.post("/scan", response_model=ScanResponse)
 async def scan_custom_skills(req: ScanRequest):
-    """扫描工作区的自定义 Agent Skill（{workspace}/custom/skills/）。"""
+    """掃描工作區的自定義 Agent Skill（{workspace}/custom/skills/）。"""
     workspace = _resolve_workspace_path(req.workspace_path)
     if not workspace:
         raise HTTPException(
@@ -180,13 +180,13 @@ async def scan_custom_skills(req: ScanRequest):
         success=True,
         new_skills=new_names,
         total=len([skill for skill in reg.list_all() if _is_visible_runtime_skill(skill)]),
-        message=f"发现 {len(new_names)} 个新 skill" if new_names else "未发现新 skill",
+        message=f"發現 {len(new_names)} 個新 skill" if new_names else "未發現新 skill",
     )
 
 
 @router.post("/import", response_model=ImportResponse)
 async def import_skill(req: ImportRequest):
-    """从外部路径导入 Agent Skill（复制到 custom/skills/）。"""
+    """從外部路徑匯入 Agent Skill（複製到 custom/skills/）。"""
     source = Path(req.source_path)
     if not source.is_dir():
         raise HTTPException(400, f"Source path is not a directory: {source}")
@@ -221,9 +221,9 @@ async def import_skill(req: ImportRequest):
 
 @router.post("/create", response_model=ImportResponse)
 async def create_skill(req: CreateRequest):
-    """在线创建新的自定义 Skill。
+    """線上建立新的自定義 Skill。
 
-    在 custom/skills/{name}/ 下生成 SKILL.md（+ 可选脚本文件）。
+    在 custom/skills/{name}/ 下生成 SKILL.md（+ 可選指令碼檔案）。
     """
     workspace = _resolve_workspace_path(req.workspace_path)
     if not workspace:
@@ -238,7 +238,7 @@ async def create_skill(req: CreateRequest):
         raise HTTPException(400, f"Skill '{safe_name}' already exists. Remove it first or use a different name.")
     dest.mkdir(parents=True, exist_ok=True)
 
-    # 生成 SKILL.md + skill.json。前端创建的 skill 也必须是可执行结构。
+    # 生成 SKILL.md + skill.json。前端建立的 skill 也必須是可執行結構。
     frontmatter_lines = ["---", f"name: {safe_name}", f"description: {req.description}"]
     script = req.script.strip() or "scripts/run_skill.py"
     frontmatter_lines.append(f"script: {script}")
@@ -274,7 +274,7 @@ async def create_skill(req: CreateRequest):
         encoding="utf-8",
     )
 
-    # 写脚本文件
+    # 寫指令碼檔案
     if req.script_content:
         script_path = dest / script
         script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -294,12 +294,12 @@ async def create_skill(req: CreateRequest):
 
 @router.post("/upload", response_model=ImportResponse)
 async def upload_skill(
-    file: UploadFile = File(..., description="skill 目录的 zip 包"),
+    file: UploadFile = File(..., description="skill 目錄的 zip 包"),
     workspace_path: str | None = None,
 ):
-    """上传 zip 包导入 Skill。
+    """上傳 zip 包匯入 Skill。
 
-    zip 包应包含一个顶层目录，内含 SKILL.md。
+    zip 包應包含一個頂層目錄，內含 SKILL.md。
     """
     workspace = _resolve_workspace_path(workspace_path)
     if not workspace:
@@ -311,7 +311,7 @@ async def upload_skill(
     except zipfile.BadZipFile:
         raise HTTPException(400, "Invalid zip file")
 
-    # 找到顶层目录名
+    # 找到頂層目錄名
     top_dirs = {n.split("/")[0] for n in zf.namelist() if "/" in n}
     if len(top_dirs) != 1:
         raise HTTPException(400, "Zip should contain exactly one top-level directory")
@@ -344,7 +344,7 @@ async def upload_skill(
 
 @router.post("/reload", response_model=SimpleResponse)
 async def reload_skill(req: NameRequest):
-    """热重载指定 Skill 的 SKILL.md 元数据。"""
+    """熱過載指定 Skill 的 SKILL.md 後設資料。"""
     reg = get_skill_registry()
     if reg.reload_skill(req.name):
         logger.info(f"[Skills] Reloaded: {req.name}")
@@ -354,7 +354,7 @@ async def reload_skill(req: NameRequest):
 
 @router.get("/{name}/info")
 async def get_skill_info(name: str) -> dict[str, Any]:
-    """获取 Skill 的详细信息（含 SKILL.md 内容）。"""
+    """獲取 Skill 的詳細資訊（含 SKILL.md 內容）。"""
     reg = get_skill_registry()
     info = reg.get_skill_info(name)
 
@@ -381,7 +381,7 @@ async def get_skill_info(name: str) -> dict[str, Any]:
 
 @router.post("/remove", response_model=SimpleResponse)
 async def remove_custom_skill(req: NameRequest):
-    """移除自定义 Skill（删除目录 + 注册表记录）。仅限 source=custom。"""
+    """移除自定義 Skill（刪除目錄 + 登錄檔記錄）。僅限 source=custom。"""
     reg = get_skill_registry()
     info_dict = {s.name: s for s in reg.list_all()}
     info = info_dict.get(req.name)
@@ -400,18 +400,18 @@ async def remove_custom_skill(req: NameRequest):
     return SimpleResponse(success=True, message=f"Custom skill '{req.name}' removed")
 
 
-# ── 辅助函数 ──
+# ── 輔助函式 ──
 
 
 def _ensure_custom_scanned(reg) -> None:
-    """确保 custom skills 已扫描"""
+    """確保 custom skills 已掃描"""
     workspace = _resolve_workspace_path()
     if workspace:
         reg.scan_custom(workspace)
 
 
 def _ensure_env_skills_scanned(reg) -> None:
-    """扫描已注册环境模块附带的 agent skill 到全局 registry。"""
+    """掃描已註冊環境模組附帶的 agent skill 到全域性 registry。"""
     from agentsociety2.registry import get_registered_env_modules
     for _module_type, env_class in get_registered_env_modules():
         for skills_dir in env_class.get_agent_skills_dirs():
@@ -482,7 +482,7 @@ def _default_skill_spec(
         "target_interactions": ["take_walk", "chat_over_coffee", "relax_at_home"],
         "status": "active",
         "emotion": "calm",
-        "speech": "我会根据当前场景执行这个能力。",
+        "speech": "我會根據當前場景執行這個能力。",
         "memory_template": f"Used {name}: {{summary}} at {{location_id}}.",
         "failure_strategy": "set_state",
         "strategy": "configured_action",

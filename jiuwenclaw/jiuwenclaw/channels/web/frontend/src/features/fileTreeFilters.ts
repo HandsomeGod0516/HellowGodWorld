@@ -1,4 +1,4 @@
-// 目录过滤名单：按需手动追加。
+// 目錄過濾名單：按需手動追加。
 export const IGNORED_DIRECTORY_NAMES = [
   '__pycache__',
   '.vscode',

@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""E2A server_push 线编码：WebSocket 与 HTTP SSE 下行共用同一 wire 形状。"""
+"""E2A server_push 線編碼：WebSocket 與 HTTP SSE 下行共用同一 wire 形狀。"""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ _CONVERTER = "jiuwenclaw.server.gateway_push.wire:build_server_push_wire"
 
 
 def build_server_push_wire(msg: dict[str, Any]) -> dict[str, Any]:
-    """将 send_push 入参编码为与 WebSocket 单帧一致的 E2A 响应线 dict。"""
+    """將 send_push 入參編碼為與 WebSocket 單幀一致的 E2A 響應線 dict。"""
     response_kind = str(msg.get("response_kind") or "").strip()
     if response_kind:
         wire = E2AResponse(

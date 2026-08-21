@@ -151,19 +151,19 @@ class MemoryIndexManager:
     def _resolve_db_path(self) -> str:
         """Resolve database path.
 
-        确保向量数据库索引文件存放在与 MEMORY.md 同目录 (workspace_dir/memory/)
+        確保向量資料庫索引檔案存放在與 MEMORY.md 同目錄 (workspace_dir/memory/)
         """
         store_path = self.settings.store.get("path", "memory.db")
         if os.path.isabs(store_path):
             return store_path
 
-        # 如果 store_path 已经包含 workspace_dir 的部分路径，避免重复拼接
+        # 如果 store_path 已經包含 workspace_dir 的部分路徑，避免重複拼接
         workspace_name = os.path.basename(self.workspace_dir)
         if store_path.startswith(f"{workspace_name}/") or store_path.startswith(f"{workspace_name}\\"):
-            # 去除重复的 workspace 目录前缀
+            # 去除重複的 workspace 目錄字首
             store_path = store_path[len(workspace_name) + 1:]
 
-        # 确保使用 memory 子目录，与 MEMORY.md 同目录
+        # 確保使用 memory 子目錄，與 MEMORY.md 同目錄
         if not store_path.startswith("memory/") and not store_path.startswith("memory\\"):
             store_path = os.path.join("memory", store_path)
 
@@ -1210,7 +1210,7 @@ class MemoryIndexManager:
 
 
 def clear_memory_manager_cache() -> None:
-    """清除 memory manager 缓存，使下次 get_memory_manager 使用最新配置（如 embed_api_base 等）创建新实例。"""
+    """清除 memory manager 快取，使下次 get_memory_manager 使用最新配置（如 embed_api_base 等）建立新例項。"""
     INDEX_CACHE.clear()
 
 

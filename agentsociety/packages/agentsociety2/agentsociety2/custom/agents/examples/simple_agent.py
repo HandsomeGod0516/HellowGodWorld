@@ -1,12 +1,12 @@
 """
-简单 Agent 示例
+簡單 Agent 示例
 
-这是一个基础的 Agent 示例，展示如何创建自定义 Agent。
+這是一個基礎的 Agent 示例，展示如何建立自定義 Agent。
 
-创建完成后：
-1. 将文件复制到 custom/agents/ 目录（不要放在 examples/ 中）
-2. 运行 VSCode 命令 "扫描自定义模块"
-3. 运行 VSCode 命令 "测试自定义模块" 验证
+建立完成後：
+1. 將檔案複製到 custom/agents/ 目錄（不要放在 examples/ 中）
+2. 執行 VSCode 命令 "掃描自定義模組"
+3. 執行 VSCode 命令 "測試自定義模組" 驗證
 """
 
 from agentsociety2.agent.base import AgentBase
@@ -15,33 +15,33 @@ from datetime import datetime
 
 class SimpleAgent(AgentBase):
     """
-    简单的 LLM 驱动 Agent
+    簡單的 LLM 驅動 Agent
 
-    这是一个用于演示的简单 Agent，展示基本的 Agent 功能。
+    這是一個用於演示的簡單 Agent，展示基本的 Agent 功能。
     """
 
     @classmethod
     def mcp_description(cls) -> str:
         """
-        返回 Agent 的描述信息
+        返回 Agent 的描述資訊
 
-        这个描述会显示在模块列表中。
+        這個描述會顯示在模組列表中。
         """
-        return """SimpleAgent: 简单的 LLM 驱动 Agent 示例
+        return """SimpleAgent: 簡單的 LLM 驅動 Agent 示例
 
-这是一个基础的 Agent 示例，用于演示如何创建自定义 Agent。
+這是一個基礎的 Agent 示例，用於演示如何建立自定義 Agent。
 
-**Profile 字段:**
-- name (str): Agent 的名称
-- personality (str): Agent 的个性特征
+**Profile 欄位:**
+- name (str): Agent 的名稱
+- personality (str): Agent 的個性特徵
 
 **初始化配置示例:**
 ```json
 {
   "id": 0,
   "profile": {
-    "name": "张三",
-    "personality": "友好开朗"
+    "name": "張三",
+    "personality": "友好開朗"
   }
 }
 ```
@@ -49,59 +49,59 @@ class SimpleAgent(AgentBase):
 
     async def ask(self, message: str, readonly: bool = True) -> str:
         """
-        回答来自环境的问题
+        回答來自環境的問題
 
         Args:
-            message: 问题内容
-            readonly: 是否只读
+            message: 問題內容
+            readonly: 是否只讀
 
         Returns:
-            答案内容
+            答案內容
         """
-        # 构建提示词
-        prompt = f"""你是一个真实的人。你的个人资料：{self.get_profile()}
+        # 構建提示詞
+        prompt = f"""你是一個真實的人。你的個人資料：{self.get_profile()}
 
-问题：{message}
+問題：{message}
 
-请根据你的个人资料和个性来回答这个问题。"""
+請根據你的個人資料和個性來回答這個問題。"""
 
         try:
             response = await self.acompletion([{"role": "user", "content": prompt}])
             return response.choices[0].message.content or ""
         except Exception as e:
-            return f"抱歉，我无法回答这个问题：{str(e)}"
+            return f"抱歉，我無法回答這個問題：{str(e)}"
 
     async def step(self, tick: int, t: datetime) -> str:
         """
-        执行一个仿真步骤
+        執行一個模擬步驟
 
         Args:
-            tick: 时间刻度（秒）
-            t: 当前仿真时间
+            tick: 時間刻度（秒）
+            t: 當前模擬時間
 
         Returns:
-            步骤描述
+            步驟描述
         """
-        # 查询环境状态
+        # 查詢環境狀態
         try:
             _, observation = await self.ask_env(
                 {"variables": {}},
-                "当前环境状态是什么？",
+                "當前環境狀態是什麼？",
                 readonly=True
             )
         except Exception as e:
-            observation = f"无法获取环境状态：{str(e)}"
+            observation = f"無法獲取環境狀態：{str(e)}"
 
-        # 记录状态
-        action = f"Agent {self.name} 观察到：{observation}，继续活动"
+        # 記錄狀態
+        action = f"Agent {self.name} 觀察到：{observation}，繼續活動"
         return action
 
     async def dump(self) -> dict:
         """
-        序列化 Agent 状态
+        序列化 Agent 狀態
 
         Returns:
-            状态字典
+            狀態字典
         """
         return {
             "id": self._id,
@@ -111,10 +111,10 @@ class SimpleAgent(AgentBase):
 
     async def load(self, dump_data: dict):
         """
-        从字典加载 Agent 状态
+        從字典載入 Agent 狀態
 
         Args:
-            dump_data: 状态字典
+            dump_data: 狀態字典
         """
         self._id = dump_data.get("id", self._id)
         profile = dump_data.get("profile")

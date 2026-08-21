@@ -282,7 +282,7 @@ async def test_jsonrpc_session_prompt_emits_updates_and_final_result(monkeypatch
 
     async def _on_message(msg):
         seen.append(msg)
-        # 发送思考过程 (CHAT_DELTA with reasoning)
+        # 傳送思考過程 (CHAT_DELTA with reasoning)
         await channel.send(
             Message(
                 id=msg.id,
@@ -296,7 +296,7 @@ async def test_jsonrpc_session_prompt_emits_updates_and_final_result(monkeypatch
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # 发送最终回复 (CHAT_DELTA with text)
+        # 傳送最終回覆 (CHAT_DELTA with text)
         await channel.send(
             Message(
                 id=msg.id,
@@ -310,7 +310,7 @@ async def test_jsonrpc_session_prompt_emits_updates_and_final_result(monkeypatch
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # 发送 is_processing=false 触发最终响应
+        # 傳送 is_processing=false 觸發最終響應
         await channel.send(
             Message(
                 id=msg.id,
@@ -457,7 +457,7 @@ async def test_jsonrpc_session_prompt_accepts_text_param(monkeypatch):
 
     async def _on_message(msg):
         seen.append(msg)
-        # 发送最终回复 (CHAT_DELTA)
+        # 傳送最終回覆 (CHAT_DELTA)
         await channel.send(
             Message(
                 id=msg.id,
@@ -471,7 +471,7 @@ async def test_jsonrpc_session_prompt_accepts_text_param(monkeypatch):
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # 发送 is_processing=false 触发最终响应
+        # 傳送 is_processing=false 觸發最終響應
         await channel.send(
             Message(
                 id=msg.id,
@@ -630,7 +630,7 @@ async def test_jsonrpc_session_prompt_merges_session_context(monkeypatch):
 
     async def _on_message(msg):
         seen.append(msg)
-        # 发送最终回复 (CHAT_DELTA)
+        # 傳送最終回覆 (CHAT_DELTA)
         await channel.send(
             Message(
                 id=msg.id,
@@ -644,7 +644,7 @@ async def test_jsonrpc_session_prompt_merges_session_context(monkeypatch):
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # 发送 is_processing=false 触发最终响应
+        # 傳送 is_processing=false 觸發最終響應
         await channel.send(
             Message(
                 id=msg.id,
@@ -746,13 +746,13 @@ async def test_jsonrpc_session_prompt_does_not_end_turn_from_chat_final_before_l
 
     responses = fake_stdout.buffer.json_lines()
     assert len(responses) == 4
-    # 第一个响应是 agent_message_chunk
+    # 第一個響應是 agent_message_chunk
     assert responses[0].get("method") == "session/update"
     message_chunk = responses[0].get("params")
     assert isinstance(message_chunk, dict)
     assert message_chunk.get("update").get("sessionUpdate") == "agent_message_chunk"
 
-    # 第二个响应是晚到的 tool result update
+    # 第二個響應是晚到的 tool result update
     assert responses[1]["params"]["update"] == {
         "sessionUpdate": "tool_call_update",
         "toolCallId": "tool-call-late-2",
@@ -814,7 +814,7 @@ async def test_jsonrpc_session_prompt_does_not_auto_finalize_from_delta_only(mon
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # delta-only 场景不会自动 end_turn；显式停止通道，避免测试等待未完成请求而超时。
+        # delta-only 場景不會自動 end_turn；顯式停止通道，避免測試等待未完成請求而超時。
         await channel.stop()
 
     channel.on_message(_on_message)
@@ -878,7 +878,7 @@ async def test_jsonrpc_session_cancel_finalizes_active_prompt(monkeypatch):
                     event_type=EventType.CHAT_DELTA,
                 )
             )
-            # 注意：cancel 会立即触发 finalize，不需要等待 is_processing=false
+            # 注意：cancel 會立即觸發 finalize，不需要等待 is_processing=false
 
     channel.on_message(_on_message)
     await channel.start()
@@ -1265,7 +1265,7 @@ async def test_jsonrpc_session_prompt_emits_tool_call_update(monkeypatch):
     monkeypatch.setattr("jiuwenclaw.gateway.channel_manager.protocol.acp.acp_connect._ACP_STDOUT", fake_stdout)
 
     async def _on_message(msg):
-        # 发送工具调用
+        # 傳送工具呼叫
         await channel.send(
             Message(
                 id=msg.id,
@@ -1285,7 +1285,7 @@ async def test_jsonrpc_session_prompt_emits_tool_call_update(monkeypatch):
                 event_type=EventType.CHAT_TOOL_CALL,
             )
         )
-        # 发送最终回复 (CHAT_DELTA)
+        # 傳送最終回覆 (CHAT_DELTA)
         await channel.send(
             Message(
                 id=msg.id,
@@ -1299,7 +1299,7 @@ async def test_jsonrpc_session_prompt_emits_tool_call_update(monkeypatch):
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # 发送 is_processing=false 触发最终响应
+        # 傳送 is_processing=false 觸發最終響應
         await channel.send(
             Message(
                 id=msg.id,
@@ -1369,7 +1369,7 @@ async def test_jsonrpc_session_prompt_emits_tool_result_update(monkeypatch):
     monkeypatch.setattr("jiuwenclaw.gateway.channel_manager.protocol.acp.acp_connect._ACP_STDOUT", fake_stdout)
 
     async def _on_message(msg):
-        # 发送工具结果
+        # 傳送工具結果
         await channel.send(
             Message(
                 id=msg.id,
@@ -1387,7 +1387,7 @@ async def test_jsonrpc_session_prompt_emits_tool_result_update(monkeypatch):
                 event_type=EventType.CHAT_TOOL_RESULT,
             )
         )
-        # 发送最终回复 (CHAT_DELTA)
+        # 傳送最終回覆 (CHAT_DELTA)
         await channel.send(
             Message(
                 id=msg.id,
@@ -1401,7 +1401,7 @@ async def test_jsonrpc_session_prompt_emits_tool_result_update(monkeypatch):
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # 发送 is_processing=false 触发最终响应
+        # 傳送 is_processing=false 觸發最終響應
         await channel.send(
             Message(
                 id=msg.id,
@@ -1571,7 +1571,7 @@ async def test_jsonrpc_session_prompt_emits_plan_update(monkeypatch):
     monkeypatch.setattr("jiuwenclaw.gateway.channel_manager.protocol.acp.acp_connect._ACP_STDOUT", fake_stdout)
 
     async def _on_message(msg):
-        # 发送子任务更新
+        # 傳送子任務更新
         await channel.send(
             Message(
                 id=msg.id,
@@ -1583,17 +1583,17 @@ async def test_jsonrpc_session_prompt_emits_plan_update(monkeypatch):
                 ok=True,
                 payload={
                     "session_id": msg.session_id,
-                    "description": "并行执行两个任务",
+                    "description": "並行執行兩個任務",
                     "status": "running",
                     "index": 1,
                     "total": 2,
-                    "result": "已启动后台会话",
+                    "result": "已啟動後臺會話",
                     "is_parallel": True,
                 },
                 event_type=EventType.CHAT_SUBTASK_UPDATE,
             )
         )
-        # 发送最终回复 (CHAT_DELTA)
+        # 傳送最終回覆 (CHAT_DELTA)
         await channel.send(
             Message(
                 id=msg.id,
@@ -1607,7 +1607,7 @@ async def test_jsonrpc_session_prompt_emits_plan_update(monkeypatch):
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # 发送 is_processing=false 触发最终响应
+        # 傳送 is_processing=false 觸發最終響應
         await channel.send(
             Message(
                 id=msg.id,
@@ -1629,7 +1629,7 @@ async def test_jsonrpc_session_prompt_emits_plan_update(monkeypatch):
     assert len(responses) == 4
     update = responses[0]["params"]["update"]
     assert update["sessionUpdate"] == "plan"
-    assert update["plan"]["description"] == "并行执行两个任务"
+    assert update["plan"]["description"] == "並行執行兩個任務"
     assert update["plan"]["is_parallel"] is True
 
     message_chunk = responses[1]["params"]["update"]
@@ -1735,7 +1735,7 @@ async def test_jsonrpc_session_prompt_emits_usage_update_before_result(monkeypat
     monkeypatch.setattr("jiuwenclaw.gateway.channel_manager.protocol.acp.acp_connect._ACP_STDOUT", fake_stdout)
 
     async def _on_message(msg):
-        # 发送 usage 信息 (通过 CHAT_DELTA 携带 usage)
+        # 傳送 usage 資訊 (透過 CHAT_DELTA 攜帶 usage)
         await channel.send(
             Message(
                 id=msg.id,
@@ -1755,7 +1755,7 @@ async def test_jsonrpc_session_prompt_emits_usage_update_before_result(monkeypat
                 event_type=EventType.CHAT_DELTA,
             )
         )
-        # 发送 is_processing=false 触发最终响应
+        # 傳送 is_processing=false 觸發最終響應
         await channel.send(
             Message(
                 id=msg.id,

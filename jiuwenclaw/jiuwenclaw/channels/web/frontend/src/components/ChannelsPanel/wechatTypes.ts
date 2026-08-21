@@ -205,7 +205,7 @@ export function isSensitiveWechatField(field: keyof WechatDraft): boolean {
   return field === 'bot_token';
 }
 
-/** 微信返回的是可打开的 HTML 扫码页（非图片 URL），不能用 <img> 直接加载。 */
+/** 微信返回的是可開啟的 HTML 掃碼頁（非圖片 URL），不能用 <img> 直接載入。 */
 export function isWeixinHostedQrPageUrl(url: string): boolean {
   try {
     const u = new URL(url);

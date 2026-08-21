@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""加载原始 profiling tensor（.pt），调用 trace_utils 按核类型拆分并保存。"""
+"""載入原始 profiling tensor（.pt），呼叫 trace_utils 按核型別拆分並儲存。"""
 
 import argparse
 import logging

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-邮件统计采集器
+郵件統計採集器
 
-支持：
-- 网易邮箱 (163/126)
-- 通过 IMAP 协议读取邮件
+支援：
+- 網易郵箱 (163/126)
+- 透過 IMAP 協議讀取郵件
 
 功能：
-- 统计今日收发邮件数量
-- 获取未读邮件
-- 提取重要邮件摘要
+- 統計今日收發郵件數量
+- 獲取未讀郵件
+- 提取重要郵件摘要
 """
 
 import email
@@ -30,7 +30,7 @@ except ImportError:
     imaplib = None
 
 
-# 网易邮箱 IMAP 服务器配置
+# 網易郵箱 IMAP 伺服器配置
 NETEASE_IMAP_SERVERS = {
     "163": "imap.163.com",
     "126": "imap.126.com",
@@ -40,13 +40,13 @@ NETEASE_IMAP_SERVERS = {
 
 @dataclass
 class EmailInfo:
-    """邮件信息"""
+    """郵件資訊"""
 
-    subject: str  # 主题
-    sender: str  # 发件人
+    subject: str  # 主題
+    sender: str  # 發件人
     date: datetime  # 日期
-    is_read: bool = False  # 是否已读
-    is_starred: bool = False  # 是否星标
+    is_read: bool = False  # 是否已讀
+    is_starred: bool = False  # 是否星標
 
     def to_dict(self) -> dict:
         return {
@@ -60,13 +60,13 @@ class EmailInfo:
 
 @dataclass
 class EmailStats:
-    """邮件统计数据"""
+    """郵件統計資料"""
 
-    received_today: int = 0  # 今日收件数
-    sent_today: int = 0  # 今日发件数
-    unread: int = 0  # 未读邮件数
-    starred: int = 0  # 星标邮件数
-    important_emails: list[EmailInfo] = field(default_factory=list)  # 重要邮件
+    received_today: int = 0  # 今日收件數
+    sent_today: int = 0  # 今日發件數
+    unread: int = 0  # 未讀郵件數
+    starred: int = 0  # 星標郵件數
+    important_emails: list[EmailInfo] = field(default_factory=list)  # 重要郵件
 
     def to_dict(self) -> dict:
         return {
@@ -79,7 +79,7 @@ class EmailStats:
 
 
 class EmailCollector:
-    """邮件统计采集器"""
+    """郵件統計採集器"""
 
     def __init__(
         self,
@@ -88,29 +88,29 @@ class EmailCollector:
         provider: str = "163",
     ):
         """
-        初始化邮件采集器
+        初始化郵件採集器
 
         Args:
-            email_address: 邮箱地址
-            auth_code: 授权码（不是登录密码）
-            provider: 邮箱提供商 (163/126/yeah)
+            email_address: 郵箱地址
+            auth_code: 授權碼（不是登入密碼）
+            provider: 郵箱提供商 (163/126/yeah)
         """
         if not IMAP_AVAILABLE:
-            raise ImportError("imaplib 模块不可用")
+            raise ImportError("imaplib 模組不可用")
 
         self.email_address = email_address
         self.auth_code = auth_code
         self.provider = provider.lower()
 
         if self.provider not in NETEASE_IMAP_SERVERS:
-            raise ValueError(f"不支持的邮箱提供商: {provider}")
+            raise ValueError(f"不支援的郵箱提供商: {provider}")
 
         self.imap_server = NETEASE_IMAP_SERVERS[self.provider]
         self._connection = None
 
     @staticmethod
     def _decode_str(s: str) -> str:
-        """解码邮件字符串"""
+        """解碼郵件字串"""
         if s is None:
             return ""
 
@@ -130,7 +130,7 @@ class EmailCollector:
 
     @staticmethod
     def _parse_date(date_str: str) -> Optional[datetime]:
-        """解析邮件日期"""
+        """解析郵件日期"""
         if not date_str:
             return None
 
@@ -144,21 +144,21 @@ class EmailCollector:
 
     def connect(self) -> bool:
         """
-        连接 IMAP 服务器
+        連線 IMAP 伺服器
 
         Returns:
-            是否连接成功
+            是否連線成功
         """
         try:
             self._connection = imaplib.IMAP4_SSL(self.imap_server, 993)
             self._connection.login(self.email_address, self.auth_code)
             return True
         except Exception as e:
-            print(f"连接邮箱失败: {e}")
+            print(f"連線郵箱失敗: {e}")
             return False
 
     def disconnect(self):
-        """断开连接"""
+        """斷開連線"""
         if self._connection:
             try:
                 self._connection.logout()
@@ -168,13 +168,13 @@ class EmailCollector:
 
     def get_stats(self, date: Optional[str] = None) -> EmailStats:
         """
-        获取邮件统计
+        獲取郵件統計
 
         Args:
-            date: 日期字符串 (YYYY-MM-DD)，默认今天
+            date: 日期字串 (YYYY-MM-DD)，預設今天
 
         Returns:
-            EmailStats: 邮件统计数据
+            EmailStats: 郵件統計資料
         """
         if date is None:
             date = datetime.now(_REPORT_TZ).strftime("%Y-%m-%d")
@@ -186,14 +186,14 @@ class EmailCollector:
                 return stats
 
         try:
-            # 选择收件箱
+            # 選擇收件箱
             self._connection.select("INBOX")
 
-            # 搜索今日邮件
+            # 搜尋今日郵件
             date_obj = datetime.strptime(date, "%Y-%m-%d")
             imap_date = date_obj.strftime("%d-%b-%Y")
 
-            # 获取今日收到的邮件
+            # 獲取今日收到的郵件
             status, messages = self._connection.search(
                 None, f'(ON "{imap_date}")'
             )
@@ -202,24 +202,24 @@ class EmailCollector:
                 today_message_ids = messages[0].split()
                 stats.received_today = len(today_message_ids)
 
-            # 获取未读邮件
+            # 獲取未讀郵件
             status, messages = self._connection.search(None, "UNSEEN")
             if status == "OK" and messages[0]:
                 unseen_ids = messages[0].split()
                 stats.unread = len(unseen_ids)
 
-                # 获取未读邮件详情（最多5封）
+                # 獲取未讀郵件詳情（最多5封）
                 for msg_id in unseen_ids[:5]:
                     email_info = self._get_email_info(msg_id)
                     if email_info:
                         stats.important_emails.append(email_info)
 
-            # 获取星标邮件
+            # 獲取星標郵件
             status, messages = self._connection.search(None, "FLAGGED")
             if status == "OK" and messages[0]:
                 stats.starred = len(messages[0].split())
 
-            # 尝试获取发件箱统计
+            # 嘗試獲取發件箱統計
             try:
                 status, _ = self._connection.select("Sent")
                 if status == "OK":
@@ -229,15 +229,15 @@ class EmailCollector:
                     if status == "OK" and messages[0]:
                         stats.sent_today = len(messages[0].split())
             except Exception:
-                pass  # 发件箱可能不存在或无权限
+                pass  # 發件箱可能不存在或無許可權
 
         except Exception as e:
-            print(f"获取邮件统计失败: {e}")
+            print(f"獲取郵件統計失敗: {e}")
 
         return stats
 
     def _get_email_info(self, msg_id: bytes) -> Optional[EmailInfo]:
-        """获取邮件详情"""
+        """獲取郵件詳情"""
         try:
             status, msg_data = self._connection.fetch(msg_id, "(RFC822)")
             if status != "OK":
@@ -250,7 +250,7 @@ class EmailCollector:
             sender = self._decode_str(msg.get("From", ""))
             date = self._parse_date(msg.get("Date", ""))
 
-            # 检查是否已读
+            # 檢查是否已讀
             flags = ""
             if len(msg_data) > 1:
                 flags = str(msg_data[0][0], errors="replace")
@@ -277,7 +277,7 @@ class EmailCollector:
 
 
 def main():
-    """测试入口"""
+    """測試入口"""
     import os
     import sys
 
@@ -289,25 +289,25 @@ def main():
     auth_code = sys.argv[2]
     provider = sys.argv[3] if len(sys.argv) > 3 else "163"
 
-    print(f"连接 {provider} 邮箱: {email_address}")
+    print(f"連線 {provider} 郵箱: {email_address}")
 
     try:
         with EmailCollector(email_address, auth_code, provider) as collector:
             stats = collector.get_stats()
 
-            print(f"\n邮件统计:")
+            print(f"\n郵件統計:")
             print(f"  今日收件: {stats.received_today} 封")
-            print(f"  今日发件: {stats.sent_today} 封")
-            print(f"  未读邮件: {stats.unread} 封")
-            print(f"  星标邮件: {stats.starred} 封")
+            print(f"  今日發件: {stats.sent_today} 封")
+            print(f"  未讀郵件: {stats.unread} 封")
+            print(f"  星標郵件: {stats.starred} 封")
 
             if stats.important_emails:
-                print("\n未读邮件:")
+                print("\n未讀郵件:")
                 for email_info in stats.important_emails:
                     print(f"  - [{email_info.sender}] {email_info.subject}")
 
     except Exception as e:
-        print(f"错误: {e}")
+        print(f"錯誤: {e}")
 
 
 if __name__ == "__main__":

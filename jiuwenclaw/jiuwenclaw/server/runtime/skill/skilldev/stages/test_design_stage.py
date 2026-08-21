@@ -1,14 +1,14 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""TEST_DESIGN 阶段处理器.
+"""TEST_DESIGN 階段處理器.
 
-对齐官方 skill-creator 的测试设计流程：
+對齊官方 skill-creator 的測試設計流程：
 
-1. 先生成 2-3 个真实用户场景的 test prompts（不写 assertions）
-2. Assertions 应在 TEST_RUN 阶段运行期间并行起草
-   （当前框架简化：在本阶段一次性生成 prompts + assertions）
+1. 先生成 2-3 個真實使用者場景的 test prompts（不寫 assertions）
+2. Assertions 應在 TEST_RUN 階段執行期間並行起草
+   （當前框架簡化：在本階段一次性生成 prompts + assertions）
 
-evals.json 格式对齐官方 references/schemas.md：
+evals.json 格式對齊官方 references/schemas.md：
 {
   "skill_name": "example-skill",
   "evals": [
@@ -34,35 +34,35 @@ from jiuwenclaw.server.runtime.skill.skilldev.stages.base import StageHandler, S
 
 logger = logging.getLogger(__name__)
 
-TEST_DESIGN_SYSTEM_PROMPT = """根据以下 Skill 内容，设计 {count} 个测试用例。
+TEST_DESIGN_SYSTEM_PROMPT = """根據以下 Skill 內容，設計 {count} 個測試用例。
 
-## 测试用例设计原则
+## 測試用例設計原則
 
-### prompt 要求（对齐官方标准）
-- 模拟真实用户输入：包含文件路径、个人背景、具体数据名称等细节
-- 混合不同长度和表达风格（正式/随意/简短/详细）
-- 覆盖不同复杂度和边缘场景
-- 有些用户不会明确提到 skill 名称，但确实需要这个 skill 的功能
+### prompt 要求（對齊官方標準）
+- 模擬真實使用者輸入：包含檔案路徑、個人背景、具體資料名稱等細節
+- 混合不同長度和表達風格（正式/隨意/簡短/詳細）
+- 覆蓋不同複雜度和邊緣場景
+- 有些使用者不會明確提到 skill 名稱，但確實需要這個 skill 的功能
 
 ### expectations（assertions）要求
-- 每条 expectation 是一个可客观验证的声明（字符串）
-- 使用描述性名称，让阅读者一眼理解检查的内容
-- 好的 expectation 是 *区分性的*：使用 skill 时通过，不使用时大概率失败
-- 避免太容易通过的检查（如只检查文件名存在，不检查内容）
-- 主观性输出（写作风格、设计质量）更适合人工评审，不强加 expectations
+- 每條 expectation 是一個可客觀驗證的宣告（字串）
+- 使用描述性名稱，讓閱讀者一眼理解檢查的內容
+- 好的 expectation 是 *區分性的*：使用 skill 時透過，不使用時大機率失敗
+- 避免太容易透過的檢查（如只檢查檔名存在，不檢查內容）
+- 主觀性輸出（寫作風格、設計質量）更適合人工評審，不強加 expectations
 
-### 输出 JSON 格式（对齐官方 evals.json schema）
+### 輸出 JSON 格式（對齊官方 evals.json schema）
 {{
   "skill_name": "{skill_name}",
   "evals": [
     {{
       "id": 1,
-      "prompt": "模拟用户的真实输入...",
-      "expected_output": "预期结果的人类可读描述",
+      "prompt": "模擬使用者的真實輸入...",
+      "expected_output": "預期結果的人類可讀描述",
       "files": [],
       "expectations": [
-        "输出中包含 X 的结构化数据",
-        "使用了 scripts/ 中的 Y 脚本"
+        "輸出中包含 X 的結構化資料",
+        "使用了 scripts/ 中的 Y 指令碼"
       ]
     }}
   ]
@@ -71,10 +71,10 @@ TEST_DESIGN_SYSTEM_PROMPT = """根据以下 Skill 内容，设计 {count} 个测
 
 
 class TestDesignStageHandler(StageHandler):
-    """TEST_DESIGN 阶段：Agent 设计测试用例，输出 evals.json."""
+    """TEST_DESIGN 階段：Agent 設計測試用例，輸出 evals.json."""
 
     async def execute(self, ctx: SkillDevContext) -> StageResult:
-        await ctx.emit(SkillDevEventType.PROGRESS, {"message": "正在设计测试用例..."})
+        await ctx.emit(SkillDevEventType.PROGRESS, {"message": "正在設計測試用例..."})
 
         skill_content = self._read_skill_files(ctx.workspace / "skill")
         evals = await self._design_evals(ctx, skill_content)
@@ -87,12 +87,12 @@ class TestDesignStageHandler(StageHandler):
 
         count = len(evals.get("evals", []))
         await ctx.emit(
-            SkillDevEventType.PROGRESS, {"message": f"已设计 {count} 个测试用例"}
+            SkillDevEventType.PROGRESS, {"message": f"已設計 {count} 個測試用例"}
         )
         return StageResult(next_stage=SkillDevStage.TEST_RUN)
 
     def _read_skill_files(self, skill_dir) -> str:
-        """读取 skill 目录下所有文件，拼接为字符串供 Agent 分析."""
+        """讀取 skill 目錄下所有檔案，拼接為字串供 Agent 分析."""
         parts = []
         for file_path in sorted(skill_dir.rglob("*")):
             if file_path.is_file():
@@ -102,26 +102,26 @@ class TestDesignStageHandler(StageHandler):
                     parts.append(f"=== {rel} ===\n{content}")
                 except Exception as exc:
                     logger.warning(
-                        "[TestDesignStage] 读取文件失败: %s (%s)", file_path, exc
+                        "[TestDesignStage] 讀取檔案失敗: %s (%s)", file_path, exc
                     )
         return "\n\n".join(parts)
 
     async def _design_evals(self, ctx: SkillDevContext, skill_content: str) -> dict:
-        """调用 Agent 设计测试用例.
+        """呼叫 Agent 設計測試用例.
 
-        待实现: 接入 create_stage_agent + Runner.run_agent，解析输出 JSON
+        待實現: 接入 create_stage_agent + Runner.run_agent，解析輸出 JSON
         """
-        # 待实现:
+        # 待實現:
         # agent = ctx.create_stage_agent(
         #     stage_name="test_design",
         #     system_prompt=TEST_DESIGN_SYSTEM_PROMPT.format(count=3),
-        #     tools=[],  # 只需模型推理，无需工具
+        #     tools=[],  # 只需模型推理，無需工具
         #     max_iterations=10,
         # )
         # result = await Runner.run_agent(agent, {"skill_content": skill_content})
         # return json.loads(result["output"])
 
-        logger.warning("[TestDesignStage] _design_evals 尚未实现，返回占位测试用例")
+        logger.warning("[TestDesignStage] _design_evals 尚未實現，返回佔位測試用例")
         skill_name = (
             ctx.state.plan.get("skill_name", "skill") if ctx.state.plan else "skill"
         )
@@ -131,10 +131,10 @@ class TestDesignStageHandler(StageHandler):
                 {
                     "id": 1,
                     "name": "basic-usage",
-                    "prompt": f"请使用 {skill_name} 完成基础功能测试",
-                    "expected_output": "待实现: 预期结果",
+                    "prompt": f"請使用 {skill_name} 完成基礎功能測試",
+                    "expected_output": "待實現: 預期結果",
                     "files": [],
-                    "expectations": ["待实现: 可验证的预期声明"],
+                    "expectations": ["待實現: 可驗證的預期宣告"],
                 }
             ],
         }

@@ -23,6 +23,7 @@ export type AgentCreatePayload = {
     llm: LLMEndpoint;
     decision_interval_s: number;
     enabled: boolean;
+    behavior_hint: string;
     skip_connection_test?: boolean;
 };
 
@@ -63,4 +64,10 @@ export const sendAgentToRoom = (agentId: string, roomId: string) =>
     request<{ ok: boolean }>(`/api/v1/town/agents/${agentId}/goto`, {
         method: 'POST',
         body: JSON.stringify({ room_id: roomId }),
+    });
+
+export const dispatchAllAgents = (payload: { room_id: string; message?: string }) =>
+    request<{ dispatched: number }>('/api/v1/town/agents/dispatch-all', {
+        method: 'POST',
+        body: JSON.stringify(payload),
     });

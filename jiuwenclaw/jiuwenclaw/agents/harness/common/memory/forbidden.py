@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def _get_memory_forbidden_config() -> Dict[str, Any]:
-    """从 config.yaml 读取 memory.forbidden_memory_definition 配置."""
+    """從 config.yaml 讀取 memory.forbidden_memory_definition 配置."""
     try:
         from jiuwenclaw.common.config import get_config
         config = get_config()
@@ -17,7 +17,7 @@ def _get_memory_forbidden_config() -> Dict[str, Any]:
             "enabled": forbidden_config.get("enabled", False),
             "patterns": forbidden_config.get("patterns", []),
             "description": forbidden_config.get("description", {
-                "zh": "以下内容禁止记忆：密码、API密钥、Secret、Token、信用卡号、身份证号、手机号等敏感信息",
+                "zh": "以下內容禁止記憶：密碼、API金鑰、Secret、Token、信用卡號、身份證號、手機號等敏感資訊",
                 "en": "The following content is forbidden to remember: passwords, \API keys, secrets, tokens, \
                     credit card numbers, ID numbers, phone numbers and other sensitive information",
             }),
@@ -28,14 +28,14 @@ def _get_memory_forbidden_config() -> Dict[str, Any]:
 
 
 def get_forbidden_memory_prompt(language: str) -> str:
-    """读取 config.yaml 的 memory.forbidden_memory_definition，
-    返回格式化的限制提示词。enabled=false 时返回空字符串。
+    """讀取 config.yaml 的 memory.forbidden_memory_definition，
+    返回格式化的限制提示詞。enabled=false 時返回空字串。
 
     Args:
-        language: 语言代码 (zh/en)
+        language: 語言程式碼 (zh/en)
 
     Returns:
-        格式化的禁止记忆提示词，或空字符串
+        格式化的禁止記憶提示詞，或空字串
     """
     config = _get_memory_forbidden_config()
 
@@ -47,20 +47,20 @@ def get_forbidden_memory_prompt(language: str) -> str:
     patterns = config.get("patterns", [])
 
     if language == "zh":
-        prompt_parts = ["### 记忆限制规则", ""]
+        prompt_parts = ["### 記憶限制規則", ""]
         if desc_text:
             prompt_parts.append(desc_text)
             prompt_parts.append("")
         if patterns:
-            prompt_parts.append("**禁止记忆的敏感信息类型包括：**")
+            prompt_parts.append("**禁止記憶的敏感資訊型別包括：**")
             prompt_parts.append("")
             for i, pattern in enumerate(patterns, 1):
                 prompt_parts.append(f"{i}. `{pattern}`")
             prompt_parts.append("")
-        prompt_parts.append("**执行要求：**")
-        prompt_parts.append("- 在调用 `experience_learn` 或 `write_memory` 存储记忆前，必须检查内容是否包含上述敏感信息")
-        prompt_parts.append("- 如果检测到敏感信息，必须对其进行脱敏处理（如替换为 ***）或拒绝存储")
-        prompt_parts.append("- 用户明确要求的密码、密钥等敏感信息不得存入记忆系统")
+        prompt_parts.append("**執行要求：**")
+        prompt_parts.append("- 在呼叫 `experience_learn` 或 `write_memory` 儲存記憶前，必須檢查內容是否包含上述敏感資訊")
+        prompt_parts.append("- 如果檢測到敏感資訊，必須對其進行脫敏處理（如替換為 ***）或拒絕儲存")
+        prompt_parts.append("- 使用者明確要求的密碼、金鑰等敏感資訊不得存入記憶系統")
         prompt_parts.append("")
         return "\n".join(prompt_parts)
     else:

@@ -21,7 +21,7 @@ from agent_skill_runtime import (  # noqa: E402
 )
 
 SKILL_ID = "safety.respond"
-URGENCY_WORDS = ("火灾", "地震", "洪水", "撤离", "疏散", "紧急", "危险", "volcano", "earthquake", "fire", "flood", "emergency", "evacuate")
+URGENCY_WORDS = ("火災", "地震", "洪水", "撤離", "疏散", "緊急", "危險", "volcano", "earthquake", "fire", "flood", "emergency", "evacuate")
 
 
 def is_urgent(args: dict, observation: dict) -> bool:

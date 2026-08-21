@@ -1,16 +1,16 @@
 """
-AgentSociety2 自定义模块包
+AgentSociety2 自定義模組包
 
-此包用于存放用户自定义的 Agent 代码。
+此包用於存放使用者自定義的 Agent 程式碼。
 
-目录结构:
-- agents/    : 自定义 Agent 类
-  - examples/: 示例 Agent 实现
+目錄結構:
+- agents/    : 自定義 Agent 類
+  - examples/: 示例 Agent 實現
 
 使用方法:
-1. 在 agents/ 目录创建 .py 文件（不要放在 examples/ 中）
-2. 继承 AgentBase 并实现抽象方法
-3. 运行 VSCode 命令 "扫描自定义模块"
+1. 在 agents/ 目錄建立 .py 檔案（不要放在 examples/ 中）
+2. 繼承 AgentBase 並實現抽象方法
+3. 執行 VSCode 命令 "掃描自定義模組"
 """
 
 __all__ = []

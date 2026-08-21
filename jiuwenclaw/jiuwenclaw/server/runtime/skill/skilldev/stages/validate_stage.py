@@ -1,15 +1,15 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""VALIDATE 阶段处理器.
+"""VALIDATE 階段處理器.
 
-校验 GENERATE 产出的 SKILL.md 是否符合 Skill 规范：
+校驗 GENERATE 產出的 SKILL.md 是否符合 Skill 規範：
 - YAML frontmatter 存在且合法（name, description 必填）
-- name 是 kebab-case，≤64 字符
-- description ≤1024 字符，无 < >
-- 只包含允许的 frontmatter key
+- name 是 kebab-case，≤64 字元
+- description ≤1024 字元，無 < >
+- 只包含允許的 frontmatter key
 
-校验失败 → 回退 GENERATE 重新生成。
-校验成功 → 进入 TEST_DESIGN。
+校驗失敗 → 回退 GENERATE 重新生成。
+校驗成功 → 進入 TEST_DESIGN。
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class ValidateStageHandler(StageHandler):
-    """VALIDATE 阶段：校验 SKILL.md 格式合规性."""
+    """VALIDATE 階段：校驗 SKILL.md 格式合規性."""
 
     async def execute(self, ctx: SkillDevContext) -> StageResult:
         skill_md_path = ctx.workspace / "skill" / "SKILL.md"
@@ -53,65 +53,65 @@ class ValidateStageHandler(StageHandler):
         )
 
         if not valid:
-            logger.warning("[ValidateStage] 校验失败: %s，回退到 GENERATE", message)
+            logger.warning("[ValidateStage] 校驗失敗: %s，回退到 GENERATE", message)
             return StageResult(next_stage=SkillDevStage.GENERATE)
 
         return StageResult(next_stage=SkillDevStage.TEST_DESIGN)
 
 
 # ---------------------------------------------------------------------------
-# 校验逻辑（内化自官方 quick_validate.py）
+# 校驗邏輯（內化自官方 quick_validate.py）
 # ---------------------------------------------------------------------------
 
 
 def validate_skill_md(skill_md_path: Path) -> tuple[bool, str]:
-    """校验 SKILL.md 的 YAML frontmatter 格式.
+    """校驗 SKILL.md 的 YAML frontmatter 格式.
 
     返回 (is_valid, message)。
     """
     content = skill_md_path.read_text(encoding="utf-8")
 
     if not content.startswith("---"):
-        return False, "SKILL.md 缺少 YAML frontmatter（应以 --- 开头）"
+        return False, "SKILL.md 缺少 YAML frontmatter（應以 --- 開頭）"
 
     match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
     if not match:
-        return False, "YAML frontmatter 格式无效"
+        return False, "YAML frontmatter 格式無效"
 
     frontmatter = _parse_frontmatter(match.group(1))
 
     if "name" not in frontmatter:
-        return False, "frontmatter 缺少必填字段 'name'"
+        return False, "frontmatter 缺少必填欄位 'name'"
     if "description" not in frontmatter:
-        return False, "frontmatter 缺少必填字段 'description'"
+        return False, "frontmatter 缺少必填欄位 'description'"
 
     unexpected = set(frontmatter.keys()) - ALLOWED_FRONTMATTER_KEYS
     if unexpected:
-        return False, f"frontmatter 包含未允许的字段: {', '.join(sorted(unexpected))}"
+        return False, f"frontmatter 包含未允許的欄位: {', '.join(sorted(unexpected))}"
 
     # name: kebab-case
     name = frontmatter["name"].strip()
     if name and not re.match(r"^[a-z0-9-]+$", name):
-        return False, f"name '{name}' 必须是 kebab-case（小写字母、数字、连字符）"
+        return False, f"name '{name}' 必須是 kebab-case（小寫字母、數字、連字元）"
     if name and _has_invalid_hyphen_usage(name):
-        return False, f"name '{name}' 不能以连字符开头/结尾或包含连续连字符"
+        return False, f"name '{name}' 不能以連字元開頭/結尾或包含連續連字元"
     if name and len(name) > SKILL_NAME_MAX_LEN:
-        return False, f"name 过长（{len(name)} 字符，最大 {SKILL_NAME_MAX_LEN}）"
+        return False, f"name 過長（{len(name)} 字元，最大 {SKILL_NAME_MAX_LEN}）"
 
     # description
     desc = frontmatter["description"].strip()
     if "<" in desc or ">" in desc:
-        return False, "description 不能包含尖括号 (< 或 >)"
+        return False, "description 不能包含尖括號 (< 或 >)"
     if len(desc) > SKILL_DESC_MAX_LEN:
-        return False, f"description 过长（{len(desc)} 字符，最大 {SKILL_DESC_MAX_LEN}）"
+        return False, f"description 過長（{len(desc)} 字元，最大 {SKILL_DESC_MAX_LEN}）"
 
-    return True, "SKILL.md 校验通过"
+    return True, "SKILL.md 校驗透過"
 
 
 def parse_skill_frontmatter(skill_md_path: Path) -> tuple[str, str, str]:
-    """从 SKILL.md 解析出 (name, description, body_content).
+    """從 SKILL.md 解析出 (name, description, body_content).
 
-    轻量解析器，无 PyYAML 依赖。
+    輕量解析器，無 PyYAML 依賴。
     """
     content = skill_md_path.read_text(encoding="utf-8")
     match = re.match(r"^---\n(.*?)\n---\n?(.*)", content, re.DOTALL)
@@ -123,9 +123,9 @@ def parse_skill_frontmatter(skill_md_path: Path) -> tuple[str, str, str]:
 
 
 def _parse_frontmatter(text: str) -> dict[str, str]:
-    """极简 YAML frontmatter 解析（key: value 单行 + block scalar）.
+    """極簡 YAML frontmatter 解析（key: value 單行 + block scalar）.
 
-    生产环境可替换为 yaml.safe_load（需添加 PyYAML 依赖）。
+    生產環境可替換為 yaml.safe_load（需新增 PyYAML 依賴）。
     """
     result: dict[str, str] = {}
     current_key: str | None = None
@@ -149,5 +149,5 @@ def _parse_frontmatter(text: str) -> dict[str, str]:
 
 
 def _has_invalid_hyphen_usage(name: str) -> bool:
-    """校验 name 中连字符使用是否非法."""
+    """校驗 name 中連字元使用是否非法."""
     return name.startswith("-") or name.endswith("-") or "--" in name

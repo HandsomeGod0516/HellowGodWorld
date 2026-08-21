@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""SkillDev Pipeline 各阶段处理器."""
+"""SkillDev Pipeline 各階段處理器."""
 
 from jiuwenclaw.server.runtime.skill.skilldev.stages.base import StageHandler, StageResult
 from jiuwenclaw.server.runtime.skill.skilldev.stages.init_stage import InitStageHandler

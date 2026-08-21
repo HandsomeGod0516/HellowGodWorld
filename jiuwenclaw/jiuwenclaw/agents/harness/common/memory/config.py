@@ -43,7 +43,7 @@ def _resolve_env_vars(value: Any) -> Any:
 
 
 def clear_config_cache() -> None:
-    """清除配置缓存，使下次 _load_config() 重新从 config.yaml 读取并解析环境变量."""
+    """清除配置快取，使下次 _load_config() 重新從 config.yaml 讀取並解析環境變數."""
     global _config_cache
     _config_cache = None
 
@@ -113,7 +113,7 @@ class MemorySettings:
     })
     
     store: Dict[str, Any] = field(default_factory=lambda: {
-        # 相对于 workspace_dir/memory/ 目录
+        # 相對於 workspace_dir/memory/ 目錄
         "path": "memory.db",
         "vector": {"enabled": True},
         "fts": {"enabled": True}
@@ -174,8 +174,8 @@ def create_memory_settings(
     
     if "store" not in overrides:
         store_config = memory_config.get("store", {})
-        # 向量数据库索引文件存放在与 MEMORY.md 同目录 (workspace_dir/memory/memory.db)
-        # 只使用文件名，让 manager.py 的 _resolve_db_path 处理完整路径
+        # 向量資料庫索引檔案存放在與 MEMORY.md 同目錄 (workspace_dir/memory/memory.db)
+        # 只使用檔名，讓 manager.py 的 _resolve_db_path 處理完整路徑
         overrides["store"] = {
             "path": store_config.get("path", "memory.db"),
             "vector": store_config.get("vector", {"enabled": True}),
@@ -252,7 +252,7 @@ def is_proactive_memory(mode: str, config: Optional[Dict[str, Any]] = None) -> b
 
 
 def get_memory_mode(config: Optional[Dict[str, Any]] = None) -> str:
-    """读取 ``memory.mode``：``cloud`` 或 ``local``（默认）。"""
+    """讀取 ``memory.mode``：``cloud`` 或 ``local``（預設）。"""
     memory_cfg = (config or {}).get("memory", {})
     mode = str(memory_cfg.get("mode") or "local").strip().lower()
     return "cloud" if mode == "cloud" else "local"

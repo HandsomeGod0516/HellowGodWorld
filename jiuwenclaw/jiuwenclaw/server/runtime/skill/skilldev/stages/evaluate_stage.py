@@ -1,19 +1,19 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""EVALUATE 阶段处理器.
+"""EVALUATE 階段處理器.
 
-职责分三步，对齐官方 skill-creator 的评测流程：
+職責分三步，對齊官方 skill-creator 的評測流程：
 
-1. Grader 评分 — 对每个 eval run 的 transcript + outputs 逐 assertion 评分
-   输出 grading.json（expectations[].text/passed/evidence 格式）
+1. Grader 評分 — 對每個 eval run 的 transcript + outputs 逐 assertion 評分
+   輸出 grading.json（expectations[].text/passed/evidence 格式）
 
-2. Benchmark 聚合 — 遍历所有 grading.json，计算 per-config 的 mean/stddev/min/max
-   输出 benchmark.json（前端根据此数据渲染 Benchmark 面板）
+2. Benchmark 聚合 — 遍歷所有 grading.json，計算 per-config 的 mean/stddev/min/max
+   輸出 benchmark.json（前端根據此資料渲染 Benchmark 面板）
 
-3. Analyst 分析 — 发现 aggregate stats 隐藏的模式
-   输出 notes 列表（前端展示为分析摘要）
+3. Analyst 分析 — 發現 aggregate stats 隱藏的模式
+   輸出 notes 列表（前端展示為分析摘要）
 
-最终推送 EVAL_READY 事件 → 进入 REVIEW 挂起点（前端展示评测结果供用户审阅）。
+最終推送 EVAL_READY 事件 → 進入 REVIEW 掛起點（前端展示評測結果供使用者審閱）。
 """
 
 from __future__ import annotations
@@ -39,78 +39,78 @@ from jiuwenclaw.server.runtime.skill.skilldev.stages.base import StageHandler, S
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Grader Agent 系统 Prompt
-# 核心规则吸收自官方 agents/grader.md，不是外部文件引用
+# Grader Agent 系統 Prompt
+# 核心規則吸收自官方 agents/grader.md，不是外部檔案引用
 # ---------------------------------------------------------------------------
 
 GRADER_SYSTEM_PROMPT = """\
-你是一个评测 Grader。读取执行 transcript 和 output 文件，评估每条 expectation 是否通过。
+你是一個評測 Grader。讀取執行 transcript 和 output 檔案，評估每條 expectation 是否透過。
 
-## 评分标准
+## 評分標準
 
 **PASS**：
-- transcript / outputs 中有明确证据证明 expectation 为真
-- 证据反映的是真实完成，不是表面合规（文件存在 ≠ 内容正确）
+- transcript / outputs 中有明確證據證明 expectation 為真
+- 證據反映的是真實完成，不是表面合規（檔案存在 ≠ 內容正確）
 
 **FAIL**：
-- 找不到证据，或证据与 expectation 矛盾
-- 证据是表面的（文件名对但内容错/空）
-- 无法从可用信息中验证
+- 找不到證據，或證據與 expectation 矛盾
+- 證據是表面的（檔名對但內容錯/空）
+- 無法從可用資訊中驗證
 
-**不确定时**：按 FAIL 处理（举证责任在 expectation 一方）。
+**不確定時**：按 FAIL 處理（舉證責任在 expectation 一方）。
 
-## 输出要求
+## 輸出要求
 
-对每条 expectation 输出：
+對每條 expectation 輸出：
 - text: expectation 原文
 - passed: true/false
-- evidence: 引用的具体文本/描述
+- evidence: 引用的具體文字/描述
 
-还需输出：
+還需輸出：
 - summary: {{passed, failed, total, pass_rate}}
 """
 
 # ---------------------------------------------------------------------------
-# Analyst Agent 系统 Prompt
-# 核心规则吸收自官方 agents/analyzer.md，不是外部文件引用
+# Analyst Agent 系統 Prompt
+# 核心規則吸收自官方 agents/analyzer.md，不是外部檔案引用
 # ---------------------------------------------------------------------------
 
 ANALYST_SYSTEM_PROMPT = """\
-你是一个 Benchmark 分析师。分析所有评测运行结果，发现 aggregate 统计隐藏的模式。
+你是一個 Benchmark 分析師。分析所有評測執行結果，發現 aggregate 統計隱藏的模式。
 
-关注维度：
-- 某 expectation 在 with_skill 和 baseline 都 100% pass → 不具区分力
-- 某 expectation 在两者都 fail → 超出能力或 expectation 本身有问题
-- 某 eval 高方差 → 可能是 flaky 测试
-- with_skill 反而劣于 baseline 的指标 → skill 可能在某方面产生负面影响
-- 时间/token 开销 vs 通过率的权衡
+關注維度：
+- 某 expectation 在 with_skill 和 baseline 都 100% pass → 不具區分力
+- 某 expectation 在兩者都 fail → 超出能力或 expectation 本身有問題
+- 某 eval 高方差 → 可能是 flaky 測試
+- with_skill 反而劣於 baseline 的指標 → skill 可能在某方面產生負面影響
+- 時間/token 開銷 vs 透過率的權衡
 
-输出一个 JSON 字符串数组，每条是一句简洁的观察（用中文）：
-["观察1", "观察2", ...]
+輸出一個 JSON 字串陣列，每條是一句簡潔的觀察（用中文）：
+["觀察1", "觀察2", ...]
 """
 
 
 class EvaluateStageHandler(StageHandler):
-    """EVALUATE 阶段：Grader 评分 → Benchmark 聚合 → Analyst 分析."""
+    """EVALUATE 階段：Grader 評分 → Benchmark 聚合 → Analyst 分析."""
 
     async def execute(self, ctx: SkillDevContext) -> StageResult:
         iteration = ctx.state.iteration
         iter_dir = ctx.workspace / "evals" / f"iteration-{iteration}"
 
-        # --- Step 1: Grader 评分 ---
+        # --- Step 1: Grader 評分 ---
         await ctx.emit(
-            SkillDevEventType.PROGRESS, {"message": "正在对测试结果进行评分..."}
+            SkillDevEventType.PROGRESS, {"message": "正在對測試結果進行評分..."}
         )
         await self._grade_all_evals(ctx, iter_dir)
 
         # --- Step 2: Benchmark 聚合 ---
         await ctx.emit(
-            SkillDevEventType.PROGRESS, {"message": "正在聚合 benchmark 统计..."}
+            SkillDevEventType.PROGRESS, {"message": "正在聚合 benchmark 統計..."}
         )
         benchmark = self._aggregate_benchmark(ctx, iter_dir)
 
         # --- Step 3: Analyst 分析 ---
-        await ctx.emit(SkillDevEventType.PROGRESS, {"message": "正在分析评测模式..."})
+        await ctx.emit(SkillDevEventType.PROGRESS, {"message": "正在分析評測模式..."})
         analyst_notes = await self._analyze_patterns(ctx, benchmark)
         benchmark.notes = analyst_notes
 
@@ -124,7 +124,7 @@ class EvaluateStageHandler(StageHandler):
 
         ctx.state.eval_results = {"benchmark": benchmark_dict, "report": report_md}
 
-        # 推送给前端 — 前端根据 benchmark JSON 渲染评测面板
+        # 推送給前端 — 前端根據 benchmark JSON 渲染評測面板
         await ctx.emit(
             SkillDevEventType.EVAL_READY,
             {
@@ -139,10 +139,10 @@ class EvaluateStageHandler(StageHandler):
     # ------------------------------------------------------------------
 
     async def _grade_all_evals(self, ctx: SkillDevContext, iter_dir: Path) -> None:
-        """为每个 eval 的 with_skill / baseline 结果执行评分.
+        """為每個 eval 的 with_skill / baseline 結果執行評分.
 
-        待实现: 接入 create_stage_agent，用 GRADER_SYSTEM_PROMPT 调用 Agent
-              逐 run 评分，把 transcript + outputs 作为上下文输入。
+        待實現: 接入 create_stage_agent，用 GRADER_SYSTEM_PROMPT 呼叫 Agent
+              逐 run 評分，把 transcript + outputs 作為上下文輸入。
         """
         evals = (ctx.state.evals or {}).get("evals", [])
         for case in evals:
@@ -155,7 +155,7 @@ class EvaluateStageHandler(StageHandler):
                 if not run_dir.exists():
                     continue
 
-                # 待实现: 实际调用 Agent 评分
+                # 待實現: 實際呼叫 Agent 評分
                 # agent = ctx.create_stage_agent("grader", GRADER_SYSTEM_PROMPT, ...)
                 # transcript = (run_dir / "transcript.md").read_text(...)
                 # grading = await agent.grade(expectations, transcript, run_dir / "outputs")
@@ -163,7 +163,7 @@ class EvaluateStageHandler(StageHandler):
                 grading = GradingResult(
                     expectations=[
                         GradingExpectation(
-                            text=exp, passed=False, evidence="待 Agent 实现"
+                            text=exp, passed=False, evidence="待 Agent 實現"
                         )
                         for exp in expectations
                     ],
@@ -178,11 +178,11 @@ class EvaluateStageHandler(StageHandler):
 
     # ------------------------------------------------------------------
     # Step 2: Benchmark 聚合
-    # 逻辑内化自官方 aggregate_benchmark.py
+    # 邏輯內化自官方 aggregate_benchmark.py
     # ------------------------------------------------------------------
 
     def _aggregate_benchmark(self, ctx: SkillDevContext, iter_dir: Path) -> Benchmark:
-        """遍历所有 grading.json + timing.json，聚合为 Benchmark."""
+        """遍歷所有 grading.json + timing.json，聚合為 Benchmark."""
         evals = (ctx.state.evals or {}).get("evals", [])
         skill_name = (ctx.state.plan or {}).get("skill_name", "")
 
@@ -222,7 +222,7 @@ class EvaluateStageHandler(StageHandler):
                 )
                 configs.setdefault(config, []).append(run)
 
-        # 聚合统计
+        # 聚合統計
         run_summary: dict[str, Any] = {}
         for config, runs in configs.items():
             run_summary[config] = {
@@ -231,7 +231,7 @@ class EvaluateStageHandler(StageHandler):
                 "tokens": _calc_stats([float(r.tokens) for r in runs]).to_dict(),
             }
 
-        # 计算 delta
+        # 計算 delta
         config_names = list(configs.keys())
         if len(config_names) >= 2:
             a, b = run_summary[config_names[0]], run_summary[config_names[1]]
@@ -256,26 +256,26 @@ class EvaluateStageHandler(StageHandler):
     async def _analyze_patterns(
         self, ctx: SkillDevContext, benchmark: Benchmark
     ) -> list[str]:
-        """分析 benchmark 结果，发现隐藏模式.
+        """分析 benchmark 結果，發現隱藏模式.
 
-        待实现: 接入 create_stage_agent，用 ANALYST_SYSTEM_PROMPT 调用 Agent
-              把 benchmark JSON 作为上下文，输出 notes 列表。
+        待實現: 接入 create_stage_agent，用 ANALYST_SYSTEM_PROMPT 呼叫 Agent
+              把 benchmark JSON 作為上下文，輸出 notes 列表。
         """
-        # 待实现: 实际调用 Agent
+        # 待實現: 實際呼叫 Agent
         # agent = ctx.create_stage_agent("analyst", ANALYST_SYSTEM_PROMPT, ...)
         # notes = await agent.analyze(json.dumps(benchmark.to_dict()))
         # return json.loads(notes)
 
         logger.warning("[EvaluateStage] _analyze_patterns 待接入 Agent")
-        return ["评测分析 Agent 尚未接入"]
+        return ["評測分析 Agent 尚未接入"]
 
     # ------------------------------------------------------------------
-    # Markdown 报告（给人看，也存入 workspace）
+    # Markdown 報告（給人看，也存入 workspace）
     # ------------------------------------------------------------------
 
     @staticmethod
     def _render_benchmark_md(benchmark: Benchmark) -> str:
-        """把 Benchmark 渲染为 Markdown 报告."""
+        """把 Benchmark 渲染為 Markdown 報告."""
         rs = benchmark.run_summary
         configs = [k for k in rs if k != "delta"]
 
@@ -309,7 +309,7 @@ class EvaluateStageHandler(StageHandler):
 
 
 # ---------------------------------------------------------------------------
-# 统计工具（内化自官方 aggregate_benchmark.py 的 calculate_stats）
+# 統計工具（內化自官方 aggregate_benchmark.py 的 calculate_stats）
 # ---------------------------------------------------------------------------
 
 

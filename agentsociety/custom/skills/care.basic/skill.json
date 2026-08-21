@@ -21,7 +21,7 @@
   ],
   "status": "caring",
   "emotion": "attentive",
-  "speech": "我先确认身体状况，再提醒对方下一步怎么照顾自己。",
+  "speech": "我先確認身體狀況，再提醒對方下一步怎麼照顧自己。",
   "memory_template": "Used care.basic: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

@@ -37,7 +37,7 @@ class ExtensionLoader:
 
     def discover_extension_roots(self) -> list[Path]:
         roots: list[Path] = []
-        logger.info("[ExtensionLoader] 开始搜索扩展路径: %s", self._search_paths)
+        logger.info("[ExtensionLoader] 開始搜尋擴充套件路徑: %s", self._search_paths)
         for base_path in self._search_paths:
             if not base_path.exists():
                 continue
@@ -70,7 +70,7 @@ class ExtensionLoader:
         return None
 
     async def _install_dependencies(self, manifest: dict, root: Path) -> None:
-        """安装扩展声明的依赖"""
+        """安裝擴充套件宣告的依賴"""
         dependencies = manifest.get("dependencies", {})
         if not dependencies:
             return
@@ -86,12 +86,12 @@ class ExtensionLoader:
             package_name = f"{package}{version_spec}" if version_spec else package
             try:
                 importlib.metadata.version(package)
-                logger.info(f"[ExtensionLoader] 扩展 {root.name} 依赖 {package} 已安装")
+                logger.info(f"[ExtensionLoader] 擴充套件 {root.name} 依賴 {package} 已安裝")
                 continue
             except importlib.metadata.PackageNotFoundError:
                 pass
 
-            logger.info(f"[ExtensionLoader] 正在安装扩展 {root.name} 的依赖: {package_name}")
+            logger.info(f"[ExtensionLoader] 正在安裝擴充套件 {root.name} 的依賴: {package_name}")
             try:
                 if use_uv:
                     subprocess.check_call(
@@ -107,18 +107,18 @@ class ExtensionLoader:
                         stderr=subprocess.PIPE,
                         timeout=120,
                     )
-                logger.info(f"[ExtensionLoader] 扩展 {root.name} 依赖 {package} 安装成功")
+                logger.info(f"[ExtensionLoader] 擴充套件 {root.name} 依賴 {package} 安裝成功")
             except subprocess.TimeoutExpired:
-                logger.error(f"[ExtensionLoader] 扩展 {root.name} 依赖 {package} 安装超时 (120秒)")
+                logger.error(f"[ExtensionLoader] 擴充套件 {root.name} 依賴 {package} 安裝超時 (120秒)")
             except subprocess.CalledProcessError as e:
-                logger.error(f"[ExtensionLoader] 扩展 {root.name} 依赖 {package} 安装失败: {e}")
+                logger.error(f"[ExtensionLoader] 擴充套件 {root.name} 依賴 {package} 安裝失敗: {e}")
 
     @staticmethod
     def _import_module(root: Path) -> Any:
         entry = _find_entry_script(root)
         if entry is None:
             raise FileNotFoundError(
-                f"扩展入口脚本不存在（期望 {ENTRY_FILENAME}）: {root}"
+                f"擴充套件入口指令碼不存在（期望 {ENTRY_FILENAME}）: {root}"
             )
 
         module_name = root.name
@@ -127,7 +127,7 @@ class ExtensionLoader:
             entry,
         )
         if spec is None or spec.loader is None:
-            raise ImportError(f"无法加载扩展: {module_name}")
+            raise ImportError(f"無法載入擴充套件: {module_name}")
 
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)

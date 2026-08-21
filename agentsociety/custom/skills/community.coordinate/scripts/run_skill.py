@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'supply_store']
 TARGET_INTERACTIONS = ['coordinate_group', 'public_announcement']
 STATUS = 'coordinating'
 EMOTION = 'focused'
-SPEECH = '我会把当前情况整理清楚，并同步给需要知道的人。'
+SPEECH = '我會把當前情況整理清楚，並同步給需要知道的人。'
 MEMORY_TEMPLATE = 'Used community.coordinate: {summary} at {location_id}.'
 
 

@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['school', 'library']
 TARGET_INTERACTIONS = ['prepare_lesson', 'school_meeting']
 STATUS = 'organizing_class'
 EMOTION = 'focused'
-SPEECH = '我把课程安排和需要提醒的学生整理一下。'
+SPEECH = '我把課程安排和需要提醒的學生整理一下。'
 MEMORY_TEMPLATE = 'Used class.organize: {summary} at {location_id}.'
 
 

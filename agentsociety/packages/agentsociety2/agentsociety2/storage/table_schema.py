@@ -1,12 +1,12 @@
-"""动态回放表的 schema 定义（供环境模块注册）。
+"""動態回放表的 schema 定義（供環境模組註冊）。
 
-环境模块（例如 social_media、mobility_space）可通过 :class:`~agentsociety2.storage.table_schema.TableSchema`
-与 :class:`~agentsociety2.storage.table_schema.ColumnDef` 声明自己的回放表结构，并在运行时调用
-:meth:`agentsociety2.storage.replay_writer.ReplayWriter.register_table` 创建表、调用
-:meth:`agentsociety2.storage.replay_writer.ReplayWriter.write` 写入行数据。
+環境模組（例如 social_media、mobility_space）可透過 :class:`~agentsociety2.storage.table_schema.TableSchema`
+與 :class:`~agentsociety2.storage.table_schema.ColumnDef` 宣告自己的回放表結構，並在執行時呼叫
+:meth:`agentsociety2.storage.replay_writer.ReplayWriter.register_table` 建立表、呼叫
+:meth:`agentsociety2.storage.replay_writer.ReplayWriter.write` 寫入行資料。
 
-除 SQL 列定义外，``ColumnDef`` 还可携带语义元数据（描述、逻辑类型、分析角色等），
-由 :class:`~agentsociety2.storage.ReplayWriter` 的 catalog 表单独持久化。
+除 SQL 列定義外，``ColumnDef`` 還可攜帶語義後設資料（描述、邏輯型別、分析角色等），
+由 :class:`~agentsociety2.storage.ReplayWriter` 的 catalog 表單獨持久化。
 """
 
 from dataclasses import dataclass, field
@@ -18,20 +18,20 @@ ColumnType = Literal["INTEGER", "REAL", "TEXT", "BLOB", "TIMESTAMP", "JSON"]
 
 @dataclass
 class ColumnDef:
-    """表列定义（SQLite）。
+    """表列定義（SQLite）。
 
     :param name: 列名。
-    :param type: SQLite 列类型（见 :data:`~agentsociety2.storage.table_schema.ColumnType`）。
-    :param nullable: 是否允许 NULL。
-    :param default: 默认值表达式（例如 ``CURRENT_TIMESTAMP``）。
-    :param title: 可选，人类可读的列标题。
-    :param description: 可选，语义描述（供回放/导出/分析使用）。
-    :param logical_type: 可选，逻辑类型（例如 ``geo.lng``、``money``）。
-    :param analysis_role: 可选，分析角色（例如 ``measure``）。
-    :param unit: 可选，单位字符串（供分析/报告使用）。
-    :param enum_values: 可选，离散列的枚举值列表。
-    :param example: 可选，示例值。
-    :param tags: 可选，自由标签列表。
+    :param type: SQLite 列型別（見 :data:`~agentsociety2.storage.table_schema.ColumnType`）。
+    :param nullable: 是否允許 NULL。
+    :param default: 預設值表示式（例如 ``CURRENT_TIMESTAMP``）。
+    :param title: 可選，人類可讀的列標題。
+    :param description: 可選，語義描述（供回放/匯出/分析使用）。
+    :param logical_type: 可選，邏輯型別（例如 ``geo.lng``、``money``）。
+    :param analysis_role: 可選，分析角色（例如 ``measure``）。
+    :param unit: 可選，單位字串（供分析/報告使用）。
+    :param enum_values: 可選，離雜湊的列舉值列表。
+    :param example: 可選，示例值。
+    :param tags: 可選，自由標籤列表。
     """
 
     name: str
@@ -48,7 +48,7 @@ class ColumnDef:
     tags: list[str] = field(default_factory=list)
 
     def to_sql(self) -> str:
-        """:returns: 列定义的 SQL 片段。"""
+        """:returns: 列定義的 SQL 片段。"""
         parts = [self.name, self.type]
         if not self.nullable:
             parts.append("NOT NULL")
@@ -59,12 +59,12 @@ class ColumnDef:
 
 @dataclass
 class TableSchema:
-    """数据库表结构定义（用于动态建表）。
+    """資料庫表結構定義（用於動態建表）。
 
     :param name: 表名。
-    :param columns: 列定义列表。
-    :param primary_key: 主键列名列表。
-    :param indexes: 索引定义列表（每项为列名列表）。
+    :param columns: 列定義列表。
+    :param primary_key: 主鍵列名列表。
+    :param indexes: 索引定義列表（每項為列名列表）。
     """
     name: str
     columns: List[ColumnDef]
@@ -72,7 +72,7 @@ class TableSchema:
     indexes: List[List[str]] = field(default_factory=list)
 
     def to_create_sql(self) -> str:
-        """:returns: ``CREATE TABLE`` SQL 语句。"""
+        """:returns: ``CREATE TABLE`` SQL 語句。"""
         column_defs = [col.to_sql() for col in self.columns]
 
         # Add primary key constraint
@@ -84,7 +84,7 @@ class TableSchema:
         return f"CREATE TABLE IF NOT EXISTS {self.name} (\n    {columns_sql}\n)"
 
     def to_index_sql(self) -> List[str]:
-        """:returns: ``CREATE INDEX`` SQL 语句列表。"""
+        """:returns: ``CREATE INDEX`` SQL 語句列表。"""
         statements = []
         for idx_cols in self.indexes:
             idx_name = f"idx_{self.name}_{'_'.join(idx_cols)}"

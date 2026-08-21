@@ -126,19 +126,19 @@ class SOPStructure:
         lines: list[str] = []
         for step in self.steps[:max_steps]:
             actor_part = f" [{step.actor}]" if step.actor else ""
-            system_part = f" (系统: {step.system})" if step.system else ""
+            system_part = f" (系統: {step.system})" if step.system else ""
             lines.append(f"{step.step_number}. {step.action}{actor_part}{system_part}")
             if step.output:
-                lines.append(f"   输出: {step.output}")
+                lines.append(f"   輸出: {step.output}")
             if step.notes:
-                lines.append(f"   备注: {step.notes}")
+                lines.append(f"   備註: {step.notes}")
         return "\n".join(lines)
 
     def knowledge_summary(self, max_items: int = 30) -> str:
         """Return sections and knowledge items as plain text (for prompts)."""
         lines: list[str] = []
         if self.sections:
-            lines.append("=== 章节结构 ===")
+            lines.append("=== 章節結構 ===")
             for sec in self.sections[:20]:
                 sid = sec.get("id", "")
                 stitle = sec.get("title", "")
@@ -147,7 +147,7 @@ class SOPStructure:
         if self.knowledge_items:
             if lines:
                 lines.append("")
-            lines.append("=== 关键规则与标准 ===")
+            lines.append("=== 關鍵規則與標準 ===")
             for i, item in enumerate(self.knowledge_items[:max_items], 1):
                 lines.append(f"K{i}. {item}")
         return "\n".join(lines)
@@ -156,7 +156,7 @@ class SOPStructure:
         """Return ``sop_type``, step list, and knowledge block as plain text."""
         parts: list[str] = []
         if self.sop_type:
-            parts.append(f"SOP 类型: {self.sop_type}")
+            parts.append(f"SOP 型別: {self.sop_type}")
         ss = self.step_summary(max_steps)
         if ss:
             parts.append(ss)

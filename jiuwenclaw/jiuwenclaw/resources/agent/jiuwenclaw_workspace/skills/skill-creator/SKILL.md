@@ -66,7 +66,7 @@ Before writing from scratch, search the community for proven skills similar to w
 **Step 1: Extract search keywords**
 
 Distill the user's intent into 1–2 concise English keywords describing what the skill *does*. Be semantic, not literal:
-- "我想创建一个 PR review 技能" → `code review`
+- "我想建立一個 PR review 技能" → `code review`
 - "a skill that generates changelogs from git history" → `changelog git`
 - "help write a skill for translating documents" → `translation`
 - "deploy to cloud with rollback support" → `deploy rollback`

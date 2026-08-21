@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'library']
 TARGET_INTERACTIONS = ['work_from_home', 'quiet_work']
 STATUS = 'computing'
 EMOTION = 'focused'
-SPEECH = '我先用电脑把这件事整理成可执行的信息。'
+SPEECH = '我先用電腦把這件事整理成可執行的資訊。'
 MEMORY_TEMPLATE = 'Used computer.basic: {summary} at {location_id}.'
 
 

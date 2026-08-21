@@ -21,7 +21,7 @@
   ],
   "status": "protecting_privacy",
   "emotion": "careful",
-  "speech": "我先确认哪些信息不能随便说出去。",
+  "speech": "我先確認哪些資訊不能隨便說出去。",
   "memory_template": "Used privacy.protect: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

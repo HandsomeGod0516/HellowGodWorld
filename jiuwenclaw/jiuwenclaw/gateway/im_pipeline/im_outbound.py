@@ -1,13 +1,13 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""IMOutboundPipeline — 出站预处理管线：路由决策（群发 vs 私发）+ 追问前缀解析。
+"""IMOutboundPipeline — 出站預處理管線：路由決策（群發 vs 私發）+ 追問字首解析。
 
-在 MessageHandler.publish_robot_messages() 入队前拦截，根据 LLM 分类和关键词匹配
-决定是否将回复私发给目标用户。Channel.send() 仅读取 metadata 执行实际发送。
+在 MessageHandler.publish_robot_messages() 入隊前攔截，根據 LLM 分類和關鍵詞匹配
+決定是否將回復私發給目標使用者。Channel.send() 僅讀取 metadata 執行實際傳送。
 
-追问前缀约定：
-  [群聊追问@张三] → 群聊中 @张三 追问
-  [私聊追问]      → 私聊 principal 追问
+追問字首約定：
+  [群聊追問@張三] → 群聊中 @張三 追問
+  [私聊追問]      → 私聊 principal 追問
 """
 
 from __future__ import annotations
@@ -35,23 +35,23 @@ _SKIP_EVENT_TYPES = frozenset({
 })
 
 _GROUP_ACK_KEYWORDS: tuple[str, ...] = (
-    "待办",
+    "待辦",
     "提醒",
-    "定时",
+    "定時",
     "日程",
-    "会议",
+    "會議",
     "行程",
     "安排",
-    "记下了",
-    "记住了",
+    "記下了",
+    "記住了",
 )
 
-_RE_GROUP_FOLLOWUP = re.compile(r"^\[群聊追问(?:@(.+?))?\]\s*")
-_RE_DM_FOLLOWUP = re.compile(r"^\[私聊追问\]\s*")
+_RE_GROUP_FOLLOWUP = re.compile(r"^\[群聊追問(?:@(.+?))?\]\s*")
+_RE_DM_FOLLOWUP = re.compile(r"^\[私聊追問\]\s*")
 
 
 class IMOutboundPipeline:
-    """出站预处理管线：根据回复内容决定是否私发给目标用户。"""
+    """出站預處理管線：根據回覆內容決定是否私發給目標使用者。"""
 
     def __init__(self) -> None:
         self._adapters: dict[str, "IMPlatformAdapter"] = {}
@@ -64,10 +64,10 @@ class IMOutboundPipeline:
     def unregister_adapter(self, channel_id: str) -> None:
         self._adapters.pop(channel_id, None)
 
-    # ---- LLM 初始化（与 react agent 一致） ----
+    # ---- LLM 初始化（與 react agent 一致） ----
 
     def _ensure_llm(self) -> bool:
-        """懒加载 openjiuwen Model 实例，配置读取与 react agent 保持一致。"""
+        """懶載入 openjiuwen Model 例項，配置讀取與 react agent 保持一致。"""
         if self._llm is not None:
             return True
 
@@ -89,7 +89,7 @@ class IMOutboundPipeline:
 
         if not api_key or not api_base:
             logger.warning(
-                "[IMOutboundPipeline] LLM 跳过：API_KEY=%s API_BASE=%s",
+                "[IMOutboundPipeline] LLM 跳過：API_KEY=%s API_BASE=%s",
                 "set" if api_key else "empty",
                 "set" if api_base else "empty",
             )
@@ -120,13 +120,13 @@ class IMOutboundPipeline:
             )
             return True
         except Exception as exc:
-            logger.warning("[IMOutboundPipeline] LLM 初始化失败: %s", exc)
+            logger.warning("[IMOutboundPipeline] LLM 初始化失敗: %s", exc)
             return False
 
     # ---- public entry ----
 
     async def apply(self, msg: "Message") -> None:
-        """对出站消息执行路由决策，结果写入 msg.metadata（原地修改）。"""
+        """對出站訊息執行路由決策，結果寫入 msg.metadata（原地修改）。"""
         logger.info(
             "[IMOutboundPipeline] apply 入口: channel=%s msg.id=%s group_digital_avatar=%s",
             msg.channel_id, msg.id, msg.group_digital_avatar
@@ -154,7 +154,7 @@ class IMOutboundPipeline:
         if not content:
             return
 
-        # ---- 群聊追问的 pending 清除逻辑（必须在追问前缀解析之前） ----
+        # ---- 群聊追問的 pending 清除邏輯（必須在追問字首解析之前） ----
         answered_user_id = str(meta.get("interaction_answered_user_id") or "").strip()
         if answered_user_id:
             session_id = str(msg.session_id or "").strip()
@@ -167,7 +167,7 @@ class IMOutboundPipeline:
                         session_id, answered_user_id,
                     )
 
-        # ---- 追问前缀解析（优先于原有路由逻辑） ----
+        # ---- 追問字首解析（優先於原有路由邏輯） ----
         group_match = _RE_GROUP_FOLLOWUP.match(content)
         dm_match = _RE_DM_FOLLOWUP.match(content)
 
@@ -179,7 +179,7 @@ class IMOutboundPipeline:
             await self._handle_dm_followup(msg, meta, adapter, content)
             return
 
-        # ---- 原有路由逻辑 ----
+        # ---- 原有路由邏輯 ----
         if str(meta.get("reply_scope") or "").strip():
             return
 
@@ -188,7 +188,7 @@ class IMOutboundPipeline:
             return
 
         logger.info(
-            "[IMOutboundPipeline] 继续处理: channel=%s candidate=%s content_len=%d",
+            "[IMOutboundPipeline] 繼續處理: channel=%s candidate=%s content_len=%d",
             msg.channel_id, candidate_user_id, len(content)
         )
 
@@ -199,7 +199,7 @@ class IMOutboundPipeline:
         )
         if is_personal is None:
             logger.info(
-                "[IMOutboundPipeline] LLM 无结果，关键词兜底=%s: channel=%s request=%s llm_output=%r content_snippet=%r",
+                "[IMOutboundPipeline] LLM 無結果，關鍵詞兜底=%s: channel=%s request=%s llm_output=%r content_snippet=%r",
                 keyword_hit, msg.channel_id, msg.id, llm_raw, content[:100],
             )
             is_personal = keyword_hit
@@ -216,7 +216,7 @@ class IMOutboundPipeline:
 
         if not is_personal:
             logger.info(
-                "[IMOutboundPipeline] 判定为群聊，不升级 DM: channel=%s request=%s",
+                "[IMOutboundPipeline] 判定為群聊，不升級 DM: channel=%s request=%s",
                 msg.channel_id, msg.id,
             )
             return
@@ -230,11 +230,11 @@ class IMOutboundPipeline:
         msg.metadata = meta
 
         logger.info(
-            "[IMOutboundPipeline] 升级为私发: channel=%s request=%s reply_user_id_key=%s",
+            "[IMOutboundPipeline] 升級為私發: channel=%s request=%s reply_user_id_key=%s",
             msg.channel_id, msg.id, adapter.reply_user_id_key,
         )
 
-    # ---- 追问处理 ----
+    # ---- 追問處理 ----
 
     async def _handle_group_followup(
         self,
@@ -304,7 +304,7 @@ class IMOutboundPipeline:
 
         msg.metadata = meta
         logger.info(
-            "[IMOutboundPipeline] 群聊追问: session=%s target=%s(%s) question=%s",
+            "[IMOutboundPipeline] 群聊追問: session=%s target=%s(%s) question=%s",
             session_id, target_name, target_user_id, stripped[:80],
         )
 
@@ -356,7 +356,7 @@ class IMOutboundPipeline:
 
         msg.metadata = meta
         logger.info(
-            "[IMOutboundPipeline] DM 追问: session=%s target=%s question=%s",
+            "[IMOutboundPipeline] DM 追問: session=%s target=%s question=%s",
             session_id, target_user_id, stripped[:80],
         )
 
@@ -381,31 +381,31 @@ class IMOutboundPipeline:
         metadata: dict[str, Any],
         content: str,
     ) -> tuple[bool | None, str]:
-        """使用 openjiuwen Model.invoke 判断回复是否属于个人行动类内容。
+        """使用 openjiuwen Model.invoke 判斷回覆是否屬於個人行動類內容。
 
         Returns:
-            (decision, llm_raw_text) — decision 为 True(DM)/False(CHAT)/None(失败),
-            llm_raw_text 为 LLM 原始返回文本（失败时为空字符串）。
+            (decision, llm_raw_text) — decision 為 True(DM)/False(CHAT)/None(失敗),
+            llm_raw_text 為 LLM 原始返回文字（失敗時為空字串）。
         """
         if not self._ensure_llm():
             return None, ""
 
-        target_name = str(metadata.get("reply_target_name") or "").strip() or "目标用户"
+        target_name = str(metadata.get("reply_target_name") or "").strip() or "目標使用者"
         original_query = str(metadata.get("avatar_original_query") or "").strip()
 
         query_section = ""
         if original_query:
-            query_section = f"群聊中的原始提问：\n{original_query[:300]}\n\n"
+            query_section = f"群聊中的原始提問：\n{original_query[:300]}\n\n"
 
         prompt = (
-            "请判断下面这条{platform}机器人回复，是否应该私发给特定用户，而不是直接回到群里。\n\n"
-            "判断标准：\n"
-            "- 如果内容是在为该用户记录待办、设置提醒、安排日程、私下跟进、单独通知，输出 DM\n"
-            "- 如果内容是在公开回复群讨论、解释问题、同步信息、继续群聊协作，输出 CHAT\n"
-            "- 只输出 DM 或 CHAT，不要输出其他内容\n\n"
+            "請判斷下面這條{platform}機器人回覆，是否應該私發給特定使用者，而不是直接回到群裡。\n\n"
+            "判斷標準：\n"
+            "- 如果內容是在為該使用者記錄待辦、設定提醒、安排日程、私下跟進、單獨通知，輸出 DM\n"
+            "- 如果內容是在公開回復群討論、解釋問題、同步資訊、繼續群聊協作，輸出 CHAT\n"
+            "- 只輸出 DM 或 CHAT，不要輸出其他內容\n\n"
             "{query_section}"
-            "目标用户：{name}\n"
-            "机器人回复：\n{content}"
+            "目標使用者：{name}\n"
+            "機器人回覆：\n{content}"
         ).format(
             platform=platform_name,
             query_section=query_section,
@@ -414,7 +414,7 @@ class IMOutboundPipeline:
         )
 
         logger.info(
-            "[IMOutboundPipeline] LLM 请求: model=%r target=%s content_len=%d prompt:\n%s",
+            "[IMOutboundPipeline] LLM 請求: model=%r target=%s content_len=%d prompt:\n%s",
             self._llm_model_name, target_name, len(content), prompt,
         )
 
@@ -433,15 +433,15 @@ class IMOutboundPipeline:
                 return True, text
             if "CHAT" in text:
                 return False, text
-            logger.warning("[IMOutboundPipeline] LLM 返回无法解析为 DM/CHAT: %r", text)
+            logger.warning("[IMOutboundPipeline] LLM 返回無法解析為 DM/CHAT: %r", text)
             return None, text
         except Exception as e:
-            logger.warning("[IMOutboundPipeline] LLM 判断回复投递意图失败: %s", e)
+            logger.warning("[IMOutboundPipeline] LLM 判斷回覆投遞意圖失敗: %s", e)
 
         return None, ""
 
 
 def _is_personal_action_reply(content: str) -> bool:
-    """关键词兜底：粗略判断回复是否更适合私发给目标用户。"""
+    """關鍵詞兜底：粗略判斷回覆是否更適合私發給目標使用者。"""
     normalized = re.sub(r"\s+", "", content or "")
     return bool(normalized) and any(kw in normalized for kw in _GROUP_ACK_KEYWORDS)

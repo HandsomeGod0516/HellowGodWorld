@@ -21,7 +21,7 @@
   ],
   "status": "repairing_computer",
   "emotion": "focused",
-  "speech": "我先检查设备问题，再决定要不要拿工具处理。",
+  "speech": "我先檢查裝置問題，再決定要不要拿工具處理。",
   "memory_template": "Used computer.repair: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

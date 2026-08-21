@@ -1,7 +1,7 @@
 /**
- * SessionItem 组件
+ * SessionItem 元件
  *
- * 单个会话项，支持删除
+ * 單個會話項，支援刪除
  */
 
 import { useState } from 'react';
@@ -17,7 +17,7 @@ interface SessionItemProps {
 }
 
 /**
- * 格式化时间显示
+ * 格式化時間顯示
  */
 function formatTime(
   timestamp: string,
@@ -54,7 +54,7 @@ export function SessionItem({ session, isActive, onClick, onDelete }: SessionIte
   const { t, i18n } = useTranslation();
   const [showDelete, setShowDelete] = useState(false);
   
-  // 优先展示会话标题，缺失时回退到会话 ID 片段
+  // 優先展示會話標題，缺失時回退到會話 ID 片段
   const preview = session.title?.trim() || session.session_id.slice(0, 8);
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -75,7 +75,7 @@ export function SessionItem({ session, isActive, onClick, onDelete }: SessionIte
           isActive && 'active'
         )}
       >
-        {/* 会话图标 */}
+        {/* 會話圖示 */}
         <div className={clsx(
           'w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0',
           isActive ? 'bg-accent text-white' : 'bg-secondary text-text-muted'
@@ -85,7 +85,7 @@ export function SessionItem({ session, isActive, onClick, onDelete }: SessionIte
           </svg>
         </div>
 
-        {/* 会话信息 */}
+        {/* 會話資訊 */}
         <div className="flex-1 min-w-0">
           <div className={clsx(
             'text-sm font-medium truncate',
@@ -100,7 +100,7 @@ export function SessionItem({ session, isActive, onClick, onDelete }: SessionIte
           </div>
         </div>
 
-        {/* 消息计数 */}
+        {/* 訊息計數 */}
         {session.message_count && session.message_count > 0 && !showDelete && (
           <span className={clsx(
             'text-xs px-1.5 py-0.5 rounded-full',
@@ -111,7 +111,7 @@ export function SessionItem({ session, isActive, onClick, onDelete }: SessionIte
         )}
       </button>
 
-      {/* 删除按钮 */}
+      {/* 刪除按鈕 */}
       {showDelete && (
         <button
           onClick={handleDelete}

@@ -1,8 +1,8 @@
 /**
- * StatusBar 组件
+ * StatusBar 元件
  *
- * 状态栏，显示当前模式、处理状态、暂停/恢复按钮
- * 采用 JiuwenClaw 风格
+ * 狀態列，顯示當前模式、處理狀態、暫停/恢復按鈕
+ * 採用 JiuwenClaw 風格
  */
 
 import { useTranslation } from 'react-i18next';
@@ -19,7 +19,7 @@ export function StatusBar({ onPause, onCancel, onResume }: StatusBarProps) {
   const { t } = useTranslation();
   const { isProcessing, isPaused, pausedTask, interruptResult, switchingMode } = useChatStore();
   const showExec = (isProcessing || isPaused) && !switchingMode;
-  /** 有中断结果文案时，统一只显示居中的横条（任务已暂停/恢复/取消/切换/已中断） */
+  /** 有中斷結果文案時，統一隻顯示居中的橫條（任務已暫停/恢復/取消/切換/已中斷） */
   const showInterruptBarOnly = Boolean(interruptResult?.message);
 
   return (
@@ -37,7 +37,7 @@ export function StatusBar({ onPause, onCancel, onResume }: StatusBarProps) {
           </div>
         ) : (
           <>
-        {/* 执行状态：左侧取消，中间状态，右侧暂停/恢复 */}
+        {/* 執行狀態：左側取消，中間狀態，右側暫停/恢復 */}
         {showExec && (
           <div className="statusbar-exec">
             {onCancel && (

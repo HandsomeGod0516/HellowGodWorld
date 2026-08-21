@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['pharmacy', 'supply_store']
 TARGET_INTERACTIONS = ['pharmacy_consultation', 'prepare_kit']
 STATUS = 'first_aid_ready'
 EMOTION = 'alert'
-SPEECH = '我会先看是否需要药品、包扎或进一步求助。'
+SPEECH = '我會先看是否需要藥品、包紮或進一步求助。'
 MEMORY_TEMPLATE = 'Used first_aid.basic: {summary} at {location_id}.'
 
 

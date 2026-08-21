@@ -107,42 +107,42 @@ def _check_sop_specific(content: str, details: dict[str, Any]) -> None:
     body_lower = content.lower()
 
     has_workflow_section = bool(
-        re.search(r"^#{1,3}\s*(workflow|工作流|步骤|操作流程|流程)", content, re.MULTILINE | re.IGNORECASE)
+        re.search(r"^#{1,3}\s*(workflow|工作流|步驟|操作流程|流程)", content, re.MULTILINE | re.IGNORECASE)
     )
     if not has_workflow_section:
         details["warnings"].append(
-            "SOP 技能建议包含 Workflow/步骤/操作流程 章节，以明确 SOP 步骤序列。"
+            "SOP 技能建議包含 Workflow/步驟/操作流程 章節，以明確 SOP 步驟序列。"
         )
 
-    tool_indicators = ["tool", "工具", "api", "系统", "file_", "read_", "write_", "search_", "execute"]
+    tool_indicators = ["tool", "工具", "api", "系統", "file_", "read_", "write_", "search_", "execute"]
     has_tool_usage = any(indicator in body_lower for indicator in tool_indicators)
     if not has_tool_usage:
         details["warnings"].append(
-            "SOP 技能通常需要 tool 调用（文件操作、搜索、API 等）。建议在 Workflow 中标明需要的工具。"
+            "SOP 技能通常需要 tool 呼叫（檔案操作、搜尋、API 等）。建議在 Workflow 中標明需要的工具。"
         )
 
     has_user_inputs = bool(
         re.search(
-            r"^#{1,3}\s*(用户输入与数据|用户输入|预期输入|user\s+inputs?)",
+            r"^#{1,3}\s*(使用者輸入與資料|使用者輸入|預期輸入|user\s+inputs?)",
             content,
             re.MULTILINE | re.IGNORECASE,
         )
     )
     if not has_user_inputs:
         details["warnings"].append(
-            "建议增加「用户输入与数据」类章节，明确用户可能提供的材料与字段，便于 agent 执行。"
+            "建議增加「使用者輸入與資料」類章節，明確使用者可能提供的材料與欄位，便於 agent 執行。"
         )
 
     has_deliverables = bool(
         re.search(
-            r"^#{1,3}\s*(标准交付物|交付物|预期输出|deliverables?)",
+            r"^#{1,3}\s*(標準交付物|交付物|預期輸出|deliverables?)",
             content,
             re.MULTILINE | re.IGNORECASE,
         )
     )
     if not has_deliverables:
         details["warnings"].append(
-            "建议增加「标准交付物」类章节，明确文件格式（如 .xlsx/.csv）、字段/列与校验要点。"
+            "建議增加「標準交付物」類章節，明確檔案格式（如 .xlsx/.csv）、欄位/列與校驗要點。"
         )
 
     step_pattern = re.compile(r"^\s*\d+[.)]\s", re.MULTILINE)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-TRACE_POINT 预处理器：扫描源码中的 TRACE_POINT("label", "B/E")，
-为每个调用分配唯一 point_id（int32），替换源码后生成 point_map.json 映射表。
-支持事件 ID 分配、嵌套校验、映射表导出。
+TRACE_POINT 前處理器：掃描原始碼中的 TRACE_POINT("label", "B/E")，
+為每個呼叫分配唯一 point_id（int32），替換原始碼後生成 point_map.json 對映表。
+支援事件 ID 分配、巢狀校驗、對映表匯出。
 """
 
 import json

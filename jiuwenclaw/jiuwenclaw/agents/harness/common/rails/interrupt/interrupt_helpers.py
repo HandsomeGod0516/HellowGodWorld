@@ -54,8 +54,8 @@ def build_permission_rail(
         return None
 
     def _collect_optional_tool_tags(cfg: dict[str, Any]) -> list[str]:
-        # openjiuwen PermissionInterruptRail 会拦截所有工具；
-        # 这里的 tool_names 仅作为标签展示/日志辅助（尽量覆盖 tools + rules 声明）。
+        # openjiuwen PermissionInterruptRail 會攔截所有工具；
+        # 這裡的 tool_names 僅作為標籤展示/日誌輔助（儘量覆蓋 tools + rules 宣告）。
         names: set[str] = set()
         tools_cfg = cfg.get("tools") or {}
         if isinstance(tools_cfg, dict):
@@ -222,7 +222,7 @@ def build_permission_rail(
 
             if getattr(perm_ctx, "scene", None) == "group_digital_avatar":
                 if inp.user_input is not None:
-                    return ("reject", "[PERMISSION_DENIED] 数字分身场景不支持交互审批")
+                    return ("reject", "[PERMISSION_DENIED] 數字分身場景不支援互動審批")
                 level = await check_avatar_permission(
                     inp.normalized_tool_name,
                     inp.tool_args,
@@ -231,7 +231,7 @@ def build_permission_rail(
                 )
                 if level == "allow":
                     return ("approve",)
-                return ("reject", "[PERMISSION_DENIED] 该工具未被授权在数字分身场景下使用")
+                return ("reject", "[PERMISSION_DENIED] 該工具未被授權在數字分身場景下使用")
 
             principal_user_id = str(getattr(perm_ctx, "principal_user_id", "") or "").strip()
             channel_id = str(getattr(perm_ctx, "channel_id", "") or "").strip()
@@ -251,7 +251,7 @@ def build_permission_rail(
                 return None
             if owner_level == "allow":
                 return ("approve",)
-            return ("reject", f"[PERMISSION_DENIED] 该工具未被授权 (owner_scopes: {owner_level})")
+            return ("reject", f"[PERMISSION_DENIED] 該工具未被授權 (owner_scopes: {owner_level})")
 
         host = ToolPermissionHost(
             get_permissions_snapshot=lambda: (
@@ -285,12 +285,12 @@ def build_permission_rail(
 def convert_interactions_to_ask_user_question(state_outputs: list) -> dict | None:
     """Convert __interaction__ list to frontend chat.ask_user_question format.
 
-    AskUserRail 中断: value 有 questions 字段 → source="ask_user_interrupt"
-    PermissionRail 中断: value 无 questions 字段 → source="permission_interrupt"
+    AskUserRail 中斷: value 有 questions 欄位 → source="ask_user_interrupt"
+    PermissionRail 中斷: value 無 questions 欄位 → source="permission_interrupt"
 
     state_outputs 中的元素可能是:
-    - InteractionOutput 对象 (有 id, value 属性, value 是 ToolCallInterruptRequest)
-    - dict (有 id, value 键)
+    - InteractionOutput 物件 (有 id, value 屬性, value 是 ToolCallInterruptRequest)
+    - dict (有 id, value 鍵)
     """
     if not state_outputs:
         return None
@@ -329,10 +329,10 @@ def convert_interactions_to_ask_user_question(state_outputs: list) -> dict | Non
 
 
 def _extract_questions_from_value(value_obj: Any) -> list | None:
-    """从 value 对象中提取 questions 列表.
+    """從 value 物件中提取 questions 列表.
 
-    AskUserRail 的 value (ToolCallInterruptRequest) 有 questions 属性.
-    如果 questions 存在且非空, 返回列表; 否则返回 None 表示不是 AskUserRail 中断.
+    AskUserRail 的 value (ToolCallInterruptRequest) 有 questions 屬性.
+    如果 questions 存在且非空, 返回列表; 否則返回 None 表示不是 AskUserRail 中斷.
 
     Additional source: StructuredAskUserRail puts `questions` in the tool call
     arguments, which are preserved in ToolCallInterruptRequest.tool_args.
@@ -368,8 +368,8 @@ def _extract_questions_from_value(value_obj: Any) -> list | None:
 def _build_multi_questions(questions_data: list) -> list:
     """Build frontend PendingQuestionItem list from questions data.
 
-    有选项的问题: 保留原始选项 + 追加 __other__ (自定义输入)
-    无选项的问题: 不追加 __other__, 前端应直接进入自由输入模式
+    有選項的問題: 保留原始選項 + 追加 __other__ (自定義輸入)
+    無選項的問題: 不追加 __other__, 前端應直接進入自由輸入模式
     """
     questions = []
     for q in questions_data:
@@ -419,12 +419,12 @@ def extract_question_from_interaction(payload: Any) -> dict | None:
         return None
 
     return {
-        "question": message or f"工具 `{tool_name}` 需要授权才能执行",
-        "header": f"权限审批: {tool_name}" if tool_name else "权限审批",
+        "question": message or f"工具 `{tool_name}` 需要授權才能執行",
+        "header": f"許可權審批: {tool_name}" if tool_name else "許可權審批",
         "options": [
-            {"label": "本次允许", "description": "仅本次授权执行"},
-            {"label": "总是允许", "description": "记住该规则，以后自动放行"},
-            {"label": "拒绝", "description": "拒绝执行此工具"},
+            {"label": "本次允許", "description": "僅本次授權執行"},
+            {"label": "總是允許", "description": "記住該規則，以後自動放行"},
+            {"label": "拒絕", "description": "拒絕執行此工具"},
         ],
         "multi_select": False,
     }

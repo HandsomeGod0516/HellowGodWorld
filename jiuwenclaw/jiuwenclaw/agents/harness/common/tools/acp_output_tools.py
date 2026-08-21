@@ -1,7 +1,7 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
 """
-ACP 输出工具：AgentServer 向 IDE 发送请求。
+ACP 輸出工具：AgentServer 向 IDE 傳送請求。
 """
 
 from __future__ import annotations
@@ -251,7 +251,7 @@ class AcpOutputError(Exception):
 
 
 # ============================================================================
-# ACP 工具函数
+# ACP 工具函式
 # ============================================================================
 
 
@@ -262,7 +262,7 @@ async def read_text_file(
     limit: int | None = None,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """读取文件内容。"""
+    """讀取檔案內容。"""
     mgr = get_acp_output_manager()
     params: dict[str, Any] = {"path": path}
     if offset is not None:
@@ -292,7 +292,7 @@ async def write_text_file(
     *,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """写入文件。"""
+    """寫入檔案。"""
     mgr = get_acp_output_manager()
     params = {"path": path, "content": content}
 
@@ -318,7 +318,7 @@ async def create_terminal(
     cwd: str | None = None,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """创建终端并执行命令。"""
+    """建立終端並執行命令。"""
     mgr = get_acp_output_manager()
     params: dict[str, Any] = {"command": cmd}
     if cwd is not None:
@@ -345,7 +345,7 @@ async def read_terminal_output(
     *,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """读取终端输出。"""
+    """讀取終端輸出。"""
     mgr = get_acp_output_manager()
     params = {"terminalId": terminal_id}
 
@@ -370,7 +370,7 @@ async def wait_for_terminal_exit(
     *,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """等待终端退出。"""
+    """等待終端退出。"""
     mgr = get_acp_output_manager()
     params = {"terminalId": terminal_id}
 
@@ -421,7 +421,7 @@ async def release_terminal(
     *,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """释放终端资源。"""
+    """釋放終端資源。"""
     mgr = get_acp_output_manager()
     params = {"terminalId": terminal_id}
 
@@ -442,12 +442,12 @@ async def release_terminal(
 
 
 # ============================================================================
-# 工具注册
+# 工具註冊
 # ============================================================================
 
 
 def get_tools(session_id: str = "", request_id: str = "") -> List["Tool"]:
-    """返回 ACP 输出工具列表，用于注册到 Agent。"""
+    """返回 ACP 輸出工具列表，用於註冊到 Agent。"""
     from openjiuwen.core.foundation.tool import ToolCard, LocalFunction
 
     def make_tool(
@@ -463,7 +463,7 @@ def get_tools(session_id: str = "", request_id: str = "") -> List["Tool"]:
         )
         return LocalFunction(card=card, func=func)
 
-    # 创建绑定了 session_id 的函数
+    # 建立繫結了 session_id 的函式
     async def read_text_file_bound(
         path: str, offset: int | None = None, limit: int | None = None
     ) -> dict:
@@ -490,19 +490,19 @@ def get_tools(session_id: str = "", request_id: str = "") -> List["Tool"]:
         make_tool(
             name="read_text_file",
             description=(
-                "[ACP] 通过 IDE 读取用户本地文件内容。"
-                "这是唯一可用的文件读取工具。"
-                "必须调用此工具才能读取文件。"
+                "[ACP] 透過 IDE 讀取使用者本地檔案內容。"
+                "這是唯一可用的檔案讀取工具。"
+                "必須呼叫此工具才能讀取檔案。"
             ),
             input_params={
                 "type": "object",
                 "properties": {
-                    "path": {"type": "string", "description": "要读取的文件路径"},
+                    "path": {"type": "string", "description": "要讀取的檔案路徑"},
                     "offset": {
                         "type": "integer",
-                        "description": "起始行号（可选，从 1 开始）",
+                        "description": "起始行號（可選，從 1 開始）",
                     },
-                    "limit": {"type": "integer", "description": "读取行数（可选）"},
+                    "limit": {"type": "integer", "description": "讀取行數（可選）"},
                 },
                 "required": ["path"],
             },
@@ -511,15 +511,15 @@ def get_tools(session_id: str = "", request_id: str = "") -> List["Tool"]:
         make_tool(
             name="write_text_file",
             description=(
-                "[ACP] 通过 IDE 写入文件到用户本地。"
-                "这是唯一可用的文件写入工具。"
-                "必须调用此工具才能写入文件。"
+                "[ACP] 透過 IDE 寫入檔案到使用者本地。"
+                "這是唯一可用的檔案寫入工具。"
+                "必須呼叫此工具才能寫入檔案。"
             ),
             input_params={
                 "type": "object",
                 "properties": {
-                    "path": {"type": "string", "description": "要写入的文件路径"},
-                    "content": {"type": "string", "description": "要写入的文件内容"},
+                    "path": {"type": "string", "description": "要寫入的檔案路徑"},
+                    "content": {"type": "string", "description": "要寫入的檔案內容"},
                 },
                 "required": ["path", "content"],
             },
@@ -528,15 +528,15 @@ def get_tools(session_id: str = "", request_id: str = "") -> List["Tool"]:
         make_tool(
             name="create_terminal",
             description=(
-                "[ACP] 通过 IDE 创建终端并执行命令。"
-                "这是唯一可用的命令执行工具。"
-                "必须调用此工具才能执行命令。"
+                "[ACP] 透過 IDE 建立終端並執行命令。"
+                "這是唯一可用的命令執行工具。"
+                "必須呼叫此工具才能執行命令。"
             ),
             input_params={
                 "type": "object",
                 "properties": {
-                    "cmd": {"type": "string", "description": "要执行的命令"},
-                    "cwd": {"type": "string", "description": "工作目录（可选）"},
+                    "cmd": {"type": "string", "description": "要執行的命令"},
+                    "cwd": {"type": "string", "description": "工作目錄（可選）"},
                 },
                 "required": ["cmd"],
             },
@@ -544,11 +544,11 @@ def get_tools(session_id: str = "", request_id: str = "") -> List["Tool"]:
         ),
         make_tool(
             name="read_terminal_output",
-            description="读取终端输出内容。",
+            description="讀取終端輸出內容。",
             input_params={
                 "type": "object",
                 "properties": {
-                    "terminal_id": {"type": "string", "description": "终端 ID"},
+                    "terminal_id": {"type": "string", "description": "終端 ID"},
                 },
                 "required": ["terminal_id"],
             },
@@ -557,13 +557,13 @@ def get_tools(session_id: str = "", request_id: str = "") -> List["Tool"]:
         make_tool(
             name="wait_for_terminal_exit",
             description=(
-                "等待终端命令执行完成。若返回 timedOut=true / running=true / shouldRetry=true，"
-                "表示任务仍在执行中，应继续使用同一个 terminal_id 再次调用本工具轮询。"
+                "等待終端命令執行完成。若返回 timedOut=true / running=true / shouldRetry=true，"
+                "表示任務仍在執行中，應繼續使用同一個 terminal_id 再次呼叫本工具輪詢。"
             ),
             input_params={
                 "type": "object",
                 "properties": {
-                    "terminal_id": {"type": "string", "description": "终端 ID"},
+                    "terminal_id": {"type": "string", "description": "終端 ID"},
                 },
                 "required": ["terminal_id"],
             },
@@ -571,11 +571,11 @@ def get_tools(session_id: str = "", request_id: str = "") -> List["Tool"]:
         ),
         make_tool(
             name="release_terminal",
-            description="释放终端资源（命令完成后必须调用）。",
+            description="釋放終端資源（命令完成後必須呼叫）。",
             input_params={
                 "type": "object",
                 "properties": {
-                    "terminal_id": {"type": "string", "description": "终端 ID"},
+                    "terminal_id": {"type": "string", "description": "終端 ID"},
                 },
                 "required": ["terminal_id"],
             },

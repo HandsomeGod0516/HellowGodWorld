@@ -277,11 +277,11 @@ class TestReadFileSafe:
         """Test reading file with unicode content."""
         test_file = os.path.join(temp_memory_dir, "test.md")
         with open(test_file, "w", encoding="utf-8") as f:
-            f.write("中文内容 🎉")
+            f.write("中文內容 🎉")
         
         content = _read_file_safe(test_file)
         
-        assert content == "中文内容 🎉"
+        assert content == "中文內容 🎉"
 
 
 class TestReadHead:

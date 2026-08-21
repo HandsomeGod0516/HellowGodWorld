@@ -1,9 +1,9 @@
 import { matchesKey } from "@mariozechner/pi-tui";
 
 /**
- * 快捷键约定（Ctrl+C）：
- * 第一次按下尝试向服务端发送 `chat.interrupt`，中断当前任务；
- * 1 秒内再次按下则退出 CLI/TUI。
+ * 快捷鍵約定（Ctrl+C）：
+ * 第一次按下嘗試向服務端傳送 `chat.interrupt`，中斷當前任務；
+ * 1 秒內再次按下則退出 CLI/TUI。
  */
 
 let lastInterruptTime = 0;
@@ -28,7 +28,7 @@ export const APP_SCREEN_KEY_BINDINGS: readonly KeyBinding[] = [
   {
     key: "ctrl+c",
     label: "ctrl+c",
-    description: "中断任务；连按两次退出",
+    description: "中斷任務；連按兩次退出",
     run: (delegate) => {
       const now = Date.now();
       if (now - lastInterruptTime < 1000) {

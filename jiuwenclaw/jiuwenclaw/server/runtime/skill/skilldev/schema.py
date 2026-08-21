@@ -1,12 +1,12 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""SkillDev 模块的核心数据模型.
+"""SkillDev 模組的核心資料模型.
 
-所有跨模块共享的数据结构定义在此，包括：
-- 流程阶段枚举（SkillDevStage）
-- 任务状态（SkillDevState）
-- 事件类型（SkillDevEventType）及事件体（SkillDevEvent）
-- 挂起点配置（SuspensionConfig / SUSPENSION_POINTS）
+所有跨模組共享的資料結構定義在此，包括：
+- 流程階段列舉（SkillDevStage）
+- 任務狀態（SkillDevState）
+- 事件型別（SkillDevEventType）及事件體（SkillDevEvent）
+- 掛起點配置（SuspensionConfig / SUSPENSION_POINTS）
 """
 
 from __future__ import annotations
@@ -18,86 +18,86 @@ from typing import Any, Callable
 
 
 # ---------------------------------------------------------------------------
-# 阶段枚举
+# 階段列舉
 # ---------------------------------------------------------------------------
 
 
 class SkillDevStage(str, Enum):
-    """SkillDev Pipeline 的所有阶段.
+    """SkillDev Pipeline 的所有階段.
 
-    流程：INIT → PLAN → PLAN_CONFIRM(挂起) → GENERATE → VALIDATE
-        → TEST_DESIGN → TEST_RUN → EVALUATE → REVIEW(挂起)
+    流程：INIT → PLAN → PLAN_CONFIRM(掛起) → GENERATE → VALIDATE
+        → TEST_DESIGN → TEST_RUN → EVALUATE → REVIEW(掛起)
         → IMPROVE → (回到 TEST_RUN 迭代)
-        → PACKAGE → DESC_OPTIMIZE_CONFIRM(挂起) → DESC_OPTIMIZE → COMPLETED
+        → PACKAGE → DESC_OPTIMIZE_CONFIRM(掛起) → DESC_OPTIMIZE → COMPLETED
     """
 
     # 主流程
     INIT = "init"
     PLAN = "plan"
-    PLAN_CONFIRM = "plan_confirm"  # 挂起点：等待用户确认 plan
+    PLAN_CONFIRM = "plan_confirm"  # 掛起點：等待使用者確認 plan
     GENERATE = "generate"
-    VALIDATE = "validate"  # 校验生成的 SKILL.md 格式（YAML frontmatter + 命名规范）
+    VALIDATE = "validate"  # 校驗生成的 SKILL.md 格式（YAML frontmatter + 命名規範）
     TEST_DESIGN = "test_design"
     TEST_RUN = "test_run"
-    EVALUATE = "evaluate"  # grader 评分 + aggregate_benchmark 聚合 + analyst 分析
-    REVIEW = "review"  # 挂起点：等待用户审阅评测结果
+    EVALUATE = "evaluate"  # grader 評分 + aggregate_benchmark 聚合 + analyst 分析
+    REVIEW = "review"  # 掛起點：等待使用者審閱評測結果
     IMPROVE = "improve"
 
-    # 打包与描述优化
+    # 打包與描述最佳化
     PACKAGE = "package"
-    DESC_OPTIMIZE_CONFIRM = "desc_optimize_confirm"  # 挂起点：询问用户是否需要描述优化
-    DESC_OPTIMIZE = "desc_optimize"  # 触发描述优化循环
+    DESC_OPTIMIZE_CONFIRM = "desc_optimize_confirm"  # 掛起點：詢問使用者是否需要描述最佳化
+    DESC_OPTIMIZE = "desc_optimize"  # 觸發描述最佳化迴圈
 
-    # 终态
+    # 終態
     COMPLETED = "completed"
 
-    # 异常
+    # 異常
     ERROR = "error"
 
 
 class SkillDevTaskMode(str, Enum):
-    """任务入口模式（由请求参数自动判断）."""
+    """任務入口模式（由請求引數自動判斷）."""
 
-    CREATE = "create"  # 纯 query 创建
-    CREATE_WITH_RESOURCES = "create_with_resources"  # 携带资源包创建
-    MODIFY = "modify"  # 修改/升级已有 skill
+    CREATE = "create"  # 純 query 建立
+    CREATE_WITH_RESOURCES = "create_with_resources"  # 攜帶資源包建立
+    MODIFY = "modify"  # 修改/升級已有 skill
 
 
 # ---------------------------------------------------------------------------
-# 事件类型
+# 事件型別
 # ---------------------------------------------------------------------------
 
 
 class SkillDevEventType(str, Enum):
-    """Pipeline 向前端推送的事件类型.
+    """Pipeline 向前端推送的事件型別.
 
-    设计原则：后端推的每个事件，前端都应能直接映射到一个 UI 动作，
-    而非让前端猜测语义。
+    設計原則：後端推的每個事件，前端都應能直接對映到一個 UI 動作，
+    而非讓前端猜測語義。
     """
 
     # --- 流程控制 ---
-    STAGE_CHANGED = "skilldev.stage_changed"  # 阶段切换（内部标识）
-    PROGRESS = "skilldev.progress"  # 阶段内进度文本（对话流展示）
-    ERROR = "skilldev.error"  # 不可恢复错误
+    STAGE_CHANGED = "skilldev.stage_changed"  # 階段切換（內部標識）
+    PROGRESS = "skilldev.progress"  # 階段內進度文字（對話流展示）
+    ERROR = "skilldev.error"  # 不可恢復錯誤
 
-    # --- 对话流交互 ---
+    # --- 對話流互動 ---
     AGENT_THINKING = "skilldev.agent_thinking"  # Agent 推理流（delta + model_name + elapsed_ms + status）
-    TEST_PROGRESS = "skilldev.test_progress"  # 测试执行进度
+    TEST_PROGRESS = "skilldev.test_progress"  # 測試執行進度
 
-    # --- 结构化 UI 驱动 ---
-    CONFIRM_REQUEST = "skilldev.confirm_request"  # 挂起点：驱动前端弹出确认框
-    TODOS_UPDATE = "skilldev.todos_update"  # 驱动右侧 Todo 列表
-    ARTIFACT_READY = "skilldev.artifact_ready"  # 驱动右侧产物/附件列表
+    # --- 結構化 UI 驅動 ---
+    CONFIRM_REQUEST = "skilldev.confirm_request"  # 掛起點：驅動前端彈出確認框
+    TODOS_UPDATE = "skilldev.todos_update"  # 驅動右側 Todo 列表
+    ARTIFACT_READY = "skilldev.artifact_ready"  # 驅動右側產物/附件列表
 
-    # --- 数据载体（对话流中展示详情） ---
-    EVAL_READY = "skilldev.eval_ready"  # 评测结果（benchmark JSON）
-    VALIDATE_RESULT = "skilldev.validate_result"  # SKILL.md 校验结果
-    DESC_OPT_READY = "skilldev.desc_opt_ready"  # 描述优化 before/after
+    # --- 資料載體（對話流中展示詳情） ---
+    EVAL_READY = "skilldev.eval_ready"  # 評測結果（benchmark JSON）
+    VALIDATE_RESULT = "skilldev.validate_result"  # SKILL.md 校驗結果
+    DESC_OPT_READY = "skilldev.desc_opt_ready"  # 描述最佳化 before/after
 
 
 @dataclass
 class SkillDevEvent:
-    """Pipeline 内部事件，最终被序列化为 AgentResponseChunk 推送给前端."""
+    """Pipeline 內部事件，最終被序列化為 AgentResponseChunk 推送給前端."""
 
     event_type: SkillDevEventType
     payload: dict[str, Any]
@@ -105,51 +105,51 @@ class SkillDevEvent:
 
 
 # ---------------------------------------------------------------------------
-# 运行时状态（Source of Truth，驻内存）
+# 執行時狀態（Source of Truth，駐記憶體）
 # ---------------------------------------------------------------------------
 
 
 @dataclass
 class SkillDevState:
-    """Pipeline 运行时状态，在请求执行期间驻内存，在阶段边界通过 StateStore checkpoint."""
+    """Pipeline 執行時狀態，在請求執行期間駐記憶體，在階段邊界透過 StateStore checkpoint."""
 
     task_id: str
     stage: SkillDevStage = SkillDevStage.INIT
     mode: SkillDevTaskMode = SkillDevTaskMode.CREATE
-    iteration: int = 0  # 当前改进轮次（从 0 开始）
+    iteration: int = 0  # 當前改進輪次（從 0 開始）
 
-    # 输入
+    # 輸入
     input: dict[str, Any] = field(default_factory=dict)
 
-    # 中间产物
-    reference_texts: list[str] = field(default_factory=list)  # 资源文件解析后的文本
-    existing_skill_md: str | None = None  # 已有 SKILL.md 内容
-    plan: dict[str, Any] | None = None  # PLAN 阶段产出
+    # 中間產物
+    reference_texts: list[str] = field(default_factory=list)  # 資原始檔解析後的文字
+    existing_skill_md: str | None = None  # 已有 SKILL.md 內容
+    plan: dict[str, Any] | None = None  # PLAN 階段產出
     plan_confirmed_at: str | None = None
-    evals: dict[str, Any] | None = None  # TEST_DESIGN 阶段产出
-    eval_results: dict[str, Any] | None = None  # EVALUATE 阶段产出
-    feedback_history: list[dict] = field(default_factory=list)  # 每轮改进的用户反馈
+    evals: dict[str, Any] | None = None  # TEST_DESIGN 階段產出
+    eval_results: dict[str, Any] | None = None  # EVALUATE 階段產出
+    feedback_history: list[dict] = field(default_factory=list)  # 每輪改進的使用者反饋
 
-    # 描述优化
+    # 描述最佳化
     desc_optimize_result: dict[str, Any] | None = (
-        None  # run_loop 输出（best_description, history）
+        None  # run_loop 輸出（best_description, history）
     )
 
-    # 输出
+    # 輸出
     zip_path: str | None = None
     zip_size: int = 0
 
-    # 元数据
+    # 後設資料
     created_at: str = field(default_factory=lambda: _now_iso())
     updated_at: str = field(default_factory=lambda: _now_iso())
     error: str | None = None
 
     def touch(self) -> None:
-        """更新 updated_at 时间戳."""
+        """更新 updated_at 時間戳."""
         self.updated_at = _now_iso()
 
     def to_checkpoint_dict(self) -> dict:
-        """序列化为可持久化的字典（用于 StateStore）."""
+        """序列化為可持久化的字典（用於 StateStore）."""
         return {
             "task_id": self.task_id,
             "stage": self.stage.value,
@@ -173,7 +173,7 @@ class SkillDevState:
 
     @classmethod
     def from_checkpoint_dict(cls, data: dict) -> "SkillDevState":
-        """从持久化字典恢复状态."""
+        """從持久化字典恢復狀態."""
         state = cls(task_id=data["task_id"])
         state.stage = SkillDevStage(data["stage"])
         state.mode = SkillDevTaskMode(data.get("mode", "create"))
@@ -195,7 +195,7 @@ class SkillDevState:
         return state
 
     def to_status_dict(self) -> dict:
-        """序列化为前端可展示的状态摘要."""
+        """序列化為前端可展示的狀態摘要."""
         return {
             "task_id": self.task_id,
             "stage": self.stage.value,
@@ -210,36 +210,36 @@ class SkillDevState:
 
 
 # ---------------------------------------------------------------------------
-# 挂起点配置
+# 掛起點配置
 # ---------------------------------------------------------------------------
 
 
 @dataclass
 class SuspensionConfig:
-    """挂起点的声明式配置.
+    """掛起點的宣告式配置.
 
-    Pipeline 到达挂起点时：
-    1. 推送 CONFIRM_REQUEST 事件（前端据此弹出确认框）
-    2. Checkpoint 当前状态并暂停
+    Pipeline 到達掛起點時：
+    1. 推送 CONFIRM_REQUEST 事件（前端據此彈出確認框）
+    2. Checkpoint 當前狀態並暫停
 
-    恢复时（前端通过 skilldev.respond 统一入口）：
-    1. 调用 on_resume 更新状态
-    2. 跳转到 next_stage
+    恢復時（前端透過 skilldev.respond 統一入口）：
+    1. 呼叫 on_resume 更新狀態
+    2. 跳轉到 next_stage
     """
 
-    confirm_type: str  # 标识确认类型（前端用于区分弹框样式）
-    title: str  # 弹框标题
-    message: str  # 弹框描述文字
+    confirm_type: str  # 標識確認型別（前端用於區分彈框樣式）
+    title: str  # 彈框標題
+    message: str  # 彈框描述文字
     actions: list[
         dict[str, str]
-    ]  # 按钮列表 [{"id": "confirm", "label": "确认", "style": "primary"}]
-    extract_data: Callable  # (state) → dict，从 state 提取展示给前端的数据
-    on_resume: Callable  # (state, data) → None，根据用户响应更新 state
-    next_stage: SkillDevStage | Callable  # 下一阶段（可以是函数，根据 data 动态决定）
+    ]  # 按鈕列表 [{"id": "confirm", "label": "確認", "style": "primary"}]
+    extract_data: Callable  # (state) → dict，從 state 提取展示給前端的資料
+    on_resume: Callable  # (state, data) → None，根據使用者響應更新 state
+    next_stage: SkillDevStage | Callable  # 下一階段（可以是函式，根據 data 動態決定）
 
 
 # ---------------------------------------------------------------------------
-# 各挂起点的 extract_data / on_resume / next_stage 实现
+# 各掛起點的 extract_data / on_resume / next_stage 實現
 # ---------------------------------------------------------------------------
 
 
@@ -295,10 +295,10 @@ def _desc_optimize_confirm_next_stage(data: dict) -> SkillDevStage:
 SUSPENSION_POINTS: dict[SkillDevStage, SuspensionConfig] = {
     SkillDevStage.PLAN_CONFIRM: SuspensionConfig(
         confirm_type="plan_confirm",
-        title="请审阅开发计划",
-        message="以下是生成的开发计划，请确认或修改",
+        title="請審閱開發計劃",
+        message="以下是生成的開發計劃，請確認或修改",
         actions=[
-            {"id": "confirm", "label": "确认", "style": "primary"},
+            {"id": "confirm", "label": "確認", "style": "primary"},
             {"id": "modify", "label": "修改", "style": "secondary"},
         ],
         extract_data=_plan_extract_data,
@@ -307,11 +307,11 @@ SUSPENSION_POINTS: dict[SkillDevStage, SuspensionConfig] = {
     ),
     SkillDevStage.REVIEW: SuspensionConfig(
         confirm_type="review",
-        title="评测结果审阅",
-        message="请审阅评测结果并决定下一步",
+        title="評測結果審閱",
+        message="請審閱評測結果並決定下一步",
         actions=[
-            {"id": "accept", "label": "通过，进入打包", "style": "primary"},
-            {"id": "improve", "label": "继续改进", "style": "secondary"},
+            {"id": "accept", "label": "透過，進入打包", "style": "primary"},
+            {"id": "improve", "label": "繼續改進", "style": "secondary"},
         ],
         extract_data=_review_extract_data,
         on_resume=_review_on_resume,
@@ -319,11 +319,11 @@ SUSPENSION_POINTS: dict[SkillDevStage, SuspensionConfig] = {
     ),
     SkillDevStage.DESC_OPTIMIZE_CONFIRM: SuspensionConfig(
         confirm_type="desc_optimize_confirm",
-        title="描述优化",
-        message="Skill 已打包完成。是否需要优化触发描述以提高触发准确率？",
+        title="描述最佳化",
+        message="Skill 已打包完成。是否需要最佳化觸發描述以提高觸發準確率？",
         actions=[
-            {"id": "optimize", "label": "优化", "style": "primary"},
-            {"id": "skip", "label": "跳过", "style": "secondary"},
+            {"id": "optimize", "label": "最佳化", "style": "primary"},
+            {"id": "skip", "label": "跳過", "style": "secondary"},
         ],
         extract_data=_desc_opt_extract_data,
         on_resume=_desc_optimize_confirm_on_resume,
@@ -333,19 +333,19 @@ SUSPENSION_POINTS: dict[SkillDevStage, SuspensionConfig] = {
 
 
 # ---------------------------------------------------------------------------
-# 评测相关数据结构（对齐官方 skill-creator 的 JSON schema）
+# 評測相關資料結構（對齊官方 skill-creator 的 JSON schema）
 # ---------------------------------------------------------------------------
 
 
 @dataclass
 class EvalCase:
-    """单个测试用例."""
+    """單個測試用例."""
 
     id: int
-    prompt: str  # 模拟真实用户输入
-    expected_output: str = ""  # 预期结果的人可读描述
-    files: list[str] = field(default_factory=list)  # 输入文件路径
-    expectations: list[str] = field(default_factory=list)  # 可客观验证的声明
+    prompt: str  # 模擬真實使用者輸入
+    expected_output: str = ""  # 預期結果的人可讀描述
+    files: list[str] = field(default_factory=list)  # 輸入檔案路徑
+    expectations: list[str] = field(default_factory=list)  # 可客觀驗證的宣告
 
     def to_dict(self) -> dict:
         return {
@@ -359,7 +359,7 @@ class EvalCase:
 
 @dataclass
 class EvalSet:
-    """完整的测试集."""
+    """完整的測試集."""
 
     skill_name: str
     evals: list[EvalCase] = field(default_factory=list)
@@ -380,16 +380,16 @@ class EvalSet:
 
 @dataclass
 class GradingExpectation:
-    """单条 assertion 的评分结果."""
+    """單條 assertion 的評分結果."""
 
     text: str  # assertion 原文
-    passed: bool  # 是否通过
-    evidence: str = ""  # 具体证据引用
+    passed: bool  # 是否透過
+    evidence: str = ""  # 具體證據引用
 
 
 @dataclass
 class GradingResult:
-    """单次运行的评分结果（grading.json）."""
+    """單次執行的評分結果（grading.json）."""
 
     expectations: list[GradingExpectation] = field(default_factory=list)
     pass_rate: float = 0.0
@@ -413,7 +413,7 @@ class GradingResult:
 
 @dataclass
 class RunTiming:
-    """单次运行的耗时数据（timing.json）."""
+    """單次執行的耗時資料（timing.json）."""
 
     total_tokens: int = 0
     duration_ms: int = 0
@@ -429,7 +429,7 @@ class RunTiming:
 
 @dataclass
 class MetricStats:
-    """某指标的统计摘要."""
+    """某指標的統計摘要."""
 
     mean: float = 0.0
     stddev: float = 0.0
@@ -447,7 +447,7 @@ class MetricStats:
 
 @dataclass
 class BenchmarkRun:
-    """benchmark.json 中的一条 run 记录."""
+    """benchmark.json 中的一條 run 記錄."""
 
     eval_id: int
     eval_name: str
@@ -475,7 +475,7 @@ class BenchmarkRun:
 
 @dataclass
 class Benchmark:
-    """完整的 benchmark 结果."""
+    """完整的 benchmark 結果."""
 
     skill_name: str
     runs: list[BenchmarkRun] = field(default_factory=list)
@@ -494,7 +494,7 @@ class Benchmark:
 
 @dataclass
 class TriggerEvalQuery:
-    """描述优化阶段的单个触发测试查询."""
+    """描述最佳化階段的單個觸發測試查詢."""
 
     query: str
     should_trigger: bool
@@ -505,7 +505,7 @@ class TriggerEvalQuery:
 
 @dataclass
 class DescOptimizeIteration:
-    """描述优化的单轮迭代结果."""
+    """描述最佳化的單輪迭代結果."""
 
     iteration: int
     description: str
@@ -528,13 +528,13 @@ class DescOptimizeIteration:
 
 
 # ---------------------------------------------------------------------------
-# 阶段展示配置（后端驱动，决定哪些阶段对用户可见、如何分组）
+# 階段展示配置（後端驅動，決定哪些階段對使用者可見、如何分組）
 # ---------------------------------------------------------------------------
 
 
 @dataclass
 class _StageGroup:
-    """一组后端阶段的展示配置."""
+    """一組後端階段的展示配置."""
 
     id: str
     label: str
@@ -542,24 +542,24 @@ class _StageGroup:
     modes: frozenset[SkillDevTaskMode] | None = None  # None = 所有模式都展示
 
 
-# 后端定义的阶段分组。前端只负责渲染，不决定内容。
-# 挂起点（PLAN_CONFIRM / REVIEW / DESC_OPTIMIZE_CONFIRM）归入其所属的逻辑阶段。
+# 後端定義的階段分組。前端只負責渲染，不決定內容。
+# 掛起點（PLAN_CONFIRM / REVIEW / DESC_OPTIMIZE_CONFIRM）歸入其所屬的邏輯階段。
 _STAGE_GROUPS: list[_StageGroup] = [
     _StageGroup(
         id="plan",
-        label="需求分析与规划",
+        label="需求分析與規劃",
         stages=frozenset(
             {SkillDevStage.INIT, SkillDevStage.PLAN, SkillDevStage.PLAN_CONFIRM}
         ),
     ),
     _StageGroup(
         id="generate",
-        label="技能生成与校验",
+        label="技能生成與校驗",
         stages=frozenset({SkillDevStage.GENERATE, SkillDevStage.VALIDATE}),
     ),
     _StageGroup(
         id="test",
-        label="测试与评测",
+        label="測試與評測",
         stages=frozenset(
             {
                 SkillDevStage.TEST_DESIGN,
@@ -571,7 +571,7 @@ _STAGE_GROUPS: list[_StageGroup] = [
     ),
     _StageGroup(
         id="improve",
-        label="优化改进",
+        label="最佳化改進",
         stages=frozenset({SkillDevStage.IMPROVE}),
     ),
     _StageGroup(
@@ -581,7 +581,7 @@ _STAGE_GROUPS: list[_StageGroup] = [
     ),
     _StageGroup(
         id="desc_optimize",
-        label="描述优化",
+        label="描述最佳化",
         stages=frozenset(
             {SkillDevStage.DESC_OPTIMIZE_CONFIRM, SkillDevStage.DESC_OPTIMIZE}
         ),
@@ -593,9 +593,9 @@ def compute_todos(
     current_stage: SkillDevStage,
     mode: SkillDevTaskMode | None = None,
 ) -> list[dict[str, str]]:
-    """根据当前阶段和任务模式，计算面向用户的 Todo 列表.
+    """根據當前階段和任務模式，計算面向使用者的 Todo 列表.
 
-    后端是步骤定义的唯一权威来源。前端只做渲染。
+    後端是步驟定義的唯一權威來源。前端只做渲染。
     """
     groups = _STAGE_GROUPS
     if mode is not None:
@@ -621,7 +621,7 @@ def compute_todos(
 
 
 # ---------------------------------------------------------------------------
-# SKILL.md 校验相关常量
+# SKILL.md 校驗相關常量
 # ---------------------------------------------------------------------------
 
 ALLOWED_FRONTMATTER_KEYS = frozenset(
@@ -640,12 +640,12 @@ SKILL_DESC_MAX_LEN = 1024
 
 
 # ---------------------------------------------------------------------------
-# 工具函数
+# 工具函式
 # ---------------------------------------------------------------------------
 
 
 def _now_iso() -> str:
-    """返回当前 UTC 时间的 ISO 8601 字符串."""
+    """返回當前 UTC 時間的 ISO 8601 字串."""
     import datetime
 
     return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -661,7 +661,7 @@ def generate_task_id() -> str:
 
 
 def determine_task_mode(params: dict) -> SkillDevTaskMode:
-    """根据请求参数自动判断任务模式."""
+    """根據請求引數自動判斷任務模式."""
     if params.get("existing_skill"):
         return SkillDevTaskMode.MODIFY
     if params.get("resources"):

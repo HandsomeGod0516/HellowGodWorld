@@ -71,18 +71,18 @@ def build_llm_prompt(inp: LLMPromptInput) -> str:
         [
             "# Task",
             (
-                "你是算子 trace 性能分析专家。请基于下面统计表写一段 LLM Analysis，"
-                "用于追加到 report.md。请不要复述所有表格，重点给出 3-5 条有证据的判断和下一步排查建议。"
+                "你是運算元 trace 效能分析專家。請基於下面統計表寫一段 LLM Analysis，"
+                "用於追加到 report.md。請不要複述所有表格，重點給出 3-5 條有證據的判斷和下一步排查建議。"
             ),
             "# Rules",
             "\n".join(
                 [
-                    "- 只能依据给出的统计数据，不要虚构 trace 中没有的信息。",
-                    "- 明确区分 union_us 和 total_us：union_us 更接近 wall time 覆盖，total_us 会重复累计并行核。",
-                    "- 关注 core group、tid、phase、category 和 raw name 的分布；如果出现 cube/vector_recv/vector_send，请按核组解释。",
-                    "- 如果 phase/category 语义明显依赖某个算子配置，请说明适用边界。",
-                    "- 如果结论不确定，请写“可能”并说明需要继续看哪张表或哪部分源码。",
-                    "- 输出中文，使用简洁小标题和项目符号。",
+                    "- 只能依據給出的統計資料，不要虛構 trace 中沒有的資訊。",
+                    "- 明確區分 union_us 和 total_us：union_us 更接近 wall time 覆蓋，total_us 會重複累計並行核。",
+                    "- 關注 core group、tid、phase、category 和 raw name 的分佈；如果出現 cube/vector_recv/vector_send，請按核組解釋。",
+                    "- 如果 phase/category 語義明顯依賴某個運算元配置，請說明適用邊界。",
+                    "- 如果結論不確定，請寫“可能”並說明需要繼續看哪張表或哪部分原始碼。",
+                    "- 輸出中文，使用簡潔小標題和專案符號。",
                 ]
             ),
             "# Overview",

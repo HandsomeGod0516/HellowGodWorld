@@ -21,7 +21,7 @@
   ],
   "status": "coordinating",
   "emotion": "focused",
-  "speech": "我会把当前情况整理清楚，并同步给需要知道的人。",
+  "speech": "我會把當前情況整理清楚，並同步給需要知道的人。",
   "memory_template": "Used community.coordinate: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

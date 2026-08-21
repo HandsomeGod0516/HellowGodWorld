@@ -23,7 +23,7 @@
   ],
   "status": "preparing_food",
   "emotion": "content",
-  "speech": "我去准备一点简单但合适的吃的。",
+  "speech": "我去準備一點簡單但合適的吃的。",
   "memory_template": "Used cooking.lightmeal: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

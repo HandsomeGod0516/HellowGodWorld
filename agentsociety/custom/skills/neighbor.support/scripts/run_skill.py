@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'park', 'market']
 TARGET_INTERACTIONS = ['home_visit_prep', 'meet_friend', 'deliver_order']
 STATUS = 'supporting_neighbor'
 EMOTION = 'helpful'
-SPEECH = '我看看附近有没有人需要顺手帮一把。'
+SPEECH = '我看看附近有沒有人需要順手幫一把。'
 MEMORY_TEMPLATE = 'Used neighbor.support: {summary} at {location_id}.'
 
 

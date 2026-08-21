@@ -1,19 +1,19 @@
-"""CLI：将运行时数据初始化到用户数据根目录（与 ``get_user_workspace_dir()`` 一致）。
+"""CLI：將執行時資料初始化到使用者資料根目錄（與 ``get_user_workspace_dir()`` 一致）。
 
-默认根目录为 ``~/.jiuwenclaw``；若进程环境中已设置 ``JIUWENCLAW_DATA_DIR``（须为可用绝对路径，
-且应在启动本脚本前注入，见 ``jiuwenclaw.utils`` 中的 ``JIUWENCLAW_DATA_DIR``），则初始化到该路径下。
+預設根目錄為 ``~/.jiuwenclaw``；若程序環境中已設定 ``JIUWENCLAW_DATA_DIR``（須為可用絕對路徑，
+且應在啟動本指令碼前注入，見 ``jiuwenclaw.utils`` 中的 ``JIUWENCLAW_DATA_DIR``），則初始化到該路徑下。
 
-无论是通过 pip/whl 安装，还是在源码目录里直接运行：
-- 运行本脚本会先询问语言偏好（zh/en），写入 config 的 preferred_language；
-- 同时复制 config.yaml、builtin_rules.yaml、将 ``.env.template`` 复制为 ``<用户数据根>/config/.env``、agent 模板等到 ``<用户数据根>``；
-- 根据语言偏好复制多语言文件（AGENT.md、HEARTBEAT.md、IDENTITY.md、SOUL.md 等），
-  源文件使用 _ZH/_EN 后缀，目标文件不带后缀。
+無論是透過 pip/whl 安裝，還是在原始碼目錄裡直接執行：
+- 執行本指令碼會先詢問語言偏好（zh/en），寫入 config 的 preferred_language；
+- 同時複製 config.yaml、builtin_rules.yaml、將 ``.env.template`` 複製為 ``<使用者資料根>/config/.env``、agent 模板等到 ``<使用者資料根>``；
+- 根據語言偏好複製多語言檔案（AGENT.md、HEARTBEAT.md、IDENTITY.md、SOUL.md 等），
+  原始檔使用 _ZH/_EN 字尾，目標檔案不帶字尾。
 
 使用方式:
-- jiuwenclaw-init -f: 强制清理，删除整个用户数据根目录后重新初始化
-- jiuwenclaw-init: 保留原有数据，执行迁移合并
-- jiuwenclaw-init --name alice: 创建命名实例 alice
-- jiuwenclaw-init -f --name alice: 强制重建命名实例 alice
+- jiuwenclaw-init -f: 強制清理，刪除整個使用者資料根目錄後重新初始化
+- jiuwenclaw-init: 保留原有資料，執行遷移合併
+- jiuwenclaw-init --name alice: 建立命名例項 alice
+- jiuwenclaw-init -f --name alice: 強制重建命名例項 alice
 """
 
 from __future__ import annotations

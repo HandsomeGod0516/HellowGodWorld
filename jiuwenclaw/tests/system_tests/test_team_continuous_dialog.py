@@ -4,9 +4,9 @@
 
 Test scenario:
 1. Connect to WebSocket
-2. Send first message: "创建3个成员，轮流报数，不要说多余废话"
+2. Send first message: "建立3個成員，輪流報數，不要說多餘廢話"
 3. Team will continuously output (stream won't end)
-4. Send second message while receiving: "现在从10开始轮流报数，一人说一句，就一轮"
+4. Send second message while receiving: "現在從10開始輪流報數，一人說一句，就一輪"
 
 Usage:
     uv run python tests/system_tests/test_team_continuous_dialog.py
@@ -296,7 +296,7 @@ async def test_team_continuous_dialog(temp_home: Path, monkeypatch: pytest.Monke
                 "params": {
                     "session_id": session_id,
                     "mode": "team",
-                    "content": "告诉我你有哪些工具，不要立刻开始任务",
+                    "content": "告訴我你有哪些工具，不要立刻開始任務",
                 },
             }
 
@@ -316,7 +316,7 @@ async def test_team_continuous_dialog(temp_home: Path, monkeypatch: pytest.Monke
                 "params": {
                     "session_id": session_id,
                     "mode": "team",
-                    "content": "现在创建一个成员叫安娜，让安娜告诉我他有哪些工具",
+                    "content": "現在建立一個成員叫安娜，讓安娜告訴我他有哪些工具",
                 },
             }
 

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-数据聚合器
+資料聚合器
 
 功能：
-- 整合所有采集器的数据
-- 统一时间窗口过滤
-- 提供统一的数据访问接口
+- 整合所有采集器的資料
+- 統一時間視窗過濾
+- 提供統一的資料訪問介面
 """
 
 import json
@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Optional
 from zoneinfo import ZoneInfo
 
-# 与 run_report / work_analyzer 一致：日历日与采集时间戳使用东八区
+# 與 run_report / work_analyzer 一致：日曆日與採集時間戳使用東八區
 _REPORT_TZ = ZoneInfo("Asia/Shanghai")
 
 from .email_collector import EmailCollector, EmailStats
@@ -26,24 +26,24 @@ from .todo_collector import TodoCollector, TodoStats
 
 @dataclass
 class CollectedData:
-    """聚合后的数据"""
+    """聚合後的資料"""
 
     date: str  # 日期
-    collected_at: datetime  # 采集时间
+    collected_at: datetime  # 採集時間
 
-    # Git 数据
+    # Git 資料
     git: GitStats = field(default_factory=GitStats)
 
-    # 邮件数据
+    # 郵件資料
     email: EmailStats = field(default_factory=EmailStats)
 
-    # 记忆数据
+    # 記憶資料
     memory: MemoryData = field(default_factory=MemoryData)
 
-    # 待办数据
+    # 待辦資料
     todo: TodoStats = field(default_factory=TodoStats)
 
-    # 历史对比数据
+    # 歷史對比資料
     comparison: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -62,7 +62,7 @@ class CollectedData:
 
 
 class DataAggregator:
-    """数据聚合器"""
+    """資料聚合器"""
 
     def __init__(
         self,
@@ -71,38 +71,38 @@ class DataAggregator:
         email_config: Optional[dict] = None,
     ):
         """
-        初始化数据聚合器
+        初始化資料聚合器
 
         Args:
-            workspace_dir: workspace 目录
-            git_repo: Git 仓库路径
-            email_config: 邮箱配置 {"address": str, "auth_code": str, "provider": str}
+            workspace_dir: workspace 目錄
+            git_repo: Git 倉庫路徑
+            email_config: 郵箱配置 {"address": str, "auth_code": str, "provider": str}
         """
         self.workspace_dir = Path(workspace_dir)
 
-        # 初始化各采集器
+        # 初始化各採集器
         self.memory_collector = MemoryCollector(self.workspace_dir)
         self.todo_collector = TodoCollector(self.workspace_dir)
 
-        # Git 采集器（可选）
+        # Git 採集器（可選）
         self.git_collector = None
         if git_repo:
             self.git_collector = GitCollector(git_repo)
 
-        # 邮件采集器（可选）
+        # 郵件採集器（可選）
         self.email_collector = None
         self.email_config = email_config
 
     def collect(self, date: Optional[str] = None, include_comparison: bool = True) -> CollectedData:
         """
-        聚合采集数据
+        聚合採集資料
 
         Args:
-            date: 日期字符串，默认今天
-            include_comparison: 是否包含历史对比
+            date: 日期字串，預設今天
+            include_comparison: 是否包含歷史對比
 
         Returns:
-            CollectedData: 聚合后的数据
+            CollectedData: 聚合後的資料
         """
         if date is None:
             date = datetime.now(_REPORT_TZ).strftime("%Y-%m-%d")
@@ -112,17 +112,17 @@ class DataAggregator:
             collected_at=datetime.now(_REPORT_TZ),
         )
 
-        # 采集记忆数据
+        # 採集記憶資料
         data.memory = self.memory_collector.collect(date)
 
-        # 采集待办数据
+        # 採集待辦資料
         data.todo = self.todo_collector.collect()
 
-        # 采集 Git 数据
+        # 採集 Git 資料
         if self.git_collector:
             data.git = self.git_collector.get_commits(date)
 
-        # 采集邮件数据
+        # 採集郵件資料
         if self.email_config and self.email_collector is None:
             try:
                 self.email_collector = EmailCollector(
@@ -131,29 +131,29 @@ class DataAggregator:
                     provider=self.email_config.get("provider", "163"),
                 )
             except Exception as e:
-                print(f"邮件采集器初始化失败: {e}")
+                print(f"郵件採集器初始化失敗: {e}")
 
         if self.email_collector:
             try:
                 with self.email_collector:
                     data.email = self.email_collector.get_stats(date)
             except Exception as e:
-                print(f"邮件数据采集失败: {e}")
+                print(f"郵件資料採集失敗: {e}")
 
-        # 历史对比
+        # 歷史對比
         if include_comparison:
             data.comparison = self._generate_comparison(data, date)
 
         return data
 
     def _generate_comparison(self, current_data: CollectedData, date: str) -> dict:
-        """生成历史对比数据"""
+        """生成歷史對比資料"""
         comparison = {}
 
         try:
             current_date = datetime.strptime(date, "%Y-%m-%d")
 
-            # 与昨日对比
+            # 與昨日對比
             yesterday = (current_date - timedelta(days=1)).strftime("%Y-%m-%d")
             yesterday_data = self._collect_light(yesterday)
 
@@ -170,7 +170,7 @@ class DataAggregator:
                 },
             }
 
-            # 与上周同期对比
+            # 與上週同期對比
             last_week = (current_date - timedelta(days=7)).strftime("%Y-%m-%d")
             last_week_data = self._collect_light(last_week)
 
@@ -188,7 +188,7 @@ class DataAggregator:
         return comparison
 
     def _collect_light(self, date: str) -> CollectedData:
-        """轻量采集（仅 Git 和记忆）"""
+        """輕量採集（僅 Git 和記憶）"""
         data = CollectedData(
             date=date,
             collected_at=datetime.now(_REPORT_TZ),
@@ -202,7 +202,7 @@ class DataAggregator:
         return data
 
     def collect_week(self, end_date: Optional[str] = None) -> dict[str, CollectedData]:
-        """采集一周的数据"""
+        """採集一週的資料"""
         if end_date is None:
             end_date = datetime.now(_REPORT_TZ)
         else:
@@ -216,7 +216,7 @@ class DataAggregator:
         return result
 
     def collect_month(self, year: int, month: int) -> dict[str, CollectedData]:
-        """采集一月的数据"""
+        """採集一月的資料"""
         import calendar
 
         _, days_in_month = calendar.monthrange(year, month)
@@ -230,13 +230,13 @@ class DataAggregator:
 
     def collect_for_pattern_analysis(self, days: int = 7) -> list[dict]:
         """
-        采集用于工作模式分析的数据
+        採集用於工作模式分析的資料
 
         Args:
-            days: 天数，默认 7 天
+            days: 天數，預設 7 天
 
         Returns:
-            包含日期、时间、提交信息的字典列表
+            包含日期、時間、提交資訊的字典列表
         """
         if self.git_collector:
             return self.git_collector.get_commits_for_pattern_analysis(days)
@@ -244,7 +244,7 @@ class DataAggregator:
 
 
 def main():
-    """测试入口"""
+    """測試入口"""
     import sys
 
     if len(sys.argv) < 2:
@@ -268,34 +268,34 @@ def main():
         email_config=email_config,
     )
 
-    print("采集数据中...")
+    print("採集資料中...")
     data = aggregator.collect()
 
-    print(f"\n=== 数据采集结果 ({data.date}) ===\n")
+    print(f"\n=== 資料採集結果 ({data.date}) ===\n")
 
-    print("Git 统计:")
-    print(f"  提交次数: {data.git.total_commits}")
-    print(f"  修改文件: {data.git.total_files_changed}")
-    print(f"  代码变更: +{data.git.total_insertions}/-{data.git.total_deletions}")
+    print("Git 統計:")
+    print(f"  提交次數: {data.git.total_commits}")
+    print(f"  修改檔案: {data.git.total_files_changed}")
+    print(f"  程式碼變更: +{data.git.total_insertions}/-{data.git.total_deletions}")
 
-    print("\n邮件统计:")
+    print("\n郵件統計:")
     print(f"  今日收件: {data.email.received_today}")
-    print(f"  今日发件: {data.email.sent_today}")
-    print(f"  未读邮件: {data.email.unread}")
+    print(f"  今日發件: {data.email.sent_today}")
+    print(f"  未讀郵件: {data.email.unread}")
 
-    print("\n待办统计:")
-    print(f"  总数: {data.todo.total}")
+    print("\n待辦統計:")
+    print(f"  總數: {data.todo.total}")
     print(f"  已完成: {data.todo.completed}")
     print(f"  完成率: {data.todo.completion_rate:.1%}")
 
-    print("\n记忆数据:")
-    print(f"  今日记录: {len(data.memory.work_summaries)} 条")
+    print("\n記憶資料:")
+    print(f"  今日記錄: {len(data.memory.work_summaries)} 條")
 
     if data.comparison:
-        print("\n历史对比:")
+        print("\n歷史對比:")
         if "yesterday" in data.comparison:
             y = data.comparison["yesterday"]
-            print(f"  vs 昨日: 提交 {y['git_commits']['change']:+d}, 任务 {y['todo_completed']['change']:+d}")
+            print(f"  vs 昨日: 提交 {y['git_commits']['change']:+d}, 任務 {y['todo_completed']['change']:+d}")
 
 
 if __name__ == "__main__":

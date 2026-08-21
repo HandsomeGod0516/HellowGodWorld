@@ -313,13 +313,13 @@ def validate_role_file(path: Path, role_id: str, report: Report) -> dict[str, li
     boundary_body = section_body(text, "Boundary")
     if boundary_body is not None:
         has_forbidden = re.search(r"\*\*(Forbidden|禁止)\*\*", boundary_body) is not None
-        has_mandatory = re.search(r"\*\*(Mandatory|必须|必做)\*\*", boundary_body) is not None
+        has_mandatory = re.search(r"\*\*(Mandatory|必須|必做)\*\*", boundary_body) is not None
         if not has_forbidden:
             report.err(file_label, "## Boundary missing `**Forbidden**` (or `**禁止**`) block")
         if not has_mandatory:
             report.err(
                 file_label,
-                "## Boundary missing `**Mandatory**` (or `**必须**` / `**必做**`) block",
+                "## Boundary missing `**Mandatory**` (or `**必須**` / `**必做**`) block",
             )
 
     # Inline Persona must be non-trivially long (sanity check — empty section is the

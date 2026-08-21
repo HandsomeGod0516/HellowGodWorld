@@ -96,7 +96,7 @@ def _make_config(role: str, *, dataset: str = "", endpoint: str = "") -> dict:
 
 
 def _make_request(session_id: str = "web_a2x_system_test") -> tuple[AgentRequest, dict]:
-    query = "只回复 PONG"
+    query = "只回復 PONG"
     channel = "web"
     language = "zh"
     request = AgentRequest(

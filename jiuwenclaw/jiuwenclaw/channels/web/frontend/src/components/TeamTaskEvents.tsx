@@ -1,7 +1,7 @@
 /**
- * TeamTaskEvents 组件
+ * TeamTaskEvents 元件
  *
- * 显示团队任务相关的事件日志
+ * 顯示團隊任務相關的事件日誌
  */
 
 import { useTranslation } from 'react-i18next';

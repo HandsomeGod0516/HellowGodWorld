@@ -1,7 +1,7 @@
 """
-自定义模块扫描服务
+自定義模組掃描服務
 
-扫描 custom/ 目录，发现用户自定义的 Agent 和环境模块，并输出结构化诊断。
+掃描 custom/ 目錄，發現使用者自定義的 Agent 和環境模組，並輸出結構化診斷。
 """
 
 from __future__ import annotations
@@ -23,14 +23,14 @@ from agentsociety2.backend.services.custom.models import (
 
 
 class CustomModuleScanner:
-    """自定义模块扫描服务"""
+    """自定義模組掃描服務"""
 
     def __init__(self, workspace_path: str):
         self.workspace_path = Path(workspace_path).resolve()
         self.custom_dir = self.workspace_path / "custom"
 
     def scan_all(self) -> dict[str, Any]:
-        """扫描所有自定义模块。"""
+        """掃描所有自定義模組。"""
 
         result: dict[str, Any] = {
             "agents": [],
@@ -41,7 +41,7 @@ class CustomModuleScanner:
         }
 
         if not self.custom_dir.exists():
-            result["errors"].append(f"custom/ 目录不存在: {self.custom_dir}")
+            result["errors"].append(f"custom/ 目錄不存在: {self.custom_dir}")
             return result
 
         agents_dir = self.custom_dir / "agents"
@@ -51,7 +51,7 @@ class CustomModuleScanner:
             result["agent_diagnostics"] = agent_result["diagnostics"]
             result["errors"].extend(agent_result["errors"])
         else:
-            result["errors"].append("custom/agents/ 目录不存在")
+            result["errors"].append("custom/agents/ 目錄不存在")
 
         envs_dir = self.custom_dir / "envs"
         if envs_dir.exists():
@@ -60,14 +60,14 @@ class CustomModuleScanner:
             result["env_diagnostics"] = env_result["diagnostics"]
             result["errors"].extend(env_result["errors"])
         else:
-            result["errors"].append("custom/envs/ 目录不存在")
+            result["errors"].append("custom/envs/ 目錄不存在")
 
         return result
 
     def _scan_agents(
         self, agents_dir: Path, skip_examples: bool = True
     ) -> dict[str, Any]:
-        """扫描 Agent 目录。"""
+        """掃描 Agent 目錄。"""
 
         agents: list[dict[str, Any]] = []
         diagnostics: list[dict[str, Any]] = []
@@ -139,7 +139,7 @@ class CustomModuleScanner:
                                 CompatibilityIssue(
                                     code="no_agent_class",
                                     check="class_discovery",
-                                    message=f"{py_file.name} 中未发现 AgentBase 子类",
+                                    message=f"{py_file.name} 中未發現 AgentBase 子類",
                                 )
                             ],
                             metadata={},
@@ -163,7 +163,7 @@ class CustomModuleScanner:
     def _scan_envs(
         self, envs_dir: Path, skip_examples: bool = True
     ) -> dict[str, Any]:
-        """扫描环境模块目录。"""
+        """掃描環境模組目錄。"""
 
         envs: list[dict[str, Any]] = []
         diagnostics: list[dict[str, Any]] = []
@@ -218,7 +218,7 @@ class CustomModuleScanner:
                                 CompatibilityIssue(
                                     code="no_env_class",
                                     check="class_discovery",
-                                    message=f"{py_file.name} 中未发现 EnvBase 子类",
+                                    message=f"{py_file.name} 中未發現 EnvBase 子類",
                                 )
                             ],
                             metadata={},
@@ -244,7 +244,7 @@ class CustomModuleScanner:
 
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None or spec.loader is None:
-            raise ImportError(f"无法为 {file_path} 创建模块 spec")
+            raise ImportError(f"無法為 {file_path} 建立模組 spec")
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
@@ -264,6 +264,6 @@ class CustomModuleScanner:
         try:
             if hasattr(cls, "mcp_description"):
                 return cls.mcp_description()
-            return cls.__doc__ or f"{cls.__name__}: 无描述"
+            return cls.__doc__ or f"{cls.__name__}: 無描述"
         except Exception:
-            return f"{cls.__name__}: 描述获取失败"
+            return f"{cls.__name__}: 描述獲取失敗"

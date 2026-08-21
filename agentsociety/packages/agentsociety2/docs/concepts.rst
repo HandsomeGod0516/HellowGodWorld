@@ -1,16 +1,16 @@
 核心概念
 =============
 
-本部分解释 AgentSociety 2 的核心概念。
+本部分解釋 AgentSociety 2 的核心概念。
 
-架构概述
+架構概述
 ---------------------
 
-AgentSociety 2 围绕三个主要组件构建：
+AgentSociety 2 圍繞三個主要元件構建：
 
-* **智能体 (Agents)**: 使用 LLM 与环境交互的自主实体
-* **环境模块 (Environment Modules)**: 定义模拟规则的可组合组件
-* **AgentSociety**: 管理智能体和环境的协调器
+* **智慧體 (Agents)**: 使用 LLM 與環境互動的自主實體
+* **環境模組 (Environment Modules)**: 定義模擬規則的可組合元件
+* **AgentSociety**: 管理智慧體和環境的協調器
 
 .. graphviz::
 
@@ -28,7 +28,7 @@ AgentSociety 2 围绕三个主要组件构建：
        EnvModule -> Tool [label="decorated with"];
    }
 
-完整系统架构
+完整系統架構
 ~~~~~~~~~~~~~~~~~
 
 .. graphviz::
@@ -39,25 +39,25 @@ AgentSociety 2 围绕三个主要组件构建：
        edge [fontsize=10];
 
        subgraph cluster_ui {
-           label = "用户界面层";
+           label = "使用者介面層";
            style=filled;
            color=lightgrey;
-           CLI [label="CLI 命令行"];
+           CLI [label="CLI 命令列"];
            WebUI [label="Web 前端"];
            API [label="REST API"];
        }
 
        subgraph cluster_core {
-           label = "核心模拟层";
+           label = "核心模擬層";
            style=filled;
            color=lightblue;
-           Society [label="AgentSociety\n协调器"];
+           Society [label="AgentSociety\n協調器"];
            Router [label="Router\n路由器"];
-           Storage [label="ReplayWriter / Workspace\n存储"];
+           Storage [label="ReplayWriter / Workspace\n儲存"];
        }
 
        subgraph cluster_agents {
-           label = "智能体层";
+           label = "智慧體層";
            style=filled;
            color=lightgreen;
            Agent1 [label="PersonAgent 1"];
@@ -66,20 +66,20 @@ AgentSociety 2 围绕三个主要组件构建：
        }
 
        subgraph cluster_env {
-           label = "环境层";
+           label = "環境層";
            style=filled;
            color=lightyellow;
            Env1 [label="SocialSpace"];
            Env2 [label="EconomySpace"];
-           EnvN [label="... 自定义模块"];
+           EnvN [label="... 自定義模組"];
        }
 
        subgraph cluster_external {
-           label = "外部服务";
+           label = "外部服務";
            style=filled;
            color=lavender;
            LLM [label="LLM Provider"];
-           Memory [label="mem0 (遥测已禁用)"];
+           Memory [label="mem0 (遙測已禁用)"];
        }
 
        CLI -> Society;
@@ -105,20 +105,20 @@ AgentSociety 2 围绕三个主要组件构建：
        Agent2 -> Memory;
    }
 
-智能体-环境接口
+智慧體-環境介面
 ----------------------------
 
-智能体通过两个主要方法与环境交互：
+智慧體透過兩個主要方法與環境互動：
 
-* **ask()**: 查询或观察环境状态
-* **intervene()**: 修改环境状态
+* **ask()**: 查詢或觀察環境狀態
+* **intervene()**: 修改環境狀態
 
-这个统一接口允许智能体与任何环境模块自然通信。
+這個統一介面允許智慧體與任何環境模組自然通訊。
 
-@tool 装饰器
+@tool 裝飾器
 -------------------
 
-环境模块通过 ``@tool`` 装饰器公开其功能：
+環境模組透過 ``@tool`` 裝飾器公開其功能：
 
 .. code-block:: python
 
@@ -136,35 +136,35 @@ AgentSociety 2 围绕三个主要组件构建：
            self._temperature = temp
            return f"Temperature set to {temp}"
 
-**参数：**
+**引數：**
 
-* ``readonly`` (bool): 函数是否修改状态
-  * ``True`` = 只读观察
-  * ``False`` = 修改环境
+* ``readonly`` (bool): 函式是否修改狀態
+  * ``True`` = 只讀觀察
+  * ``False`` = 修改環境
 
-* ``kind`` (str): 用于优化的函数类别
-  * ``"observe"``: 单参数观察
-  * ``"statistics"``: 聚合查询（无参数）
-  * ``None``: 常规工具
+* ``kind`` (str): 用於最佳化的函式類別
+  * ``"observe"``: 單引數觀察
+  * ``"statistics"``: 聚合查詢（無引數）
+  * ``None``: 常規工具
 
 CodeGenRouter
 -------------
 
-CodeGenRouter 通过以下方式将智能体连接到环境模块：
+CodeGenRouter 透過以下方式將智慧體連線到環境模組：
 
-1. 从环境模块中提取工具签名
-2. 根据智能体输入生成调用适当工具的代码
-3. 在沙盒环境中安全执行代码
-4. 将结果返回给智能体
+1. 從環境模組中提取工具簽名
+2. 根據智慧體輸入生成呼叫適當工具的程式碼
+3. 在沙盒環境中安全執行程式碼
+4. 將結果返回給智慧體
 
-这种方法允许智能体与任何环境模块组合交互，而无需更改代码。
+這種方法允許智慧體與任何環境模組組合互動，而無需更改程式碼。
 
-工具类别
+工具類別
 ---------------
 
-**观察工具** (``readonly=True``, ``kind="observe"``)
+**觀察工具** (``readonly=True``, ``kind="observe"``)
 
-具有单个 ``agent_id`` 参数的智能体特定观察：
+具有單個 ``agent_id`` 引數的智慧體特定觀察：
 
 .. code-block:: python
 
@@ -173,9 +173,9 @@ CodeGenRouter 通过以下方式将智能体连接到环境模块：
        """Get current location of agent."""
        return f"Agent {agent_id} is at location X"
 
-**统计工具** (``readonly=True``, ``kind="statistics"``)
+**統計工具** (``readonly=True``, ``kind="statistics"``)
 
-没有参数的聚合查询（除了 ``self``）：
+沒有引數的聚合查詢（除了 ``self``）：
 
 .. code-block:: python
 
@@ -185,9 +185,9 @@ CodeGenRouter 通过以下方式将智能体连接到环境模块：
        avg = sum(self.happiness.values()) / len(self.happiness)
        return f"Average happiness: {avg}"
 
-**常规工具**
+**常規工具**
 
-具有任何签名的通用工具：
+具有任何簽名的通用工具：
 
 .. code-block:: python
 
@@ -197,7 +197,7 @@ CodeGenRouter 通过以下方式将智能体连接到环境模块：
        self.happiness[agent_id] = value
        return f"Set agent {agent_id}'s happiness to {value}"
 
-工具类别层次结构
+工具類別層次結構
 ~~~~~~~~~~~~~~~~~
 
 .. graphviz::
@@ -206,7 +206,7 @@ CodeGenRouter 通过以下方式将智能体连接到环境模块：
        rankdir=TB;
        node [shape=box, style=rounded];
 
-       Root [label="@tool 装饰器", shape=ellipse];
+       Root [label="@tool 裝飾器", shape=ellipse];
 
        Readonly [label="readonly=True", shape=diamond];
        Readwrite [label="readonly=False", shape=diamond];
@@ -222,12 +222,12 @@ CodeGenRouter 通过以下方式将智能体连接到环境模块：
        Readonly -> Statistics;
        Readwrite -> Regular;
 
-       Observe [label="观察工具\n单参数(agent_id)"];
-       Statistics [label="统计工具\n无参数"];
-       Regular [label="常规工具\n任意签名"];
+       Observe [label="觀察工具\n單引數(agent_id)"];
+       Statistics [label="統計工具\n無引數"];
+       Regular [label="常規工具\n任意簽名"];
    }
 
-智能体-环境交互流程
+智慧體-環境互動流程
 ~~~~~~~~~~~~~~~~~~~~
 
 .. graphviz::
@@ -236,19 +236,19 @@ CodeGenRouter 通过以下方式将智能体连接到环境模块：
        rankdir=TB;
        node [shape=box, style=rounded];
 
-       Agent [label="智能体"];
+       Agent [label="智慧體"];
        Ask [label="ask/intervene()"];
        Router [label="Router"];
        Tools [label="@tool 方法"];
-       Env [label="环境状态"];
-       Response [label="响应"];
+       Env [label="環境狀態"];
+       Response [label="響應"];
 
        Agent -> Ask;
        Ask -> Router;
-       Router -> Tools [label="提取工具签名"];
-       Router -> Tools [label="生成调用代码"];
-       Tools -> Env [label="执行工具"];
-       Env -> Tools [label="返回结果"];
+       Router -> Tools [label="提取工具簽名"];
+       Router -> Tools [label="生成呼叫程式碼"];
+       Tools -> Env [label="執行工具"];
+       Env -> Tools [label="返回結果"];
        Tools -> Router;
        Router -> Response;
        Response -> Agent;

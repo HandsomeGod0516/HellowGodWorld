@@ -44,8 +44,8 @@ import { padToWidth } from "./rendering/text.js";
 import { editorTheme, palette, selectListTheme } from "./theme.js";
 
 const END_CURSOR = "\x1b[7m \x1b[0m";
-const PERMISSION_TOOL_RE = /工具\s+`([^`]+)`\s+需要授权/;
-const PERMISSION_RISK_RE = /安全风险评估：\**\s*([^\s*]+)?\s*\**([^*\n]+?风险)\**/m;
+const PERMISSION_TOOL_RE = /工具\s+`([^`]+)`\s+需要授權/;
+const PERMISSION_RISK_RE = /安全風險評估：\**\s*([^\s*]+)?\s*\**([^*\n]+?風險)\**/m;
 const PERMISSION_QUOTE_RE = /^>\s*(.+)$/gm;
 const PERMISSION_JSON_BLOCK_RE = /```json\s*([\s\S]*?)\s*```/i;
 const RUNNING_TIMER_RESET_GRACE_MS = 15_000;
@@ -150,7 +150,7 @@ function compressRiskLabel(risk: string | undefined): string | undefined {
     .replace(/^高\s*/u, "High ")
     .replace(/^中\s*/u, "Medium ")
     .replace(/^低\s*/u, "Low ")
-    .replace(/风险$/u, "risk");
+    .replace(/風險$/u, "risk");
 }
 
 function permissionToolKind(tool: string | undefined): "bash" | "filesystem" | "generic" {
@@ -266,21 +266,21 @@ function renderPermissionBlock(
 
 function normalizePermissionOptionLabel(label: string): string {
   const trimmed = label.trim();
-  if (trimmed === "本次允许") return "Allow once";
-  if (trimmed === "总是允许") return "Always allow";
-  if (trimmed === "拒绝") return "Reject";
+  if (trimmed === "本次允許") return "Allow once";
+  if (trimmed === "總是允許") return "Always allow";
+  if (trimmed === "拒絕") return "Reject";
   return trimmed;
 }
 
 function isAllowOption(label: string): boolean {
   const normalized = label.trim();
-  return normalized.includes("允许") || /^allow\b/i.test(normalized);
+  return normalized.includes("允許") || /^allow\b/i.test(normalized);
 }
 
 function isRejectOption(label: string): boolean {
   const normalized = label.trim();
   return (
-    normalized.includes("拒绝") || /^reject\b/i.test(normalized) || /^deny\b/i.test(normalized)
+    normalized.includes("拒絕") || /^reject\b/i.test(normalized) || /^deny\b/i.test(normalized)
   );
 }
 
@@ -445,8 +445,8 @@ export class AppScreen implements Component, Focusable {
   }
 
   /**
-   * Ctrl+C / SIGINT 始终尝试向服务端发送当前 session 的中断请求。
-   * 是否真的存在运行任务由服务端判断；CLI/TUI 本身不退出。
+   * Ctrl+C / SIGINT 始終嘗試向服務端傳送當前 session 的中斷請求。
+   * 是否真的存在執行任務由服務端判斷；CLI/TUI 本身不退出。
    */
   interruptTask(): void {
     this.state.cancel();
@@ -632,7 +632,7 @@ export class AppScreen implements Component, Focusable {
       const pastedContent = data.replace(/\x1b\[200~/, "").replace(/\x1b\[201~/, "");
       const filePaths = extractFilePathsFromPaste(pastedContent);
       if (filePaths.length > 0) {
-        // 若解析出路径但无一通过附件校验（扩展名不在白名单等），须把原文交给编辑器，避免粘贴被吞掉
+        // 若解析出路徑但無一透過附件校驗（副檔名不在白名單等），須把原文交給編輯器，避免貼上被吞掉
         if (this.handleDroppedFiles(filePaths)) {
           return;
         }
@@ -1161,7 +1161,7 @@ export class AppScreen implements Component, Focusable {
     if (focusKey) {
       const schema = schemaList.find((s) => s.key === focusKey);
       if (schema && schema.type === "select" && schema.options) {
-        // 用临时的 select_group 状态承载 schemaList/currentValues，再 showConfigValueSelect 会替换成 select_value
+        // 用臨時的 select_group 狀態承載 schemaList/currentValues，再 showConfigValueSelect 會替換成 select_value
         this.configEditorState = {
           phase: "select_group",
           schemaList,
@@ -1568,11 +1568,11 @@ export class AppScreen implements Component, Focusable {
       getArgumentCompletions: command.completion
         ? async (argumentPrefix: string): Promise<AutocompleteItem[] | null> => {
             const trimmed = argumentPrefix.trim();
-            // pi-tui 把「第一个空格之后」整段当作 `/config` 的参数前缀去补全。
-            // 对 `/config set model deepseek`，前缀是 `set model deepseek`，补全项却是平铺的
-            // get/set/list/各 config key；若补全菜单仍打开，Enter 会先 applyCompletion 再提交，
-            // 会把整段参数替换成当前选中项（常为列表首项 `get`），看起来像「变成 /config get」且 set 未执行。
-            // 子命令名已匹配且后面还有 token 时关闭参数补全，让 Enter 直接提交当前输入。
+            // pi-tui 把「第一個空格之後」整段當作 `/config` 的引數字首去補全。
+            // 對 `/config set model deepseek`，字首是 `set model deepseek`，補全項卻是平鋪的
+            // get/set/list/各 config key；若補全選單仍開啟，Enter 會先 applyCompletion 再提交，
+            // 會把整段引數替換成當前選中項（常為列表首項 `get`），看起來像「變成 /config get」且 set 未執行。
+            // 子命令名已匹配且後面還有 token 時關閉引數補全，讓 Enter 直接提交當前輸入。
             if (command.subCommands?.length && trimmed.length > 0) {
               const tokens = trimmed.split(/\s+/).filter(Boolean);
               if (tokens.length >= 2) {
@@ -1701,7 +1701,7 @@ export class AppScreen implements Component, Focusable {
       this.handleQuestionSelection(item.value);
     };
     list.onCancel = () => {
-      const reject = question.options.find((option) => option.label === "拒绝");
+      const reject = question.options.find((option) => option.label === "拒絕");
       if (reject) {
         this.handleQuestionSelection(reject.label);
       }

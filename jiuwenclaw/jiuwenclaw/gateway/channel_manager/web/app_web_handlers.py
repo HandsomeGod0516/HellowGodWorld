@@ -151,7 +151,7 @@ def _merge_models_for_replace_all(
     return out
 
 
-# 仅满足 Channel 构造所需，不入队、不路由；仅用 channel_manager + message_handler 做入站/出站
+# 僅滿足 Channel 構造所需，不入隊、不路由；僅用 channel_manager + message_handler 做入站/出站
 class _DummyBus:
     async def publish_user_messages(self, msg):  # noqa: ANN001, ARG002
         pass
@@ -163,7 +163,7 @@ class _DummyBus:
         pass
 
 
-# 仅转发到 Agent 的 Web method
+# 僅轉發到 Agent 的 Web method
 _FORWARD_REQ_METHODS = frozenset({
     "initialize",
     "session.create",
@@ -250,10 +250,10 @@ _FORWARD_NO_LOCAL_HANDLER_METHODS = frozenset({
     "extensions.toggle",
 })
 
-# 配置信息：config.get 返回、config.set 可修改的键（前端 param 名 -> 环境变量名）
+# 配置資訊：config.get 返回、config.set 可修改的鍵（前端 param 名 -> 環境變數名）
 # default 模型 + video/audio/vision 多模型
 _CONFIG_SET_ENV_MAP = {
-    # default 模型（主对话）
+    # default 模型（主對話）
     "model_provider": "MODEL_PROVIDER",
     "model": "MODEL_NAME",
     "api_base": "API_BASE",
@@ -309,10 +309,10 @@ _CONFIG_SET_ENV_MAP = {
     "role_type": "ROLE_TYPE",
     "prompt_hint": "PROMPT_HINT",
 }
-# 配置项键名列表，用于日志等说明
+# 配置項鍵名列表，用於日誌等說明
 CONFIG_KEYS = tuple(_CONFIG_SET_ENV_MAP.keys())
 
-# 来自 config.yaml 的配置项（前端 param 名 -> config.yaml 路径）
+# 來自 config.yaml 的配置項（前端 param 名 -> config.yaml 路徑）
 _CONFIG_YAML_KEYS = frozenset({
     "context_engine_enabled",
     "kv_cache_affinity_enabled",
@@ -323,7 +323,7 @@ _CONFIG_YAML_KEYS = frozenset({
 
 
 async def _clear_agent_config_cache(agent_client=None) -> None:
-    """写回 config.yaml 后清除 agent 侧配置缓存，使下次读取时得到最新文件内容。"""
+    """寫回 config.yaml 後清除 agent 側配置快取，使下次讀取時得到最新檔案內容。"""
     try:
         if agent_client is not None:
             from jiuwenclaw.common.e2a.gateway_normalize import e2a_from_agent_fields
@@ -343,7 +343,7 @@ async def _clear_agent_config_cache(agent_client=None) -> None:
 
 
 def _make_session_id() -> str:
-    # 与前端 generateSessionId 保持一致：毫秒时间戳(16进制) + 6位随机16进制
+    # 與前端 generateSessionId 保持一致：毫秒時間戳(16進位制) + 6位隨機16進位制
     ts = format(int(time.time() * 1000), "x")
     suffix = secrets.token_hex(3)
     return f"sess_{ts}_{suffix}"
@@ -364,13 +364,13 @@ class WebHandlersBindParams:
 
 
 def _register_web_handlers(bind: WebHandlersBindParams) -> None:
-    """注册 Web 前端需要的 method 与 on_connect。
-    on_config_saved: 可选，config.set 写回后调用的回调；
-        updated_env_keys 为本次改动的键名集合，
-        env_updates 为本次变更的环境变量增量（仅包含更新项），
-        config_payload 为当前最新配置快照；
-        返回 True 表示已热更新未重启，False 表示已安排进程重启。
-    heartbeat_service: 可选，GatewayHeartbeatService 实例，用于处理 heartbeat.get_conf / heartbeat.set_conf。
+    """註冊 Web 前端需要的 method 與 on_connect。
+    on_config_saved: 可選，config.set 寫回後呼叫的回撥；
+        updated_env_keys 為本次改動的鍵名集合，
+        env_updates 為本次變更的環境變數增量（僅包含更新項），
+        config_payload 為當前最新配置快照；
+        返回 True 表示已熱更新未重啟，False 表示已安排程序重啟。
+    heartbeat_service: 可選，GatewayHeartbeatService 例項，用於處理 heartbeat.get_conf / heartbeat.set_conf。
     """
     channel = bind.channel
     agent_client = bind.agent_client
@@ -384,7 +384,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
     from jiuwenclaw.common.schema.message import Message, EventType
 
     def _resolve(ref, key="value"):
-        """若为 ref 字典则取 key（无则返回 None），否则返回自身。"""
+        """若為 ref 字典則取 key（無則返回 None），否則返回自身。"""
         if isinstance(ref, dict):
             return ref.get(key)
         return ref
@@ -410,7 +410,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
     async def _on_connect(ws):
         ac = _resolve(agent_client)
         if ac is None or not getattr(ac, "server_ready", False):
-            logger.debug("[_on_connect] Agent 未就绪，跳过 connection.ack")
+            logger.debug("[_on_connect] Agent 未就緒，跳過 connection.ack")
             return
         sid = _make_session_id()
 
@@ -439,13 +439,13 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
     channel.on_connect(_on_connect)
 
     async def _config_get(ws, req_id, params, session_id):
-        # 返回 _CONFIG_SET_ENV_MAP 里所有键对应的环境变量当前值
+        # 返回 _CONFIG_SET_ENV_MAP 裡所有鍵對應的環境變數當前值
         payload = {
             param_key: (os.getenv(env_key) or "")
             for param_key, env_key in _CONFIG_SET_ENV_MAP.items()
         }
         payload["app_version"] = __version__
-        # 合并 config.yaml 中的配置项
+        # 合併 config.yaml 中的配置項
         try:
             raw = get_config_raw()
             for key, val in payload.items():
@@ -494,7 +494,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         await channel.send_response(ws, req_id, ok=True, payload=payload)
 
     def _persist_env_updates(updates: dict[str, str]) -> None:
-        """把已更新的环境变量写回 .env（仅覆盖或追加对应 KEY=value 行）。"""
+        """把已更新的環境變數寫回 .env（僅覆蓋或追加對應 KEY=value 行）。"""
         env_path = _ENV_FILE
         if not updates:
             return
@@ -522,10 +522,10 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             with open(env_path, "w", encoding="utf-8") as f:
                 f.writelines(new_lines)
         except OSError as e:
-            logger.warning("[config.set] 写回 .env 失败: %s", e)
+            logger.warning("[config.set] 寫回 .env 失敗: %s", e)
 
     async def _config_set(ws, req_id, params, session_id):
-        """根据前端消息内容更新配置（支持 .env 与 config.yaml 中的键），并写回对应文件。"""
+        """根據前端訊息內容更新配置（支援 .env 與 config.yaml 中的鍵），並寫回對應檔案。"""
         if not isinstance(params, dict):
             await channel.send_response(ws, req_id, ok=False, error="params must be object", code="BAD_REQUEST")
             return
@@ -571,7 +571,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 )
                 return
             except Exception as exc:  # noqa: BLE001
-                logger.warning("[config.set] 写回 modes.team 失败: %s", exc)
+                logger.warning("[config.set] 寫回 modes.team 失敗: %s", exc)
                 await channel.send_response(
                     ws,
                     req_id,
@@ -600,7 +600,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                     update_memory_forbidden_description_in_config({preferred_lang: desc_val})
                 yaml_updated.append(param_key)
             except Exception as e:  # noqa: BLE001
-                logger.warning("[config.set] 写回 config.yaml 失败 %s: %s", param_key, e)
+                logger.warning("[config.set] 寫回 config.yaml 失敗 %s: %s", param_key, e)
 
         for env_key, value in env_updates.items():
             os.environ[env_key] = value
@@ -760,10 +760,10 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
     # ── models.* handlers ────────────────────────────────────────
 
     async def _models_list(ws, req_id, params, session_id):
-        """返回已配置的所有默认模型列表（与 config.get 一致，返回解密后的完整值）。
+        """返回已配置的所有預設模型列表（與 config.get 一致，返回解密後的完整值）。
 
-        每条带 ``origin_index`` 指向 ``models.defaults`` 中的位置，配合 replace_all
-        在保存时识别"未编辑字段"并保留原 YAML 占位符（如 ``${API_KEY}``）。
+        每條帶 ``origin_index`` 指向 ``models.defaults`` 中的位置，配合 replace_all
+        在儲存時識別"未編輯欄位"並保留原 YAML 佔位符（如 ``${API_KEY}``）。
         """
         try:
             config = get_config()
@@ -784,7 +784,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                     "alias": entry.get("alias", ""),
                     "origin_index": idx,
                 })
-                # active_model 为列表首位的模型（主对话默认）
+                # active_model 為列表首位的模型（主對話預設）
             active_model = result[0]["model_name"] if result else ""
             await channel.send_response(ws, req_id, ok=True, payload={
                 "models": result,
@@ -795,14 +795,14 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             await channel.send_response(ws, req_id, ok=False, error=str(exc), code="INTERNAL_ERROR")
 
     async def _models_replace_all(ws, req_id, params, session_id):
-        """原子地用提交的列表整体替换 models.defaults。
+        """原子地用提交的列表整體替換 models.defaults。
 
-        前端在保存配置时一次性提交完整的最终列表，避免按 model_name/index 分多步
-        save+remove 在同 model_name 多条目场景下出现的位置覆写、漏删等问题。
+        前端在儲存配置時一次性提交完整的最終列表，避免按 model_name/index 分多步
+        save+remove 在同 model_name 多條目場景下出現的位置覆寫、漏刪等問題。
 
-        每条 entry 可携带 ``origin_index`` 指向 ``models.defaults`` 中的原始位置；
-        命中后 raw YAML 中的占位符（如 ``${API_KEY}``）以及 custom_headers 等未在
-        前端暴露的字段会被保留，仅当字段值与前端最初看到的解析值不一致时才覆写。
+        每條 entry 可攜帶 ``origin_index`` 指向 ``models.defaults`` 中的原始位置；
+        命中後 raw YAML 中的佔位符（如 ``${API_KEY}``）以及 custom_headers 等未在
+        前端暴露的欄位會被保留，僅當欄位值與前端最初看到的解析值不一致時才覆寫。
         """
         if not isinstance(params, dict):
             await channel.send_response(ws, req_id, ok=False, error="params must be object", code="BAD_REQUEST")
@@ -899,7 +899,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 "origin_index": origin_index,
             })
 
-        # alias 与其他条目的 model_name 冲突校验
+        # alias 與其他條目的 model_name 衝突校驗
         for i, p in enumerate(parsed):
             a = p["alias"]
             if not a:
@@ -950,11 +950,11 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             await channel.send_response(ws, req_id, ok=False, error=str(exc), code="INTERNAL_ERROR")
 
     async def _models_validate(ws, req_id, params, session_id):
-        """测试指定模型配置是否可用（复用 config.validate_model 逻辑）。"""
+        """測試指定模型配置是否可用（複用 config.validate_model 邏輯）。"""
         await _config_validate_model(ws, req_id, params, session_id)
 
     async def _channel_get(ws, req_id, params, session_id):
-        """返回已注册的 channel 列表."""
+        """返回已註冊的 channel 列表."""
         cm = _resolve(channel_manager)
         if cm is not None:
             channels = [{"channel_id": cid} for cid in cm.enabled_channels]
@@ -1003,7 +1003,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         try:
             update_updater_in_config(updates)
         except Exception as exc:  # noqa: BLE001
-            logger.warning("[updater.set_conf] 写回 config.yaml 失败: %s", exc)
+            logger.warning("[updater.set_conf] 寫回 config.yaml 失敗: %s", exc)
             await channel.send_response(ws, req_id, ok=False,
                                         error=str(exc), code="INTERNAL_ERROR")
             return
@@ -1012,7 +1012,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         await channel.send_response(ws, req_id, ok=True, payload=service.get_runtime_config())
 
     async def _session_list(ws, req_id, params, session_id):
-        """返回会话列表,包含完整的会话管理信息。"""
+        """返回會話列表,包含完整的會話管理資訊。"""
         limit = 20
         offset = 0
         if isinstance(params, dict):
@@ -1043,7 +1043,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         })
 
     async def _session_create(ws, req_id, params, session_id):
-        """创建一个新 session（在 agent/sessions 下创建一个新目录）。"""
+        """建立一個新 session（在 agent/sessions 下建立一個新目錄）。"""
         if not isinstance(params, dict):
             await channel.send_response(
                 ws, req_id, ok=False, error="params must be object", code="BAD_REQUEST",
@@ -1068,7 +1068,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             return
         session_dir.mkdir()
 
-        # 初始化会话元数据
+        # 初始化會話後設資料
         from jiuwenclaw.server.runtime.session.session_metadata import init_session_metadata
         init_session_metadata(
             session_id=session_id_to_create,
@@ -1081,7 +1081,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         await channel.send_response(ws, req_id, ok=True, payload={"session_id": session_id_to_create})
 
     async def _session_delete(ws, req_id, params, session_id):
-        """删除一个 session（在 agent/sessions 下删除一个目录）。"""
+        """刪除一個 session（在 agent/sessions 下刪除一個目錄）。"""
         if not isinstance(params, dict):
             await channel.send_response(
                 ws, req_id, ok=False, error="params must be object", code="BAD_REQUEST",
@@ -1111,7 +1111,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         await channel.send_response(ws, req_id, ok=True, payload={"session_id": session_id_to_delete})
 
     async def _path_get(ws, req_id, params, session_id):
-        """读 browser.chrome_path 并返回给前端（会解析环境变量）。"""
+        """讀 browser.chrome_path 並返回給前端（會解析環境變數）。"""
         try:
             config_base = get_config()
         except FileNotFoundError:
@@ -1137,7 +1137,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         await channel.send_response(ws, req_id, ok=True, payload={"chrome_path": chrome_path})
 
     async def _path_set(ws, req_id, params, session_id):
-        """更新 browser.chrome_path 并写回 config。"""
+        """更新 browser.chrome_path 並寫回 config。"""
         if not isinstance(params, dict):
             await channel.send_response(ws, req_id, ok=False, error="params must be object", code="BAD_REQUEST")
             return
@@ -1152,7 +1152,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             update_browser_in_config({"chrome_path": chrome_path})
             await _clear_agent_config_cache(_resolve(agent_client))
         except Exception as e:  # noqa: BLE001
-            logger.warning("[path.set] 写回 config.yaml 失败: %s", e)
+            logger.warning("[path.set] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
             return
 
@@ -1161,7 +1161,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
     async def _memory_compute(ws, req_id, params, session_id):
 
         process = psutil.Process()
-        rss_bytes = process.memory_info().rss  # 物理内存
+        rss_bytes = process.memory_info().rss  # 實體記憶體
         rss_mb = rss_bytes / (1024 * 1024)
 
         mem = psutil.virtual_memory()
@@ -1213,7 +1213,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         await channel.send_response(ws, req_id, ok=True, payload=payload)
 
     async def _locale_get_conf(ws, req_id, params, session_id):
-        """返回当前 preferred_language 配置（zh / en）。"""
+        """返回當前 preferred_language 配置（zh / en）。"""
         try:
             cfg = get_config()
             lang = str(cfg.get("preferred_language") or "zh").strip().lower()
@@ -1230,7 +1230,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _locale_set_conf(ws, req_id, params, session_id):
-        """更新 preferred_language 并写回 config.yaml。"""
+        """更新 preferred_language 並寫回 config.yaml。"""
         if not isinstance(params, dict):
             await channel.send_response(ws, req_id, ok=False, error="params must be object", code="BAD_REQUEST")
             return
@@ -1254,11 +1254,11 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             update_preferred_language_in_config(lang)
             await channel.send_response(ws, req_id, ok=True, payload={"preferred_language": lang})
         except Exception as e:
-            logger.warning("[locale.set_conf] 写回 config.yaml 失败: %s", e)
+            logger.warning("[locale.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _heartbeat_get_conf(ws, req_id, params, session_id):
-        """返回当前心跳配置（every / target / active_hours）。"""
+        """返回當前心跳配置（every / target / active_hours）。"""
         hb = _resolve(heartbeat_service)
         if hb is None:
             await channel.send_response(ws, req_id, ok=False, error="heartbeat service not available",
@@ -1272,7 +1272,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _heartbeat_set_conf(ws, req_id, params, session_id):
-        """更新心跳配置并重启心跳服务；params 可含 every、target、active_hours。"""
+        """更新心跳配置並重啟心跳服務；params 可含 every、target、active_hours。"""
         hb = _resolve(heartbeat_service)
         if hb is None:
             await channel.send_response(ws, req_id, ok=False, error="heartbeat service not available",
@@ -1293,7 +1293,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 if not isinstance(active_hours, dict):
                     active_hours = None
                 elif active_hours and ("start" not in active_hours or "end" not in active_hours):
-                    # 必须同时包含 start/end，否则视为清除时间段（始终生效）
+                    # 必須同時包含 start/end，否則視為清除時間段（始終生效）
                     active_hours = None
             await hb.set_heartbeat_conf(every=every, target=target, active_hours=active_hours)
             payload = dict(hb.get_heartbeat_conf())
@@ -1301,7 +1301,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_heartbeat_in_config(payload)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[heartbeat.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[heartbeat.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload=payload)
         except ValueError as e:
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="BAD_REQUEST")
@@ -1310,12 +1310,12 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _heartbeat_get_path(ws, req_id, params, session_id):
-        """返回 HEARTBEAT.md 文件路径。"""
+        """返回 HEARTBEAT.md 檔案路徑。"""
         from jiuwenclaw.common.utils import get_deepagent_heartbeat_path, get_agent_root_dir
 
         try:
             heartbeat_path = get_deepagent_heartbeat_path()
-            # 返回相对于 agent 根目录的路径，与 file-api 格式一致
+            # 返回相對於 agent 根目錄的路徑，與 file-api 格式一致
             agent_root = get_agent_root_dir()
             relative_path = heartbeat_path.relative_to(agent_root.parent)
             await channel.send_response(
@@ -1330,7 +1330,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             )
 
     async def _channel_feishu_get_conf(ws, req_id, params, session_id):
-        """返回 FeishuChannel 的当前配置（由 ChannelManager 管理）。"""
+        """返回 FeishuChannel 的當前配置（由 ChannelManager 管理）。"""
         cm = _resolve(channel_manager)
         if cm is None:
             await channel.send_response(
@@ -1349,7 +1349,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _channel_feishu_set_conf(ws, req_id, params, session_id):
-        """更新 FeishuChannel 的配置，并按新配置重新实例化通道。"""
+        """更新 FeishuChannel 的配置，並按新配置重新例項化通道。"""
         cm = _resolve(channel_manager)
         if cm is None:
             await channel.send_response(
@@ -1376,14 +1376,14 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("feishu", conf)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.feishu.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.feishu.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": conf})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.feishu.set_conf] %s", e)
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _channel_xiaoyi_get_conf(ws, req_id, params, session_id):
-        """返回 XiaoyiChannel 的当前配置（由 ChannelManager 管理）。"""
+        """返回 XiaoyiChannel 的當前配置（由 ChannelManager 管理）。"""
         cm = _resolve(channel_manager)
         if cm is None:
             await channel.send_response(
@@ -1402,7 +1402,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _channel_xiaoyi_set_conf(ws, req_id, params, session_id):
-        """更新 XiaoyiChannel 的配置，并按新配置重新实例化通道。"""
+        """更新 XiaoyiChannel 的配置，並按新配置重新例項化通道。"""
         cm = _resolve(channel_manager)
         if cm is None:
             await channel.send_response(
@@ -1429,14 +1429,14 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("xiaoyi", conf)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.xiaoyi.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.xiaoyi.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": conf})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.xiaoyi.set_conf] %s", e)
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _channel_telegram_get_conf(ws, req_id, params, session_id):
-        """返回 TelegramChannel 的当前配置（由 ChannelManager 管理）。"""
+        """返回 TelegramChannel 的當前配置（由 ChannelManager 管理）。"""
         cm = _resolve(channel_manager)
         if cm is None:
             await channel.send_response(
@@ -1455,7 +1455,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             await channel.send_response(ws, req_id, ok=False, error=str(e), code="INTERNAL_ERROR")
 
     async def _channel_telegram_set_conf(ws, req_id, params, session_id):
-        """更新 TelegramChannel 的配置，并按新配置重新实例化通道。"""
+        """更新 TelegramChannel 的配置，並按新配置重新例項化通道。"""
         cm = _resolve(channel_manager)
         if cm is None:
             await channel.send_response(
@@ -1482,7 +1482,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("telegram", conf)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.telegram.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.telegram.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": conf})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.telegram.set_conf] %s", e)
@@ -1533,7 +1533,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("dingtalk", conf)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.dingtalk.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.dingtalk.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": conf})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.dingtalk.set_conf] %s", e)
@@ -1584,7 +1584,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("whatsapp", conf)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.whatsapp.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.whatsapp.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": conf})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.whatsapp.set_conf] %s", e)
@@ -1635,7 +1635,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("discord", conf)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.discord.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.discord.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": conf})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.discord.set_conf] %s", e)
@@ -1686,7 +1686,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("wecom", conf)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.wecom.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.wecom.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": conf})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.wecom.set_conf] %s", e)
@@ -1737,7 +1737,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("wechat", conf)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.wechat.set_conf] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.wechat.set_conf] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": conf})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.wechat.set_conf] %s", e)
@@ -1773,7 +1773,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
             conf = cm.get_conf("wechat")
             new_conf = clear_wechat_bound_session(conf)
             await reset_wechat_login_ui_state()
-            # 若 YAML 里 bot_token 本就为空，仅删凭据文件时 dict 与上次相同，_should_restart_channel 不会重启，扫码 UI 会一直停在 idle
+            # 若 YAML 裡 bot_token 本就為空，僅刪憑據檔案時 dict 與上次相同，_should_restart_channel 不會重啟，掃碼 UI 會一直停在 idle
             cm.mark_channel_restart_pending("wechat")
             await cm.set_conf("wechat", new_conf)
             final = cm.get_conf("wechat")
@@ -1781,7 +1781,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
                 update_channel_in_config("wechat", final)
                 await _clear_agent_config_cache(_resolve(agent_client))
             except Exception as e:  # noqa: BLE001
-                logger.warning("[channel.wechat.unbind] 写回 config.yaml 失败: %s", e)
+                logger.warning("[channel.wechat.unbind] 寫回 config.yaml 失敗: %s", e)
             await channel.send_response(ws, req_id, ok=True, payload={"config": final})
         except Exception as e:  # noqa: BLE001
             logger.exception("[channel.wechat.unbind] %s", e)
@@ -1996,8 +1996,8 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
     channel.register_method("cron.job.preview", _cron_job_preview)
     channel.register_method("cron.job.run_now", _cron_job_run_now)
 
-    # 数字分身 — permissions.owner_scopes：仅 Web 网关直连 config（不经 E2A / config_rpc）。
-    # 其余 permissions.*（tools / rules / approval_overrides）走 _forward_permissions_to_agent。
+    # 數字分身 — permissions.owner_scopes：僅 Web 閘道器直連 config（不經 E2A / config_rpc）。
+    # 其餘 permissions.*（tools / rules / approval_overrides）走 _forward_permissions_to_agent。
 
     async def _permissions_owner_scopes_get(ws, req_id, params, session_id):
         from jiuwenclaw.common.config import get_permissions_owner_scopes
@@ -2028,7 +2028,7 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
     channel.register_method("permissions.owner_scopes.set", _permissions_owner_scopes_set)
 
     async def _forward_permissions_to_agent(ws, req_id, params, session_id, *, req_method):
-        """permissions.*：优先经 E2A 转发到 AgentServer；Agent 未就绪时本地执行（与 config_rpc 同源）。"""
+        """permissions.*：優先經 E2A 轉發到 AgentServer；Agent 未就緒時本地執行（與 config_rpc 同源）。"""
         from jiuwenclaw.common.e2a.gateway_normalize import e2a_from_agent_fields
         from jiuwenclaw.common.schema.agent import AgentRequest
         from jiuwenclaw.common.schema.message import ReqMethod

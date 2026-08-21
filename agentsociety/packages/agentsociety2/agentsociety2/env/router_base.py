@@ -1,32 +1,32 @@
-"""环境路由器基类模块。
+"""環境路由器基類模組。
 
-本模块提供环境路由器的抽象基类 :class:`RouterBase`，用于协调智能体与环境模块之间的交互。
+本模組提供環境路由器的抽象基類 :class:`RouterBase`，用於協調智慧體與環境模組之間的互動。
 
-路由器负责：
+路由器負責：
 
-- **请求路由**: 将智能体的请求路由到合适的环境模块
-- **工具管理**: 收集和过滤环境模块提供的工具
-- **LLM 调用**: 提供统一的 LLM 调用接口，支持重试和速率限制处理
-- **状态管理**: 管理仿真时间和 token 使用统计
+- **請求路由**: 將智慧體的請求路由到合適的環境模組
+- **工具管理**: 收集和過濾環境模組提供的工具
+- **LLM 呼叫**: 提供統一的 LLM 呼叫介面，支援重試和速率限制處理
+- **狀態管理**: 管理模擬時間和 token 使用統計
 
-内置路由器实现：
+內建路由器實現：
 
 - :class:`~agentsociety2.env.ReActRouter` — ReAct 模式的路由器
-- :class:`~agentsociety2.env.PlanExecuteRouter` — 计划执行模式路由器
-- :class:`~agentsociety2.env.CodeGenRouter` — 代码生成模式路由器
+- :class:`~agentsociety2.env.PlanExecuteRouter` — 計劃執行模式路由器
+- :class:`~agentsociety2.env.CodeGenRouter` — 程式碼生成模式路由器
 
 Example::
 
     from agentsociety2.env import RouterBase, ReActRouter
 
-    # 创建路由器
+    # 建立路由器
     router = ReActRouter(env_modules=[env1, env2])
 
     # 初始化
     await router.init(start_datetime)
 
-    # 执行查询
-    ctx, answer = await router.ask(ctx, "查询天气信息", readonly=True)
+    # 執行查詢
+    ctx, answer = await router.ask(ctx, "查詢天氣資訊", readonly=True)
 """
 
 import asyncio
@@ -73,10 +73,10 @@ T = TypeVar("T", bound=BaseModel)
 
 
 def _is_rate_limit_like_error(error: Exception) -> bool:
-    """判断异常是否“类似速率限制”。
+    """判斷異常是否“類似速率限制”。
 
-    :param error: 捕获到的异常对象。
-    :returns: 若可判定为 429/Router cooldown/无可用 deployments 等限流相关错误则返回 ``True``。
+    :param error: 捕獲到的異常物件。
+    :returns: 若可判定為 429/Router cooldown/無可用 deployments 等限流相關錯誤則返回 ``True``。
     """
     if isinstance(error, RateLimitError):
         return True
@@ -155,14 +155,14 @@ ToolsInfoDict = Dict[str, ModuleToolsInfo]
 
 
 class RouterBase(ABC):
-    """环境路由器抽象基类。
+    """環境路由器抽象基類。
 
-    Router 用于协调 agent 与环境模块（:class:`~agentsociety2.env.base.EnvBase`）的交互，职责包括：
+    Router 用於協調 agent 與環境模組（:class:`~agentsociety2.env.base.EnvBase`）的互動，職責包括：
 
-    - 聚合并过滤环境工具（函数调用 schema）
-    - 维护仿真时钟（``self.t``）
-    - 提供统一 LLM 调用封装（重试与 token 统计）
-    - 生成 world description（可选，用于 PersonAgent 的提示词）
+    - 聚合並過濾環境工具（函式呼叫 schema）
+    - 維護模擬時鐘（``self.t``）
+    - 提供統一 LLM 呼叫封裝（重試與 token 統計）
+    - 生成 world description（可選，用於 PersonAgent 的提示詞）
     """
 
     def __init__(
@@ -172,12 +172,12 @@ class RouterBase(ABC):
         max_llm_call_retry: int = 10,
         replay_writer: Optional["ReplayWriter"] = None,
     ):
-        """创建路由器实例。
+        """建立路由器例項。
 
-        :param env_modules: 环境模块列表。
-        :param max_steps: 最大执行步数（由具体 router 实现解释）。
-        :param max_llm_call_retry: LLM 调用最大重试次数下限（至少为 1）。
-        :param replay_writer: 可选回放写入器；若提供会自动注入到各 env module。
+        :param env_modules: 環境模組列表。
+        :param max_steps: 最大執行步數（由具體 router 實現解釋）。
+        :param max_llm_call_retry: LLM 呼叫最大重試次數下限（至少為 1）。
+        :param replay_writer: 可選回放寫入器；若提供會自動注入到各 env module。
         """
         # Get router and model names from environment-based configuration
         # ReAct/codegen uses coder model
@@ -191,7 +191,7 @@ class RouterBase(ABC):
         self.max_steps = max_steps
         self.max_llm_call_retry = max(max_llm_call_retry, 1)
         self._replay_writer = replay_writer
-        self.run_dir: Path | None = None  # 由 cli.py 设置
+        self.run_dir: Path | None = None  # 由 cli.py 設定
         if replay_writer is not None:
             for env_module in env_modules:
                 env_module.set_replay_writer(replay_writer)
@@ -210,7 +210,7 @@ class RouterBase(ABC):
         self._generate_world_description_lock = asyncio.Lock()
 
     def _add_current_time_to_ctx(self, ctx: dict) -> None:
-        """向 ctx 注入当前时间信息（原地修改）。"""
+        """向 ctx 注入當前時間資訊（原地修改）。"""
         ctx["current_time"] = {
             "datetime": self.t.isoformat(),
             "formatted": self.t.strftime("%Y-%m-%d %H:%M:%S"),
@@ -219,11 +219,11 @@ class RouterBase(ABC):
         }
 
     def sync_simulation_clock(self, t: datetime) -> None:
-        """与编排器当前仿真时刻对齐。
+        """與編排器當前模擬時刻對齊。
 
-        ``ask``/codegen 的 InitStage 用 ``self.t`` 写入 ``ctx['current_time']``。
-        若仅在 ``env_router.step`` 末尾才更新 ``self.t``，而 agent 先执行，则整步内时钟落后一步。
-        任何复制 ``AgentSociety.step`` 顺序（先 agent 后 env.step）的代码都应在 agent 开始前调用本方法。
+        ``ask``/codegen 的 InitStage 用 ``self.t`` 寫入 ``ctx['current_time']``。
+        若僅在 ``env_router.step`` 末尾才更新 ``self.t``，而 agent 先執行，則整步內時鐘落後一步。
+        任何複製 ``AgentSociety.step`` 順序（先 agent 後 env.step）的程式碼都應在 agent 開始前呼叫本方法。
         """
         self.t = t
 
@@ -235,30 +235,30 @@ class RouterBase(ABC):
         readonly: bool = False,
         template_mode: bool = False,
     ) -> Tuple[dict, str]:
-        """与环境交互的统一入口（由子类实现具体路由策略）。
+        """與環境互動的統一入口（由子類實現具體路由策略）。
 
-        :param ctx: 上下文字典。模板模式下可包含 ``variables``，用于 ``{var}`` 替换。
-        :param instruction: 指令文本。模板模式下会进行变量替换后再执行。
-        :param readonly: 是否只读（只读时应避免改变环境状态）。
-        :param template_mode: 是否启用模板模式。
-        :returns: ``(ctx, answer)``，其中 ctx 可能被环境更新。
+        :param ctx: 上下文字典。模板模式下可包含 ``variables``，用於 ``{var}`` 替換。
+        :param instruction: 指令文字。模板模式下會進行變數替換後再執行。
+        :param readonly: 是否只讀（只讀時應避免改變環境狀態）。
+        :param template_mode: 是否啟用模板模式。
+        :returns: ``(ctx, answer)``，其中 ctx 可能被環境更新。
         """
         raise NotImplementedError
 
     async def init(self, start_datetime: datetime):
-        """初始化路由器与环境模块。
+        """初始化路由器與環境模組。
 
-        :param start_datetime: 仿真起始时间。
+        :param start_datetime: 模擬起始時間。
         """
         self.t = start_datetime
         for env_module in self.env_modules:
             await env_module.init(start_datetime)
 
     async def step(self, tick: int, t: datetime):
-        """推进环境模块一个仿真步。
+        """推進環境模組一個模擬步。
 
-        :param tick: 本步时间跨度（秒）。
-        :param t: 本步结束后的仿真时间。
+        :param tick: 本步時間跨度（秒）。
+        :param t: 本步結束後的模擬時間。
         """
         self.t = t
         tasks = []
@@ -267,14 +267,14 @@ class RouterBase(ABC):
         await asyncio.gather(*tasks)
 
     async def close(self):
-        """关闭路由器（关闭所有环境模块）。"""
+        """關閉路由器（關閉所有環境模組）。"""
         for env_module in self.env_modules:
             await env_module.close()
 
     def get_tool_call_history(self) -> List[Dict[str, Any]]:
-        """汇总所有环境模块的工具调用历史（按时间排序）。
+        """彙總所有環境模組的工具呼叫歷史（按時間排序）。
 
-        :returns: 调用记录列表（按 ``timestamp`` 升序）。
+        :returns: 呼叫記錄列表（按 ``timestamp`` 升序）。
         """
         all_history: List[Dict[str, Any]] = []
         for env_module in self.env_modules:
@@ -291,24 +291,24 @@ class RouterBase(ABC):
         return all_history
 
     def reset_tool_call_history(self):
-        """清空所有环境模块的工具调用历史。"""
+        """清空所有環境模組的工具呼叫歷史。"""
         for env_module in self.env_modules:
             env_module.reset_tool_call_history()
 
     # ==================== Replay Data Methods ====================
 
     def set_replay_writer(self, writer: "ReplayWriter") -> None:
-        """为所有环境模块设置回放写入器。
+        """為所有環境模組設定回放寫入器。
 
-        :param writer: :class:`~agentsociety2.storage.ReplayWriter` 实例。
+        :param writer: :class:`~agentsociety2.storage.ReplayWriter` 例項。
         """
         for env_module in self.env_modules:
             env_module.set_replay_writer(writer)
 
     def get_system_prompt(self) -> str:
-        """构建 router 侧的通用 system prompt（不含具体任务指令）。
+        """構建 router 側的通用 system prompt（不含具體任務指令）。
 
-        :returns: system prompt 文本。
+        :returns: system prompt 文字。
         """
 
         prompt = """You are an AI assistant that helps LLM agents accomplish tasks in a virtual world simulation environment.
@@ -349,16 +349,16 @@ class RouterBase(ABC):
         max_delay: float = 60.0,
         **kwargs: Any,
     ):
-        """封装 LiteLLM Router 的 acompletion（含重试与 token 统计）。
+        """封裝 LiteLLM Router 的 acompletion（含重試與 token 統計）。
 
         :param model: ``coder`` 或 ``summary``。
-        :param messages: 消息列表（不自动追加 system prompt；若需要请用 :meth:`acompletion_with_system_prompt`）。
+        :param messages: 訊息列表（不自動追加 system prompt；若需要請用 :meth:`acompletion_with_system_prompt`）。
         :param stream: 是否流式返回。
-        :param max_retries: 可选。最大重试次数；为空则使用 ``self.max_llm_call_retry``。
-        :param base_delay: 429 类错误的指数退避基准延迟。
-        :param max_delay: 指数退避最大延迟。
-        :returns: LLM 响应对象（stream=False 时为 :class:`litellm.types.utils.ModelResponse`）。
-        :raises ValueError: 超过重试次数仍失败时抛出。
+        :param max_retries: 可選。最大重試次數；為空則使用 ``self.max_llm_call_retry``。
+        :param base_delay: 429 類錯誤的指數退避基準延遲。
+        :param max_delay: 指數退避最大延遲。
+        :returns: LLM 響應物件（stream=False 時為 :class:`litellm.types.utils.ModelResponse`）。
+        :raises ValueError: 超過重試次數仍失敗時丟擲。
         """
         logger = get_logger()
 
@@ -448,11 +448,11 @@ class RouterBase(ABC):
         messages: list[AllMessageValues],
         **kwargs: Any,
     ):
-        """发送补全请求并自动在最前追加 router system prompt。
+        """傳送補全請求並自動在最前追加 router system prompt。
 
         :param model: ``coder`` 或 ``summary``。
-        :param messages: 消息列表。
-        :returns: LLM 响应对象。
+        :param messages: 訊息列表。
+        :returns: LLM 響應物件。
         """
         system_prompt = self.get_system_prompt()
         request_messages: list[AllMessageValues] = [
@@ -477,17 +477,17 @@ class RouterBase(ABC):
         error_feedback_prompt: str | None = None,
         **kwargs: Any,
     ) -> T:
-        """发送补全并校验为指定 Pydantic 模型（失败时自动反馈并重试）。
+        """傳送補全並校驗為指定 Pydantic 模型（失敗時自動反饋並重試）。
 
         :param model: ``coder`` 或 ``summary``。
-        :param model_type: 用于校验的 Pydantic 模型类型。
-        :param messages: 消息列表（会自动追加 system prompt）。
-        :param max_retries: 最大重试次数（不含首次尝试）。
-        :param base_delay: 429 类错误指数退避基准延迟。
-        :param max_delay: 指数退避最大延迟。
-        :param error_feedback_prompt: 可选。自定义错误反馈模板（需包含 ``{error_message}`` 与 ``{model_schema}`` 占位符）。
-        :returns: 校验通过的 Pydantic 实例。
-        :raises ValueError: 解析/校验在重试后仍失败时抛出。
+        :param model_type: 用於校驗的 Pydantic 模型型別。
+        :param messages: 訊息列表（會自動追加 system prompt）。
+        :param max_retries: 最大重試次數（不含首次嘗試）。
+        :param base_delay: 429 類錯誤指數退避基準延遲。
+        :param max_delay: 指數退避最大延遲。
+        :param error_feedback_prompt: 可選。自定義錯誤反饋模板（需包含 ``{error_message}`` 與 ``{model_schema}`` 佔位符）。
+        :returns: 校驗透過的 Pydantic 例項。
+        :raises ValueError: 解析/校驗在重試後仍失敗時丟擲。
         """
         logger = get_logger()
 
@@ -751,28 +751,28 @@ Your corrected response:
 
     async def generate_world_description_from_tools(self) -> str:
         """
-        根据环境路由器的所有工具信息（包括可写和只读工具），使用LLM生成世界描述文本。
+        根據環境路由器的所有工具資訊（包括可寫和只讀工具），使用LLM生成世界描述文字。
 
-        这个函数将工具信息转换为对PersonAgent有用的world_description，帮助agent理解：
-        1. 环境中可用的模块和工具
-        2. 如何通过自然语言指令与router交互
-        3. 每个工具的功能和用途
-        4. 如何正确使用这些工具来实现目标
+        這個函式將工具資訊轉換為對PersonAgent有用的world_description，幫助agent理解：
+        1. 環境中可用的模組和工具
+        2. 如何透過自然語言指令與router互動
+        3. 每個工具的功能和用途
+        4. 如何正確使用這些工具來實現目標
 
         Returns:
-            str: 生成的世界描述文本，可直接作为PersonAgent的world_description参数
+            str: 生成的世界描述文字，可直接作為PersonAgent的world_description引數
         """
         logger = get_logger()
-        logger.info("\n【生成世界描述】从环境工具信息生成world_description...")
+        logger.info("\n【生成世界描述】從環境工具資訊生成world_description...")
 
         try:
-            # 收集所有工具信息（包括可写和只读工具）
+            # 收集所有工具資訊（包括可寫和只讀工具）
             all_tools_info = self._collect_tools_info()
 
-            # 使用 pyi 格式构建工具信息
+            # 使用 pyi 格式構建工具資訊
             tools_pyi = self._format_tools_pyi(all_tools_info, 0)
 
-            # 构建LLM prompt
+            # 構建LLM prompt
             prompt = f"""# Task: Generate World Description for PersonAgent
 
 You are tasked with generating a comprehensive world description that will help a PersonAgent understand how to interact with the environment through a code generation router.
@@ -829,7 +829,7 @@ Generate a clear, well-structured but short world description text. The text sho
 
 Your generated world description:"""
 
-            # 调用LLM生成描述
+            # 呼叫LLM生成描述
             dialog: list[AllMessageValues] = [{"role": "user", "content": prompt}]
 
             router, model_name = get_llm_router_and_model("coder")
@@ -838,7 +838,7 @@ Your generated world description:"""
             for attempt in range(max_retries + 1):
                 try:
                     response = await router.acompletion(
-                        model=model_name,  # 使用coder模型生成描述性文本
+                        model=model_name,  # 使用coder模型生成描述性文字
                         messages=dialog,
                         stream=False,
                     )
@@ -866,7 +866,7 @@ Your generated world description:"""
             logger.info(f"  ✓ 生成世界描述的response: {world_description}")
 
             if not world_description:
-                logger.warning("  ⚠ LLM返回空描述，使用默认描述")
+                logger.warning("  ⚠ LLM返回空描述，使用預設描述")
                 world_description = (
                     "You are operating in a simulated environment with various tools and capabilities. "
                     "Use natural language instructions to interact with the environment router to accomplish your goals."
@@ -896,16 +896,16 @@ Your generated world description:"""
                     world_description + "\n\n" + "\n\n".join(custom_descriptions)
                 )
 
-            logger.info(f"  ✓ 成功生成世界描述（长度: {len(world_description)} 字符）")
+            logger.info(f"  ✓ 成功生成世界描述（長度: {len(world_description)} 字元）")
 
             return world_description.strip()
 
         except Exception as e:
-            logger.error(f"  ❌ 生成世界描述时出错: {str(e)}")
+            logger.error(f"  ❌ 生成世界描述時出錯: {str(e)}")
             import traceback
 
             logger.error(traceback.format_exc())
-            # 返回一个基本的默认描述
+            # 返回一個基本的預設描述
             return (
                 "You are operating in a simulated environment. "
                 "Use natural language instructions to interact with the environment router to accomplish your goals."
@@ -913,20 +913,20 @@ Your generated world description:"""
 
     def _collect_tools_info(self) -> ToolsInfoDict:
         """
-        收集所有环境模块的工具信息，按模块组织。
-        返回所有工具，不进行任何过滤。
-        同时收集所有工具函数的参数类型和返回值类型中的 Pydantic BaseModel。
+        收集所有環境模組的工具資訊，按模組組織。
+        返回所有工具，不進行任何過濾。
+        同時收集所有工具函式的引數型別和返回值型別中的 Pydantic BaseModel。
 
         Returns:
-            按模块组织的工具信息字典，使用 Pydantic 模型定义
+            按模組組織的工具資訊字典，使用 Pydantic 模型定義
         """
         parser = FunctionParser()
-        # 重置 collector，准备收集新的模型
+        # 重置 collector，準備收集新的模型
         self._pydantic_collector.reset()
         modules_info: ToolsInfoDict = {}
 
         for module in self.env_modules:
-            # 收集所有工具（包括可写和只读）
+            # 收集所有工具（包括可寫和只讀）
             all_module_tools = module._llm_tools
             registered_tools = getattr(module.__class__, "_registered_tools", {})
             tool_kinds_dict = getattr(module.__class__, "_tool_kinds", {})
@@ -937,11 +937,11 @@ Your generated world description:"""
                 func_info = tool["function"]
                 tool_name = func_info["name"]
 
-                # 获取工具的实际readonly状态和kind
+                # 獲取工具的實際readonly狀態和kind
                 tool_readonly = readonly_tools_dict.get(tool_name, False)
                 tool_kind = tool_kinds_dict.get(tool_name)
 
-                # 使用 FunctionParser 解析函数
+                # 使用 FunctionParser 解析函式
                 tool_obj = registered_tools.get(tool_name)
                 if not (tool_obj and hasattr(tool_obj, "fn")):
                     continue
@@ -949,7 +949,7 @@ Your generated world description:"""
                 fn = tool_obj.fn._original_func
                 function_parts = parser.parse_function(fn)
 
-                # 如果解析失败，跳过该工具
+                # 如果解析失敗，跳過該工具
                 if function_parts is None:
                     get_logger().debug(
                         f"Failed to parse function for tool {tool_name}, skipping"
@@ -967,7 +967,7 @@ Your generated world description:"""
                 )
                 tools_list.append(tool_info)
 
-            if tools_list:  # 只添加有工具的模块
+            if tools_list:  # 只新增有工具的模組
                 modules_info[module.name] = ModuleToolsInfo(
                     description=module.description,
                     tools=tools_list,
@@ -982,15 +982,15 @@ Your generated world description:"""
         kind: str | None = None,
     ) -> ToolsInfoDict:
         """
-        根据 readonly 和 kind 过滤工具信息。
+        根據 readonly 和 kind 過濾工具資訊。
 
         Args:
-            tools_info: 完整的工具信息字典
-            readonly: 是否只读模式（None 表示不过滤）
-            kind: 工具类型筛选（None 表示不过滤），如 "observe" 或 "statistics"
+            tools_info: 完整的工具資訊字典
+            readonly: 是否只讀模式（None 表示不過濾）
+            kind: 工具型別篩選（None 表示不過濾），如 "observe" 或 "statistics"
 
         Returns:
-            过滤后的工具信息字典
+            過濾後的工具資訊字典
         """
         filtered_info: ToolsInfoDict = {}
 
@@ -998,17 +998,17 @@ Your generated world description:"""
             filtered_tools: List[ToolInfo] = []
 
             for tool_info in module_data.tools:
-                # 根据 readonly 过滤
+                # 根據 readonly 過濾
                 if readonly is not None and tool_info.readonly != readonly:
                     continue
 
-                # 根据 kind 过滤
+                # 根據 kind 過濾
                 if kind is not None and tool_info.kind != kind:
                     continue
 
                 filtered_tools.append(tool_info)
 
-            if filtered_tools:  # 只添加有工具的模块
+            if filtered_tools:  # 只新增有工具的模組
                 filtered_info[module_name] = ModuleToolsInfo(
                     description=module_data.description,
                     tools=filtered_tools,
@@ -1018,12 +1018,12 @@ Your generated world description:"""
 
     def get_collected_pydantic_models(self) -> Dict[Type[BaseModel], str]:
         """
-        获取已收集的所有 Pydantic BaseModel 类型及其源代码。
+        獲取已收集的所有 Pydantic BaseModel 型別及其原始碼。
 
-        这些模型是在调用 _collect_tools_info() 时从工具函数的参数类型和返回值类型中收集的。
+        這些模型是在呼叫 _collect_tools_info() 時從工具函式的引數型別和返回值型別中收集的。
 
         Returns:
-            字典，key 是 BaseModel 类型，value 是其源代码
+            字典，key 是 BaseModel 型別，value 是其原始碼
         """
         return self._pydantic_collector.get_collected_models()
 
@@ -1031,23 +1031,23 @@ Your generated world description:"""
         self, modules_info: ToolsInfoDict, max_body_code_lines: int
     ) -> str:
         """
-        将工具信息格式化为类似 pyi 文件的 Python 代码格式。
+        將工具資訊格式化為類似 pyi 檔案的 Python 程式碼格式。
 
         格式：
-        1. 上方：所有相关的 pydantic BaseModel 的完整代码
-        2. 下方：模块类的 class XXX 及其 docstring（描述变成 docstring）
-        3. 在 class 中包含相关函数的签名和 docstring
+        1. 上方：所有相關的 pydantic BaseModel 的完整程式碼
+        2. 下方：模組類的 class XXX 及其 docstring（描述變成 docstring）
+        3. 在 class 中包含相關函式的簽名和 docstring
 
         Args:
-            modules_info: 按模块组织的工具信息字典（使用新的 Pydantic 模型）
+            modules_info: 按模組組織的工具資訊字典（使用新的 Pydantic 模型）
 
         Returns:
-            格式化的 Python 代码字符串（类似 pyi 文件）
+            格式化的 Python 程式碼字串（類似 pyi 檔案）
         """
-        # 收集所有相关的 pydantic BaseModel
+        # 收集所有相關的 pydantic BaseModel
         pydantic_models = self.get_collected_pydantic_models()
 
-        # 构建输出
+        # 構建輸出
         lines: List[str] = []
         lines.append("# Type definitions for environment modules")
         lines.append("from pydantic import BaseModel, Field")
@@ -1057,7 +1057,7 @@ Your generated world description:"""
         lines.append("from datetime import datetime")
         lines.append("")
 
-        # 添加所有 pydantic BaseModel 的完整代码
+        # 新增所有 pydantic BaseModel 的完整程式碼
         if pydantic_models:
             lines.append("# Pydantic BaseModel definitions")
             for model_class, source_code in pydantic_models.items():
@@ -1076,24 +1076,24 @@ Your generated world description:"""
             lines.append("# You can't interact with the environment.")
         lines.append("")
 
-        # 为每个模块生成类定义
+        # 為每個模組生成類定義
         for module_name, module_data in modules_info.items():
-            # 模块类定义和 docstring
+            # 模組類定義和 docstring
             lines.append(f"class {module_name}:")
             description = module_data.description
             if description:
                 lines.append(f'    """{description}"""')
             lines.append("")
 
-            # 添加每个工具函数
+            # 新增每個工具函式
             for tool_info in module_data.tools:
-                # 直接使用 function_parts，已经解析好了
+                # 直接使用 function_parts，已經解析好了
                 function_parts = tool_info.function_parts
                 sig_str = function_parts.signature
 
                 lines.append(f"    {sig_str}")
                 lines.append(f'        """{function_parts.docstring}"""')
-                # 以代码注释形式呈现body_code
+                # 以程式碼註釋形式呈現body_code
                 for line in function_parts.body_code[:max_body_code_lines]:
                     lines.append(f"        # {line}")
                 lines.append("        ...")
@@ -1101,13 +1101,13 @@ Your generated world description:"""
 
         pyi_code = "\n".join(lines)
 
-        # 使用 black 格式化 pyi 代码
+        # 使用 black 格式化 pyi 程式碼
         try:
-            # 使用 black 格式化代码
+            # 使用 black 格式化程式碼
             formatted_code = black.format_str(pyi_code, mode=black.Mode())
             return formatted_code
         except Exception as e:
-            # 如果格式化失败，记录警告并返回原始代码
+            # 如果格式化失敗，記錄警告並返回原始程式碼
             get_logger().warning(f"Failed to format pyi code with black: {e}")
             return pyi_code
 
@@ -1121,44 +1121,44 @@ Your generated world description:"""
         error: str | None = None,
     ) -> Tuple[str, str]:
         """
-        根据用户输入和Router输出生成最终答案。
+        根據使用者輸入和Router輸出生成最終答案。
 
-        这个方法接收用户输入（ctx, instruction）和Router输出（results和过程文本），
-        使用LLM总结为一个answer，并确定执行状态。
-        使用JSON格式返回，通过Pydantic model验证。
+        這個方法接收使用者輸入（ctx, instruction）和Router輸出（results和過程文字），
+        使用LLM總結為一個answer，並確定執行狀態。
+        使用JSON格式返回，透過Pydantic model驗證。
 
         Args:
-            ctx: 上下文字典，包含环境变量等信息
-            instruction: 用户的原始指令
-            results: Router执行的结果字典
-            process_text: 过程文本（可选），描述执行过程的文本信息
-            status: 初步的执行状态（可能被LLM更新）
-            error: 错误信息（如果有）
+            ctx: 上下文字典，包含環境變數等資訊
+            instruction: 使用者的原始指令
+            results: Router執行的結果字典
+            process_text: 過程文字（可選），描述執行過程的文字資訊
+            status: 初步的執行狀態（可能被LLM更新）
+            error: 錯誤資訊（如果有）
 
         Returns:
             Tuple[str, str]: (final_answer, determined_status)
-                - final_answer: LLM生成的最终答案（summary文本）
-                - determined_status: 确定的执行状态（success/in_progress/fail/error）
+                - final_answer: LLM生成的最終答案（summary文字）
+                - determined_status: 確定的執行狀態（success/in_progress/fail/error）
         """
         # logger.debug(
         #     f"RouterBase: Generating final answer - instruction: {instruction[:100]}..., "
         #     f"preliminary status: {status}, results keys: {list(results.keys())}"
         # )
 
-        # 构建结果字符串
+        # 構建結果字串
         error_str = error or "None"
 
-        # 构建过程文本部分
+        # 構建過程文字部分
         process_section = ""
         if process_text:
             process_section = f"""## Execution Process
 {process_text}"""
 
-        # 构建status描述
+        # 構建status描述
         status_descriptions = self.get_status_descriptions()
-        status_desc = status_descriptions.get(status, f"状态: {status}")
+        status_desc = status_descriptions.get(status, f"狀態: {status}")
 
-        # 使用多行f-string构建prompt
+        # 使用多行f-string構建prompt
         prompt = f"""# Summarize the Final Answer
 
 Based on the agent input (`ctx` and `instruction`), execution process and results, provide a structured JSON answer to the agent.
@@ -1236,7 +1236,7 @@ Final Answer:"""
             messages=dialog,
         )
 
-        # 增加时间标签到summary (包含星期)
+        # 增加時間標籤到summary (包含星期)
         time_tag = f"[{self.t.strftime('%A')}, {self.t.strftime('%Y-%m-%d %H:%M:%S')}]"
         response.summary = f"{time_tag} {response.summary}"
         return response.summary, response.status

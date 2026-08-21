@@ -246,8 +246,8 @@ class IntentDetector:
         2. Format history
         3. Combine as LLM input
         """
-        category_list = "分类0：意图不明\n" + "\n".join(
-            f"分类{i+1}：{c}"
+        category_list = "分類0：意圖不明\n" + "\n".join(
+            f"分類{i+1}：{c}"
             for i, c in enumerate(self.intent_config.category_list)
         )
         current_inputs = {}
@@ -278,7 +278,7 @@ class IntentDetector:
             chat_history_str = ""
             for history in chat_history:
                 chat_history_str += "{}: {}\n".format(
-                    IntentDetectionConstants.ROLE_MAP.get(history.role, "用户"),
+                    IntentDetectionConstants.ROLE_MAP.get(history.role, "使用者"),
                     history.content
                 )
             current_inputs.update({

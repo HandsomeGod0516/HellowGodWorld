@@ -1,10 +1,10 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""PACKAGE 阶段处理器.
+"""PACKAGE 階段處理器.
 
-- 将 skill/ 目录打包为 {skill_name}.skill（zip 格式，与官方 .skill 格式一致）
-- 排除 evals/（根目录级）、__pycache__、node_modules、.DS_Store、*.pyc 等
-- 推送 ARTIFACT_READY 事件 → 跳转到 DESC_OPTIMIZE_CONFIRM
+- 將 skill/ 目錄打包為 {skill_name}.skill（zip 格式，與官方 .skill 格式一致）
+- 排除 evals/（根目錄級）、__pycache__、node_modules、.DS_Store、*.pyc 等
+- 推送 ARTIFACT_READY 事件 → 跳轉到 DESC_OPTIMIZE_CONFIRM
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from jiuwenclaw.server.runtime.skill.skilldev.stages.base import StageHandler, S
 
 logger = logging.getLogger(__name__)
 
-# 打包排除规则
+# 打包排除規則
 _EXCLUDE_DIRS = {"__pycache__", "node_modules", ".git"}
 _EXCLUDE_FILES = {".DS_Store"}
 _EXCLUDE_GLOBS = {"*.pyc"}
@@ -27,7 +27,7 @@ _ROOT_EXCLUDE_DIRS = {"evals"}
 
 
 class PackageStageHandler(StageHandler):
-    """PACKAGE 阶段：打包 skill/ 为 .skill (zip) 文件."""
+    """PACKAGE 階段：打包 skill/ 為 .skill (zip) 檔案."""
 
     async def execute(self, ctx: SkillDevContext) -> StageResult:
         skill_dir = ctx.workspace / "skill"
@@ -35,7 +35,7 @@ class PackageStageHandler(StageHandler):
         output_dir.mkdir(exist_ok=True)
 
         skill_name = (ctx.state.plan or {}).get("skill_name", "skill")
-        # 官方格式为 .skill（本质是 zip）
+        # 官方格式為 .skill（本質是 zip）
         skill_filename = f"{skill_name}.skill"
         skill_path = output_dir / skill_filename
 
@@ -64,7 +64,7 @@ class PackageStageHandler(StageHandler):
         return StageResult(next_stage=SkillDevStage.DESC_OPTIMIZE_CONFIRM)
 
     def _zip_skill_dir(self, skill_dir: Path, zip_path: Path) -> None:
-        """将 skill_dir 打包为 zip，排除无关文件."""
+        """將 skill_dir 打包為 zip，排除無關檔案."""
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for file_path in skill_dir.rglob("*"):
                 if not file_path.is_file():
@@ -78,9 +78,9 @@ class PackageStageHandler(StageHandler):
         )
 
     def _should_exclude(self, file_path: Path, skill_dir: Path) -> bool:
-        """判断文件是否应被排除出 zip 包.
+        """判斷檔案是否應被排除出 zip 包.
 
-        排除规则：目录级排除 + 文件级排除 + glob 匹配。
+        排除規則：目錄級排除 + 檔案級排除 + glob 匹配。
         """
         import fnmatch
 
@@ -90,7 +90,7 @@ class PackageStageHandler(StageHandler):
         if any(part in _EXCLUDE_DIRS for part in parts):
             return True
 
-        # 根目录级别的排除（如 evals/）
+        # 根目錄級別的排除（如 evals/）
         if len(parts) > 0 and parts[0] in _ROOT_EXCLUDE_DIRS:
             return True
 

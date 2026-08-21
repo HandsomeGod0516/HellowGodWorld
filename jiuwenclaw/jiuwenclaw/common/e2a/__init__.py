@@ -1,8 +1,8 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""E2A（Everything-to-Agent）：统一信封；ACP / A2A 等经转换进入 E2A，并由 provenance 记录出处。
+"""E2A（Everything-to-Agent）：統一信封；ACP / A2A 等經轉換進入 E2A，並由 provenance 記錄出處。
 
-协议说明（中英）：仓库 ``docs/zh/E2A-protocol.md``、``docs/en/E2A-protocol.md``。
+協議說明（中英）：倉庫 ``docs/zh/E2A-protocol.md``、``docs/en/E2A-protocol.md``。
 """
 
 from jiuwenclaw.common.e2a.adapters import (

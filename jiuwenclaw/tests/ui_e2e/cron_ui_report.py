@@ -509,7 +509,7 @@ async def async_main() -> int:
     exit_code = 0
 
     try:
-        await _wait_for_log(backend_log, "WebChannel 已启动", timeout=90)
+        await _wait_for_log(backend_log, "WebChannel 已啟動", timeout=90)
         ui_proc = _start_process(
             [
                 args.runtime_python,

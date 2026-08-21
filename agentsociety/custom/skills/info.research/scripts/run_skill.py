@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['library', 'home']
 TARGET_INTERACTIONS = ['research_topic', 'work_from_home']
 STATUS = 'researching'
 EMOTION = 'focused'
-SPEECH = '我先查清楚，再给出更可靠的建议。'
+SPEECH = '我先查清楚，再給出更可靠的建議。'
 MEMORY_TEMPLATE = 'Used info.research: {summary} at {location_id}.'
 
 

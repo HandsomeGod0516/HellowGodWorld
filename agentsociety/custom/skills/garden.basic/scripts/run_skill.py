@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'park']
 TARGET_INTERACTIONS = ['water_plants', 'bird_watch']
 STATUS = 'gardening'
 EMOTION = 'calm'
-SPEECH = '我去照看一下植物，也顺便让自己安静下来。'
+SPEECH = '我去照看一下植物，也順便讓自己安靜下來。'
 MEMORY_TEMPLATE = 'Used garden.basic: {summary} at {location_id}.'
 
 

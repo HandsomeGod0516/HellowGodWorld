@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'library']
 TARGET_INTERACTIONS = ['work_from_home', 'quiet_work']
 STATUS = 'automating'
 EMOTION = 'focused'
-SPEECH = '我写个小脚本把重复步骤省下来。'
+SPEECH = '我寫個小指令碼把重複步驟省下來。'
 MEMORY_TEMPLATE = 'Used script.automate: {summary} at {location_id}.'
 
 

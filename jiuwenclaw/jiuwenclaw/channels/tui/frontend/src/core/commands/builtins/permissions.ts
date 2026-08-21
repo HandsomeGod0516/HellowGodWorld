@@ -28,7 +28,7 @@ export function createPermissionsCommand(): SlashCommand {
         ctx.addItem(
           addError(
             ctx.sessionId,
-            "缺少参数。用法：/permissions <allow|ask|deny> <tool_name>",
+            "缺少引數。用法：/permissions <allow|ask|deny> <tool_name>",
           ),
         );
         return;
@@ -40,13 +40,13 @@ export function createPermissionsCommand(): SlashCommand {
         ctx.addItem(
           addError(
             ctx.sessionId,
-            `无效级别 “${parts[0]}”，仅允许：allow、ask、deny`,
+            `無效級別 “${parts[0]}”，僅允許：allow、ask、deny`,
           ),
         );
         return;
       }
       if (!tool) {
-        ctx.addItem(addError(ctx.sessionId, "工具名不能为空。"));
+        ctx.addItem(addError(ctx.sessionId, "工具名不能為空。"));
         return;
       }
 
@@ -57,11 +57,11 @@ export function createPermissionsCommand(): SlashCommand {
           60_000,
         );
         ctx.addItem(
-          addInfo(ctx.sessionId, `已设置 permissions.tools.${tool} = ${level}`, "i"),
+          addInfo(ctx.sessionId, `已設定 permissions.tools.${tool} = ${level}`, "i"),
         );
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        ctx.addItem(addError(ctx.sessionId, `permissions.tools.update 失败：${message}`));
+        ctx.addItem(addError(ctx.sessionId, `permissions.tools.update 失敗：${message}`));
       }
     },
   };

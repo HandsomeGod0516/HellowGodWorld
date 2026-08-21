@@ -1,12 +1,12 @@
-"""工作区管理 CLI - 用于初始化和管理 AgentSociety2 工作区
+"""工作區管理 CLI - 用於初始化和管理 AgentSociety2 工作區
 
 提供以下功能：
-1. 初始化自定义模块模板 (custom/)
-2. 创建用户数据目录 (user_data/)
-3. 创建文献目录结构 (papers/)
-4. 创建 .agentsociety 目录结构和配置文件
-5. 下载必要的数据文件（地图等）
-6. 生成模块描述 JSON 文件
+1. 初始化自定義模組模板 (custom/)
+2. 建立使用者資料目錄 (user_data/)
+3. 建立文獻目錄結構 (papers/)
+4. 建立 .agentsociety 目錄結構和配置檔案
+5. 下載必要的資料檔案（地圖等）
+6. 生成模組描述 JSON 檔案
 """
 
 import argparse
@@ -19,22 +19,22 @@ import aiohttp
 
 
 def get_custom_template_path() -> Path:
-    """获取自定义模块模板路径"""
-    # 从 agentsociety2.custom 包中获取路径
+    """獲取自定義模組模板路徑"""
+    # 從 agentsociety2.custom 包中獲取路徑
     from agentsociety2.custom import __file__ as custom_init
     return Path(custom_init).parent
 
 
 def init_custom_modules(target_dir: Path, force: bool = False) -> dict:
     """
-    初始化自定义模块目录，复制模板文件
+    初始化自定義模組目錄，複製模板檔案
 
     Args:
-        target_dir: 目标工作区根目录
-        force: 是否强制覆盖已存在的文件
+        target_dir: 目標工作區根目錄
+        force: 是否強制覆蓋已存在的檔案
 
     Returns:
-        包含操作结果的字典
+        包含操作結果的字典
     """
     result = {
         "success": False,
@@ -53,7 +53,7 @@ def init_custom_modules(target_dir: Path, force: bool = False) -> dict:
             result["message"] = f"Template not found at {template_path}"
             return result
 
-        # 创建 custom 目录结构
+        # 建立 custom 目錄結構
         (custom_dir / "agents").mkdir(parents=True, exist_ok=True)
         result["created"].append("custom/agents/")
 
@@ -63,8 +63,8 @@ def init_custom_modules(target_dir: Path, force: bool = False) -> dict:
         (custom_dir / "skills").mkdir(parents=True, exist_ok=True)
         result["created"].append("custom/skills/")
 
-        # 复制示例文件到 custom/agents/ 和 custom/envs/
-        # 这些是直接可用的示例，不是放在 examples 子目录中
+        # 複製示例檔案到 custom/agents/ 和 custom/envs/
+        # 這些是直接可用的示例，不是放在 examples 子目錄中
         agents_src = template_path / "agents" / "examples"
         if agents_src.exists():
             for py_file in agents_src.glob("*.py"):
@@ -81,7 +81,7 @@ def init_custom_modules(target_dir: Path, force: bool = False) -> dict:
                     shutil.copy2(py_file, dst)
                     result["created"].append(f"custom/envs/{py_file.name}")
 
-        # 复制 skills 示例
+        # 複製 skills 示例
         skills_src = template_path / "skills" / "examples"
         if skills_src.exists():
             for skill_dir in skills_src.iterdir():
@@ -91,7 +91,7 @@ def init_custom_modules(target_dir: Path, force: bool = False) -> dict:
                         shutil.copytree(str(skill_dir), str(dst), dirs_exist_ok=True)
                         result["created"].append(f"custom/skills/{skill_dir.name}/")
 
-        # 复制 __init__.py 文件
+        # 複製 __init__.py 檔案
         init_files = [
             (template_path / "__init__.py", custom_dir / "__init__.py"),
             (template_path / "agents" / "__init__.py", custom_dir / "agents" / "__init__.py"),
@@ -107,27 +107,27 @@ def init_custom_modules(target_dir: Path, force: bool = False) -> dict:
                 else:
                     result["skipped"].append(f"{dst.relative_to(target_dir)} (already exists)")
 
-        # 创建 custom/README.md（工作区专用版本）
+        # 建立 custom/README.md（工作區專用版本）
         custom_readme = custom_dir / "README.md"
         if not custom_readme.exists() or force:
             custom_readme_content = """# Custom Modules
 
-本目录用于存放自定义的 Agent 和环境模块。
+本目錄用於存放自定義的 Agent 和環境模組。
 
-## 目录结构
+## 目錄結構
 
-- `agents/` - 自定义 Agent 类
-- `envs/` - 自定义环境模块
-- `skills/` - 自定义 Agent Skills（给 Agent 添加行为能力）
+- `agents/` - 自定義 Agent 類
+- `envs/` - 自定義環境模組
+- `skills/` - 自定義 Agent Skills（給 Agent 新增行為能力）
 
-## 开发指南
+## 開發指南
 
-### 创建自定义 Agent
+### 建立自定義 Agent
 
-1. 在 `agents/` 目录下创建新的 `.py` 文件
-2. 继承自 `AgentBase`
-3. 实现 `mcp_description()` 类方法
-4. 实现必需方法：`ask()`, `step()`, `dump()`, `load()`
+1. 在 `agents/` 目錄下建立新的 `.py` 檔案
+2. 繼承自 `AgentBase`
+3. 實現 `mcp_description()` 類方法
+4. 實現必需方法：`ask()`, `step()`, `dump()`, `load()`
 
 ```python
 from agentsociety2.agent.base import AgentBase
@@ -136,7 +136,7 @@ from datetime import datetime, timezone
 class MyAgent(AgentBase):
     @classmethod
     def mcp_description(cls) -> str:
-        return \"\"\"MyAgent: 我的自定义 Agent\"\"\"
+        return \"\"\"MyAgent: 我的自定義 Agent\"\"\"
 
     async def ask(self, message: str, readonly: bool = True) -> str:
         return f"Answer to: {message}"
@@ -151,11 +151,11 @@ class MyAgent(AgentBase):
         self._id = dump_data.get("id", self._id)
 ```
 
-### 创建自定义环境模块
+### 建立自定義環境模組
 
-1. 在 `envs/` 目录下创建新的 `.py` 文件
-2. 继承自 `EnvBase`
-3. 使用 `@tool` 装饰器注册工具方法
+1. 在 `envs/` 目錄下建立新的 `.py` 檔案
+2. 繼承自 `EnvBase`
+3. 使用 `@tool` 裝飾器註冊工具方法
 
 ```python
 from agentsociety2.env import EnvBase, tool
@@ -163,7 +163,7 @@ from agentsociety2.env import EnvBase, tool
 class MyEnv(EnvBase):
     @classmethod
     def mcp_description(cls) -> str:
-        return \"\"\"MyEnv: 我的自定义环境\"\"\"
+        return \"\"\"MyEnv: 我的自定義環境\"\"\"
 
     @tool(readonly=True, kind="observe")
     async def get_state(self, agent_id: int) -> dict:
@@ -177,17 +177,17 @@ class MyEnv(EnvBase):
         self.t = t
 ```
 
-### 创建自定义 Agent Skill
+### 建立自定義 Agent Skill
 
-1. 在 `skills/` 目录下创建新目录（如 `my-skill/`）
-2. 添加 `SKILL.md`（行为规范，必需）和可选的 `scripts/<skill_name>.py`（subprocess 模式）
+1. 在 `skills/` 目錄下建立新目錄（如 `my-skill/`）
+2. 新增 `SKILL.md`（行為規範，必需）和可選的 `scripts/<skill_name>.py`（subprocess 模式）
 
 ```
 skills/my-skill/
 ├── SKILL.md
-├── _order.txt          # 可选，定义加载优先级
+├── _order.txt          # 可選，定義載入優先順序
 └── scripts/
-    └── my-skill.py     # （可选）subprocess 脚本：--args-json + 写入 AGENT_WORK_DIR
+    └── my-skill.py     # （可選）subprocess 指令碼：--args-json + 寫入 AGENT_WORK_DIR
 ```
 
 ```python
@@ -214,20 +214,20 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-### 注册和测试
+### 註冊和測試
 
-1. 在 VSCode 中运行"扫描自定义模块"命令
-2. 运行"测试自定义模块"验证功能
-3. 使用"扫描 Agent Skills"发现新的 skill
+1. 在 VSCode 中執行"掃描自定義模組"命令
+2. 執行"測試自定義模組"驗證功能
+3. 使用"掃描 Agent Skills"發現新的 skill
 
 ## 示例
 
-本目录已包含示例文件：
-- `agents/` 目录下有 Agent 示例
-- `envs/` 目录下有环境模块示例
-- `skills/` 目录用于放置自定义 Agent Skill
+本目錄已包含示例檔案：
+- `agents/` 目錄下有 Agent 示例
+- `envs/` 目錄下有環境模組示例
+- `skills/` 目錄用於放置自定義 Agent Skill
 
-这些示例可以直接运行测试，也可以作为开发参考。
+這些示例可以直接執行測試，也可以作為開發參考。
 """
             with open(custom_readme, "w", encoding="utf-8") as f:
                 f.write(custom_readme_content)
@@ -245,14 +245,14 @@ if __name__ == "__main__":
 
 async def download_map_file(target_dir: Path, timeout: int = 300) -> dict:
     """
-    下载地图文件到工作区
+    下載地圖檔案到工作區
 
     Args:
-        target_dir: 目标工作区根目录
-        timeout: 超时时间（秒）
+        target_dir: 目標工作區根目錄
+        timeout: 超時時間（秒）
 
     Returns:
-        包含操作结果的字典
+        包含操作結果的字典
     """
     result = {
         "success": False,
@@ -282,7 +282,7 @@ async def download_map_file(target_dir: Path, timeout: int = 300) -> dict:
     except Exception as e:
         result["errors"].append(str(e))
         result["message"] = f"Failed to download map file: {e}"
-        # 即使下载失败，也返回预期的文件路径
+        # 即使下載失敗，也返回預期的檔案路徑
         result["file_path"] = str(map_file_path.resolve())
 
     return result
@@ -290,13 +290,13 @@ async def download_map_file(target_dir: Path, timeout: int = 300) -> dict:
 
 def create_module_info_files(target_dir: Path) -> dict:
     """
-    创建模块描述 JSON 文件到 .agentsociety/ 目录
+    建立模組描述 JSON 檔案到 .agentsociety/ 目錄
 
     Args:
-        target_dir: 目标工作区根目录
+        target_dir: 目標工作區根目錄
 
     Returns:
-        包含操作结果的字典
+        包含操作結果的字典
     """
     result = {
         "success": False,
@@ -308,18 +308,18 @@ def create_module_info_files(target_dir: Path) -> dict:
     try:
         from agentsociety2.registry import discover_and_register_builtin_modules, get_registry
 
-        # 确保内置模块已加载
+        # 確保內建模組已載入
         registry = get_registry()
         if not registry._builtin_loaded:
             discover_and_register_builtin_modules(registry)
 
-        # 创建目录
+        # 建立目錄
         agents_dir = target_dir / ".agentsociety" / "agent_classes"
         env_dir = target_dir / ".agentsociety" / "env_modules"
         agents_dir.mkdir(parents=True, exist_ok=True)
         env_dir.mkdir(parents=True, exist_ok=True)
 
-        # 创建 agent_classes/*.json
+        # 建立 agent_classes/*.json
         for module_type, agent_class in registry.list_agent_modules():
             try:
                 if hasattr(agent_class, "mcp_description"):
@@ -340,7 +340,7 @@ def create_module_info_files(target_dir: Path) -> dict:
                 json.dump(agent_info, f, ensure_ascii=False, indent=2)
             result["created"].append(f".agentsociety/agent_classes/{module_type}.json")
 
-        # 创建 env_modules/*.json
+        # 建立 env_modules/*.json
         for module_type, env_class in registry.list_env_modules():
             try:
                 if hasattr(env_class, "mcp_description"):
@@ -373,13 +373,13 @@ def create_module_info_files(target_dir: Path) -> dict:
 
 def create_path_md(target_dir: Path) -> dict:
     """
-    创建 .agentsociety/path.md 工作区路径记忆文件
+    建立 .agentsociety/path.md 工作區路徑記憶檔案
 
     Args:
-        target_dir: 目标工作区根目录
+        target_dir: 目標工作區根目錄
 
     Returns:
-        包含操作结果的字典
+        包含操作結果的字典
     """
     result = {
         "success": False,
@@ -432,14 +432,14 @@ Instead of using specialized discovery tools, you should:
 
 def create_prefill_params(target_dir: Path, map_file_path: str) -> dict:
     """
-    创建 .agentsociety/prefill_params.json 预填充参数文件
+    建立 .agentsociety/prefill_params.json 預填充引數檔案
 
     Args:
-        target_dir: 目标工作区根目录
-        map_file_path: 地图文件路径
+        target_dir: 目標工作區根目錄
+        map_file_path: 地圖檔案路徑
 
     Returns:
-        包含操作结果的字典
+        包含操作結果的字典
     """
     result = {
         "success": False,
@@ -475,16 +475,16 @@ def create_prefill_params(target_dir: Path, map_file_path: str) -> dict:
 
 async def init_workspace(target_dir: Path, topic: str = "", components: list[str] = None, force: bool = False) -> dict:
     """
-    初始化工作区，创建所需的目录结构
+    初始化工作區，建立所需的目錄結構
 
     Args:
-        target_dir: 目标工作区根目录
-        topic: 研究主题
-        components: 要创建的组件列表，可选值: "custom", "user_data", "papers", "agentsociety"
-        force: 是否强制覆盖已存在的文件
+        target_dir: 目標工作區根目錄
+        topic: 研究主題
+        components: 要建立的元件列表，可選值: "custom", "user_data", "papers", "agentsociety"
+        force: 是否強制覆蓋已存在的檔案
 
     Returns:
-        包含操作结果的字典
+        包含操作結果的字典
     """
     if components is None:
         components = ["custom", "user_data", "papers", "agentsociety"]
@@ -500,7 +500,7 @@ async def init_workspace(target_dir: Path, topic: str = "", components: list[str
     try:
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        # 创建 TOPIC.md
+        # 建立 TOPIC.md
         if topic:
             topic_file = target_dir / "TOPIC.md"
             if not topic_file.exists() or force:
@@ -520,7 +520,7 @@ async def init_workspace(target_dir: Path, topic: str = "", components: list[str
                     f.write(topic_content)
                 result["created"].append("TOPIC.md")
 
-        # 创建 user_data 目录
+        # 建立 user_data 目錄
         if "user_data" in components:
             user_data_dir = target_dir / "user_data"
             if not user_data_dir.exists():
@@ -529,13 +529,13 @@ async def init_workspace(target_dir: Path, topic: str = "", components: list[str
             else:
                 result["skipped"].append("user_data/ (already exists)")
 
-        # 创建 papers 目录
+        # 建立 papers 目錄
         if "papers" in components:
             papers_dir = target_dir / "papers"
             if not papers_dir.exists():
                 papers_dir.mkdir(parents=True, exist_ok=True)
 
-                # 创建 literature_index.json
+                # 建立 literature_index.json
                 index_file = papers_dir / "literature_index.json"
                 if not index_file.exists():
                     index_data = {
@@ -549,16 +549,16 @@ async def init_workspace(target_dir: Path, topic: str = "", components: list[str
             else:
                 result["skipped"].append("papers/ (already exists)")
 
-        # 创建 custom 目录
+        # 建立 custom 目錄
         if "custom" in components:
             custom_result = init_custom_modules(target_dir, force=force)
             result["created"].extend(custom_result["created"])
             result["skipped"].extend(custom_result["skipped"])
             result["errors"].extend(custom_result["errors"])
 
-        # 创建 .agentsociety 目录结构和文件
+        # 建立 .agentsociety 目錄結構和檔案
         if "agentsociety" in components:
-            # 创建目录
+            # 建立目錄
             (target_dir / ".agentsociety" / "agent_classes").mkdir(parents=True, exist_ok=True)
             (target_dir / ".agentsociety" / "env_modules").mkdir(parents=True, exist_ok=True)
             (target_dir / ".agentsociety" / "data").mkdir(parents=True, exist_ok=True)
@@ -569,36 +569,36 @@ async def init_workspace(target_dir: Path, topic: str = "", components: list[str
                 / "runs"
             ).mkdir(parents=True, exist_ok=True)
 
-            # 下载地图文件
+            # 下載地圖檔案
             download_result = await download_map_file(target_dir)
             if download_result["success"]:
                 result["created"].append(".agentsociety/data/beijing_map.pb")
             else:
                 result["errors"].append(f"Map download failed: {download_result['message']}")
-                # 即使下载失败也继续，创建空的 data 目录记录
+                # 即使下載失敗也繼續，建立空的 data 目錄記錄
                 result["skipped"].append(".agentsociety/data/beijing_map.pb (download failed)")
 
             map_file_path = download_result["file_path"]
 
-            # 创建模块信息文件
+            # 建立模組資訊檔案
             module_info_result = create_module_info_files(target_dir)
             result["created"].extend(module_info_result["created"])
             result["errors"].extend(module_info_result["errors"])
 
-            # 创建 path.md
+            # 建立 path.md
             path_md_result = create_path_md(target_dir)
             if path_md_result["success"]:
                 result["created"].append(".agentsociety/path.md")
             result["errors"].extend(path_md_result["errors"])
 
-            # 创建 prefill_params.json
+            # 建立 prefill_params.json
             prefill_result = create_prefill_params(target_dir, map_file_path)
             if prefill_result["success"]:
                 result["created"].append(".agentsociety/prefill_params.json")
             result["errors"].extend(prefill_result["errors"])
 
         if not result["errors"] or any("failed" in e.lower() for e in result["errors"]):
-            # 只有没有严重错误时才标记为成功
+            # 只有沒有嚴重錯誤時才標記為成功
             result["success"] = True
             result["message"] = f"Workspace initialized at {target_dir}"
 
@@ -610,7 +610,7 @@ async def init_workspace(target_dir: Path, topic: str = "", components: list[str
 
 
 def main():
-    """工作区管理 CLI 入口"""
+    """工作區管理 CLI 入口"""
     parser = argparse.ArgumentParser(
         description="AgentSociety2 Workspace Management"
     )
@@ -676,7 +676,7 @@ def main():
 
     if args.command == "init":
         components = [c.strip() for c in args.components.split(",")]
-        # 使用 asyncio 运行异步函数
+        # 使用 asyncio 執行非同步函式
         result = asyncio.run(init_workspace(target_dir, topic=args.topic, components=components, force=args.force))
     elif args.command == "init-custom":
         result = init_custom_modules(target_dir, force=args.force)

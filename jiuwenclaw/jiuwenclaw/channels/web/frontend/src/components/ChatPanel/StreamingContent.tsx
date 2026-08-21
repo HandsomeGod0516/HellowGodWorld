@@ -1,7 +1,7 @@
 /**
- * StreamingContent 组件
+ * StreamingContent 元件
  *
- * 流式内容显示
+ * 流式內容顯示
  */
 
 interface StreamingContentProps {

@@ -21,7 +21,7 @@
   ],
   "status": "automating",
   "emotion": "focused",
-  "speech": "我写个小脚本把重复步骤省下来。",
+  "speech": "我寫個小指令碼把重複步驟省下來。",
   "memory_template": "Used script.automate: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

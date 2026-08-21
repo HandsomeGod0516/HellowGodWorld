@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""E2A WebSocket 线编码 / 解码与 round-trip。"""
+"""E2A WebSocket 線編碼 / 解碼與 round-trip。"""
 
 from __future__ import annotations
 

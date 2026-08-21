@@ -1,4 +1,4 @@
-"""即时像素小镇：固定地图 + 自主 AI 小人 + 人类玩家。"""
+"""即時畫素小鎮：固定地圖 + 自主 AI 小人 + 人類玩家。"""
 
 from .agents import SPRITES, TownActor, TownAgentConfig
 from .llm_client import EndpointTestResult, LLMEndpoint, test_endpoint

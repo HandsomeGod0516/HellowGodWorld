@@ -21,7 +21,7 @@
   ],
   "status": "sketching",
   "emotion": "calm",
-  "speech": "我把眼前这个细节画下来。",
+  "speech": "我把眼前這個細節畫下來。",
   "memory_template": "Used sketch.draw: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

@@ -1,8 +1,8 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""session.rename 共享实现：AgentWebSocketServer 与 cli_channel 本地回退共用。
+"""session.rename 共享實現：AgentWebSocketServer 與 cli_channel 本地回退共用。
 
-单次 rename 允许的最大标题长度，与 cli 侧保持一致，防御异常/恶意输入污染 metadata.json。
+單次 rename 允許的最大標題長度，與 cli 側保持一致，防禦異常/惡意輸入汙染 metadata.json。
 """
 from __future__ import annotations
 
@@ -17,11 +17,11 @@ def apply_session_rename(
     *,
     init_channel_id: str = "tui",
 ) -> tuple[bool, dict[str, Any] | None, str | None, str | None]:
-    """实现 session.rename 三种语义：查询(None) / 清除(空串 strip 后) / 设置。
+    """實現 session.rename 三種語義：查詢(None) / 清除(空串 strip 後) / 設定。
 
     Returns:
         (True, payload, None, None) 成功；
-        (False, None, error_message, error_code) 失败（error_code 如 ``BAD_REQUEST``）。
+        (False, None, error_message, error_code) 失敗（error_code 如 ``BAD_REQUEST``）。
     """
     from jiuwenclaw.server.runtime.session.session_metadata import (
         get_session_metadata,

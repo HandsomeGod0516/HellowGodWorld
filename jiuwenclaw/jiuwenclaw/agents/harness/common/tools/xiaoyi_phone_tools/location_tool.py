@@ -1,8 +1,8 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Location tool - 获取手机当前定位.
+"""Location tool - 獲取手機當前定位.
 
-通过 WebSocket 发送 GetCurrentLocation 指令到手机端，返回设备 outputs 的 JSON。
+透過 WebSocket 傳送 GetCurrentLocation 指令到手機端，返回裝置 outputs 的 JSON。
 """
 
 from __future__ import annotations
@@ -19,15 +19,15 @@ from .utils import execute_device_command, raise_if_device_error
 @tool(
     name="get_user_location",
     description=(
-        "获取用户当前位置（经纬度坐标，WGS84坐标系）。需要用户设备授权位置访问权限。"
-        "注意:操作超时时间为60秒,请勿重复调用此工具,如果超时或失败,最多重试一次。"
+        "獲取使用者當前位置（經緯度座標，WGS84座標系）。需要使用者裝置授權位置訪問許可權。"
+        "注意:操作超時時間為60秒,請勿重複呼叫此工具,如果超時或失敗,最多重試一次。"
     ),
 )
 async def get_user_location() -> Dict[str, Any]:
-    """获取用户当前地理位置.
+    """獲取使用者當前地理位置.
 
     Returns:
-        content[0].text 为设备 outputs 的 JSON 字符串
+        content[0].text 為裝置 outputs 的 JSON 字串
     """
 
     logger.info("[LOCATION_TOOL] Starting execution - Building GetCurrentLocation command...")
@@ -70,7 +70,7 @@ async def get_user_location() -> Dict[str, Any]:
     if not isinstance(outputs, dict):
         outputs = {"value": outputs}
 
-    raise_if_device_error(outputs, "获取位置失败")
+    raise_if_device_error(outputs, "獲取位置失敗")
 
     logger.info(
         f"[LOCATION_TOOL] Location retrieved successfully - outputs keys: {list(outputs.keys())}"

@@ -35,8 +35,8 @@ def build_reply(args: dict, message: dict, spec: dict) -> str:
         return requested
     content = str(message.get("content") or "").strip()
     if content:
-        return f"我收到了：{content[:40]}。我会结合当前情况继续处理。"
-    return str(spec.get("speech") or "我收到了，会继续留意。")
+        return f"我收到了：{content[:40]}。我會結合當前情況繼續處理。"
+    return str(spec.get("speech") or "我收到了，會繼續留意。")
 
 
 def main() -> int:

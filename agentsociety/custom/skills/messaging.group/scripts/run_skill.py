@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['home', 'cafe', 'park']
 TARGET_INTERACTIONS = ['video_call_family', 'chat_over_coffee', 'public_announcement']
 STATUS = 'messaging_group'
 EMOTION = 'clear'
-SPEECH = '我把这件事简短同步到群里，方便大家配合。'
+SPEECH = '我把這件事簡短同步到群裡，方便大家配合。'
 MEMORY_TEMPLATE = 'Used messaging.group: {summary} at {location_id}.'
 
 

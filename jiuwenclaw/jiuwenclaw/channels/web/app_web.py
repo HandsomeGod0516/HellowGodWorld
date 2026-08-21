@@ -57,7 +57,7 @@ def _default_dist_dir() -> Path:
 
 
 def _normalize_lang_suffix(name: str) -> str:
-    """将 xxxx_zh.MD / xxxx_en.MD 规范为 xxxx.MD（去除 _zh/_en 后缀）。"""
+    """將 xxxx_zh.MD / xxxx_en.MD 規範為 xxxx.MD（去除 _zh/_en 字尾）。"""
     stem, suffix = name.rpartition(".")[0], name.rpartition(".")[2]
     suffix_lower = suffix.lower()
     if suffix_lower in ("md", "mdx"):
@@ -82,7 +82,7 @@ def _generate_agent_data(project_root: Path) -> None:
         raise NotADirectoryError("agent is not a directory")
 
     folder_data: dict[str, list[dict[str, str | bool]]] = {}
-    seen_paths: dict[str, set[str]] = {}  # folder_key -> normalized paths，用于去重
+    seen_paths: dict[str, set[str]] = {}  # folder_key -> normalized paths，用於去重
     for entry in sorted(workspace_root.rglob("*")):
         if not entry.is_file() or entry.name.startswith("."):
             continue
@@ -100,7 +100,7 @@ def _generate_agent_data(project_root: Path) -> None:
         )
         seen = seen_paths.setdefault(folder_key, set())
         if display_path in seen:
-            continue  # 同一文件夹内 _zh 与 _en 并存时只保留先出现的
+            continue  # 同一資料夾內 _zh 與 _en 並存時只保留先出現的
         seen.add(display_path)
 
         folder_data.setdefault(folder_key, []).append(

@@ -1,50 +1,50 @@
-# Skill编写指南
+# Skill編寫指南
 
-本文档介绍如何为PersonAgent编写自定义Skill。
+本文件介紹如何為PersonAgent編寫自定義Skill。
 
 ## 概述
 
-Skill是PersonAgent的行为模块，每个Skill定义了Agent的一种能力。Skill可以：
-- 纯Prompt驱动（最简单，推荐）
-- 带Python脚本（用于确定性计算）
-- 环境路由（codegen模式）
+Skill是PersonAgent的行為模組，每個Skill定義了Agent的一種能力。Skill可以：
+- 純Prompt驅動（最簡單，推薦）
+- 帶Python指令碼（用於確定性計算）
+- 環境路由（codegen模式）
 
-## 快速开始
+## 快速開始
 
-### 创建一个简单的Skill
+### 建立一個簡單的Skill
 
-1. 在`custom/skills/`目录下创建新文件夹：
+1. 在`custom/skills/`目錄下建立新資料夾：
 
 ```
 custom/skills/my-skill/
 └── SKILL.md
 ```
 
-2. 编写SKILL.md：
+2. 編寫SKILL.md：
 
 ```markdown
 ---
 name: my-skill
-description: 一句话描述功能。什么时候使用。产生什么输出。
+description: 一句話描述功能。什麼時候使用。產生什麼輸出。
 outputs:
   - result.json
 ---
 
 # My Skill
 
-## 何时使用
-描述触发条件。
+## 何時使用
+描述觸發條件。
 
-## 输入文件
-- `observation.txt`：当前观察（如果存在）
-- `needs.json`：需求状态（如果存在）
+## 輸入檔案
+- `observation.txt`：當前觀察（如果存在）
+- `needs.json`：需求狀態（如果存在）
 
-## 执行步骤
-1. 首先，用 `workspace_read` 读取需要的文件
-2. 然后，分析内容并做出决策
-3. 最后，用 `workspace_write` 写入输出文件
+## 執行步驟
+1. 首先，用 `workspace_read` 讀取需要的檔案
+2. 然後，分析內容並做出決策
+3. 最後，用 `workspace_write` 寫入輸出檔案
 
-## 输出格式
+## 輸出格式
 \`\`\`json
 {
   "field1": "描述",
@@ -54,12 +54,12 @@ outputs:
 
 ## 示例
 
-**输入**：
+**輸入**：
 \`\`\`
-observation.txt: "在公园遇到了Alice"
+observation.txt: "在公園遇到了Alice"
 \`\`\`
 
-**输出**：
+**輸出**：
 \`\`\`json
 {
   "event": "met Alice at park",
@@ -68,64 +68,64 @@ observation.txt: "在公园遇到了Alice"
 \`\`\`
 ```
 
-就这么简单！无需编程，LLM会根据你的描述自动执行。
+就這麼簡單！無需程式設計，LLM會根據你的描述自動執行。
 
-## SKILL.md结构详解
+## SKILL.md結構詳解
 
 ### Frontmatter（必需）
 
-Frontmatter是YAML格式的元数据块，位于文件开头：
+Frontmatter是YAML格式的後設資料塊，位於檔案開頭：
 
 ```yaml
 ---
-name: skill-name           # 必需：唯一标识符
-description: 描述           # 必需：用于catalog显示
-inputs:                    # 可选：依赖的输入文件列表
+name: skill-name           # 必需：唯一識別符號
+description: 描述           # 必需：用於catalog顯示
+inputs:                    # 可選：依賴的輸入檔案列表
   - state/emotion.json
   - state/needs.json
-outputs:                   # 可选：输出文件列表
+outputs:                   # 可選：輸出檔案列表
   - output1.json
   - output2.txt
-requires:                  # 可选：依赖的其他skill
+requires:                  # 可選：依賴的其他skill
   - needs
   - cognition
-priority: 10               # 可选：优先级（数字越大越优先）
-script: scripts/main.py    # 可选：Python脚本路径
-executor: codegen          # 可选：执行模式
-user_invocable: true       # 可选：是否用户可调用
+priority: 10               # 可選：優先順序（數字越大越優先）
+script: scripts/main.py    # 可選：Python指令碼路徑
+executor: codegen          # 可選：執行模式
+user_invocable: true       # 可選：是否使用者可呼叫
 ---
 ```
 
 ### Body（必需）
 
-Body是Markdown格式的行为指南，告诉LLM：
+Body是Markdown格式的行為指南，告訴LLM：
 
-1. **何时使用**：触发条件
-2. **输入**：读取哪些文件
-3. **做什么**：执行步骤
-4. **输出**：产生什么文件
+1. **何時使用**：觸發條件
+2. **輸入**：讀取哪些檔案
+3. **做什麼**：執行步驟
+4. **輸出**：產生什麼檔案
 
-## 可用的内置工具
+## 可用的內建工具
 
-Skill的Markdown body中可以指导LLM使用以下工具：
+Skill的Markdown body中可以指導LLM使用以下工具：
 
 | 工具 | 用途 | 示例 |
 |------|------|------|
-| `workspace_read` | 读取文件 | `workspace_read("observation.txt")` |
-| `workspace_write` | 写入文件 | `workspace_write("result.json", content)` |
-| `workspace_exists` | 检查文件存在 | `workspace_exists("needs.json")` |
-| `workspace_list` | 列出文件 | `workspace_list(".")` |
-| `codegen` | 执行环境指令 | `codegen("<observe>")` |
-| `bash` | 执行命令 | `bash("echo hello")` |
-| `grep` | 搜索内容 | `grep("pattern", ".")` |
-| `glob` | 文件匹配 | `glob("*.json")` |
-| `done` | 完成执行 | 表示skill执行完毕 |
+| `workspace_read` | 讀取檔案 | `workspace_read("observation.txt")` |
+| `workspace_write` | 寫入檔案 | `workspace_write("result.json", content)` |
+| `workspace_exists` | 檢查檔案存在 | `workspace_exists("needs.json")` |
+| `workspace_list` | 列出檔案 | `workspace_list(".")` |
+| `codegen` | 執行環境指令 | `codegen("<observe>")` |
+| `bash` | 執行命令 | `bash("echo hello")` |
+| `grep` | 搜尋內容 | `grep("pattern", ".")` |
+| `glob` | 檔案匹配 | `glob("*.json")` |
+| `done` | 完成執行 | 表示skill執行完畢 |
 
-## Skill类型
+## Skill型別
 
-### 类型1：纯Prompt驱动（推荐）
+### 型別1：純Prompt驅動（推薦）
 
-大多数Skill不需要编程，只需要清晰的描述：
+大多數Skill不需要程式設計，只需要清晰的描述：
 
 ```markdown
 ---
@@ -155,9 +155,9 @@ Write `mood.json`:
 \`\`\`
 ```
 
-### 类型2：带Python脚本
+### 型別2：帶Python指令碼
 
-当需要确定性计算时，添加Python脚本：
+當需要確定性計算時，新增Python指令碼：
 
 ```
 custom/skills/calculator/
@@ -190,15 +190,15 @@ def main() -> int:
     ns = parser.parse_args()
     args = json.loads(ns.args_json)
 
-    # 计算逻辑
+    # 計算邏輯
     expression = args.get("expression", "0")
     try:
-        result = eval(expression)  # 注意：实际使用时需要安全处理
+        result = eval(expression)  # 注意：實際使用時需要安全處理
         output = {"ok": True, "result": result}
     except Exception as e:
         output = {"ok": False, "error": str(e)}
 
-    # 写入输出
+    # 寫入輸出
     (Path.cwd() / "result.json").write_text(
         json.dumps(output, ensure_ascii=False, indent=2)
     )
@@ -209,9 +209,9 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-### 类型3：环境路由（codegen）
+### 型別3：環境路由（codegen）
 
-当Skill需要与环境交互时，使用codegen模式：
+當Skill需要與環境互動時，使用codegen模式：
 
 ```yaml
 ---
@@ -221,27 +221,27 @@ executor: codegen
 ---
 ```
 
-## 最佳实践
+## 最佳實踐
 
-### 1. 保持单一职责
+### 1. 保持單一職責
 
-每个Skill只做一件事：
+每個Skill只做一件事：
 
 - ✅ `needs`: 管理生理需求
-- ✅ `cognition`: 生成情绪和意图
+- ✅ `cognition`: 生成情緒和意圖
 - ❌ `needs_and_emotion`: 做太多事情
 
-### 2. 明确声明输出
+### 2. 明確宣告輸出
 
 ```yaml
 outputs:
-  - needs.json        # 好：文件名明确
-  - current_need.txt  # 好：文件名明确
+  - needs.json        # 好：檔名明確
+  - current_need.txt  # 好：檔名明確
 ```
 
-### 3. 处理缺失文件
+### 3. 處理缺失檔案
 
-Skill应该优雅处理输入文件不存在的情况：
+Skill應該優雅處理輸入檔案不存在的情況：
 
 ```markdown
 ## Input Files
@@ -251,7 +251,7 @@ Skill应该优雅处理输入文件不存在的情况：
 
 ### 4. 提供示例
 
-示例帮助LLM理解预期行为：
+示例幫助LLM理解預期行為：
 
 ```markdown
 ## Example
@@ -271,31 +271,31 @@ observation.txt: "You see a café across the street."
 \`\`\`
 ```
 
-### 5. 避免冗余描述
+### 5. 避免冗餘描述
 
-不需要告诉LLM"仔细思考"或"认真分析"，它会自然地做这些。
+不需要告訴LLM"仔細思考"或"認真分析"，它會自然地做這些。
 
-## 文件结构约定
+## 檔案結構約定
 
-推荐使用以下目录结构：
+推薦使用以下目錄結構：
 
 ```
 custom/skills/my-skill/
-├── SKILL.md          # 必需：skill定义
-├── scripts/          # 可选：Python脚本
+├── SKILL.md          # 必需：skill定義
+├── scripts/          # 可選：Python指令碼
 │   └── main.py
-├── templates/        # 可选：模板文件
+├── templates/        # 可選：模板檔案
 │   └── prompt.jinja2
-└── tests/            # 可选：测试
+└── tests/            # 可選：測試
     └── test_skill.py
 ```
 
-## 调试技巧
+## 除錯技巧
 
-1. **查看workspace文件**：检查输出文件是否正确生成
-2. **检查tool_calls.jsonl**：查看LLM调用了哪些工具
-3. **简化描述**：如果Skill行为异常，尝试简化描述
-4. **添加示例**：示例通常能显著改善LLM理解
+1. **檢視workspace檔案**：檢查輸出檔案是否正確生成
+2. **檢查tool_calls.jsonl**：檢視LLM呼叫了哪些工具
+3. **簡化描述**：如果Skill行為異常，嘗試簡化描述
+4. **新增示例**：示例通常能顯著改善LLM理解
 
 ## 示例：完整的Skill
 
@@ -375,29 +375,29 @@ Reflect on recent social interactions and how they affect relationships.
 \`\`\`
 ```
 
-## 常见问题
+## 常見問題
 
-**Q: Skill之间如何通信？**
+**Q: Skill之間如何通訊？**
 
-A: 通过workspace文件。一个Skill写入文件，另一个Skill读取。
+A: 透過workspace檔案。一個Skill寫入檔案，另一個Skill讀取。
 
-**Q: 如何控制Skill执行顺序？**
+**Q: 如何控制Skill執行順序？**
 
-A: 使用`requires`字段声明依赖。Agent会在激活时考虑这些依赖。
+A: 使用`requires`欄位宣告依賴。Agent會在啟用時考慮這些依賴。
 
-**Q: Skill可以调用其他Skill吗？**
+**Q: Skill可以呼叫其他Skill嗎？**
 
-A: 不直接调用。通过workspace文件松耦合，LLM决定何时激活哪个Skill。
+A: 不直接呼叫。透過workspace檔案松耦合，LLM決定何時啟用哪個Skill。
 
-**Q: 如何测试Skill？**
+**Q: 如何測試Skill？**
 
-A: 创建测试workspace，放置输入文件，运行agent，检查输出文件。
+A: 建立測試workspace，放置輸入檔案，執行agent，檢查輸出檔案。
 
-## 进阶主题
+## 進階主題
 
-### 状态管理
+### 狀態管理
 
-如果Skill需要维护状态，写入JSON文件：
+如果Skill需要維護狀態，寫入JSON檔案：
 
 ```json
 {
@@ -407,9 +407,9 @@ A: 创建测试workspace，放置输入文件，运行agent，检查输出文件
 }
 ```
 
-### 与环境交互
+### 與環境互動
 
-使用`codegen`工具与环境交互：
+使用`codegen`工具與環境互動：
 
 ```markdown
 ## Environment Actions
@@ -419,9 +419,9 @@ A: 创建测试workspace，放置输入文件，运行agent，检查输出文件
 3. Speak: `codegen("Say '{message}' to {target}")`
 ```
 
-### 时间感知
+### 時間感知
 
-Skill可以接收时间信息：
+Skill可以接收時間資訊：
 
 ```markdown
 The `tick` and `time` fields are auto-injected by the framework.

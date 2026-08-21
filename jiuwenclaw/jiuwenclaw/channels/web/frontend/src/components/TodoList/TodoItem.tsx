@@ -1,7 +1,7 @@
 /**
- * TodoItem 组件
+ * TodoItem 元件
  *
- * 单个任务项显示
+ * 單個任務項顯示
  */
 
 import { TodoItem as TodoItemType } from '../../types';
@@ -60,16 +60,16 @@ export function TodoItem({ todo }: TodoItemProps) {
           {todo.status === 'in_progress' && todo.activeForm ? todo.activeForm : todo.content}
         </span>
       </div>
-      {/* 任务依赖 */}
+      {/* 任務依賴 */}
       {todo.depends && todo.depends.length > 0 && (
         <div className="text-xs text-text-muted ml-6">
-          依赖: {todo.depends.join(', ')}
+          依賴: {todo.depends.join(', ')}
         </div>
       )}
-      {/* 被认领信息 */}
+      {/* 被認領資訊 */}
       {todo.claimedBy && (
         <div className="text-xs text-info ml-6">
-          被认领: {todo.claimedBy}
+          被認領: {todo.claimedBy}
         </div>
       )}
     </div>

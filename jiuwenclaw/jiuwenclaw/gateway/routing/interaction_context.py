@@ -1,10 +1,10 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""PendingInteraction — 统一的追问上下文，支持群聊追问和 DM 追问两种模式。
+"""PendingInteraction — 統一的追問上下文，支援群聊追問和 DM 追問兩種模式。
 
-存储路径: {workspace_dir}/agent/jiuwenclaw_workspace/interactions/{interaction_id}.json
-文件名前缀: gpq_* 群聊追问, iact_* DM 追问
-TTL: 24 小时
+儲存路徑: {workspace_dir}/agent/jiuwenclaw_workspace/interactions/{interaction_id}.json
+檔名字首: gpq_* 群聊追問, iact_* DM 追問
+TTL: 24 小時
 """
 
 from __future__ import annotations
@@ -79,7 +79,7 @@ class PendingInteraction:
             self._path().write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
             logger.info("[PendingInteraction] save: id=%s mode=%s", self.interaction_id, self.mode)
         except Exception as exc:
-            logger.warning("[PendingInteraction] save 失败: %s", exc)
+            logger.warning("[PendingInteraction] save 失敗: %s", exc)
 
     def remove(self) -> None:
         try:
@@ -88,7 +88,7 @@ class PendingInteraction:
                 p.unlink()
                 logger.info("[PendingInteraction] remove: id=%s", self.interaction_id)
         except Exception as exc:
-            logger.warning("[PendingInteraction] remove 失败: %s", exc)
+            logger.warning("[PendingInteraction] remove 失敗: %s", exc)
 
     @classmethod
     def load(cls, interaction_id: str) -> "PendingInteraction | None":
@@ -99,7 +99,7 @@ class PendingInteraction:
             data = json.loads(p.read_text(encoding="utf-8"))
             return cls(**{k: data[k] for k in data if k in cls.__dataclass_fields__})
         except Exception as exc:
-            logger.warning("[PendingInteraction] load 失败: id=%s %s", interaction_id, exc)
+            logger.warning("[PendingInteraction] load 失敗: id=%s %s", interaction_id, exc)
             return None
 
     @classmethod
@@ -124,7 +124,7 @@ class PendingInteraction:
                     if oldest is None or pi.created_at < oldest.created_at:
                         oldest = pi
                 except Exception as e:
-                    logger.debug("[PendingInteraction] 解析交互文件 %s 失败: %s", fp, e)
+                    logger.debug("[PendingInteraction] 解析互動檔案 %s 失敗: %s", fp, e)
                     continue
         cls.cleanup_expired()
         return oldest
@@ -141,7 +141,7 @@ class PendingInteraction:
                 if pi.status == "pending" and time.time() - pi.created_at <= _DEFAULT_TTL:
                     result.append(pi)
             except Exception as e:
-                logger.debug("[PendingInteraction] 解析交互文件 %s 失败: %s", fp, e)
+                logger.debug("[PendingInteraction] 解析互動檔案 %s 失敗: %s", fp, e)
                 continue
         return result
 
@@ -163,7 +163,7 @@ class PendingInteraction:
                     Path(fp).unlink()
                     count += 1
             except Exception as e:
-                logger.debug("[PendingInteraction] 清理交互文件 %s 失败: %s", fp, e)
+                logger.debug("[PendingInteraction] 清理互動檔案 %s 失敗: %s", fp, e)
                 continue
         if count:
             logger.info("[PendingInteraction] cleanup_expired: removed %d files", count)
@@ -172,18 +172,18 @@ class PendingInteraction:
     def build_resume_content(self, answer: str) -> str:
         if self.mode == "dm":
             return (
-                f"[任务恢复] 之前的群聊请求：{self.origin_content}（来自 {self.origin_sender_name}）\n"
-                f"你之前的追问：{self.question}\n"
+                f"[任務恢復] 之前的群聊請求：{self.origin_content}（來自 {self.origin_sender_name}）\n"
+                f"你之前的追問：{self.question}\n"
                 f"principal 的回答：{answer}\n"
-                f"请综合「原始请求」和「principal 的回答」中的所有信息继续完成任务，"
-                f"原始请求中已明确提供的信息直接使用即可，不要再次追问。"
-                f"并将结果回复到群聊。"
+                f"請綜合「原始請求」和「principal 的回答」中的所有資訊繼續完成任務，"
+                f"原始請求中已明確提供的資訊直接使用即可，不要再次追問。"
+                f"並將結果回覆到群聊。"
             )
         return (
-            f"[任务恢复] 你正在处理的群聊请求：{self.origin_content}（来自 {self.origin_sender_name}）\n"
-            f"你之前追问了 {self.target_user_name or '用户'}：{self.question}\n"
-            f"{self.target_user_name or '用户'} 的回答：{answer}\n"
-            f"请综合「原始请求」和「用户的回答」中的所有信息来完成任务。"
-            f"原始请求中已明确提供的信息（如时间、地点等）直接使用即可，不要再次追问或要求补充。"
-            f"现在请立即执行任务（如设置提醒、创建日程等），不要只是确认或记录信息，并将执行结果回复到群聊。"
+            f"[任務恢復] 你正在處理的群聊請求：{self.origin_content}（來自 {self.origin_sender_name}）\n"
+            f"你之前追問了 {self.target_user_name or '使用者'}：{self.question}\n"
+            f"{self.target_user_name or '使用者'} 的回答：{answer}\n"
+            f"請綜合「原始請求」和「使用者的回答」中的所有資訊來完成任務。"
+            f"原始請求中已明確提供的資訊（如時間、地點等）直接使用即可，不要再次追問或要求補充。"
+            f"現在請立即執行任務（如設定提醒、建立日程等），不要只是確認或記錄資訊，並將執行結果回覆到群聊。"
         )

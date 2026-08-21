@@ -8,7 +8,7 @@ from jiuwenclaw.common.schema.message import ReqMethod
 
 
 def test_get_chat_id_from_top_level_field() -> None:
-    """测试从顶层字段获取 Chat ID"""
+    """測試從頂層欄位獲取 Chat ID"""
     request = AgentRequest(
         request_id="test1",
         channel_id="feishu",
@@ -20,7 +20,7 @@ def test_get_chat_id_from_top_level_field() -> None:
 
 
 def test_get_chat_id_from_metadata_wecom() -> None:
-    """测试从 metadata 获取企微 Chat ID"""
+    """測試從 metadata 獲取企微 Chat ID"""
     request = AgentRequest(
         request_id="test2",
         channel_id="wecom",
@@ -32,7 +32,7 @@ def test_get_chat_id_from_metadata_wecom() -> None:
 
 
 def test_get_chat_id_from_metadata_feishu() -> None:
-    """测试从 metadata 获取飞书 Chat ID"""
+    """測試從 metadata 獲取飛書 Chat ID"""
     request = AgentRequest(
         request_id="test3",
         channel_id="feishu",
@@ -44,7 +44,7 @@ def test_get_chat_id_from_metadata_feishu() -> None:
 
 
 def test_get_chat_id_from_metadata_dingtalk() -> None:
-    """测试从 metadata 获取钉钉 Chat ID"""
+    """測試從 metadata 獲取釘釘 Chat ID"""
     request = AgentRequest(
         request_id="test4",
         channel_id="dingtalk",
@@ -56,7 +56,7 @@ def test_get_chat_id_from_metadata_dingtalk() -> None:
 
 
 def test_get_chat_id_from_metadata_xiaoyi() -> None:
-    """测试从 metadata 获取小艺 Chat ID"""
+    """測試從 metadata 獲取小藝 Chat ID"""
     request = AgentRequest(
         request_id="test5",
         channel_id="xiaoyi",
@@ -68,7 +68,7 @@ def test_get_chat_id_from_metadata_xiaoyi() -> None:
 
 
 def test_get_chat_id_prioritizes_top_level_over_metadata() -> None:
-    """测试顶层字段优先于 metadata"""
+    """測試頂層欄位優先於 metadata"""
     request = AgentRequest(
         request_id="test6",
         channel_id="dingtalk",
@@ -81,7 +81,7 @@ def test_get_chat_id_prioritizes_top_level_over_metadata() -> None:
 
 
 def test_get_chat_id_returns_none_when_not_available() -> None:
-    """测试没有可用的 Chat ID 时返回 None"""
+    """測試沒有可用的 Chat ID 時返回 None"""
     request = AgentRequest(
         request_id="test7",
         channel_id="unknown",
@@ -92,7 +92,7 @@ def test_get_chat_id_returns_none_when_not_available() -> None:
 
 
 def test_get_chat_id_returns_none_when_metadata_is_empty() -> None:
-    """测试 metadata 为空时返回 None"""
+    """測試 metadata 為空時返回 None"""
     request = AgentRequest(
         request_id="test8",
         channel_id="unknown",

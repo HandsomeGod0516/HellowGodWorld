@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""AgentServer ↔ Gateway WebSocket：E2AResponse 线编码 / 解码与 legacy 兜底。"""
+"""AgentServer ↔ Gateway WebSocket：E2AResponse 線編碼 / 解碼與 legacy 兜底。"""
 
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ def _raw_dict_to_agent_chunk(data: dict[str, Any]) -> AgentResponseChunk:
 
 
 def is_e2a_response_wire_dict(data: dict[str, Any]) -> bool:
-    """判别 JSON 对象是否为 E2A 响应线格式（与 ``E2AEnvelope`` 区分：须含非空 ``response_kind``）。"""
+    """判別 JSON 物件是否為 E2A 響應線格式（與 ``E2AEnvelope`` 區分：須含非空 ``response_kind``）。"""
     if not isinstance(data, dict) or data.get("type") == "event":
         return False
     if data.get("protocol_version") != E2A_PROTOCOL_VERSION:
@@ -85,7 +85,7 @@ def _deprecated_chunk_shape(data: dict[str, Any]) -> bool:
 
 
 def parse_agent_server_wire_unary(data: dict[str, Any]) -> AgentResponse:
-    """将一条非流式 WebSocket JSON 解析为 ``AgentResponse``。"""
+    """將一條非流式 WebSocket JSON 解析為 ``AgentResponse``。"""
     rid = str(data.get("request_id", ""))
     if is_e2a_response_wire_dict(data):
         try:
@@ -144,7 +144,7 @@ def parse_agent_server_wire_unary(data: dict[str, Any]) -> AgentResponse:
 
 
 def parse_agent_server_wire_chunk(data: dict[str, Any]) -> AgentResponseChunk:
-    """将一条流式 WebSocket JSON 解析为 ``AgentResponseChunk``。"""
+    """將一條流式 WebSocket JSON 解析為 ``AgentResponseChunk``。"""
     rid = str(data.get("request_id", ""))
     if is_e2a_response_wire_dict(data):
         try:
@@ -210,7 +210,7 @@ def encode_agent_response_for_wire(
     response_id: str,
     sequence: int = 0,
 ) -> dict[str, Any]:
-    """``AgentResponse`` → E2A 线 dict；失败时 ``metadata`` 塞入整包 legacy 并记日志。"""
+    """``AgentResponse`` → E2A 線 dict；失敗時 ``metadata`` 塞入整包 legacy 並記日誌。"""
     rid = resp.request_id
     try:
         e2a = e2a_response_from_agent_response(
@@ -254,7 +254,7 @@ def encode_agent_chunk_for_wire(
     sequence: int,
     is_stream: bool = True,
 ) -> dict[str, Any]:
-    """``AgentResponseChunk`` → E2A 线 dict；失败时 ``metadata`` 塞入整包 legacy。"""
+    """``AgentResponseChunk`` → E2A 線 dict；失敗時 ``metadata`` 塞入整包 legacy。"""
     rid = chunk.request_id
     try:
         e2a = e2a_response_from_agent_chunk(
@@ -394,7 +394,7 @@ def encode_json_parse_error_wire(
     message: str,
     response_id: str = "",
 ) -> dict[str, Any]:
-    """入站 JSON 无法解析时发送的单帧 E2A 形错误（无 legacy blob）。"""
+    """入站 JSON 無法解析時傳送的單幀 E2A 形錯誤（無 legacy blob）。"""
     ts = utc_now_iso()
     rid_out = response_id or (request_id or "invalid-json")
     e2a = E2AResponse(

@@ -2,7 +2,7 @@ import type { AutocompleteItem } from "@mariozechner/pi-tui";
 import { makeItem } from "../helpers.js";
 import { CommandKind, type SlashCommand } from "../types.js";
 
-/** TUI `/mode` 树形展示；分组行 value 为 `agent`/`code`（与 modeAlias 默认一致），不修改 pi-tui。 */
+/** TUI `/mode` 樹形展示；分組行 value 為 `agent`/`code`（與 modeAlias 預設一致），不修改 pi-tui。 */
 export function buildModeAutocompleteItems(): AutocompleteItem[] {
   return [
     { value: "agent", label: "agent" },
@@ -25,7 +25,7 @@ export function createModeCommand(): SlashCommand {
     "code.normal",
     "team",
   ] as const;
-  /** 用户输入的简写 → 实际会话模式（/mode agent → agent.plan，/mode code → code.normal）。 */
+  /** 使用者輸入的簡寫 → 實際會話模式（/mode agent → agent.plan，/mode code → code.normal）。 */
   const modeAlias: Record<
     string,
     "agent.plan" | "agent.fast" | "code.plan" | "code.normal" | "team"
@@ -50,7 +50,7 @@ export function createModeCommand(): SlashCommand {
     completion: async () => [...directModes],
     action: async (ctx, args) => {
       const requestedMode = args.trim();
-      // 无参数时显示当前 mode
+      // 無引數時顯示當前 mode
       if (!requestedMode) {
         const currentMode = ctx.mode ?? "unknown";
         ctx.addItem(

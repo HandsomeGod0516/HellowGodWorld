@@ -21,7 +21,7 @@
   ],
   "status": "telling_story",
   "emotion": "warm",
-  "speech": "我讲一个和这个地方有关的旧故事。",
+  "speech": "我講一個和這個地方有關的舊故事。",
   "memory_template": "Used story.localpast: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

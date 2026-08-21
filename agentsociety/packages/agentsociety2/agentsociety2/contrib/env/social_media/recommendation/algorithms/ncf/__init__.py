@@ -1,5 +1,5 @@
 """
-NCF (Neural Collaborative Filtering) 算法模块
+NCF (Neural Collaborative Filtering) 演算法模組
 """
 
 from .config import NCFConfig

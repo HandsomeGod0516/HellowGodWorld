@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""AgentWebSocketServer - Gateway 与 AgentServer 之间的 WebSocket 服务端."""
+"""AgentWebSocketServer - Gateway 與 AgentServer 之間的 WebSocket 服務端."""
 
 from __future__ import annotations
 
@@ -51,8 +51,8 @@ from jiuwenclaw.common.security.ws_origin import (
 
 logger = logging.getLogger(__name__)
 
-# 流式处理心跳间隔：当 Agent 处理时间超过此阈值时，发送心跳 chunk 保持 WebSocket 连接活跃
-# 避免 ping_timeout 导致连接关闭。默认 10 秒，小于服务端 ping_timeout=20s。
+# 流式處理心跳間隔：當 Agent 處理時間超過此閾值時，傳送心跳 chunk 保持 WebSocket 連線活躍
+# 避免 ping_timeout 導致連線關閉。預設 10 秒，小於服務端 ping_timeout=20s。
 _STREAM_HEARTBEAT_INTERVAL_SECONDS = 10.0
 
 
@@ -86,7 +86,7 @@ def _apply_resolved_mode_to_request(request: AgentRequest) -> tuple[str, str | N
 
 
 def _payload_to_request(data: dict[str, Any]) -> AgentRequest:
-    """将 Gateway 发送的 JSON 载荷解析为 AgentRequest."""
+    """將 Gateway 傳送的 JSON 載荷解析為 AgentRequest."""
     from jiuwenclaw.common.schema.message import ReqMethod
 
     req_method = data.get("req_method")
@@ -106,15 +106,15 @@ def _payload_to_request(data: dict[str, Any]) -> AgentRequest:
 
 
 class AgentWebSocketServer:
-    """Gateway 与 AgentServer 之间的 WebSocket 服务端（单例）.
+    """Gateway 與 AgentServer 之間的 WebSocket 服務端（單例）.
 
-    监听来自 Gateway (WebSocketAgentServerClient) 的连接，按协议约定处理请求：
-    - 收到 JSON：E2AEnvelope（或过渡期 legacy + 兜底信封）
-    - is_stream=False：``process_message`` → 一条 **E2AResponse** JSON（``jiuwenclaw.e2a.wire_codec``）
-    - is_stream=True：逐条 **E2AResponse** JSON（chunk/complete/error）
-    - 例外：首帧 ``connection.ack`` 仍为 ``type/event`` 事件帧
+    監聽來自 Gateway (WebSocketAgentServerClient) 的連線，按協議約定處理請求：
+    - 收到 JSON：E2AEnvelope（或過渡期 legacy + 兜底信封）
+    - is_stream=False：``process_message`` → 一條 **E2AResponse** JSON（``jiuwenclaw.e2a.wire_codec``）
+    - is_stream=True：逐條 **E2AResponse** JSON（chunk/complete/error）
+    - 例外：首幀 ``connection.ack`` 仍為 ``type/event`` 事件幀
 
-    支持 send_push：推送帧亦为 E2AResponse 线格式（由 chunk 编码）。
+    支援 send_push：推送幀亦為 E2AResponse 線格式（由 chunk 編碼）。
     """
 
     _instance: ClassVar[AgentWebSocketServer | None] = None
@@ -132,11 +132,11 @@ class AgentWebSocketServer:
         self._ping_interval = ping_interval
         self._ping_timeout = ping_timeout
         self._server: Any = None
-        # 当前 Gateway 连接，用于 send_push 主动推送
+        # 當前 Gateway 連線，用於 send_push 主動推送
         self._current_ws: Any = None
         self._current_send_lock: asyncio.Lock | None = None
         self._acp_client_capabilities_by_ws: dict[int, dict[str, Any]] = {}
-        # AgentManager 实例
+        # AgentManager 例項
         self._agent_manager = AgentManager()
         get_acp_output_manager().set_send_push_callback(
             lambda msg: asyncio.create_task(self.send_push(msg))
@@ -170,9 +170,9 @@ class AgentWebSocketServer:
             ping_interval: float | None = 30.0,
             ping_timeout: float | None = 300.0,
     ) -> "AgentWebSocketServer":
-        """返回单例实例。
+        """返回單例例項。
 
-        首次调用时创建实例，后续调用返回已存在的实例。
+        首次呼叫時建立例項，後續呼叫返回已存在的例項。
         """
         if cls._instance is not None:
             return cls._instance
@@ -186,7 +186,7 @@ class AgentWebSocketServer:
 
     @classmethod
     def reset_instance(cls) -> None:
-        """重置单例（仅用于测试）。"""
+        """重置單例（僅用於測試）。"""
         cls._instance = None
 
     @property
@@ -197,12 +197,12 @@ class AgentWebSocketServer:
     def port(self) -> int:
         return self._port
 
-    # ---------- 生命周期 ----------
+    # ---------- 生命週期 ----------
 
     async def start(self) -> None:
-        """启动 WebSocket 服务端，开始监听连接。优先使用 legacy.server.serve 以与 Gateway 的 legacy client 握手兼容."""
+        """啟動 WebSocket 服務端，開始監聽連線。優先使用 legacy.server.serve 以與 Gateway 的 legacy client 握手相容."""
         if self._server is not None:
-            logger.warning("[AgentWebSocketServer] 服务端已在运行")
+            logger.warning("[AgentWebSocketServer] 服務端已在執行")
             return
 
         try:
@@ -226,16 +226,16 @@ class AgentWebSocketServer:
                 ping_timeout=self._ping_timeout,
             )
         logger.info(
-            "[AgentWebSocketServer] 已启动: ws://%s:%s", self._host, self._port
+            "[AgentWebSocketServer] 已啟動: ws://%s:%s", self._host, self._port
         )
 
     async def _process_request(self, *args: Any) -> Any:
-        """在握手阶段执行 Origin 校验，兼容 legacy/new websockets APIs。"""
+        """在握手階段執行 Origin 校驗，相容 legacy/new websockets APIs。"""
         path, request_headers = extract_handshake_request(args)
         origin = get_header_value(request_headers, "Origin")
         allowed = is_allowed_browser_origin(origin)
         logger.info(
-            "[AgentWebSocketServer] 握手检查 path=%s origin=%s allowed=%s",
+            "[AgentWebSocketServer] 握手檢查 path=%s origin=%s allowed=%s",
             path,
             origin,
             allowed,
@@ -244,14 +244,14 @@ class AgentWebSocketServer:
             return None
 
         logger.warning(
-            "[AgentWebSocketServer] 握手拒绝 path=%s origin=%s reason=origin_not_allowed",
+            "[AgentWebSocketServer] 握手拒絕 path=%s origin=%s reason=origin_not_allowed",
             path,
             origin,
         )
         return forbidden_origin_response(args)
 
     async def stop(self) -> None:
-        """停止 WebSocket 服务端."""
+        """停止 WebSocket 服務端."""
         if self._server is None:
             return
         self._server.close()
@@ -259,20 +259,20 @@ class AgentWebSocketServer:
         self._server = None
         logger.info("[AgentWebSocketServer] 已停止")
 
-    # ---------- 连接处理 ----------
+    # ---------- 連線處理 ----------
 
     async def _connection_handler(self, ws: Any) -> None:
-        """处理单个 Gateway WebSocket 连接，同一连接可并发处理多个请求."""
+        """處理單個 Gateway WebSocket 連線，同一連線可併發處理多個請求."""
         import websockets
 
         remote = ws.remote_address
-        logger.info("[AgentWebSocketServer] 新连接: %s", remote)
+        logger.info("[AgentWebSocketServer] 新連線: %s", remote)
 
         send_lock = asyncio.Lock()
         self._current_ws = ws
         self._current_send_lock = send_lock
 
-        # 发送 connection.ack 事件，通知 Gateway 服务端已就绪
+        # 傳送 connection.ack 事件，通知 Gateway 服務端已就緒
         try:
             ack_frame = {
                 "type": "event",
@@ -280,9 +280,9 @@ class AgentWebSocketServer:
                 "payload": {"status": "ready"},
             }
             await ws.send(json.dumps(ack_frame, ensure_ascii=False))
-            logger.info("[AgentWebSocketServer] 已发送 connection.ack: %s", remote)
+            logger.info("[AgentWebSocketServer] 已傳送 connection.ack: %s", remote)
         except Exception as e:
-            logger.warning("[AgentWebSocketServer] 发送 connection.ack 失败: %s", e)
+            logger.warning("[AgentWebSocketServer] 傳送 connection.ack 失敗: %s", e)
 
         tasks: set[asyncio.Task] = set()
 
@@ -292,15 +292,15 @@ class AgentWebSocketServer:
                 tasks.add(task)
                 task.add_done_callback(tasks.discard)
         except websockets.exceptions.ConnectionClosed:
-            logger.info("[AgentWebSocketServer] 连接关闭: %s", remote)
+            logger.info("[AgentWebSocketServer] 連線關閉: %s", remote)
         except Exception as e:
-            logger.exception("[AgentWebSocketServer] 连接处理异常 (%s): %s", remote, e)
+            logger.exception("[AgentWebSocketServer] 連線處理異常 (%s): %s", remote, e)
         finally:
             self._current_ws = None
             self._current_send_lock = None
             self._clear_ws_acp_client_capabilities(ws)
-            # Gateway 进程退出/端口关闭时，必须先取消各 session 内流式生产者（SessionManager）
-            # 并中止 DeepAgent 内层循环；否则仅等待 _handle_message 任务结束会一直阻塞到任务自然完成。
+            # Gateway 程序退出/埠關閉時，必須先取消各 session 內流式生產者（SessionManager）
+            # 並中止 DeepAgent 內層迴圈；否則僅等待 _handle_message 任務結束會一直阻塞到任務自然完成。
             try:
                 await self._agent_manager.cancel_all_inflight_work(
                     reason=f"[gateway ws closed {remote}] ",
@@ -322,14 +322,14 @@ class AgentWebSocketServer:
                 await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _handle_message(self, ws: Any, raw: str | bytes, send_lock: asyncio.Lock) -> None:
-        """解析一条 JSON 请求并分发到 IAgentServer 处理."""
+        """解析一條 JSON 請求並分發到 IAgentServer 處理."""
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as e:
             wire = encode_json_parse_error_wire(
                 request_id="",
                 channel_id="",
-                message=f"JSON 解析失败: {e}",
+                message=f"JSON 解析失敗: {e}",
             )
             async with send_lock:
                 await ws.send(json.dumps(wire, ensure_ascii=False))
@@ -339,7 +339,7 @@ class AgentWebSocketServer:
             env = E2AEnvelope.from_dict(data)
         except Exception as parse_err:
             logger.warning(
-                "[AgentWebSocketServer] E2A from_dict 失败，按旧载荷解析: %s",
+                "[AgentWebSocketServer] E2A from_dict 失敗，按舊載荷解析: %s",
                 parse_err,
             )
             request = _payload_to_request(data)
@@ -365,7 +365,7 @@ class AgentWebSocketServer:
                 request = e2a_to_agent_request(env)
 
         logger.info(
-            "[AgentWebSocketServer] 收到请求: request_id=%s channel_id=%s is_stream=%s",
+            "[AgentWebSocketServer] 收到請求: request_id=%s channel_id=%s is_stream=%s",
             request.request_id,
             request.channel_id,
             request.is_stream,
@@ -454,7 +454,7 @@ class AgentWebSocketServer:
                 await self._handle_unary(ws, request, send_lock)
         except Exception as e:
             logger.exception(
-                "[AgentWebSocketServer] 处理请求失败: request_id=%s: %s",
+                "[AgentWebSocketServer] 處理請求失敗: request_id=%s: %s",
                 request.request_id,
                 e,
             )
@@ -500,7 +500,7 @@ class AgentWebSocketServer:
         await ExtensionRegistry.get_instance().trigger(AgentServerHookEvents.BEFORE_CHAT_REQUEST, ctx)
 
     async def _handle_unary(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """非流式处理：调用 process_message，返回一条 E2AResponse 线 JSON。"""
+        """非流式處理：呼叫 process_message，返回一條 E2AResponse 線 JSON。"""
         from jiuwenclaw.common.schema.message import ReqMethod
 
         channel_id = request.channel_id or "default"
@@ -528,16 +528,16 @@ class AgentWebSocketServer:
         if agent is None:
             raise ValueError("Failed to get agent")
 
-        # code 模式：在真实 session 上执行 switch_mode，确保 state 持久化
+        # code 模式：在真實 session 上執行 switch_mode，確保 state 持久化
         if mode == "code":
             from openjiuwen.core.single_agent import create_agent_session
             session = create_agent_session(session_id=request.session_id, card=agent.get_instance().card)
-            await session.pre_run(inputs=None)  # 从 checkpointer 加载历史 state
+            await session.pre_run(inputs=None)  # 從 checkpointer 載入歷史 state
             agent.get_instance().switch_mode(session=session, mode=sub_mode)
-            # 持久化 switch_mode 修改后的 state
+            # 持久化 switch_mode 修改後的 state
             state = agent.get_instance().load_state(session)
             session.update_state({"deep_agent_state": state.to_session_dict()})
-            await session.post_run()  # 写入 checkpointer
+            await session.post_run()  # 寫入 checkpointer
 
         resp = await agent.process_message(request)
 
@@ -545,12 +545,12 @@ class AgentWebSocketServer:
         async with send_lock:
             await ws.send(json.dumps(wire, ensure_ascii=False))
         logger.info(
-            "[AgentWebSocketServer] 非流式响应已发送: request_id=%s",
+            "[AgentWebSocketServer] 非流式響應已傳送: request_id=%s",
             request.request_id,
         )
 
     async def _handle_stream(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """流式处理：调用 process_message_stream，逐条发送 E2AResponse 线 JSON。"""
+        """流式處理：呼叫 process_message_stream，逐條傳送 E2AResponse 線 JSON。"""
         channel_id = request.channel_id or "default"
         mode, sub_mode = _apply_resolved_mode_to_request(request)
         trusted_dirs = request.params.get("trusted_dirs", None)
@@ -563,36 +563,36 @@ class AgentWebSocketServer:
         if agent is None:
             raise ValueError("Failed to get agent")
 
-        # code 模式：在真实 session 上执行 switch_mode，确保 state 持久化
+        # code 模式：在真實 session 上執行 switch_mode，確保 state 持久化
         if mode == "code":
             from openjiuwen.core.single_agent import create_agent_session
             session = create_agent_session(session_id=request.session_id, card=agent.get_instance().card)
-            await session.pre_run(inputs=None)  # 从 checkpointer 加载历史 state
+            await session.pre_run(inputs=None)  # 從 checkpointer 載入歷史 state
             agent.get_instance().switch_mode(session=session, mode=sub_mode)
-            # 持久化 switch_mode 修改后的 state
+            # 持久化 switch_mode 修改後的 state
             state = agent.get_instance().load_state(session)
             session.update_state({"deep_agent_state": state.to_session_dict()})
-            await session.post_run()  # 写入 checkpointer
+            await session.post_run()  # 寫入 checkpointer
 
         chunk_count = 0
-        # 心跳控制：当有真实 chunk 发送时重置，空闲时发送心跳
+        # 心跳控制：當有真實 chunk 傳送時重置，空閒時傳送心跳
         heartbeat_event = asyncio.Event()
         heartbeat_task: asyncio.Task | None = None
 
         async def _heartbeat_loop() -> None:
-            """后台心跳任务：在空闲期间定期发送 keepalive chunk."""
+            """後臺心跳任務：在空閒期間定期傳送 keepalive chunk."""
             try:
                 while True:
-                    # 等待心跳间隔，如果期间有真实 chunk 发送则 heartbeat_event 被设置，重置等待
+                    # 等待心跳間隔，如果期間有真實 chunk 傳送則 heartbeat_event 被設定，重置等待
                     try:
                         await asyncio.wait_for(
                             heartbeat_event.wait(),
                             timeout=_STREAM_HEARTBEAT_INTERVAL_SECONDS,
                         )
-                        # 有真实 chunk 发送，重置 event 继续等待
+                        # 有真實 chunk 傳送，重置 event 繼續等待
                         heartbeat_event.clear()
                     except asyncio.TimeoutError:
-                        # 超时：空闲超过心跳间隔，发送 keepalive chunk
+                        # 超時：空閒超過心跳間隔，傳送 keepalive chunk
                         heartbeat_chunk = AgentResponseChunk(
                             request_id=request.request_id,
                             channel_id=channel_id,
@@ -602,24 +602,24 @@ class AgentWebSocketServer:
                         wire = encode_agent_chunk_for_wire(
                             heartbeat_chunk,
                             response_id=request.request_id,
-                            sequence=-1,  # 心跳使用特殊序列号 -1
+                            sequence=-1,  # 心跳使用特殊序列號 -1
                         )
                         async with send_lock:
                             await ws.send(json.dumps(wire, ensure_ascii=False))
                         logger.info(
-                            "[AgentWebSocketServer] keepalive chunk 发送: request_id=%s",
+                            "[AgentWebSocketServer] keepalive chunk 傳送: request_id=%s",
                             request.request_id,
                         )
             except asyncio.CancelledError:
                 pass
 
-        # 启动心跳任务
+        # 啟動心跳任務
         heartbeat_task = asyncio.create_task(_heartbeat_loop())
 
         try:
             async for chunk in agent.process_message_stream(request):
                 chunk_count += 1
-                # 通知心跳任务有真实 chunk 发送，重置心跳计时
+                # 通知心跳任務有真實 chunk 傳送，重置心跳計時
                 heartbeat_event.set()
                 wire = encode_agent_chunk_for_wire(
                     chunk,
@@ -628,10 +628,10 @@ class AgentWebSocketServer:
                 )
                 async with send_lock:
                     await ws.send(json.dumps(wire, ensure_ascii=False))
-                # 清除 event，让心跳任务重新开始计时
+                # 清除 event，讓心跳任務重新開始計時
                 heartbeat_event.clear()
         finally:
-            # 停止心跳任务
+            # 停止心跳任務
             if heartbeat_task is not None:
                 heartbeat_task.cancel()
                 try:
@@ -640,13 +640,13 @@ class AgentWebSocketServer:
                     pass
 
         logger.info(
-            "[AgentWebSocketServer] 流式响应已发送: request_id=%s 共 %s 个 chunk",
+            "[AgentWebSocketServer] 流式響應已傳送: request_id=%s 共 %s 個 chunk",
             request.request_id,
             chunk_count,
         )
 
     async def _handle_session_list(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """处理 session.list 请求：扫描 sessions 目录，返回历史会话基础信息列表."""
+        """處理 session.list 請求：掃描 sessions 目錄，返回歷史會話基礎資訊列表."""
         from jiuwenclaw.server.runtime.session.session_metadata import get_session_metadata
 
         sessions_dir = get_agent_sessions_dir()
@@ -668,7 +668,7 @@ class AgentWebSocketServer:
                         }
                     sessions.append(meta)
         except Exception as exc:
-            logger.warning("[AgentWebSocketServer] 扫描 sessions 目录失败: %s", exc)
+            logger.warning("[AgentWebSocketServer] 掃描 sessions 目錄失敗: %s", exc)
 
         resp = AgentResponse(
             request_id=request.request_id,
@@ -682,7 +682,7 @@ class AgentWebSocketServer:
             await ws.send(json.dumps(wire, ensure_ascii=False))
 
     async def _handle_session_rename(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """处理 session.rename：与 CLI Gateway 本地回退共用 apply_session_rename。"""
+        """處理 session.rename：與 CLI Gateway 本地回退共用 apply_session_rename。"""
         from jiuwenclaw.server.runtime.session.session_rename import apply_session_rename
 
         sid = request.session_id or ""
@@ -713,7 +713,7 @@ class AgentWebSocketServer:
             await ws.send(json.dumps(wire, ensure_ascii=False))
 
     async def _handle_permissions_config(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """处理 permissions.* E2A 请求（与 Web ``register_method`` 同名 method）。"""
+        """處理 permissions.* E2A 請求（與 Web ``register_method`` 同名 method）。"""
         from jiuwenclaw.agents.harness.common.rails.permissions.permissions_config_rpc import \
             dispatch_permissions_config_request
 
@@ -1008,7 +1008,7 @@ class AgentWebSocketServer:
 
                     try:
                         await self._agent_manager.reload_agents_config(None, env_updates)
-                        logger.info("[command.model] agent config 已重载")
+                        logger.info("[command.model] agent config 已過載")
                     except Exception as e:
                         logger.debug("[command.model] reload_agents_config skipped: %s", e)
 
@@ -1023,7 +1023,7 @@ class AgentWebSocketServer:
                             "applied": True,
                         },
                     )
-                    logger.info("[command.model] 切换完成: current=%s", os.getenv("MODEL_NAME", "unknown"))
+                    logger.info("[command.model] 切換完成: current=%s", os.getenv("MODEL_NAME", "unknown"))
 
             else:
                 resp = AgentResponse(
@@ -1345,7 +1345,7 @@ class AgentWebSocketServer:
             await ws.send(json.dumps(wire, ensure_ascii=False))
 
     async def _handle_browser_start(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """启动浏览器并返回执行结果（returncode）。"""
+        """啟動瀏覽器並返回執行結果（returncode）。"""
         try:
             from jiuwenclaw.agents.harness.common.tools.browser_start_client import start_browser
 
@@ -1445,7 +1445,7 @@ class AgentWebSocketServer:
             await ws.send(json.dumps(wire, ensure_ascii=False))
 
     async def _handle_extensions_list(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """获取所有 Rail 扩展列表."""
+        """獲取所有 Rail 擴充套件列表."""
         try:
             manager = get_rail_manager()
             extensions = manager.list_extensions()
@@ -1470,17 +1470,17 @@ class AgentWebSocketServer:
             await ws.send(json.dumps(wire, ensure_ascii=False))
 
     async def _handle_extensions_import(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """导入新的 Rail 扩展（文件夹结构）."""
+        """匯入新的 Rail 擴充套件（資料夾結構）."""
         try:
             params = request.params or {}
             folder_path = params.get("folder_path")
 
             if not folder_path:
-                raise ValueError("缺少 folder_path 参数")
+                raise ValueError("缺少 folder_path 引數")
 
             source_path = Path(folder_path)
             if not source_path.exists() or not source_path.is_dir():
-                raise ValueError(f"文件夹不存在或不是目录: {folder_path}")
+                raise ValueError(f"資料夾不存在或不是目錄: {folder_path}")
 
             manager = get_rail_manager()
             extension = manager.import_extension(folder_path)
@@ -1505,13 +1505,13 @@ class AgentWebSocketServer:
             await ws.send(json.dumps(wire, ensure_ascii=False))
 
     async def _handle_extensions_delete(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """删除 Rail 扩展."""
+        """刪除 Rail 擴充套件."""
         try:
             params = request.params or {}
             name = params.get("name")
 
             if not name:
-                raise ValueError("缺少 name 参数")
+                raise ValueError("缺少 name 引數")
 
             manager = get_rail_manager()
             manager.delete_extension(name)
@@ -1536,23 +1536,23 @@ class AgentWebSocketServer:
             await ws.send(json.dumps(wire, ensure_ascii=False))
 
     async def _handle_extensions_toggle(self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock) -> None:
-        """切换 Rail 扩展的启用状态，并触发热更新."""
+        """切換 Rail 擴充套件的啟用狀態，並觸發熱更新."""
         try:
             params = request.params or {}
             name = params.get("name")
             enabled = params.get("enabled", False)
 
             if name is None:
-                raise ValueError("缺少 name 参数")
+                raise ValueError("缺少 name 引數")
             if enabled is None:
-                raise ValueError("缺少 enabled 参数")
+                raise ValueError("缺少 enabled 引數")
 
             manager = get_rail_manager()
 
-            # 1. 更新配置文件中的启用状态
+            # 1. 更新配置檔案中的啟用狀態
             extension = manager.toggle_extension(name, enabled)
 
-            # 2. 触发热更新：根据 enabled 状态注册或注销 rail
+            # 2. 觸發熱更新：根據 enabled 狀態註冊或登出 rail
             await manager.hot_reload_rail(name, enabled)
 
             resp = AgentResponse(
@@ -1575,14 +1575,14 @@ class AgentWebSocketServer:
             await ws.send(json.dumps(wire, ensure_ascii=False))
 
     async def send_push(self, msg) -> None:
-        """AgentServer 主动向 Gateway 推送消息。
+        """AgentServer 主動向 Gateway 推送訊息。
 
-        payload 格式与 AgentResponse.payload 一致，
-        可含 event_type 等字段供 Gateway 转为 Message 派发到 Channel。
+        payload 格式與 AgentResponse.payload 一致，
+        可含 event_type 等欄位供 Gateway 轉為 Message 派發到 Channel。
         """
         if self._current_ws is None or self._current_send_lock is None:
             logger.warning(
-                "[AgentWebSocketServer] send_push 失败: 无活跃 Gateway 连接"
+                "[AgentWebSocketServer] send_push 失敗: 無活躍 Gateway 連線"
             )
             return
 
@@ -1599,23 +1599,23 @@ class AgentWebSocketServer:
                 )
             else:
                 logger.info(
-                    "[AgentWebSocketServer] send_push 已发送(E2A wire): channel_id=%s",
+                    "[AgentWebSocketServer] send_push 已傳送(E2A wire): channel_id=%s",
                     msg.get("channel_id", ""),
                 )
         except Exception as e:
-            logger.warning("[AgentWebSocketServer] send_push 失败: %s", e)
+            logger.warning("[AgentWebSocketServer] send_push 失敗: %s", e)
 
     def get_agent(self):
-        """获取 default agent 实例（向后兼容）."""
+        """獲取 default agent 例項（向後相容）."""
         return self._agent_manager.get_agent_nowait()
 
     def get_agent_manager(self) -> AgentManager:
-        """获取 AgentManager 实例."""
+        """獲取 AgentManager 例項."""
         return self._agent_manager
 
     @staticmethod
     def get_conversation_history(session_id: str, page_idx: int) -> dict[str, Any] | None:
-        # 按照 session_id 和分页消息获取历史记录
+        # 按照 session_id 和分頁訊息獲取歷史記錄
         if not isinstance(session_id, str) or not session_id.strip():
             return None
         if not isinstance(page_idx, int) or page_idx <= 0:
@@ -1649,14 +1649,14 @@ class AgentWebSocketServer:
     async def _handle_initialize(
             self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock
     ) -> None:
-        """处理 initialize 方法（非流式）.
+        """處理 initialize 方法（非流式）.
 
-        调用 AgentManager.initialize 完成初始化，返回 capabilities。
+        呼叫 AgentManager.initialize 完成初始化，返回 capabilities。
 
         Args:
-            ws: WebSocket 连接
+            ws: WebSocket 連線
             request: AgentRequest
-            send_lock: 发送锁
+            send_lock: 傳送鎖
         """
         logger.info("[AgentServer] initialize: request_id=%s channel_id=%s", request.request_id, request.channel_id)
 
@@ -1710,14 +1710,14 @@ class AgentWebSocketServer:
     async def _handle_session_create(
             self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock
     ) -> None:
-        """处理 session.create 方法.
+        """處理 session.create 方法.
 
-        调用 AgentManager.create_session 创建会话，返回 session_id。
+        呼叫 AgentManager.create_session 建立會話，返回 session_id。
 
         Args:
-            ws: WebSocket 连接
+            ws: WebSocket 連線
             request: AgentRequest
-            send_lock: 发送锁
+            send_lock: 傳送鎖
         """
         logger.info("[AgentServer] session.create: request_id=%s", request.request_id)
 

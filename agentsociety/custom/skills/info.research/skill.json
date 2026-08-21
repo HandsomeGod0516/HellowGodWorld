@@ -21,7 +21,7 @@
   ],
   "status": "researching",
   "emotion": "focused",
-  "speech": "我先查清楚，再给出更可靠的建议。",
+  "speech": "我先查清楚，再給出更可靠的建議。",
   "memory_template": "Used info.research: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

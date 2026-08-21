@@ -21,7 +21,7 @@
   ],
   "status": "writing_notice",
   "emotion": "focused",
-  "speech": "我把公告写得短一点、清楚一点。",
+  "speech": "我把公告寫得短一點、清楚一點。",
   "memory_template": "Used notice.write: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

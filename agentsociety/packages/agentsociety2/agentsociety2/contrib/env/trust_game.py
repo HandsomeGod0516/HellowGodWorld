@@ -635,7 +635,7 @@ class TrustGameEnv(EnvBase):
 
                 # Calculate received amounts for trustees
                 trustee_received = {}
-                # 仅保留有效的trustor_name（在partner_mapping中存在的）
+                # 僅保留有效的trustor_name（在partner_mapping中存在的）
                 valid_investments = {}
                 for trustor_name, investment in self._pending_investments.items():
                     trustee_name = self.partner_mapping.get(trustor_name)

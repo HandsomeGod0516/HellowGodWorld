@@ -2,9 +2,9 @@ from jiuwenclaw.common.schema.event_base import HookEventBase
 
 
 class GatewayHookEvents(HookEventBase):
-    """Gateway 和 AgentServer 交互事件
+    """Gateway 和 AgentServer 互動事件
 
-    这些事件定义了 Gateway 与 AgentServer 之间的消息传递生命周期。
+    這些事件定義了 Gateway 與 AgentServer 之間的訊息傳遞生命週期。
     """
 
     scope: str = "gateway"
@@ -17,7 +17,7 @@ class GatewayHookEvents(HookEventBase):
 class AgentServerHookEvents(HookEventBase):
     """AgentServer 事件
 
-    这些事件定义了 AgentServer 的内部事件。
+    這些事件定義了 AgentServer 的內部事件。
     """
 
     scope: str = "agent_server"

@@ -1,7 +1,7 @@
 AgentSociety 2
 ==============
 
-**AgentSociety 2** 是一个现代化的、LLM 原生的智能体模拟平台，专为社会科学研究和实验设计。它提供了一个灵活的框架，用于在模拟环境中创建和管理智能体。
+**AgentSociety 2** 是一個現代化的、LLM 原生的智慧體模擬平臺，專為社會科學研究和實驗設計。它提供了一個靈活的框架，用於在模擬環境中建立和管理智慧體。
 
 .. image:: https://img.shields.io/pypi/v/agentsociety2.svg
    :target: https://pypi.org/project/agentsociety2/
@@ -18,32 +18,32 @@ AgentSociety 2
 核心特性
 ------------
 
-* **LLM 驱动的智能体**: 创建具有个性、记忆和推理能力的智能体，由大语言模型驱动。
+* **LLM 驅動的智慧體**: 建立具有個性、記憶和推理能力的智慧體，由大語言模型驅動。
 
-* **灵活的环境模块**: 使用可组合的工具和状态管理构建自定义模拟环境。
+* **靈活的環境模組**: 使用可組合的工具和狀態管理構建自定義模擬環境。
 
-* **异步优先设计**: 高性能异步架构，实现高效的多智能体模拟。
+* **非同步優先設計**: 高效能非同步架構，實現高效的多智慧體模擬。
 
-* **回放与分析**: 基于 SQLite 的内置存储，用于实验跟踪和分析。
+* **回放與分析**: 基於 SQLite 的內建儲存，用於實驗跟蹤和分析。
 
-* **研究技能**: 内置文献检索、假设生成、实验设计、论文撰写等 LLM 原生工作流。
+* **研究技能**: 內建文獻檢索、假設生成、實驗設計、論文撰寫等 LLM 原生工作流。
 
-* **REST API**: 基于 FastAPI 的独立后端服务，支持外部集成。
+* **REST API**: 基於 FastAPI 的獨立後端服務，支援外部整合。
 
-* **CLI 工具**: 强大的命令行界面，支持实验运行和进度跟踪。
+* **CLI 工具**: 強大的命令列介面，支援實驗執行和進度跟蹤。
 
-* **可扩展**: 轻松扩展自定义智能体、环境和工具。
+* **可擴充套件**: 輕鬆擴充套件自定義智慧體、環境和工具。
 
-安装
+安裝
 ------------
 
 .. code-block:: bash
 
    pip install agentsociety2
 
-详细安装说明请参见 :doc:`installation`。
+詳細安裝說明請參見 :doc:`installation`。
 
-快速开始
+快速開始
 -----------
 
 .. code-block:: python
@@ -66,14 +66,14 @@ AgentSociety 2
    response = await agent.ask("What's your favorite hobby?")
    print(response)
 
-更多示例请参见 :doc:`quickstart`。
+更多示例請參見 :doc:`quickstart`。
 
-文档
+文件
 -------------
 
 .. toctree::
    :maxdepth: 2
-   :caption: 入门指南:
+   :caption: 入門指南:
 
    installation
    quickstart
@@ -83,7 +83,7 @@ AgentSociety 2
 
 .. toctree::
    :maxdepth: 2
-   :caption: 用户指南:
+   :caption: 使用者指南:
 
    agents
    agent_skills
@@ -94,7 +94,7 @@ AgentSociety 2
 
 .. toctree::
    :maxdepth: 2
-   :caption: 开发者指南:
+   :caption: 開發者指南:
 
    development
    module_and_parameter_management
@@ -102,19 +102,19 @@ AgentSociety 2
 
 .. toctree::
    :maxdepth: 2
-   :caption: 参考:
+   :caption: 參考:
 
    api/index
    examples
 
-链接
+連結
 -----
 
 * **GitHub**: https://github.com/tsinghua-fib-lab/AgentSociety
 * **PyPI**: https://pypi.org/project/agentsociety2/
 * **Issues**: https://github.com/tsinghua-fib-lab/AgentSociety/issues
 
-搜索
+搜尋
 ------
 
 * :ref:`search`

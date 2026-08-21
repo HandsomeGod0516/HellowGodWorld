@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'market', 'cafe']
 TARGET_INTERACTIONS = ['meet_friend', 'chat_with_regular', 'casual_meetup']
 STATUS = 'greeting'
 EMOTION = 'warm'
-SPEECH = '我顺路问候一下，看看大家今天过得怎么样。'
+SPEECH = '我順路問候一下，看看大家今天過得怎麼樣。'
 MEMORY_TEMPLATE = 'Used neighbor.greet: {summary} at {location_id}.'
 
 

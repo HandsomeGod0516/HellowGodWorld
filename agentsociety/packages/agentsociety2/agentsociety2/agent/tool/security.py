@@ -1,9 +1,9 @@
-"""Bash 命令安全检查模块。
+"""Bash 命令安全檢查模組。
 
-分级安全策略：
-- 系统级危险命令：完全禁止（sudo、shutdown、dd 等）
-- 网络命令：禁止（curl、wget、nc 等）
-- 敏感路径访问：禁止
+分級安全策略：
+- 系統級危險命令：完全禁止（sudo、shutdown、dd 等）
+- 網路命令：禁止（curl、wget、nc 等）
+- 敏感路徑訪問：禁止
 
 Example:
     from agentsociety2.agent.tool.security import BashSecurityChecker
@@ -22,7 +22,7 @@ import shlex
 from typing import Final
 
 
-#: 系统级危险命令（完全禁止）
+#: 系統級危險命令（完全禁止）
 BLOCKED_SYSTEM_COMMANDS: Final[frozenset[str]] = frozenset(
     {
         "sudo",
@@ -41,7 +41,7 @@ BLOCKED_SYSTEM_COMMANDS: Final[frozenset[str]] = frozenset(
     }
 )
 
-#: 网络命令（禁止）
+#: 網路命令（禁止）
 BLOCKED_NETWORK_COMMANDS: Final[frozenset[str]] = frozenset(
     {
         "curl",
@@ -59,12 +59,12 @@ BLOCKED_NETWORK_COMMANDS: Final[frozenset[str]] = frozenset(
     }
 )
 
-#: 合并的黑名单
+#: 合併的黑名單
 BLOCKED_TOKENS: Final[frozenset[str]] = (
     BLOCKED_SYSTEM_COMMANDS | BLOCKED_NETWORK_COMMANDS
 )
 
-#: 危险模式（正则表达式）
+#: 危險模式（正規表示式）
 BLOCKED_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     re.compile(r">\s*/dev/"),
     re.compile(r":\(\)\s*\{"),
@@ -73,7 +73,7 @@ BLOCKED_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     re.compile(r"\bfind\s+.*-exec\s+"),
 )
 
-#: 敏感路径
+#: 敏感路徑
 BLOCKED_PATHS: Final[frozenset[str]] = frozenset(
     {
         "/etc/passwd",
@@ -89,7 +89,7 @@ BLOCKED_PATHS: Final[frozenset[str]] = frozenset(
 
 
 class BashSecurityChecker:
-    """Bash 命令安全检查器（单例）。"""
+    """Bash 命令安全檢查器（單例）。"""
 
     _instance: "BashSecurityChecker | None" = None
 
@@ -105,10 +105,10 @@ class BashSecurityChecker:
         return instance
 
     def check(self, cmd: str, workspace: str | None = None) -> tuple[bool, str]:
-        """检查命令是否安全。
+        """檢查命令是否安全。
 
         :param cmd: Bash 命令。
-        :param workspace: workspace 路径（预留）。
+        :param workspace: workspace 路徑（預留）。
         :return: (is_safe, reason)。
         """
         if not cmd or not cmd.strip():

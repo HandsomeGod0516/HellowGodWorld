@@ -2,7 +2,7 @@
 
 """PushData 持久化管理器.
 
-与 xy_channel pushdata-manager.ts 对齐，使用 JSON 文件存储推送记录。
+與 xy_channel pushdata-manager.ts 對齊，使用 JSON 檔案儲存推送記錄。
 """
 
 from __future__ import annotations
@@ -20,19 +20,19 @@ MAX_PUSHDATA_ITEMS = 1000
 
 
 def _format_beijing_time() -> str:
-    """格式化当前时间为 YYYYMMDD HHmmss（北京时间）."""
+    """格式化當前時間為 YYYYMMDD HHmmss（北京時間）."""
     utc8 = timezone(timedelta(hours=8))
     return datetime.now(utc8).strftime("%Y%m%d %H%M%S")
 
 
 def _ensure_directory_exists(file_path: str) -> None:
-    """确保目录存在."""
+    """確保目錄存在."""
     directory = os.path.dirname(file_path)
     os.makedirs(directory, exist_ok=True)
 
 
 def _read_pushdata_list() -> List[Dict[str, str]]:
-    """读取 pushData 列表."""
+    """讀取 pushData 列表."""
     try:
         _ensure_directory_exists(PUSHDATA_FILE)
         if not os.path.exists(PUSHDATA_FILE):
@@ -52,7 +52,7 @@ def _read_pushdata_list() -> List[Dict[str, str]]:
 
 
 def _write_pushdata_list(items: List[Dict[str, str]]) -> None:
-    """写入 pushData 列表（限制最多 MAX_PUSHDATA_ITEMS 条）."""
+    """寫入 pushData 列表（限制最多 MAX_PUSHDATA_ITEMS 條）."""
     try:
         _ensure_directory_exists(PUSHDATA_FILE)
         limited = items[-MAX_PUSHDATA_ITEMS:]
@@ -70,10 +70,10 @@ def _write_pushdata_list(items: List[Dict[str, str]]) -> None:
 
 
 def save_push_data(data_detail: str) -> str:
-    """保存推送数据，返回 pushDataId.
+    """儲存推送資料，返回 pushDataId.
 
     Args:
-        data_detail: 推送内容详情
+        data_detail: 推送內容詳情
 
     Returns:
         pushDataId (UUID)
@@ -101,7 +101,7 @@ def save_push_data(data_detail: str) -> str:
 
 
 def _match_push_item(item: Dict[str, str], keyword: str) -> bool:
-    """判断推送条目是否匹配关键词（忽略大小写）."""
+    """判斷推送條目是否匹配關鍵詞（忽略大小寫）."""
     for field in ("dataDetail", "pushDataId"):
         value = item.get(field, "") or ""
         if keyword in value.lower():
@@ -110,13 +110,13 @@ def _match_push_item(item: Dict[str, str], keyword: str) -> bool:
 
 
 def search_push_data(keywords: Optional[str] = None) -> List[Dict[str, str]]:
-    """搜索推送数据（支持关键词模糊匹配）.
+    """搜尋推送資料（支援關鍵詞模糊匹配）.
 
     Args:
-        keywords: 搜索关键词，None 或空字符串时返回全部
+        keywords: 搜尋關鍵詞，None 或空字串時返回全部
 
     Returns:
-        匹配的推送数据列表
+        匹配的推送資料列表
     """
     items = _read_pushdata_list()
 
@@ -135,13 +135,13 @@ def search_push_data(keywords: Optional[str] = None) -> List[Dict[str, str]]:
 
 
 def get_all_push_data() -> List[Dict[str, str]]:
-    """获取所有推送数据."""
+    """獲取所有推送資料."""
     items = _read_pushdata_list()
     logger.info("[PushDataManager] Retrieved %s pushData items", len(items))
     return items
 
 
 def clear_all_push_data() -> None:
-    """清空所有推送数据."""
+    """清空所有推送資料."""
     _write_pushdata_list([])
     logger.info("[PushDataManager] Cleared all pushData")

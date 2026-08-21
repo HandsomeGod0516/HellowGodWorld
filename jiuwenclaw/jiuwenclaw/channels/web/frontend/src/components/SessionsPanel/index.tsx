@@ -30,7 +30,7 @@ interface ListFilesResponse {
   files?: unknown[];
 }
 
-/** list-files 在 Windows 上可能返回反斜杠 path，与前端字面量比较前需统一 */
+/** list-files 在 Windows 上可能返回反斜槓 path，與前端字面量比較前需統一 */
 function normalizeWorkspacePath(p: string): string {
   return p.replace(/\\/g, '/').replace(/\/+/g, '/').trim();
 }
@@ -73,7 +73,7 @@ function shortenDiscordIDForLabel(id: string): string {
 function parseSessionDisplayLabel(sessionId: string, t: (key: string, options?: Record<string, unknown>) => string): string {
   if (!sessionId) return t('sessions.unknownSession');
 
-  // 微信 iLink：形如 userhash@im.wechat，以 .wechat 结尾
+  // 微信 iLink：形如 userhash@im.wechat，以 .wechat 結尾
   if (sessionId.endsWith('.wechat')) {
     const wechatLabel = t('sessions.prefixes.wechat');
     const at = sessionId.lastIndexOf('@');
@@ -83,7 +83,7 @@ function parseSessionDisplayLabel(sessionId: string, t: (key: string, options?: 
     return `${wechatLabel}-${shortenDiscordIDForLabel(idPart)}`;
   }
 
-  // 处理以 sess_、cron_、feishu_、wechat_、xiaoyi_、dingtalk_ 开头的会话ID
+  // 處理以 sess_、cron_、feishu_、wechat_、xiaoyi_、dingtalk_ 開頭的會話ID
   const prefixes = ['sess_', 'cron_', 'feishu_', 'wechat_', 'xiaoyi_', 'dingtalk_', 'wecom_'];
   const prefixMap: Record<string, string> = {
     'sess_': t('sessions.prefixes.session'),
@@ -139,7 +139,7 @@ function parseSessionDisplayLabel(sessionId: string, t: (key: string, options?: 
     }
   }
 
-  // 解析会话ID中可能包含的时间戳格式，如 YYYYMMDD_HHMMSS_xxxx
+  // 解析會話ID中可能包含的時間戳格式，如 YYYYMMDD_HHMMSS_xxxx
   const timestampRegex = /(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/;
   const match = sessionId.match(timestampRegex);
   if (match) {
@@ -168,7 +168,7 @@ interface SessionItem {
 function toSessionItems(raw: unknown[]): SessionItem[] {
   return raw
     .map((item) => {
-      // 兼容新格式(对象 {session_id: "..."})和旧格式(纯字符串)
+      // 相容新格式(物件 {session_id: "..."})和舊格式(純字串)
       if (typeof item === 'string') {
         return { session_id: item.trim() } as SessionItem;
       }
@@ -327,7 +327,7 @@ export function SessionsPanel({
             }
           }
         } else {
-          // 自动选择第一个可预览的文件
+          // 自動選擇第一個可預覽的檔案
           const firstPreviewableFile = rows.find(
             (f) => !f.isDirectory && isPreviewableSessionFile(f.name)
           );
@@ -354,8 +354,8 @@ export function SessionsPanel({
       const rows = Array.isArray(payload?.sessions) ? toSessionItems(payload.sessions) : [];
       setSessions(rows);
       setSessionsError(null);
-      // 必须在 setState 之外同步算出 nextSelected：await 之后的函数式 setState 在 React 18+ 可能延后执行，
-      // 若依赖 updater 内对 nextSelected 的赋值，此处仍为 null，会误调 loadSessionFilesForSession(null) 并清空文件列表。
+      // 必須在 setState 之外同步算出 nextSelected：await 之後的函式式 setState 在 React 18+ 可能延後執行，
+      // 若依賴 updater 內對 nextSelected 的賦值，此處仍為 null，會誤調 loadSessionFilesForSession(null) 並清空檔案列表。
       const nextSelected = pickNextSelectedSessionId(
         selectedSessionIdRef.current,
         rows,
@@ -384,11 +384,11 @@ export function SessionsPanel({
 
   useEffect(() => {
     void loadSessions();
-    // loadSessions 随 currentSessionId / t 更新；此处仅希望在语言切换时与首屏拉列表，避免把 loadSessions 放进 deps 引发多余轮询
+    // loadSessions 隨 currentSessionId / t 更新；此處僅希望在語言切換時與首屏拉列表，避免把 loadSessions 放進 deps 引發多餘輪詢
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t]);
 
-  // 聊天处理完成后刷新会话列表，拾取自动生成的标题
+  // 聊天處理完成後重新整理會話列表，拾取自動生成的標題
   const prevProcessingRef = useRef(false);
   useEffect(() => {
     if (prevProcessingRef.current && !isProcessing) {

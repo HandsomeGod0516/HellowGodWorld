@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['library', 'park']
 TARGET_INTERACTIONS = ['research_topic', 'meet_friend']
 STATUS = 'storytelling'
 EMOTION = 'warm'
-SPEECH = '我想用一个本地故事帮大家理解这件事。'
+SPEECH = '我想用一個本地故事幫大家理解這件事。'
 MEMORY_TEMPLATE = 'Used history.localtelling: {summary} at {location_id}.'
 
 

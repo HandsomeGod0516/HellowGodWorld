@@ -4,7 +4,7 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/agentsociety2.svg)](https://pypi.org/project/agentsociety2/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://agentsociety2.readthedocs.io/)
-[![中文文档](https://img.shields.io/badge/docs-%E4%B8%AD%E6%96%87-red.svg)](https://agentsociety2.readthedocs.io/zh_CN/latest/)
+[![中文文件](https://img.shields.io/badge/docs-%E4%B8%AD%E6%96%87-red.svg)](https://agentsociety2.readthedocs.io/zh_CN/latest/)
 
 > **AgentSociety 2** is a modern, LLM-native agent simulation platform designed for social science research and experimentation.
 
@@ -321,7 +321,7 @@ The `examples/` directory contains ready-to-run examples:
 ## Documentation
 
 - [English Documentation](https://agentsociety2.readthedocs.io/)
-- [中文文档](https://agentsociety2.readthedocs.io/zh_CN/latest/)
+- [中文文件](https://agentsociety2.readthedocs.io/zh_CN/latest/)
 - [API Reference](https://agentsociety2.readthedocs.io/en/latest/api.html)
 
 ## Development

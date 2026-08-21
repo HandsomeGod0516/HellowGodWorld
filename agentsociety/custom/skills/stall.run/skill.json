@@ -20,7 +20,7 @@
   ],
   "status": "stall_working",
   "emotion": "focused",
-  "speech": "我先把摊位收拾好，再接待顾客。",
+  "speech": "我先把攤位收拾好，再接待顧客。",
   "memory_template": "Used stall.run: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

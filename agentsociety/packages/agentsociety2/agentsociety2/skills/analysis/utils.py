@@ -1,7 +1,7 @@
 """
-分析模块工具：路径、`instruction_md` 发现、SQLite schema、LLM XML/报告解析。
+分析模組工具：路徑、`instruction_md` 發現、SQLite schema、LLM XML/報告解析。
 
-行为与目录约定见同包 `README.md`。
+行為與目錄約定見同包 `README.md`。
 """
 
 import re
@@ -36,12 +36,12 @@ from .models import (
     PresentationPaths,
 )
 
-# 进度回调类型，供 service/agents 等使用
+# 進度回撥型別，供 service/agents 等使用
 AnalysisProgressCallback = Optional[Callable[[str], Awaitable[None]]]
 
 
 class XmlParseError(Exception):
-    """LLM 返回的 XML 解析失败，供调用方捕获并触发 LLM 重试。"""
+    """LLM 返回的 XML 解析失敗，供呼叫方捕獲並觸發 LLM 重試。"""
 
     def __init__(self, message: str, raw_content: str = ""):
         super().__init__(message)
@@ -54,7 +54,7 @@ T = TypeVar("T", bound=BaseModel)
 
 @dataclass(frozen=True)
 class AnalysisSkillMeta:
-    """`instruction_md/*.md` 条目的元数据（供按名筛选并注入 LLM 系统上下文）。"""
+    """`instruction_md/*.md` 條目的後設資料（供按名篩選並注入 LLM 系統上下文）。"""
 
     name: str
     priority: int
@@ -64,7 +64,7 @@ class AnalysisSkillMeta:
 
 
 def _sanitize_id(raw: str) -> str:
-    """仅保留安全字符，防止路径穿越。"""
+    """僅保留安全字元，防止路徑穿越。"""
     s = (raw or "").strip()
     s = re.sub(r"[^a-zA-Z0-9_-]", "", s)
     return s or "unknown"
@@ -75,7 +75,7 @@ def experiment_paths(
     hypothesis_id: str,
     experiment_id: str,
 ) -> ExperimentPaths:
-    """按约定聚合单实验路径；id 会做安全清洗。"""
+    """按約定聚合單實驗路徑；id 會做安全清洗。"""
     wp = Path(workspace_path).resolve()
     hid = _sanitize_id(hypothesis_id)
     eid = _sanitize_id(experiment_id)
@@ -97,7 +97,7 @@ def presentation_paths(
     hypothesis_id: str,
     experiment_id: str,
 ) -> PresentationPaths:
-    """单实验分析产物路径：output_dir、charts_dir、report_assets、报告与数据文件。"""
+    """單實驗分析產物路徑：output_dir、charts_dir、report_assets、報告與資料檔案。"""
     root = Path(presentation_root).resolve()
     hid = _sanitize_id(hypothesis_id)
     eid = _sanitize_id(experiment_id)
@@ -168,7 +168,7 @@ def _strip_md_frontmatter(text: str) -> str:
 
 
 def list_analysis_skills() -> List[AnalysisSkillMeta]:
-    """扫描 `instruction_md/` 下 Markdown，返回元数据（不读取正文）。"""
+    """掃描 `instruction_md/` 下 Markdown，返回後設資料（不讀取正文）。"""
     result: List[AnalysisSkillMeta] = []
     if not _INSTRUCTION_MD_DIR.exists():
         return result
@@ -197,10 +197,10 @@ def get_analysis_skills(
     selected_names: Optional[List[str]] = None,
     strict_selection: bool = True,
 ) -> str:
-    """加载选中的 `instruction_md/*.md` 全文并拼接为 LLM 上下文片段。
+    """載入選中的 `instruction_md/*.md` 全文並拼接為 LLM 上下文片段。
 
-    strict_selection=True：仅加载 required 条目 + 显式点名的条目。
-    标记为 required 的片段始终会加载。
+    strict_selection=True：僅載入 required 條目 + 顯式點名的條目。
+    標記為 required 的片段始終會載入。
     """
     metas = list_analysis_skills()
     if not metas:
@@ -245,7 +245,7 @@ def get_analysis_skills(
 
 
 def _extract_xml_from_content(content: str) -> str:
-    """从 LLM 输出中提取 XML。支持整段或 ```xml ... ``` 代码块。"""
+    """從 LLM 輸出中提取 XML。支援整段或 ```xml ... ``` 程式碼塊。"""
     raw = (content or "").strip()
     if not raw:
         return ""
@@ -260,14 +260,14 @@ def _extract_xml_from_content(content: str) -> str:
 
 
 def _xml_element_to_value(el: ET.Element) -> Any:
-    """将 XML 元素转为 Python 值。"""
+    """將 XML 元素轉為 Python 值。"""
     children = list(el)
     if not children:
         text = (el.text or "").strip()
         if text.lower() in ("true", "false"):
             return text.lower() == "true"
         return text
-    # 有子元素：若全为同标签且多个，直接返回列表；否则返回 dict
+    # 有子元素：若全為同標籤且多個，直接返回列表；否則返回 dict
     tags = [c.tag for c in children]
     if len(set(tags)) == 1 and len(children) > 1:
         return [_xml_element_to_value(c) for c in children]
@@ -284,10 +284,10 @@ def _xml_element_to_value(el: ET.Element) -> Any:
 
 
 def _parse_xml_to_root(xml_str: str) -> ET.Element:
-    """解析 XML 字符串为 Element，使用 elemental-xenon 修复 LLM 生成的畸形 XML。"""
+    """解析 XML 字串為 Element，使用 elemental-xenon 修復 LLM 生成的畸形 XML。"""
     from xenon import repair_xml_safe, TrustLevel
     
-    # 使用 xenon 修复 XML（专为 LLM 输出设计）
+    # 使用 xenon 修復 XML（專為 LLM 輸出設計）
     repaired = repair_xml_safe(xml_str, trust=TrustLevel.UNTRUSTED)
     
     try:
@@ -297,17 +297,17 @@ def _parse_xml_to_root(xml_str: str) -> ET.Element:
 
 
 def parse_llm_xml_response(content: str, root_tag: str = "result") -> Dict[str, Any]:
-    """解析 LLM 返回的 XML 为字典。
+    """解析 LLM 返回的 XML 為字典。
 
     Args:
-        content: LLM 返回的原始内容（可包含 ```xml 代码块）
-        root_tag: 根标签名，用于提取顶层 dict
+        content: LLM 返回的原始內容（可包含 ```xml 程式碼塊）
+        root_tag: 根標籤名，用於提取頂層 dict
 
     Returns:
-        解析后的字典
+        解析後的字典
 
     Raises:
-        XmlParseError: XML 解析失败
+        XmlParseError: XML 解析失敗
     """
     xml_str = _extract_xml_from_content(content)
     if not xml_str:
@@ -315,7 +315,7 @@ def parse_llm_xml_response(content: str, root_tag: str = "result") -> Dict[str, 
     root = _parse_xml_to_root(xml_str)
     if root.tag == root_tag:
         return {c.tag: _xml_element_to_value(c) for c in root}
-    # 根为 root_tag 的包装
+    # 根為 root_tag 的包裝
     inner = root.find(root_tag)
     if inner is None:
         inner = root.find(f".//{root_tag}")
@@ -327,9 +327,9 @@ def parse_llm_xml_response(content: str, root_tag: str = "result") -> Dict[str, 
 def parse_llm_xml_to_model(
     content: str, model_class: Type[T], root_tag: str = "result"
 ) -> T:
-    """解析 LLM 返回的 XML 并验证为 Pydantic 模型。"""
+    """解析 LLM 返回的 XML 並驗證為 Pydantic 模型。"""
     data = parse_llm_xml_response(content, root_tag)
-    # 处理 item 包装：<insights><item>a</item></insights> -> insights: ["a"]
+    # 處理 item 包裝：<insights><item>a</item></insights> -> insights: ["a"]
     for k, v in list(data.items()):
         if isinstance(v, dict) and "item" in v and len(v) == 1:
             items = v["item"]
@@ -338,7 +338,7 @@ def parse_llm_xml_to_model(
 
 
 def _take_json_string(content: str) -> str:
-    """从约定格式中取出 JSON 字符串：整段即 JSON，或 ```json ... ``` 中唯一一段。"""
+    """從約定格式中取出 JSON 字串：整段即 JSON，或 ```json ... ``` 中唯一一段。"""
     raw = (content or "").strip()
     if not raw:
         return ""
@@ -355,9 +355,9 @@ def _take_json_string(content: str) -> str:
 
 
 def parse_llm_json_response(content: str) -> Dict[str, Any]:
-    """解析 LLM 返回的 JSON，约定为单段 JSON 或 ```json ... ```。
+    """解析 LLM 返回的 JSON，約定為單段 JSON 或 ```json ... ```。
 
-    - 提取不到 JSON 或 JSON 根不是 object：抛出 ValueError。
+    - 提取不到 JSON 或 JSON 根不是 object：丟擲 ValueError。
     """
     json_str = _take_json_string(content)
     if not json_str:
@@ -369,7 +369,7 @@ def parse_llm_json_response(content: str) -> Dict[str, Any]:
 
 
 def parse_llm_report_response(content: str) -> Dict[str, str]:
-    """解析报告类 LLM 输出（XML 格式，双语）。
+    """解析報告類 LLM 輸出（XML 格式，雙語）。
 
     格式::
         <report>
@@ -381,7 +381,7 @@ def parse_llm_report_response(content: str) -> Dict[str, str]:
 
     Returns dict with keys: markdown_zh, html_zh, markdown_en, html_en, markdown, html.
 
-    - 缺少必须的字段（至少 markdown_zh/markdown_en + html_zh/html_en）：抛出 XmlParseError。
+    - 缺少必須的欄位（至少 markdown_zh/markdown_en + html_zh/html_en）：丟擲 XmlParseError。
     """
     raw = (content or "").strip()
     if not raw:
@@ -427,11 +427,11 @@ def parse_llm_report_response(content: str) -> Dict[str, str]:
     }
 
 
-# ---------- 先读结构再处理：DB schema 与实验文件 ----------
+# ---------- 先讀結構再處理：DB schema 與實驗檔案 ----------
 
 
 def _quote_identifier(name: str) -> str:
-    """安全引用 SQLite 标识符（表名、列名）。"""
+    """安全引用 SQLite 識別符號（表名、列名）。"""
     return '"' + str(name).replace('"', '""') + '"'
 
 
@@ -536,7 +536,7 @@ def format_database_schema_markdown(
     include_row_counts: bool = False,
     db_path: Optional[Path] = None,
 ) -> str:
-    """将 replay metadata schema 格式化为 Markdown，可选行数。"""
+    """將 replay metadata schema 格式化為 Markdown，可選行數。"""
     if not schema:
         return "Schema not available"
     lines = []
@@ -581,7 +581,7 @@ def format_database_schema_markdown(
 
 
 def collect_experiment_files(db_path: Path) -> List[str]:
-    """收集 run 目录下可供执行器使用的文件路径（含 sqlite.db、同级文件、run/artifacts）。"""
+    """收集 run 目錄下可供執行器使用的檔案路徑（含 sqlite.db、同級檔案、run/artifacts）。"""
     if not db_path:
         return []
     files: List[str] = [str(db_path)]

@@ -22,9 +22,9 @@ extensions = [
     'sphinx.ext.graphviz',
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.autodoc',      # 自动从代码生成 API 文档
-    'sphinx.ext.autosummary',  # 自动生成 API 摘要
-    'sphinx.ext.viewcode',     # 添加 [source] 链接
+    'sphinx.ext.autodoc',      # 自動從程式碼生成 API 文件
+    'sphinx.ext.autosummary',  # 自動生成 API 摘要
+    'sphinx.ext.viewcode',     # 新增 [source] 連結
     'myst_parser',
 ]
 
@@ -56,13 +56,13 @@ source_suffix = {
 master_doc = 'index'
 
 # -- Internationalization options --------------------------------------------
-# 设置国际化支持
-locale_dirs = ['locale/']   # 翻译文件所在的路径
+# 設定國際化支援
+locale_dirs = ['locale/']   # 翻譯檔案所在的路徑
 
-# 默认语言设置为中文
+# 預設語言設定為中文
 language = 'zh'
 
-# 多语言配置
+# 多語言配置
 html_context = {
     'current_language': language,
     'languages': {

@@ -1,11 +1,11 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Note tools - 备忘录工具.
+"""Note tools - 備忘錄工具.
 
 包含：
-- create_note: 创建备忘录
-- search_notes: 搜索备忘录
-- modify_note: 修改备忘录
+- create_note: 建立備忘錄
+- search_notes: 搜尋備忘錄
+- modify_note: 修改備忘錄
 """
 
 from __future__ import annotations
@@ -25,30 +25,30 @@ from .utils import (
 
 @tool(
     name="create_note",
-    description="""在用户设备上创建备忘录。需要提供备忘录标题和内容。
+    description="""在使用者裝置上建立備忘錄。需要提供備忘錄標題和內容。
   注意:
-  a. 操作超时时间为60秒,请勿重复调用此工具
-  b. 如果遇到各类调用失败场景,最多只能重试一次，不可以重复调用多次。
-  c. 调用工具前需认真检查调用参数是否满足工具要求
+  a. 操作超時時間為60秒,請勿重複呼叫此工具
+  b. 如果遇到各類呼叫失敗場景,最多隻能重試一次，不可以重複呼叫多次。
+  c. 呼叫工具前需認真檢查呼叫引數是否滿足工具要求
   """,
 )
 async def create_note(title: str, content: str) -> Dict[str, Any]:
-    """创建备忘录.
+    """建立備忘錄.
 
     Args:
-        title: 备忘录标题，必填
-        content: 备忘录内容，必填
+        title: 備忘錄標題，必填
+        content: 備忘錄內容，必填
 
     Returns:
-        设备返回的完整 outputs，经 format_success_response 包装
+        裝置返回的完整 outputs，經 format_success_response 包裝
     """
     try:
         logger.info(f"[CREATE_NOTE_TOOL] Creating note - title: {title}")
 
         if not title or not isinstance(title, str):
-            raise ToolInputError("缺少必填参数 title（备忘录标题）")
+            raise ToolInputError("缺少必填引數 title（備忘錄標題）")
         if not content or not isinstance(content, str):
-            raise ToolInputError("缺少必填参数 content（备忘录内容）")
+            raise ToolInputError("缺少必填引數 content（備忘錄內容）")
 
         # CreateNote：executeParam 不含 appType、permissionId
         command = {
@@ -84,44 +84,44 @@ async def create_note(title: str, content: str) -> Dict[str, Any]:
         if not isinstance(outputs, dict):
             outputs = {"outputs": outputs}
 
-        raise_if_device_error(outputs, "创建备忘录失败")
+        raise_if_device_error(outputs, "建立備忘錄失敗")
 
         logger.info("[CREATE_NOTE_TOOL] Note create completed")
 
-        return format_success_response(dict(outputs), f"备忘录 '{title}' 创建成功")
+        return format_success_response(dict(outputs), f"備忘錄 '{title}' 建立成功")
 
     except ToolInputError:
         raise
     except Exception as e:
         logger.error(f"[CREATE_NOTE_TOOL] Failed to create note: {e}")
-        raise RuntimeError(f"创建备忘录失败: {str(e)}") from e
+        raise RuntimeError(f"建立備忘錄失敗: {str(e)}") from e
 
 
 @tool(
     name="search_notes",
     description=(
-        "搜索用户设备上的备忘录内容。根据关键词在备忘录的标题、内容和附件名称中进行检索。"
-        "注意:操作超时时间为60秒,请勿重复调用此工具,如果超时或失败,最多重试一次。"
+        "搜尋使用者裝置上的備忘錄內容。根據關鍵詞在備忘錄的標題、內容和附件名稱中進行檢索。"
+        "注意:操作超時時間為60秒,請勿重複呼叫此工具,如果超時或失敗,最多重試一次。"
     ),
 )
 async def search_notes(query: str) -> Dict[str, Any]:
-    """搜索备忘录.
+    """搜尋備忘錄.
 
     Args:
-        query: 搜索关键词
+        query: 搜尋關鍵詞
 
     Returns:
-        设备返回的完整 outputs，经 format_success_response 包装
+        裝置返回的完整 outputs，經 format_success_response 包裝
     """
     try:
         logger.info(f"[SEARCH_NOTE_TOOL] Searching notes - query: {query}")
 
         if not query or not isinstance(query, str):
-            raise ToolInputError("缺少必填参数 query（搜索关键词）")
+            raise ToolInputError("缺少必填引數 query（搜尋關鍵詞）")
 
         query = query.strip()
         if not query:
-            raise ToolInputError("query 不能为空")
+            raise ToolInputError("query 不能為空")
 
         # SearchNote：executeParam 不含 appType、permissionId
         command = {
@@ -156,7 +156,7 @@ async def search_notes(query: str) -> Dict[str, Any]:
         if not isinstance(outputs, dict):
             outputs = {"outputs": outputs}
 
-        raise_if_device_error(outputs, "搜索备忘录失败")
+        raise_if_device_error(outputs, "搜尋備忘錄失敗")
 
         result = outputs.get("result")
         if not isinstance(result, dict):
@@ -164,44 +164,44 @@ async def search_notes(query: str) -> Dict[str, Any]:
         n = len(result.get("items", []))
         logger.info(f"[SEARCH_NOTE_TOOL] Search completed, items={n}")
 
-        return format_success_response(dict(outputs), f"搜索到 {n} 条备忘录")
+        return format_success_response(dict(outputs), f"搜尋到 {n} 條備忘錄")
 
     except ToolInputError:
         raise
     except Exception as e:
         logger.error(f"[SEARCH_NOTE_TOOL] Failed to search notes: {e}")
-        raise RuntimeError(f"搜索备忘录失败: {str(e)}") from e
+        raise RuntimeError(f"搜尋備忘錄失敗: {str(e)}") from e
 
 
 @tool(
     name="modify_note",
     description=(
-        "在指定备忘录中追加新内容。使用前必须先调用 search_notes 工具获取备忘录的 entityId。"
-        "参数说明：entityId 是备忘录的唯一标识符（从 search_notes 工具获取），"
-        "text 是要追加的文本内容。"
-        "注意:操作超时时间为60秒,请勿重复调用此工具,如果超时或失败,最多重试一次。"
+        "在指定備忘錄中追加新內容。使用前必須先呼叫 search_notes 工具獲取備忘錄的 entityId。"
+        "引數說明：entityId 是備忘錄的唯一識別符號（從 search_notes 工具獲取），"
+        "text 是要追加的文字內容。"
+        "注意:操作超時時間為60秒,請勿重複呼叫此工具,如果超時或失敗,最多重試一次。"
     ),
 )
 async def modify_note(
     entity_id: str,
     text: str,
 ) -> Dict[str, Any]:
-    """修改备忘录（追加模式）.
+    """修改備忘錄（追加模式）.
 
     Args:
-        entity_id: 备忘录实体 ID（设备侧字段名为 entityId）
-        text: 要追加的文本
+        entity_id: 備忘錄實體 ID（裝置側欄位名為 entityId）
+        text: 要追加的文字
 
     Returns:
-        设备返回的完整 outputs，经 format_success_response 包装
+        裝置返回的完整 outputs，經 format_success_response 包裝
     """
     try:
         logger.info(f"[MODIFY_NOTE_TOOL] Modifying note - entity_id: {entity_id}")
 
         if not entity_id or not isinstance(entity_id, str):
-            raise ToolInputError("缺少必填参数 entity_id（设备侧 entityId）")
+            raise ToolInputError("缺少必填引數 entity_id（裝置側 entityId）")
         if not text or not isinstance(text, str):
-            raise ToolInputError("缺少必填参数 text（要追加的文本内容）")
+            raise ToolInputError("缺少必填引數 text（要追加的文字內容）")
 
         command = {
             "header": {
@@ -238,14 +238,14 @@ async def modify_note(
         if not isinstance(outputs, dict):
             outputs = {"outputs": outputs}
 
-        raise_if_device_error(outputs, "修改备忘录失败")
+        raise_if_device_error(outputs, "修改備忘錄失敗")
 
         logger.info("[MODIFY_NOTE_TOOL] Note modified successfully")
 
-        return format_success_response(dict(outputs), "备忘录修改成功")
+        return format_success_response(dict(outputs), "備忘錄修改成功")
 
     except ToolInputError:
         raise
     except Exception as e:
         logger.error(f"[MODIFY_NOTE_TOOL] Failed to modify note: {e}")
-        raise RuntimeError(f"修改备忘录失败: {str(e)}") from e
+        raise RuntimeError(f"修改備忘錄失敗: {str(e)}") from e

@@ -21,7 +21,7 @@
   ],
   "status": "filtering_news",
   "emotion": "curious",
-  "speech": "我会听听大家在说什么，只留下真正有用的信息。",
+  "speech": "我會聽聽大家在說什麼，只留下真正有用的資訊。",
   "memory_template": "Used gossip.filter: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

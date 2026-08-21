@@ -1,5 +1,5 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
-"""兼容 openjiuwen<0.1.9 的 AsyncCallbackFramework API 缺口（如 unregister_sync）。"""
+"""相容 openjiuwen<0.1.9 的 AsyncCallbackFramework API 缺口（如 unregister_sync）。"""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 
 def unregister_callback_sync(framework: Any, event: str, callback: Callable | None) -> None:
-    """与 openjiuwen 0.1.9+ 的 ``unregister_sync`` 行为一致；在旧版上回退为等价的同步实现。"""
+    """與 openjiuwen 0.1.9+ 的 ``unregister_sync`` 行為一致；在舊版上回退為等價的同步實現。"""
     if callback is None:
         return
     unreg = getattr(framework, "unregister_sync", None)

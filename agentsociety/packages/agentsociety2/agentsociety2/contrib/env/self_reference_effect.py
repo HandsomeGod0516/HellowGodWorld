@@ -125,21 +125,21 @@ class SelfReferenceEffectEnv(EnvBase):
         """Generate default trait list for encoding phase"""
         # This is a simplified version - you should load from actual SRE data
         traits = [
-            {"trait": "谦和", "identity": "self", "valence": 1},
+            {"trait": "謙和", "identity": "self", "valence": 1},
             {"trait": "善良", "identity": "self", "valence": 1},
-            {"trait": "积极", "identity": "friend", "valence": 1},
-            {"trait": "整洁", "identity": "other", "valence": 1},
-            {"trait": "坦诚", "identity": "other", "valence": 1},
-            {"trait": "放荡", "identity": "self", "valence": 2},
-            {"trait": "负心", "identity": "other", "valence": 2},
-            {"trait": "恶念", "identity": "other", "valence": 2},
+            {"trait": "積極", "identity": "friend", "valence": 1},
+            {"trait": "整潔", "identity": "other", "valence": 1},
+            {"trait": "坦誠", "identity": "other", "valence": 1},
+            {"trait": "放蕩", "identity": "self", "valence": 2},
+            {"trait": "負心", "identity": "other", "valence": 2},
+            {"trait": "惡念", "identity": "other", "valence": 2},
             {"trait": "努力", "identity": "other", "valence": 1},
         ]
         return traits
 
     def _generate_new_traits(self) -> List[str]:
         """Generate new traits for recognition phase (not in encoding)"""
-        return ["聪明", "勇敢", "懒惰", "自私"]
+        return ["聰明", "勇敢", "懶惰", "自私"]
 
     @classmethod
     def mcp_description(cls) -> str:
@@ -233,7 +233,7 @@ You MUST complete judgments for ALL {len(self.recognition_traits)} recognition t
 
 2. **submit_encoding_rating(agent_id, trait, identity, rating)**: Submit rating for a trait in encoding phase
    - agent_id: Your agent ID (e.g., 101)
-   - trait: The trait adjective (e.g., "谦和")
+   - trait: The trait adjective (e.g., "謙和")
    - identity: Identity type ("self", "friend", or "other")
    - rating: Rating score (1-5, integer)
    - **CALL THIS FOR EACH TRAIT** until all are completed

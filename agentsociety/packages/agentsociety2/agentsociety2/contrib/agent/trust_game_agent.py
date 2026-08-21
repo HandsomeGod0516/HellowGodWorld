@@ -134,11 +134,11 @@ Both roles aim to maximize cumulative coins while considering trust and reciproc
                 choice = response.choices[0]
                 if hasattr(choice, "message") and choice.message:
                     return choice.message.content or ""  # type: ignore
-            return "[错误] LLM返回空响应"
+            return "[錯誤] LLM返回空響應"
         except Exception as e:
-            error_message = f"LLM调用失败: {type(e).__name__} - {str(e)}"
+            error_message = f"LLM呼叫失敗: {type(e).__name__} - {str(e)}"
             self._logger.error(f"[{self.name}] {error_message}")
-            return f"[错误] {error_message}"
+            return f"[錯誤] {error_message}"
 
     async def step(self, tick: int, t: datetime) -> str:
         """Execute one step - make investment or return decision and submit to environment"""

@@ -1,10 +1,10 @@
-# 前端显示语言：zh（中文）/ en（英文），与 Web 界面语言切换同步
+# 前端顯示語言：zh（中文）/ en（英文），與 Web 介面語言切換同步
 preferred_language: zh
 
-# 日志目录：~/.jiuwenclaw/agent/.logs/
-# gateway.log / channel.log / agent_server.log 按源码路径分流；full.log 为汇总。
-# level：未单独指定时的默认级别。console_level：控制台；可省略则用 level。
-# 环境变量 LOG_LEVEL 仅覆盖控制台级别（不覆盖各日志文件）。
+# 日誌目錄：~/.jiuwenclaw/agent/.logs/
+# gateway.log / channel.log / agent_server.log 按原始碼路徑分流；full.log 為彙總。
+# level：未單獨指定時的預設級別。console_level：控制檯；可省略則用 level。
+# 環境變數 LOG_LEVEL 僅覆蓋控制檯級別（不覆蓋各日誌檔案）。
 logging:
   level: INFO
   console_level: INFO
@@ -15,98 +15,98 @@ logging:
 
 memory:
   # ============================================================
-  # 记忆系统配置
+  # 記憶系統配置
   # ============================================================
-  # 两个正交开关：
-  #   1) engine — 挂载哪套 rail（内置 / 外接 / 都挂 / 都不挂）
-  #   2) mode   — 内置记忆的存储位置（local | cloud），不影响外接
+  # 兩個正交開關：
+  #   1) engine — 掛載哪套 rail（內建 / 外接 / 都掛 / 都不掛）
+  #   2) mode   — 內建記憶的儲存位置（local | cloud），不影響外接
   #
-  # 外接 rail 的启用 = (engine ∈ {external, both}) AND (external.provider 非空)
-  # 内置 rail 的启用 = (engine ∈ {builtin, both})  AND (mode=local)
-  #                    AND modes.agent.<当前 mode>.memory.enabled=true
+  # 外接 rail 的啟用 = (engine ∈ {external, both}) AND (external.provider 非空)
+  # 內建 rail 的啟用 = (engine ∈ {builtin, both})  AND (mode=local)
+  #                    AND modes.agent.<當前 mode>.memory.enabled=true
   # ============================================================
 
-  mode: ${MEMORY_MODE:-local}            # 内置记忆存储位置：local | cloud
-  # 记忆引擎总开关：builtin | external | both | none
-  #   builtin  — 仅内置记忆（默认，兼容旧配置）
-  #   external — 仅外接记忆（LTM / Mem0 / OpenViking / 插件）
-  #   both     — 内置 + 外接并存
-  #   none     — 全部关闭
+  mode: ${MEMORY_MODE:-local}            # 內建記憶儲存位置：local | cloud
+  # 記憶引擎總開關：builtin | external | both | none
+  #   builtin  — 僅內建記憶（預設，相容舊配置）
+  #   external — 僅外接記憶（LTM / Mem0 / OpenViking / 外掛）
+  #   both     — 內建 + 外接並存
+  #   none     — 全部關閉
   engine: ${MEMORY_ENGINE:-builtin}
   forbidden_memory_definition:
     enabled: false
     patterns: []
     description:
-      zh: "以下内容禁止记忆：密码、API密钥、Secret、Token、信用卡号、身份证号、手机号等敏感信息"
+      zh: "以下內容禁止記憶：密碼、API金鑰、Secret、Token、信用卡號、身份證號、手機號等敏感資訊"
       en: "The following content is forbidden to remember: passwords, API keys, secrets, tokens, credit card numbers, ID numbers, phone numbers and other sensitive information"
 
   # ------------------------------------------------------------
-  # 外接记忆（External Memory）
+  # 外接記憶（External Memory）
   # ------------------------------------------------------------
-  # 启用方式（任选一种）：
+  # 啟用方式（任選一種）：
   #
   # 【方案 1：YAML 直接改】
   #   memory.engine: external   # 或 both
-  #   memory.external.provider: mem0   # 选一个：openjiuwen | mem0 | openviking
-  #   # 然后在下方对应的 mem0/openjiuwen/openviking 子段填 api_key 或 endpoint
+  #   memory.external.provider: mem0   # 選一個：openjiuwen | mem0 | openviking
+  #   # 然後在下方對應的 mem0/openjiuwen/openviking 子段填 api_key 或 endpoint
   #
-  # 【方案 2：环境变量覆盖】
+  # 【方案 2：環境變數覆蓋】
   #   export MEMORY_ENGINE=external
   #   export MEMORY_EXTERNAL_PROVIDER=mem0
   #   export MEM0_API_KEY=sk-xxx
   #
-  # 【关闭外接记忆】
+  # 【關閉外接記憶】
   #   把 memory.engine 改回 builtin 或 none；
-  #   或把 memory.external.provider 留空（两者任一生效即可禁用）
+  #   或把 memory.external.provider 留空（兩者任一生效即可禁用）
   #
-  # 【挂载模式常见组合】
+  # 【掛載模式常見組合】
   #   ┌─────────────┬───────────────┬──────────────────────────────────────┐
   #   │ engine      │ provider      │ 效果                                 │
   #   ├─────────────┼───────────────┼──────────────────────────────────────┤
-  #   │ builtin     │ *             │ 只挂内置（默认；外接即使填了也不挂） │
-  #   │ external    │ openjiuwen    │ 只挂外接 LTM                         │
-  #   │ external    │ mem0          │ 只挂外接 Mem0                        │
-  #   │ external    │ openviking    │ 只挂外接 OpenViking                  │
-  #   │ external    │ <plugin-name> │ 只挂用户安装的插件                   │
-  #   │ both        │ 任一          │ 内置 + 外接同时挂（LLM 两套工具并列）│
-  #   │ none        │ *             │ 全关，任何记忆 rail 都不挂           │
+  #   │ builtin     │ *             │ 只掛內建（預設；外接即使填了也不掛） │
+  #   │ external    │ openjiuwen    │ 只掛外接 LTM                         │
+  #   │ external    │ mem0          │ 只掛外接 Mem0                        │
+  #   │ external    │ openviking    │ 只掛外接 OpenViking                  │
+  #   │ external    │ <plugin-name> │ 只掛使用者安裝的外掛                   │
+  #   │ both        │ 任一          │ 內建 + 外接同時掛（LLM 兩套工具並列）│
+  #   │ none        │ *             │ 全關，任何記憶 rail 都不掛           │
   #   └─────────────┴───────────────┴──────────────────────────────────────┘
   #
-  # 说明：
-  # - 外接记忆 mode-independent：配置一次，plan / fast 模式全程生效，
-  #   跨 config 热重载持久存活（保留 prefetch 缓存、电路断路器、会话状态）
-  # - 单 provider 策略：同一时刻 provider 只能选一个
-  # - 失败降级：provider 构建失败或网络异常不阻塞主流程
+  # 說明：
+  # - 外接記憶 mode-independent：配置一次，plan / fast 模式全程生效，
+  #   跨 config 熱過載持久存活（保留 prefetch 快取、電路斷路器、會話狀態）
+  # - 單 provider 策略：同一時刻 provider 只能選一個
+  # - 失敗降級：provider 構建失敗或網路異常不阻塞主流程
   external:
-    # 选哪家 provider。空字符串 = 禁用外接（等价于 engine=builtin）
+    # 選哪家 provider。空字串 = 禁用外接（等價於 engine=builtin）
     provider: ${MEMORY_EXTERNAL_PROVIDER:-}   # '' | openjiuwen | mem0 | openviking | <plugin-name>
-    # 数据隔离标识（所有 provider 共用）
+    # 資料隔離標識（所有 provider 共用）
     user_id: ${MEMORY_USER_ID:-__default__}
     scope_id: ${MEMORY_SCOPE_ID:-__default__}
 
-    # -- OpenJiuwen LTM（本地长期记忆：KV + 向量 + DB）--
-    # 生效条件：provider='openjiuwen'
-    # 依赖顶层 embed 段提供 embedding 配置（不单独配置 api_key）
+    # -- OpenJiuwen LTM（本地長期記憶：KV + 向量 + DB）--
+    # 生效條件：provider='openjiuwen'
+    # 依賴頂層 embed 段提供 embedding 配置（不單獨配置 api_key）
     openjiuwen:
       kv_type: shelve                                    # shelve | in_memory | sqlite
-      kv_path: ${MEMORY_KV_PATH:-}                       # 默认 ~/.jiuwenclaw/memory/ltm/kv
+      kv_path: ${MEMORY_KV_PATH:-}                       # 預設 ~/.jiuwenclaw/memory/ltm/kv
       vector_type: chroma                                # chroma
-      vector_persist_dir: ${MEMORY_VECTOR_DIR:-}         # 默认 ~/.jiuwenclaw/memory/ltm/chroma
+      vector_persist_dir: ${MEMORY_VECTOR_DIR:-}         # 預設 ~/.jiuwenclaw/memory/ltm/chroma
       db_type: sqlite
-      db_path: ${MEMORY_DB_PATH:-}                       # 默认 ~/.jiuwenclaw/memory/ltm/ltm.db
+      db_path: ${MEMORY_DB_PATH:-}                       # 預設 ~/.jiuwenclaw/memory/ltm/ltm.db
 
-    # -- Mem0（云端事实抽取+语义检索）--
-    # 生效条件：provider='mem0'
-    # 必填：api_key（从 mem0.ai 获取）
+    # -- Mem0（雲端事實抽取+語義檢索）--
+    # 生效條件：provider='mem0'
+    # 必填：api_key（從 mem0.ai 獲取）
     mem0:
       api_key: ${MEM0_API_KEY:-}
       user_id: ${MEM0_USER_ID:-jiuwenclaw-user}
       agent_id: ${MEM0_AGENT_ID:-jiuwenclaw}
-      rerank: true                                       # 搜索结果重排序（更准但更慢）
+      rerank: true                                       # 搜尋結果重排序（更準但更慢）
 
-    # -- OpenViking（字节上下文数据库）--
-    # 生效条件：provider='openviking'
-    # 必填：endpoint 可访问
+    # -- OpenViking（位元組上下文資料庫）--
+    # 生效條件：provider='openviking'
+    # 必填：endpoint 可訪問
     openviking:
       endpoint: ${OPENVIKING_ENDPOINT:-http://127.0.0.1:1933}
       api_key: ${OPENVIKING_API_KEY:-}
@@ -167,32 +167,32 @@ models:
       temperature: 0.95
 
 telemetry:
-  enabled: false                    # 总开关（环境变量 OTEL_ENABLED 优先）
+  enabled: false                    # 總開關（環境變數 OTEL_ENABLED 優先）
   exporter: otlp                    # otlp / console / none
   endpoint: http://localhost:4317   # OTLP endpoint
   protocol: grpc                    # grpc / http
-  headers: {}                       # 公共 OTLP headers，可被 traces/metrics 覆盖
-  log_messages: true                # 是否在 span event 中记录完整消息内容
+  headers: {}                       # 公共 OTLP headers，可被 traces/metrics 覆蓋
+  log_messages: true                # 是否在 span event 中記錄完整訊息內容
   service_name: jiuwenclaw
-  provider_factory:                 # 自定义 provider factory，格式：module:function
+  provider_factory:                 # 自定義 provider factory，格式：module:function
   traces:
-    exporter:                       # trace exporter，默认回退到 telemetry.exporter
-    endpoint:                       # trace endpoint，默认回退到 telemetry.endpoint
-    protocol:                       # trace protocol，默认回退到 telemetry.protocol
-    headers: {}                     # trace headers，默认回退到 telemetry.headers
+    exporter:                       # trace exporter，預設回退到 telemetry.exporter
+    endpoint:                       # trace endpoint，預設回退到 telemetry.endpoint
+    protocol:                       # trace protocol，預設回退到 telemetry.protocol
+    headers: {}                     # trace headers，預設回退到 telemetry.headers
   metrics:
-    exporter:                       # metrics exporter，默认回退到 telemetry.exporter
-    endpoint:                       # metrics endpoint，默认回退到 telemetry.endpoint
-    protocol:                       # metrics protocol，默认回退到 telemetry.protocol
-    headers: {}                     # metrics headers，默认回退到 telemetry.headers
+    exporter:                       # metrics exporter，預設回退到 telemetry.exporter
+    endpoint:                       # metrics endpoint，預設回退到 telemetry.endpoint
+    protocol:                       # metrics protocol，預設回退到 telemetry.protocol
+    headers: {}                     # metrics headers，預設回退到 telemetry.headers
 
 react:
   agent_name: main_agent
   max_iterations: 100
   model_name: ${MODEL_NAME:-deepseek-chat}
   skill_mode: all
-  # code_agent / research_agent 默认不启用；只有显式配置 enabled: true 才会显示并可被 task_tool 调用
-  # browser_agent 保持原行为，仍由浏览器 runtime 开关决定是否默认注册；这里只支持覆盖其参数
+  # code_agent / research_agent 預設不啟用；只有顯式配置 enabled: true 才會顯示並可被 task_tool 呼叫
+  # browser_agent 保持原行為，仍由瀏覽器 runtime 開關決定是否預設註冊；這裡只支援覆蓋其引數
   subagents:
     code_agent:
       enabled: false
@@ -252,11 +252,11 @@ react:
       third_pass_target_tokens: 10000
       truncate_head_ratio: 0.2
       offload_writeback_enabled: false
-  # Skills 在线自演进配置
+  # Skills 線上自演進配置
   evolution:
-    enabled: true             # true = 启用在线 Skills 自演进
-    auto_scan: false           # true = 每轮对话后自动扫描（建议先用手动 /evolve）
-    skill_base_dir: "agent/skills"  # Skill 根目录
+    enabled: true             # true = 啟用線上 Skills 自演進
+    auto_scan: false           # true = 每輪對話後自動掃描（建議先用手動 /evolve）
+    skill_base_dir: "agent/skills"  # Skill 根目錄
   a2x_registry:
     base_url: "http://127.0.0.1:8000"
     timeout: 30.0
@@ -302,23 +302,23 @@ task_memory:
   summary_algo: ACE
 
 gateway:
-  # SessionMap 仅用于企业claw场景，如 feishu_enterprise 等通道：将平台身份映射为 Agent 的 session_id。
-  # 取值：per_chat_bot（默认，同 chat+bot 共享会话）, per_chat_bot_user（按 user 分会话）
+  # SessionMap 僅用於企業claw場景，如 feishu_enterprise 等通道：將平臺身份對映為 Agent 的 session_id。
+  # 取值：per_chat_bot（預設，同 chat+bot 共享會話）, per_chat_bot_user（按 user 分會話）
   session_map_scope: per_chat_bot
 
 heartbeat:
-  # 心跳间隔（秒），默认 60
+  # 心跳間隔（秒），預設 60
   every: 3600
-  # 心跳结果回传的 channel（如 "web"），
+  # 心跳結果回傳的 channel（如 "web"），
   target: web
-  # 心跳生效时间段（本地时间），start <= now < end 时心跳生效
+  # 心跳生效時間段（本地時間），start <= now < end 時心跳生效
   active_hours:
     start: 08:00
     end: 22:00
 
 channels:
   feishu:
-    # 飞书应用配置
+    # 飛書應用配置
     app_id:
     app_secret:
     encrypt_key:
@@ -327,13 +327,13 @@ channels:
     enable_streaming: false
     enabled: false
     send_file_allowed: true
-    # 群聊数字分身（默认关闭）
+    # 群聊數字分身（預設關閉）
     group_digital_avatar: false
     my_user_id: ""
     bot_name: ""
     enable_memory: false
   feishu_enterprise:
-    # 企业飞书多 Bot 配置（每个 bot 会注册为独立 channel: feishu_enterprise:<app_id>）
+    # 企業飛書多 Bot 配置（每個 bot 會註冊為獨立 channel: feishu_enterprise:<app_id>）
     # bot_a:
     #   app_id:
     #   app_secret:
@@ -344,7 +344,7 @@ channels:
     #   chat_id:
     #   enabled: false
   xiaoyi:
-    # 华为小艺 A2A 配置
+    # 華為小藝 A2A 配置
     mode: xiaoyi_channel
     ak:
     sk:
@@ -360,11 +360,11 @@ channels:
     api_key:
     push_url:
     file_upload_url:
-    # 小艺手机端插件tools调用，会添加相关tools到系统提示词
+    # 小藝手機端外掛tools呼叫，會新增相關tools到系統提示詞
     phone_tools_enabled: false
     send_file_allowed: true
   dingtalk:
-    # 钉钉应用配置
+    # 釘釘應用配置
     client_id:
     client_secret:
     allow_from: []
@@ -372,33 +372,33 @@ channels:
     send_file_allowed: true
   telegram:
     # Telegram Bot 配置
-    # 从 @BotFather 获取 bot_token
+    # 從 @BotFather 獲取 bot_token
     bot_token:
-    # 用户白名单（Telegram user_id），为空则允许所有用户
+    # 使用者白名單（Telegram user_id），為空則允許所有使用者
     allow_from: []
-    # 消息解析模式: Markdown, HTML, None
+    # 訊息解析模式: Markdown, HTML, None
     parse_mode: Markdown
-    # 群聊模式: mention(仅响应@提及), reply(仅响应回复), all(响应所有), off(禁用群聊)
+    # 群聊模式: mention(僅響應@提及), reply(僅響應回覆), all(響應所有), off(禁用群聊)
     group_chat_mode: mention
     enabled: false
   discord:
-    # Discord Bot 配置（当前版本仅支持参数管理）
-    # 可与用户私聊（DM）：仍受 allow_from 约束
+    # Discord Bot 配置（當前版本僅支援引數管理）
+    # 可與使用者私聊（DM）：仍受 allow_from 約束
     # Bot Token（Discord Developer Portal -> Bot）
     bot_token:
     # Application ID（Discord Developer Portal -> General Information）
     application_id:
-    # 目标服务器 ID（Guild ID）
+    # 目標伺服器 ID（Guild ID）
     guild_id:
-    # 目标频道 ID（Channel ID）
+    # 目標頻道 ID（Channel ID）
     channel_id:
-    # 用户白名单（Discord user_id），为空则允许所有用户
+    # 使用者白名單（Discord user_id），為空則允許所有使用者
     allow_from: []
-    # 是否关闭私信功能
+    # 是否關閉私信功能
     block_dm: false
     enabled: false
   whatsapp:
-    # WhatsApp 配置（通过本地 Baileys bridge）
+    # WhatsApp 配置（透過本地 Baileys bridge）
     bridge_ws_url: ws://127.0.0.1:19600/ws
     default_jid:
     allow_from: []
@@ -408,7 +408,7 @@ channels:
     bridge_workdir:
     enabled: false
   wechat:
-    # 个人微信 iLink Bot API 配置
+    # 個人微信 iLink Bot API 配置
     enable_streaming: false
     base_url: https://ilinkai.weixin.qq.com
     bot_token:
@@ -423,7 +423,7 @@ channels:
     credential_file: ~/.wx-ai-bridge/credentials.json
     enabled: false
   wecom:
-    # 企业微信 AI 机器人配置
+    # 企業微信 AI 機器人配置
     bot_id:
     secret:
     ws_url: wss://openws.work.weixin.qq.com
@@ -432,22 +432,22 @@ channels:
     send_thinking_message: false
     enabled: false
     send_file_allowed: true
-    # 群聊数字分身（默认关闭）
+    # 群聊數字分身（預設關閉）
     group_digital_avatar: false
     my_user_id: ""
     bot_name: ""
     enable_memory: false
 
-# ========== 细粒度权限管控（tiered_policy）==========
+# ========== 細粒度許可權管控（tiered_policy）==========
 #
-# schema: tiered_policy（或兼容 v_cc / v4.2）时由 tiered_policy.evaluate_tiered_policy 求值；
-# permission_mode: normal|strict 决定 severity 映射，见 agentserver/permissions/tiered_policy.py。
+# schema: tiered_policy（或相容 v_cc / v4.2）時由 tiered_policy.evaluate_tiered_policy 求值；
+# permission_mode: normal|strict 決定 severity 對映，見 agentserver/permissions/tiered_policy.py。
 # severity（normal）：LOW/MEDIUM→allow，HIGH/CRITICAL→ask；strict 下 MEDIUM→ask、CRITICAL→deny。
-# rules[*].action: 可选显式动作 allow|ask|deny；配置后优先于 severity 映射，适合敏感文件读取、
-# 系统控制等不希望随 permission_mode 漂移的规则。
-# 内置参数规则 > 用户 rules；整工具存在则不用 defaults；详见 tiered_policy 模块说明。
+# rules[*].action: 可選顯式動作 allow|ask|deny；配置後優先於 severity 對映，適合敏感檔案讀取、
+# 系統控制等不希望隨 permission_mode 漂移的規則。
+# 內建引數規則 > 使用者 rules；整工具存在則不用 defaults；詳見 tiered_policy 模組說明。
 #
-# 三种动作: allow / ask / deny
+# 三種動作: allow / ask / deny
 permissions:
   enabled: false
   schema: tiered_policy
@@ -474,11 +474,11 @@ permissions:
     todo_complete: allow
     todo_remove: allow
     todo_list: allow
-    # Coding Memory 工具权限
+    # Coding Memory 工具許可權
     coding_memory_write: allow
     coding_memory_edit: allow
     coding_memory_read: allow
-    # 外接记忆工具（External Memory — OpenJiuwen / Mem0 / OpenViking）
+    # 外接記憶工具（External Memory — OpenJiuwen / Mem0 / OpenViking）
     ltm_search: allow
     ltm_search_summary: allow
     mem0_profile: allow
@@ -594,11 +594,11 @@ permissions:
       pattern: "**/.env*"
       severity: HIGH
 
-  # 数字分身 owner-scoped 权限（默认空，不生效）
+  # 數字分身 owner-scoped 許可權（預設空，不生效）
   owner_scopes: {}
   deny_guidance_message: ""
 
-  # 外部目录访问 (访问 workspace 外路径时的权限)
+  # 外部目錄訪問 (訪問 workspace 外路徑時的許可權)
   external_directory:
     "*": "ask"
 
@@ -625,7 +625,7 @@ updater:
   timeout_seconds: 20
 
 extensions:
-  # 扩展包搜索目录（字符串），用 ';' 分割多个目录：
+  # 擴充套件包搜尋目錄（字串），用 ';' 分割多個目錄：
   # EXTENSION_DIRS="E:/a;D:/b"
   extension_dirs: ${EXTENSION_DIRS:-}
 
@@ -645,8 +645,8 @@ team:
 
   leader:
     member_name: team_leader
-    display_name: 团队领导
-    persona: "天才项目管理专家，擅长任务分解和团队协调"
+    display_name: 團隊領導
+    persona: "天才專案管理專家，擅長任務分解和團隊協調"
 
   agents:
     leader:
@@ -700,9 +700,9 @@ mcp:
   #     timeout_s: 30
 
 modes:
-  # 一级模式 agent / code / team
+  # 一級模式 agent / code / team
   agent:
-    # agent 模式支持 性能/规划/集群
+    # agent 模式支援 效能/規劃/叢集
     fast:
       memory:
         enabled: true
@@ -716,17 +716,17 @@ modes:
       rails:
       tools:
   code:
-    # 动态 Rails — 列表中出现的 = 启用；不出现的 = 不启用
+    # 動態 Rails — 列表中出現的 = 啟用；不出現的 = 不啟用
     # 固定 Rails（RuntimePromptRail/ResponsePromptRail/JiuClawStreamEventRail/SecurityRail/PermissionInterruptRail）
-    # 写死在代码中，不在此配置
+    # 寫死在程式碼中，不在此配置
     rails:
       - FileSystemRail
       - SkillUseRail
       - LspRail
 
-    # 动态 Tools — 列表中出现的 = 启用
-    # send_file_to_user 由运行时 _update_session_tools 注册，不在此配置
-    # coding_memory_read/write/edit 由 CodingMemoryRail 在 subagent 内部注册，不在此配置
+    # 動態 Tools — 列表中出現的 = 啟用
+    # send_file_to_user 由執行時 _update_session_tools 註冊，不在此配置
+    # coding_memory_read/write/edit 由 CodingMemoryRail 在 subagent 內部註冊，不在此配置
     tools:
       - web_free_search
       - web_fetch_webpage
@@ -746,8 +746,8 @@ modes:
 
       leader:
         member_name: team_leader
-        display_name: 团队领导
-        persona: "天才项目管理专家，擅长任务分解和团队协调"
+        display_name: 團隊領導
+        persona: "天才專案管理專家，擅長任務分解和團隊協調"
 
       agents:
         leader:

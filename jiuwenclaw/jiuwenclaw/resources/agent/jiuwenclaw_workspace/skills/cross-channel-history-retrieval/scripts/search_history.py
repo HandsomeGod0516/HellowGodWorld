@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-# 尝试从 jiuwenclaw.utils 导入，如果失败则使用环境变量或硬编码路径
+# 嘗試從 jiuwenclaw.utils 匯入，如果失敗則使用環境變數或硬編碼路徑
 try:
     from jiuwenclaw.utils import get_agent_sessions_dir
     _has_jiuwenclaw = True
@@ -25,14 +25,14 @@ try:
 except ImportError:  # pragma: no cover
     ZoneInfo = None  # type: ignore[assignment]
 
-# 固定首行标记：在 mcp_exec_command 回显或日志里 grep `SKILL=cross-channel-history-retrieval` 即可确认本脚本被运行。
+# 固定首行標記：在 mcp_exec_command 回顯或日誌裡 grep `SKILL=cross-channel-history-retrieval` 即可確認本指令碼被執行。
 _SKILL_ID = "cross-channel-history-retrieval"
 
 _REPORT_LOG = logging.getLogger("jiuwenclaw.skill.cross_channel_history_retrieval")
 
 
 def _configure_report_logging() -> None:
-    """仅输出纯文本行（与原先 print 一致），默认写到 stderr，供 mcp_exec_command 一并捕获。"""
+    """僅輸出純文字行（與原先 print 一致），預設寫到 stderr，供 mcp_exec_command 一併捕獲。"""
     if _REPORT_LOG.handlers:
         return
     _REPORT_LOG.setLevel(logging.INFO)
@@ -47,10 +47,10 @@ def _report_line(s: str = "") -> None:
 
 
 def _align_stdio_for_pipe_capture() -> None:
-    """非 TTY（如 mcp_exec_command 管道捕获）时，按系统首选编码写出 stdout/stderr。
+    """非 TTY（如 mcp_exec_command 管道捕獲）時，按系統首選編碼寫出 stdout/stderr。
 
-    与 agentserver `mcp_exec_command` 的 `locale.getpreferredencoding(False)` 解码一致，
-    避免子进程默认 UTF-8 与父进程按 GBK/CP936 解码产生乱码。交互终端不改动，以免干扰本机 UTF-8 控制台。
+    與 agentserver `mcp_exec_command` 的 `locale.getpreferredencoding(False)` 解碼一致，
+    避免子程序預設 UTF-8 與父程序按 GBK/CP936 解碼產生亂碼。互動終端不改動，以免干擾本機 UTF-8 控制檯。
     """
     if sys.stdout.isatty():
         return
@@ -136,7 +136,7 @@ def _parse_user_dt(s: str, tz: timezone) -> datetime:
             dt = dt.replace(tzinfo=tz)
         return dt
     except Exception as exc:
-        raise ValueError(f"无法解析时间: {s}") from exc
+        raise ValueError(f"無法解析時間: {s}") from exc
 
 
 def _read_history_file(path: Path) -> list[dict[str, Any]]:
@@ -286,7 +286,7 @@ def _emit_search_report(
 
     _report_line("HISTORY_CONTEXT_BLOCK_BEGIN")
     if not hits:
-        _report_line("未命中任何历史记录。")
+        _report_line("未命中任何歷史記錄。")
     else:
         for idx, h in enumerate(hits, start=1):
             _report_line(

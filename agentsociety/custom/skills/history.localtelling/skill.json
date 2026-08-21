@@ -21,7 +21,7 @@
   ],
   "status": "storytelling",
   "emotion": "warm",
-  "speech": "我想用一个本地故事帮大家理解这件事。",
+  "speech": "我想用一個本地故事幫大家理解這件事。",
   "memory_template": "Used history.localtelling: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""WecomChannel - 企业微信 AI 机器人通道（WebSocket 长连接）。"""
+"""WecomChannel - 企業微信 AI 機器人通道（WebSocket 長連線）。"""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ except ImportError:
 
 
 class WecomConfig(BaseModel):
-    """企业微信通道配置（WebSocket 长连接）。"""
+    """企業微信通道配置（WebSocket 長連線）。"""
 
     enabled: bool = False
     bot_id: str = ""
@@ -49,22 +49,22 @@ class WecomConfig(BaseModel):
     my_user_id: str = ""
     bot_name: str = ""
     message_merge_window_ms: int = 15000
-    group_digital_avatar: bool = False  # 是否启用群聊数字分身功能
-    enable_memory: bool = False  # 是否启用群聊记忆功能
-    # 文件处理配置
-    max_download_size: int = 100 * 1024 * 1024  # 最大下载文件大小（默认 100MB）
-    download_timeout: int = 60  # 下载超时时间（秒）
-    send_file_allowed: bool = True  # 是否启用文件上传功能
-    enable_file_download: bool = True  # 是否启用文件下载功能
-    workspace_dir: str = ""  # 工作空间目录
+    group_digital_avatar: bool = False  # 是否啟用群聊數字分身功能
+    enable_memory: bool = False  # 是否啟用群聊記憶功能
+    # 檔案處理配置
+    max_download_size: int = 100 * 1024 * 1024  # 最大下載檔案大小（預設 100MB）
+    download_timeout: int = 60  # 下載超時時間（秒）
+    send_file_allowed: bool = True  # 是否啟用檔案上傳功能
+    enable_file_download: bool = True  # 是否啟用檔案下載功能
+    workspace_dir: str = ""  # 工作空間目錄
 
 
 class WecomChannel(BaseChannel):
     """
-    企业微信 AI 机器人通道，基于 WebSocket 长连接。
+    企業微信 AI 機器人通道，基於 WebSocket 長連線。
 
-    依赖：
-    - 企业微信后台创建 AI 机器人，获取 bot_id 和 secret
+    依賴：
+    - 企業微信後臺建立 AI 機器人，獲取 bot_id 和 secret
     """
 
     name = "wecom"
@@ -92,9 +92,9 @@ class WecomChannel(BaseChannel):
         self._stream_completed_requests: set[str] = set()
         self._message_storage = MessageStore(api_client=None)
         self._im_platform_adapter: Any = im_platform_adapter
-        # 文件服务
+        # 檔案服務
         self._file_service: Any = None
-        # 按 request_id 记录已发送文件路径，避免重复发送
+        # 按 request_id 記錄已傳送檔案路徑，避免重複傳送
         self._sent_file_paths_by_req: dict[str, set[str]] = {}
 
     @property
@@ -102,17 +102,17 @@ class WecomChannel(BaseChannel):
         return self.name
 
     def on_message(self, callback: Callable[[Message], None]) -> None:
-        """注册消息回调，供 ChannelManager 使用。"""
+        """註冊訊息回撥，供 ChannelManager 使用。"""
         self._message_callback = callback
 
     def set_platform_adapter(self, adapter: Any) -> None:
-        """设置平台适配器。"""
+        """設定平臺介面卡。"""
         self._im_platform_adapter = adapter
         self._message_storage.set_platform_adapter(adapter)
 
     @staticmethod
     def _looks_like_msgid(val: str) -> bool:
-        """过滤 msgid（长数字），避免误作 chatid 导致 93006。"""
+        """過濾 msgid（長數字），避免誤作 chatid 導致 93006。"""
         if not val or not isinstance(val, str):
             return True
         s = val.strip()
@@ -121,7 +121,7 @@ class WecomChannel(BaseChannel):
         return s.isdigit()
 
     def _extract_chatid_from_frame(self, frame: dict) -> str:
-        """从 SDK frame 提取 chatid。"""
+        """從 SDK frame 提取 chatid。"""
         body = frame.get("body") or {}
         if not isinstance(body, dict):
             body = {}
@@ -151,11 +151,11 @@ class WecomChannel(BaseChannel):
         )
 
     def _extract_frame_info(self, frame: dict) -> tuple[str, str, str]:
-        """从 SDK frame 提取 chatid、req_id、content。"""
+        """從 SDK frame 提取 chatid、req_id、content。"""
         body = frame.get("body") or {}
         if not isinstance(body, dict):
             body = {}
-        # 若 frame 无 body 但含 msgtype，则 frame 本身即消息体（扁平结构）
+        # 若 frame 無 body 但含 msgtype，則 frame 本身即訊息體（扁平結構）
         if not body and frame.get("msgtype"):
             body = frame
 
@@ -181,11 +181,11 @@ class WecomChannel(BaseChannel):
         return chatid, req_id, str(content or "").strip()
 
     def _get_target_user_id(self) -> str:
-        """返回当前数字分身对应的用户 ID。"""
+        """返回當前數字分身對應的使用者 ID。"""
         return (self.config.my_user_id or "").strip()
 
     def _is_duplicate_message(self, message_id: str) -> bool:
-        """检查消息是否重复。"""
+        """檢查訊息是否重複。"""
         if message_id in self._message_dedup_cache:
             return True
 
@@ -198,13 +198,13 @@ class WecomChannel(BaseChannel):
 
     _GROUP_PROGRESS_HINT_DELAY_SECONDS = 6.0
     _GROUP_PROGRESS_HINT_TEXTS: tuple[str, ...] = (
-        "我先确认下，马上回复。",
-        "这个我在处理，稍等我一下。",
+        "我先確認下，馬上回復。",
+        "這個我在處理，稍等我一下。",
     )
 
     @staticmethod
     def _should_send_group_ack(metadata: dict[str, Any]) -> bool:
-        """仅在待办/提醒类私发场景下，才补发群内短确认。"""
+        """僅在待辦/提醒類私發場景下，才補發群內短確認。"""
         if bool(metadata.get("is_cron_job")):
             return False
         
@@ -230,17 +230,17 @@ class WecomChannel(BaseChannel):
             logger.info("[WecomChannel] _should_send_group_ack: reply_reason不符合，返回False")
             return False
         if not wecom_chat_id:
-            logger.info("[WecomChannel] _should_send_group_ack: 无wecom_chat_id，返回False")
+            logger.info("[WecomChannel] _should_send_group_ack: 無wecom_chat_id，返回False")
             return False
         if not reply_personal_action:
-            logger.info("[WecomChannel] _should_send_group_ack: reply_personal_action为False，返回False")
+            logger.info("[WecomChannel] _should_send_group_ack: reply_personal_action為False，返回False")
             return False
         logger.info("[WecomChannel] _should_send_group_ack: 返回True")
         return True
 
     @staticmethod
     def _should_send_interaction_ack(metadata: dict[str, Any]) -> bool:
-        """追问场景下，群内补发简短确认。"""
+        """追問場景下，群內補發簡短確認。"""
         if bool(metadata.get("is_cron_job")):
             return False
         has_interaction = bool(metadata.get("interaction_mention_user")) or bool(
@@ -253,7 +253,7 @@ class WecomChannel(BaseChannel):
         return True
 
     async def _send_interaction_ack(self, metadata: dict[str, Any]) -> None:
-        """追问场景下在群内补发简短确认。"""
+        """追問場景下在群內補發簡短確認。"""
         try:
             group_chat_id = str(metadata.get("wecom_chat_id") or "").strip()
             if not group_chat_id or not self._ws_client:
@@ -261,24 +261,24 @@ class WecomChannel(BaseChannel):
 
             mention_name = str(metadata.get("interaction_mention_user") or "").strip()
             if mention_name:
-                ack_text = f"已向 {mention_name} 追问，等回复后继续处理。"
+                ack_text = f"已向 {mention_name} 追問，等回覆後繼續處理。"
             else:
-                ack_text = "已私聊确认，等回复后继续处理。"
+                ack_text = "已私聊確認，等回覆後繼續處理。"
 
             body = {"msgtype": "markdown", "markdown": {"content": ack_text}}
             await self._ws_client.send_message(group_chat_id, body)
-            logger.info("[WecomChannel] 追问确认已发送: chat_id=%s", group_chat_id)
+            logger.info("[WecomChannel] 追問確認已傳送: chat_id=%s", group_chat_id)
         except Exception as e:
-            logger.warning("[WecomChannel] 追问确认发送失败: %s", e)
+            logger.warning("[WecomChannel] 追問確認傳送失敗: %s", e)
 
     @staticmethod
     def _fallback_group_ack() -> str:
-        """群内短回复兜底文案。"""
-        return "好的，我知道了，会跟进处理。"
+        """群內短回覆兜底文案。"""
+        return "好的，我知道了，會跟進處理。"
 
     @classmethod
     def _normalize_group_ack_text(cls, target_name: str, text: str) -> str:
-        """过滤掉机器人旁白式短回复。"""
+        """過濾掉機器人旁白式短回覆。"""
         normalized = re.split(r"[\r\n]+", (text or "").strip(), maxsplit=1)[0]
         normalized = re.sub(r"\s+", " ", normalized).strip(' "\'""''「」')
         if not normalized:
@@ -289,13 +289,13 @@ class WecomChannel(BaseChannel):
             "已通知",
             "私下通知",
             "私聊",
-            "转告",
+            "轉告",
             "提醒了",
             "通知了",
-            "告诉了",
-            "帮你",
-            "帮您",
-            "代为",
+            "告訴了",
+            "幫你",
+            "幫您",
+            "代為",
         )
         if target_name and target_name in normalized:
             return ""
@@ -304,7 +304,7 @@ class WecomChannel(BaseChannel):
         return normalized
 
     def _generate_group_ack_sync(self, target_name: str, content: str) -> str:
-        """调用轻量 LLM 生成群内简短确认文案。"""
+        """呼叫輕量 LLM 生成群內簡短確認文案。"""
         api_key = os.getenv("API_KEY", "").strip()
         api_base = os.getenv("API_BASE", "").strip()
         model_name = os.getenv("MODEL_NAME", "").strip() or "GLM-4.7"
@@ -312,18 +312,18 @@ class WecomChannel(BaseChannel):
             return self._fallback_group_ack()
 
         prompt = (
-            "你是一个企业微信群聊机器人。群里有一条需要{name}关注的消息,"
-            "你已经把详细回复私发给了{name}。"
-            "现在群里需要补一句很短的话，但这句话必须像{name}本人在群里的直接回复,"
-            "而不是机器人旁白或转述。\n\n"
+            "你是一個企業微信群聊機器人。群裡有一條需要{name}關注的訊息,"
+            "你已經把詳細回覆私發給了{name}。"
+            "現在群裡需要補一句很短的話，但這句話必須像{name}本人在群裡的直接回復,"
+            "而不是機器人旁白或轉述。\n\n"
             "要求：\n"
-            "- 一句话，不超过30个字\n"
-            "- 用第一人称口吻，像当事人本人在说话\n"
+            "- 一句話，不超過30個字\n"
+            "- 用第一人稱口吻，像當事人本人在說話\n"
             "- 不要提到{name}的名字\n"
-            "- 不要写成'我已经提醒了{name}''已通知{name}''我帮{name}处理了'这类机器人/第三人称表达\n"
-            "- 更像'好的，我知道了，会准时参加会议''收到，我会跟进这件事'\n"
-            "- 不要照搬原文，保留核心动作即可\n\n"
-            "你私发给{name}的内容是：\n{content}"
+            "- 不要寫成'我已經提醒了{name}''已通知{name}''我幫{name}處理了'這類機器人/第三人稱表達\n"
+            "- 更像'好的，我知道了，會準時參加會議''收到，我會跟進這件事'\n"
+            "- 不要照搬原文，保留核心動作即可\n\n"
+            "你私發給{name}的內容是：\n{content}"
         ).format(   
             name=target_name,
             content=content[:500],
@@ -351,14 +351,14 @@ class WecomChannel(BaseChannel):
                 if text:
                     return text
         except Exception as e:
-            logger.warning("[WecomChannel] 生成群确认文案失败，使用回退: %s", e)
+            logger.warning("[WecomChannel] 生成群確認文案失敗，使用回退: %s", e)
 
         return self._fallback_group_ack()
 
     async def _send_group_ack(self, metadata: dict[str, Any], content: str) -> None:
-        """后台生成并发送群内简短确认，不阻塞主回复。"""
+        """後臺生成併傳送群內簡短確認，不阻塞主回覆。"""
         try:
-            target_name = str(metadata.get("reply_target_name") or "").strip() or "对方"
+            target_name = str(metadata.get("reply_target_name") or "").strip() or "對方"
             group_chat_id = str(metadata.get("wecom_chat_id") or "").strip()
             if not group_chat_id:
                 return
@@ -371,12 +371,12 @@ class WecomChannel(BaseChannel):
                     group_chat_id,
                     {"msgtype": "markdown", "markdown": {"content": ack_text}},
                 )
-                logger.info("[WecomChannel] 群确认已发送: chat_id=%s text=%s", group_chat_id, ack_text[:50])
+                logger.info("[WecomChannel] 群確認已傳送: chat_id=%s text=%s", group_chat_id, ack_text[:50])
         except Exception as e:
-            logger.warning("[WecomChannel] 后台群确认发送失败: %s", e)
+            logger.warning("[WecomChannel] 後臺群確認傳送失敗: %s", e)
 
     def _should_send_group_progress_hint(self, metadata: dict[str, Any]) -> bool:
-        """仅对群聊消息展示轻量处理进度。仅在数字分身模式下启用。"""
+        """僅對群聊訊息展示輕量處理進度。僅在數字分身模式下啟用。"""
         if not self.config.group_digital_avatar:
             return False
         return (
@@ -385,7 +385,7 @@ class WecomChannel(BaseChannel):
         )
 
     def _build_group_progress_hint_text(self, metadata: dict[str, Any]) -> str:
-        """根据场景挑选一条尽量自然的群内处理提示。"""
+        """根據場景挑選一條儘量自然的群內處理提示。"""
         try:
             merged_count = int(metadata.get("merged_count", 1) or 1)
         except (TypeError, ValueError):
@@ -401,7 +401,7 @@ class WecomChannel(BaseChannel):
         return self._GROUP_PROGRESS_HINT_TEXTS[0]
 
     def _clear_group_progress_state(self, request_id: str) -> None:
-        """清理指定请求的延迟提示任务和已发送标记。"""
+        """清理指定請求的延遲提示任務和已傳送標記。"""
         pending_task = self._pending_group_progress_tasks.pop(request_id, None)
         if pending_task and not pending_task.done():
             pending_task.cancel()
@@ -410,11 +410,11 @@ class WecomChannel(BaseChannel):
     def _should_schedule_group_progress_hint(
         self, request_id: str, metadata: dict[str, Any]
     ) -> bool:
-        """判断是否需要安排群内处理提示。
+        """判斷是否需要安排群內處理提示。
 
         Args:
-            request_id: 请求ID
-            metadata: 请求元数据
+            request_id: 請求ID
+            metadata: 請求後設資料
 
         Returns:
             bool: 是否需要安排提示
@@ -430,7 +430,7 @@ class WecomChannel(BaseChannel):
         return True
 
     def _schedule_group_progress_hint(self, request_id: str, metadata: dict[str, Any]) -> None:
-        """为慢请求安排一条延迟发送的群内处理提示。"""
+        """為慢請求安排一條延遲傳送的群內處理提示。"""
         if not self._should_schedule_group_progress_hint(request_id, metadata):
             return
 
@@ -443,7 +443,7 @@ class WecomChannel(BaseChannel):
     async def _send_group_progress_hint_after_delay(
         self, request_id: str, metadata: dict[str, Any]
     ) -> None:
-        """仅在请求持续较久时，补发一条极短群内处理提示。"""
+        """僅在請求持續較久時，補發一條極短群內處理提示。"""
         try:
             await asyncio.sleep(self._GROUP_PROGRESS_HINT_DELAY_SECONDS)
             if self._pending_group_progress_tasks.get(request_id) is not asyncio.current_task():
@@ -465,13 +465,13 @@ class WecomChannel(BaseChannel):
                 )
                 self._sent_group_progress_requests.add(request_id)
                 logger.info(
-                    "[WecomChannel] 群进度提示已发送: request_id=%s chat_id=%s text=%s",
+                    "[WecomChannel] 群進度提示已傳送: request_id=%s chat_id=%s text=%s",
                     request_id,
                     group_chat_id,
                     hint_text,
                 )
         except Exception as e:
-            logger.warning("[WecomChannel] 群进度提示发送失败: %s", e)
+            logger.warning("[WecomChannel] 群進度提示傳送失敗: %s", e)
         finally:
             if self._pending_group_progress_tasks.get(request_id) is asyncio.current_task():
                 self._pending_group_progress_tasks.pop(request_id, None)
@@ -483,16 +483,16 @@ class WecomChannel(BaseChannel):
         target_user_id: str,
         event_type: Any,
     ) -> bool:
-        """判断是否应该私发消息给目标用户。
+        """判斷是否應該私發訊息給目標使用者。
 
         Args:
-            is_dm_intent: 是否有私发意图
-            chat_type: 聊天类型
-            target_user_id: 目标用户 ID
-            event_type: 消息事件类型
+            is_dm_intent: 是否有私發意圖
+            chat_type: 聊天型別
+            target_user_id: 目標使用者 ID
+            event_type: 訊息事件型別
 
         Returns:
-            bool: 是否应该私发
+            bool: 是否應該私發
         """
         return (
             is_dm_intent
@@ -504,7 +504,7 @@ class WecomChannel(BaseChannel):
     async def _handle_processing_status_event(
         self, msg: Message, metadata: dict[str, Any], payload: dict[str, Any]
     ) -> None:
-        """处理网关发出的 processing_status 事件。"""
+        """處理閘道器發出的 processing_status 事件。"""
         request_id = str(msg.id or "").strip()
         if not request_id or not self._should_send_group_progress_hint(metadata):
             return
@@ -518,7 +518,7 @@ class WecomChannel(BaseChannel):
     def _build_reply_metadata(
         self, *, frame: dict, sender_user_id: str, base_metadata: dict[str, Any]
     ) -> dict[str, Any]:
-        """根据群聊上下文补充默认的回复投递意图。"""
+        """根據群聊上下文補充預設的回覆投遞意圖。"""
         if not self.config.group_digital_avatar:
             return dict(base_metadata)
         metadata = dict(base_metadata)
@@ -532,7 +532,7 @@ class WecomChannel(BaseChannel):
         )
 
         if not is_group_chat or not target_user_id:
-            # 非群聊或无目标用户时，尝试从适配器获取候选用户（用于processor场景）
+            # 非群聊或無目標使用者時，嘗試從介面卡獲取候選使用者（用於processor場景）
             if self._im_platform_adapter and hasattr(self._im_platform_adapter, 'build_relevance_metadata'):
                 adapter_metadata = self._im_platform_adapter.build_relevance_metadata(
                     metadata, sender_user_id=sender_user_id, relevant=True
@@ -540,7 +540,7 @@ class WecomChannel(BaseChannel):
                 if adapter_metadata:
                     metadata.update(adapter_metadata)
                     logger.info(
-                        "[WecomChannel] 从适配器获取候选用户: %s",
+                        "[WecomChannel] 從介面卡獲取候選使用者: %s",
                         adapter_metadata.get("reply_candidate_wecom_user_id")
                     )
             return metadata
@@ -561,7 +561,7 @@ class WecomChannel(BaseChannel):
             return metadata
 
         if target_user_id == sender_user_id:
-            # 发送者是目标用户，设置为候选用户，让 IMOutboundPipeline 根据内容决定是否私发
+            # 傳送者是目標使用者，設定為候選使用者，讓 IMOutboundPipeline 根據內容決定是否私發
             target_user_name = ""
             if self._im_platform_adapter and hasattr(self._im_platform_adapter, 'resolve_user_display_name'):
                 target_user_name = self._im_platform_adapter.resolve_user_display_name(target_user_id)
@@ -570,13 +570,13 @@ class WecomChannel(BaseChannel):
             if target_user_name:
                 metadata["reply_target_name"] = target_user_name
             logger.info(
-                "[WecomChannel] _build_reply_metadata: 发送者是目标用户，设置候选用户 reply_candidate_wecom_user_id=%s",
+                "[WecomChannel] _build_reply_metadata: 傳送者是目標使用者，設定候選使用者 reply_candidate_wecom_user_id=%s",
                 target_user_id
             )
             return metadata
 
-        # 目标用户不在被@列表中，但设置为候选（后续根据内容决定是否私发）
-        # 同时设置 reply_target_name 供 LLM 判断时使用
+        # 目標使用者不在被@列表中，但設定為候選（後續根據內容決定是否私發）
+        # 同時設定 reply_target_name 供 LLM 判斷時使用
         target_user_name = ""
         if self._im_platform_adapter and hasattr(self._im_platform_adapter, 'resolve_user_display_name'):
             target_user_name = self._im_platform_adapter.resolve_user_display_name(target_user_id)
@@ -585,13 +585,13 @@ class WecomChannel(BaseChannel):
         if target_user_name:
             metadata["reply_target_name"] = target_user_name
         logger.info(
-            "[WecomChannel] _build_reply_metadata: 设置候选用户 reply_candidate_wecom_user_id=%s reply_target_name=%s",
+            "[WecomChannel] _build_reply_metadata: 設定候選使用者 reply_candidate_wecom_user_id=%s reply_target_name=%s",
             target_user_id, target_user_name
         )
         return metadata
 
     def _extract_mentioned_user_ids(self, frame: dict) -> list[str]:
-        """从企业微信消息中提取被 @ 的用户ID列表。"""
+        """從企業微信訊息中提取被 @ 的使用者ID列表。"""
         mentioned_ids: list[str] = []
         try:
             body = frame.get("body") or {}
@@ -612,7 +612,7 @@ class WecomChannel(BaseChannel):
                         elif isinstance(item, str) and item not in mentioned_ids:
                             mentioned_ids.append(item)
         except Exception as e:
-            logger.debug("[WecomChannel] 提取mentioned用户失败: %s", e)
+            logger.debug("[WecomChannel] 提取mentioned使用者失敗: %s", e)
         return mentioned_ids
 
     @staticmethod
@@ -630,7 +630,7 @@ class WecomChannel(BaseChannel):
         timestamp_ms: int,
         metadata: dict[str, Any],
     ) -> None:
-        """将同一用户的连续消息做短暂聚合，再统一交给 gateway 入站链路。"""
+        """將同一使用者的連續訊息做短暫聚合，再統一交給 gateway 入站鏈路。"""
         if self._is_control_message(content):
             await self._process_batched_message(
                 chat_id=chat_id,
@@ -726,7 +726,7 @@ class WecomChannel(BaseChannel):
 
         if len(items) > 1:
             logger.info(
-                "[WecomChannel] 合并连续消息: chat_id=%s user_id=%s count=%s",
+                "[WecomChannel] 合併連續訊息: chat_id=%s user_id=%s count=%s",
                 batch.get("chat_id", ""),
                 batch.get("user_id", ""),
                 len(items),
@@ -749,7 +749,7 @@ class WecomChannel(BaseChannel):
         timestamp_ms: int,
         metadata: dict[str, Any],
     ) -> None:
-        """对单条或合并后的消息做平台整理后转发。"""
+        """對單條或合併後的訊息做平臺整理後轉發。"""
         chat_type = metadata.get("chat_type", "")
         is_group_chat = chat_type == "group"
 
@@ -774,7 +774,7 @@ class WecomChannel(BaseChannel):
         content: str,
         metadata: dict[str, Any],
     ) -> None:
-        """内部消息处理入口。"""
+        """內部訊息處理入口。"""
         from jiuwenclaw.gateway.routing.interaction_context import PendingInteraction
 
         chat_type = metadata.get("chat_type", "")
@@ -845,13 +845,13 @@ class WecomChannel(BaseChannel):
             await self.bus.route_user_message(msg)
 
     async def _handle_incoming_message(self, frame: dict) -> None:
-        """处理 SDK 收到的消息，转换为 jiuwenclaw Message 并分发。"""
+        """處理 SDK 收到的訊息，轉換為 jiuwenclaw Message 並分發。"""
         chatid, req_id, content = self._extract_frame_info(frame)
         if not content:
-            logger.debug("WecomChannel 收到空内容，跳过")
+            logger.debug("WecomChannel 收到空內容，跳過")
             return
         if not chatid:
-            # 调试：打印 frame 结构以便排查
+            # 除錯：列印 frame 結構以便排查
             body_preview = frame.get("body") or frame
             if isinstance(body_preview, dict):
                 keys = ("msgtype", "chatid", "chat_id", "from", "msgid")
@@ -859,20 +859,20 @@ class WecomChannel(BaseChannel):
             else:
                 preview = str(body_preview)[:200]
             logger.warning(
-                "WecomChannel 无法从 frame 提取 chatid，跳过消息。frame.body 预览: %s",
+                "WecomChannel 無法從 frame 提取 chatid，跳過訊息。frame.body 預覽: %s",
                 preview,
             )
             return
 
         if self._is_duplicate_message(req_id or chatid):
-            logger.debug("[WecomChannel] 消息去重: message_id=%s", req_id)
+            logger.debug("[WecomChannel] 訊息去重: message_id=%s", req_id)
             return
 
         if not self.is_allowed(chatid):
-            logger.warning("[WecomChannel] 发送者 %s 未被允许", chatid)
+            logger.warning("[WecomChannel] 傳送者 %s 未被允許", chatid)
             return
 
-        logger.info("[WecomChannel] 收到消息: chatid=%s req_id=%s content=%s", chatid, req_id, content[:50])
+        logger.info("[WecomChannel] 收到訊息: chatid=%s req_id=%s content=%s", chatid, req_id, content[:50])
 
         body = frame.get("body") or {}
         if not isinstance(body, dict):
@@ -887,7 +887,7 @@ class WecomChannel(BaseChannel):
 
         chat_type = "group" if body.get("chattype") == "group" else "single"
 
-        # 写入 last_chat_id 和 last_user_id 供 cron/心跳推送使用
+        # 寫入 last_chat_id 和 last_user_id 供 cron/心跳推送使用
         if chatid and not self._looks_like_msgid(chatid):
             try:
                 from jiuwenclaw.common.config import update_channel_in_config
@@ -897,7 +897,7 @@ class WecomChannel(BaseChannel):
                     update_data["last_user_id"] = sender_user_id
                 update_channel_in_config("wecom", update_data)
             except Exception as e:
-                logger.warning("WecomChannel 写入 last_chat_id 失败: %s", e)
+                logger.warning("WecomChannel 寫入 last_chat_id 失敗: %s", e)
 
         req_id_final = req_id or f"wecom_{int(time.time() * 1000)}"
 
@@ -930,7 +930,7 @@ class WecomChannel(BaseChannel):
                     }
                 )
             except Exception as e:
-                logger.warning(f"[WecomChannel] 记录消息到本地存储失败: {e}")
+                logger.warning(f"[WecomChannel] 記錄訊息到本地儲存失敗: {e}")
         _effective_streaming = self.config.enable_streaming
         if self.config.group_digital_avatar and chat_type == "group":
             _effective_streaming = False
@@ -955,18 +955,18 @@ class WecomChannel(BaseChannel):
                 target_user_id = self._get_target_user_id()
                 if chat_type == "group" and target_user_id and target_user_id != sender_user_id:
                     try:
-                        ack_text = "我先确认下，马上回复。"
+                        ack_text = "我先確認下，馬上回復。"
                         await self._ws_client.send_message(
                             chatid,
                             {"msgtype": "markdown", "markdown": {"content": ack_text}}
                         )
-                        logger.info("[WecomChannel] 群聊简短确认已发送: chat_id=%s", chatid)
+                        logger.info("[WecomChannel] 群聊簡短確認已傳送: chat_id=%s", chatid)
                     except Exception as e:
-                        logger.warning("[WecomChannel] 群聊简短确认发送失败: %s", e)
+                        logger.warning("[WecomChannel] 群聊簡短確認傳送失敗: %s", e)
                 else:
                     await self._send_stream_placeholder(req_id_final)
 
-        # 数字分身模式：走消息批次合并；否则直接处理
+        # 數字分身模式：走訊息批次合併；否則直接處理
         _ts = int(time.time() * 1000)
         if self.config.group_digital_avatar:
             await self._enqueue_message_batch(
@@ -986,19 +986,19 @@ class WecomChannel(BaseChannel):
             )
 
     def _extract_chatid(self, msg: Message) -> str | None:
-        """从出站消息提取 chatid；私发模式优先使用 reply_wecom_user_id。"""
+        """從出站訊息提取 chatid；私發模式優先使用 reply_wecom_user_id。"""
         meta = getattr(msg, "metadata", None) or {}
 
         reply_scope = str(meta.get("reply_scope") or "").strip().lower()
         if reply_scope == "dm":
             dm_user_id = str(meta.get("reply_wecom_user_id") or "").strip()
             if dm_user_id:
-                logger.info("[WecomChannel] _extract_chatid: 私发模式，返回用户ID=%s", dm_user_id)
+                logger.info("[WecomChannel] _extract_chatid: 私發模式，返回使用者ID=%s", dm_user_id)
                 return dm_user_id
             else:
-                logger.warning("[WecomChannel] _extract_chatid: 私发模式但无用户ID，尝试其他方式")
+                logger.warning("[WecomChannel] _extract_chatid: 私發模式但無使用者ID，嘗試其他方式")
 
-        # cron/系统消息：优先使用 wecom_user_id 私发给用户（参考飞书 open_id 优先逻辑）
+        # cron/系統訊息：優先使用 wecom_user_id 私發給使用者（參考飛書 open_id 優先邏輯）
         msg_id = str(msg.id or "").strip()
         is_system_msg = (
             msg_id.startswith("cron-push")
@@ -1008,7 +1008,7 @@ class WecomChannel(BaseChannel):
         if is_system_msg:
             wecom_user_id = str(meta.get("wecom_user_id") or "").strip()
             if wecom_user_id:
-                logger.info("[WecomChannel] 系统消息私发给用户: user_id=%s, msg.id=%s", wecom_user_id, msg.id)
+                logger.info("[WecomChannel] 系統訊息私發給使用者: user_id=%s, msg.id=%s", wecom_user_id, msg.id)
                 return wecom_user_id
 
         chatid = (meta.get("wecom_chat_id") or "").strip()
@@ -1018,7 +1018,7 @@ class WecomChannel(BaseChannel):
 
         sid = getattr(msg, "session_id", None) or msg.id
         sid_str = str(sid) if sid else ""
-        # 系统会话（心跳、cron 等）无有效 chatid，使用 config 中的 last_chat_id
+        # 系統會話（心跳、cron 等）無有效 chatid，使用 config 中的 last_chat_id
         system_session_prefixes = ("__", "heartbeat_", "cron")
         if sid_str and not any(sid_str.startswith(p) for p in system_session_prefixes):
             if not self._looks_like_msgid(sid_str):
@@ -1027,7 +1027,7 @@ class WecomChannel(BaseChannel):
         try:
             from jiuwenclaw.common.config import get_config
             ch_cfg = (get_config().get("channels") or {}).get("wecom") or {}
-            # last_chat_id：用户聊天时自动写入；default_chat_id：可手动配置，用于心跳/定时推送
+            # last_chat_id：使用者聊天時自動寫入；default_chat_id：可手動配置，用於心跳/定時推送
             last = str(ch_cfg.get("last_chat_id") or ch_cfg.get("default_chat_id") or "").strip()
             if last and not self._looks_like_msgid(last):
                 logger.info("[WecomChannel] _extract_chatid: 返回config中的chat_id=%s", last)
@@ -1037,7 +1037,7 @@ class WecomChannel(BaseChannel):
             return None
 
     def _extract_content(self, msg: Message) -> str:
-        """从出站消息中提取文本内容。"""
+        """從出站訊息中提取文字內容。"""
         payload = getattr(msg, "payload", None) or {}
         params = getattr(msg, "params", None) or {}
         content = (
@@ -1051,30 +1051,30 @@ class WecomChannel(BaseChannel):
 
     @staticmethod
     def _strip_think_tags(text: str) -> str:
-        """移除 <think>...</think> 块及未闭合的 <think>...，避免将 Agent 的思考过程展示给用户。"""
+        """移除 <think>...</think> 塊及未閉合的 <think>...，避免將 Agent 的思考過程展示給使用者。"""
         if not text or not isinstance(text, str):
             return text or ""
-        # 1. 移除完整的 <think>...</think> 块
+        # 1. 移除完整的 <think>...</think> 塊
         text = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE | re.DOTALL)
-        # 2. 移除未闭合的 <think>...（流式场景下可能先收到 <think> 后收到 </think>）
+        # 2. 移除未閉合的 <think>...（流式場景下可能先收到 <think> 後收到 </think>）
         text = re.sub(r"<think>[\s\S]*$", "", text, flags=re.IGNORECASE | re.DOTALL)
         return text
 
     @staticmethod
     def _is_thinking_only_content(text: str) -> bool:
-        """判断内容是否为空或仅为占位符。"""
+        """判斷內容是否為空或僅為佔位符。"""
         if not text or not isinstance(text, str):
             return True
         t = text.strip()
         if not t:
             return True
-        # 纯省略号、纯点
+        # 純省略號、純點
         if re.match(r"^[.．。…\s]+$", t):
             return True
         return False
 
     def _extract_content_from_payload(self, msg: Message) -> str | None:
-        """从 chat.delta / chat.final 的 payload 提取 content，无则返回 None。"""
+        """從 chat.delta / chat.final 的 payload 提取 content，無則返回 None。"""
         payload = getattr(msg, "payload", None) or {}
         if not isinstance(payload, dict):
             return None
@@ -1085,7 +1085,7 @@ class WecomChannel(BaseChannel):
 
     @staticmethod
     def _is_reasoning_chunk(msg: Message) -> bool:
-        """判断当前消息是否为不应展示给企业微信用户的 reasoning chunk。"""
+        """判斷當前訊息是否為不應展示給企業微信使用者的 reasoning chunk。"""
         payload = getattr(msg, "payload", None) or {}
         if not isinstance(payload, dict):
             return False
@@ -1093,12 +1093,12 @@ class WecomChannel(BaseChannel):
         return source_chunk_type == "llm_reasoning"
 
     async def _send_stream_placeholder(self, req_id: str) -> None:
-        """发送流式首帧占位。PHP SDK 用 <think></think> 显示加载动画，企业微信 Markdown 可能支持。"""
+        """傳送流式首幀佔位。PHP SDK 用 <think></think> 顯示載入動畫，企業微信 Markdown 可能支援。"""
         entry = self._pending_streams.get(req_id)
         if not entry or not self._ws_client or not getattr(self._ws_client, "is_connected", False):
             return
         try:
-            # 尝试 <think></think>（PHP SDK 用法，可能渲染为加载动画）；若不支持则显示为 ...
+            # 嘗試 <think></think>（PHP SDK 用法，可能渲染為載入動畫）；若不支援則顯示為 ...
             placeholder = "<think></think>"
             await self._ws_client.reply_stream(
                 entry["frame"],
@@ -1106,22 +1106,22 @@ class WecomChannel(BaseChannel):
                 placeholder,
                 finish=False,
             )
-            logger.debug("WecomChannel 已发送流式占位: req_id=%s", req_id)
+            logger.debug("WecomChannel 已傳送流式佔位: req_id=%s", req_id)
         except Exception as e:
-            logger.debug("WecomChannel 发送流式占位失败: %s", e)
+            logger.debug("WecomChannel 傳送流式佔位失敗: %s", e)
 
     def _get_req_id_for_stream(self, msg: Message) -> str | None:
-        """从出站消息中提取 wecom_req_id，用于查找 pending stream。"""
+        """從出站訊息中提取 wecom_req_id，用於查詢 pending stream。"""
         meta = getattr(msg, "metadata", None) or {}
         return (meta.get("wecom_req_id") or "").strip() or None
 
     async def send(self, msg: Message) -> None:
-        """通过企业微信发送消息。支持流式（reply_stream）与非流式（send_message）。"""
+        """透過企業微信傳送訊息。支援流式（reply_stream）與非流式（send_message）。"""
         if not self._ws_client or not getattr(self._ws_client, "is_connected", False):
-            logger.warning("WecomChannel 未连接，跳过发送")
+            logger.warning("WecomChannel 未連線，跳過傳送")
             return
 
-        # 不向企业微信发送 chat.processing_status（思考状态事件），避免展示思考过程
+        # 不向企業微信傳送 chat.processing_status（思考狀態事件），避免展示思考過程
         if msg.event_type == EventType.CHAT_PROCESSING_STATUS:
             payload = getattr(msg, "payload", None) or {}
             meta = getattr(msg, "metadata", None) or {}
@@ -1129,35 +1129,35 @@ class WecomChannel(BaseChannel):
                 await self._handle_processing_status_event(msg, meta, payload)
             return
 
-        # 提取事件类型
+        # 提取事件型別
         payload = msg.payload if isinstance(msg.payload, dict) else {}
         event_type = getattr(msg.event_type, "value", None) or payload.get("event_type") or ""
 
-        # 处理文件发送事件（chat.media 与 chat.file 统一走文件发送路径）
+        # 處理檔案傳送事件（chat.media 與 chat.file 統一走檔案傳送路徑）
         if event_type in ("chat.file", "chat.media"):
             await self._send_file_message(msg)
             return
 
-        # 心跳/系统事件
+        # 心跳/系統事件
         if msg.event_type == EventType.HEARTBEAT_RELAY:
             chatid = self._extract_chatid(msg)
-            logger.info("[WecomChannel] 心跳/系统事件处理: chatid=%s, msg.id=%s", chatid, msg.id)
+            logger.info("[WecomChannel] 心跳/系統事件處理: chatid=%s, msg.id=%s", chatid, msg.id)
             if chatid:
                 payload = getattr(msg, "payload", None) or {}
                 if isinstance(payload, dict) and payload.get("heartbeat"):
                     try:
                         body = {"msgtype": "markdown", "markdown": {"content": str(payload.get("heartbeat"))}}
                         await self._ws_client.send_message(chatid, body)
-                        logger.info("[WecomChannel] 心跳已发送至 chatid=%s", chatid)
+                        logger.info("[WecomChannel] 心跳已傳送至 chatid=%s", chatid)
                     except Exception as e:
-                        logger.warning("[WecomChannel] 心跳发送失败: chatid=%s, error=%s", chatid, e)
+                        logger.warning("[WecomChannel] 心跳傳送失敗: chatid=%s, error=%s", chatid, e)
             else:
                 logger.warning(
-                    "[WecomChannel] 心跳未发送：无有效 chatid。请先在企业微信中与机器人对话一次，以写入 last_chat_id"
+                    "[WecomChannel] 心跳未傳送：無有效 chatid。請先在企業微信中與機器人對話一次，以寫入 last_chat_id"
                 )
             return
 
-        # 流式回复：CHAT_DELTA / CHAT_FINAL 通过 reply_stream 发送，替换首帧「...」
+        # 流式回覆：CHAT_DELTA / CHAT_FINAL 透過 reply_stream 傳送，替換首幀「...」
         req_id = self._get_req_id_for_stream(msg)
         _msg_streaming = getattr(msg, "enable_streaming", None)
         _send_streaming = _msg_streaming if _msg_streaming is not None else self.config.enable_streaming
@@ -1168,12 +1168,12 @@ class WecomChannel(BaseChannel):
             entry = self._pending_streams.get(req_id)
             if entry:
                 if self._is_reasoning_chunk(msg):
-                    logger.debug("WecomChannel 跳过 reasoning chunk: req_id=%s", req_id)
+                    logger.debug("WecomChannel 跳過 reasoning chunk: req_id=%s", req_id)
                     return
                 content = self._extract_content_from_payload(msg)
                 if content is not None:
                     entry["accumulated"] = (entry.get("accumulated") or "") + content
-                    # 移除 <think>...</think> 块，不将 Agent 思考过程展示给用户
+                    # 移除 <think>...</think> 塊，不將 Agent 思考過程展示給使用者
                     to_send = self._strip_think_tags(entry["accumulated"]).strip()
                     if not to_send or self._is_thinking_only_content(to_send):
                         if msg.event_type == EventType.CHAT_FINAL:
@@ -1181,10 +1181,10 @@ class WecomChannel(BaseChannel):
                             self._stream_completed_requests.add(req_id)
                         return
                     
-                    # 群聊场景：出站管线已在 publish_robot_messages 时设置 reply_scope
+                    # 群聊場景：出站管線已在 publish_robot_messages 時設定 reply_scope
                     meta = getattr(msg, "metadata", None) or {}
                     chat_type = str(meta.get("chat_type") or "").strip()
-                    # 优先使用 IMOutboundPipeline 设置的 reply_wecom_user_id
+                    # 優先使用 IMOutboundPipeline 設定的 reply_wecom_user_id
                     target_user_id = str(meta.get("reply_wecom_user_id") or "").strip()
                     if not target_user_id:
                         # 回退：使用配置中的 my_user_id
@@ -1192,21 +1192,21 @@ class WecomChannel(BaseChannel):
                     is_dm_intent = str(meta.get("reply_scope") or "").strip().lower() == "dm"
 
                     if self._should_send_private_reply(is_dm_intent, chat_type, target_user_id, msg.event_type):
-                        # 群聊场景，私发详细回复给目标用户
-                        logger.info("[WecomChannel] 群聊消息私发给目标用户: req_id=%s user_id=%s", req_id, target_user_id)
+                        # 群聊場景，私發詳細回覆給目標使用者
+                        logger.info("[WecomChannel] 群聊訊息私發給目標使用者: req_id=%s user_id=%s", req_id, target_user_id)
                         self._pending_streams.pop(req_id, None)
                         self._stream_completed_requests.add(req_id)
 
-                        # 私发详细回复给目标用户
+                        # 私發詳細回覆給目標使用者
                         try:
                             body = {"msgtype": "markdown", "markdown": {"content": to_send}}
                             await self._ws_client.send_message(target_user_id, body)
-                            logger.info("[WecomChannel] 私发消息成功: user_id=%s len=%d", target_user_id, len(to_send))
+                            logger.info("[WecomChannel] 私發訊息成功: user_id=%s len=%d", target_user_id, len(to_send))
                         except Exception as e:
-                            logger.error("[WecomChannel] 私发消息失败: %s", e)
+                            logger.error("[WecomChannel] 私發訊息失敗: %s", e)
                         return
                     
-                    # 非群聊场景或无目标用户，正常流式发送
+                    # 非群聊場景或無目標使用者，正常流式傳送
                     try:
                         is_final = msg.event_type == EventType.CHAT_FINAL
                         await self._ws_client.reply_stream(
@@ -1216,7 +1216,7 @@ class WecomChannel(BaseChannel):
                             finish=is_final,
                         )
                         logger.debug(
-                            "WecomChannel 流式发送: req_id=%s finish=%s len=%d",
+                            "WecomChannel 流式傳送: req_id=%s finish=%s len=%d",
                             req_id,
                             is_final,
                             len(entry["accumulated"]),
@@ -1225,14 +1225,14 @@ class WecomChannel(BaseChannel):
                             self._pending_streams.pop(req_id, None)
                             self._stream_completed_requests.add(req_id)
                     except Exception as e:
-                        logger.error("WecomChannel 流式发送失败: %s", e)
+                        logger.error("WecomChannel 流式傳送失敗: %s", e)
                         if msg.event_type == EventType.CHAT_FINAL:
                             self._pending_streams.pop(req_id, None)
                             self._stream_completed_requests.add(req_id)
                     return
 
         if req_id and req_id in self._stream_completed_requests:
-            logger.debug("WecomChannel 跳过已完成的流式请求: req_id=%s", req_id)
+            logger.debug("WecomChannel 跳過已完成的流式請求: req_id=%s", req_id)
             self._stream_completed_requests.discard(req_id)
             return
 
@@ -1240,7 +1240,7 @@ class WecomChannel(BaseChannel):
             if req_id:
                 self._pending_streams.pop(req_id, None)
             payload = getattr(msg, "payload", None) or {}
-            err_text = payload.get("error", "处理出错") if isinstance(payload, dict) else "处理出错"
+            err_text = payload.get("error", "處理出錯") if isinstance(payload, dict) else "處理出錯"
             chatid = self._extract_chatid(msg)
             if chatid:
                 try:
@@ -1249,33 +1249,33 @@ class WecomChannel(BaseChannel):
                         {"msgtype": "markdown", "markdown": {"content": f"⚠️ {err_text}"}},
                     )
                 except Exception as e:
-                    logger.debug("WecomChannel 发送错误消息失败: %s", e)
+                    logger.debug("WecomChannel 傳送錯誤訊息失敗: %s", e)
             return
 
-        # 非流式或无 pending：仅 CHAT_FINAL 用 send_message
+        # 非流式或無 pending：僅 CHAT_FINAL 用 send_message
         if msg.event_type != EventType.CHAT_FINAL:
             return
         if req_id:
             self._pending_streams.pop(req_id, None)
         if self._is_reasoning_chunk(msg):
-            logger.debug("[WecomChannel] 跳过 final reasoning chunk")
+            logger.debug("[WecomChannel] 跳過 final reasoning chunk")
             return
         content = self._strip_think_tags(self._extract_content(msg)).strip()
         if not content or self._is_thinking_only_content(content):
-            logger.debug("[WecomChannel] 消息内容为空或仅为思考占位，跳过发送")
+            logger.debug("[WecomChannel] 訊息內容為空或僅為思考佔位，跳過傳送")
             return
 
         meta = getattr(msg, "metadata", None) or {}
         chatid = self._extract_chatid(msg)
         logger.info(
-            "[WecomChannel] send: 应用意图后提取chatid=%s reply_scope=%s reply_wecom_user_id=%s wecom_chat_id=%s",
+            "[WecomChannel] send: 應用意圖後提取chatid=%s reply_scope=%s reply_wecom_user_id=%s wecom_chat_id=%s",
             chatid,
             meta.get("reply_scope"),
             meta.get("reply_wecom_user_id"),
             meta.get("wecom_chat_id")
         )
         if not chatid:
-            logger.warning("[WecomChannel] 无法确定回发目标 chatid, msg.id=%s", msg.id)
+            logger.warning("[WecomChannel] 無法確定回發目標 chatid, msg.id=%s", msg.id)
             return
 
         request_id = str(msg.id or "").strip()
@@ -1300,9 +1300,9 @@ class WecomChannel(BaseChannel):
             
             is_dm = str(meta.get("reply_scope") or "").strip().lower() == "dm"
             if is_dm:
-                logger.info("[WecomChannel] 私发消息: chatid=%s len=%d", chatid, len(content))
+                logger.info("[WecomChannel] 私發訊息: chatid=%s len=%d", chatid, len(content))
             else:
-                logger.info("[WecomChannel] 发送消息: chatid=%s len=%d", chatid, len(content))
+                logger.info("[WecomChannel] 傳送訊息: chatid=%s len=%d", chatid, len(content))
 
             if msg.group_digital_avatar and self._should_send_interaction_ack(meta):
                 asyncio.create_task(self._send_interaction_ack(meta))
@@ -1324,15 +1324,15 @@ class WecomChannel(BaseChannel):
                         }
                     )
                 except Exception as e:
-                    logger.warning(f"[WecomChannel] 记录机器人回复消息失败: {e}")
+                    logger.warning(f"[WecomChannel] 記錄機器人回覆訊息失敗: {e}")
 
         except Exception as e:
-            logger.error("WecomChannel 发送失败: %s", e)
+            logger.error("WecomChannel 傳送失敗: %s", e)
 
     async def _run_client(self) -> None:
-        """在后台运行 WebSocket 客户端。"""
+        """在後臺執行 WebSocket 客戶端。"""
         if not WECOM_AVAILABLE or not WSClient:
-            logger.error("WecomChannel 依赖未安装，请运行: pip install wecom-aibot-sdk")
+            logger.error("WecomChannel 依賴未安裝，請執行: pip install wecom-aibot-sdk")
             return
 
         opts: dict[str, Any] = {
@@ -1370,7 +1370,7 @@ class WecomChannel(BaseChannel):
 
         self._ws_client = client
 
-        # 初始化文件服务
+        # 初始化檔案服務
         try:
             from jiuwenclaw.gateway.channel_manager.im_platforms.wecom.wecom_file_service import WecomFileService
             workspace_dir = self.config.workspace_dir or str(get_agent_workspace_dir())
@@ -1380,37 +1380,37 @@ class WecomChannel(BaseChannel):
                 download_timeout=self.config.download_timeout,
                 workspace_dir=workspace_dir,
             )
-            logger.info("WecomChannel 文件服务已初始化")
+            logger.info("WecomChannel 檔案服務已初始化")
         except Exception as e:
-            logger.warning(f"WecomChannel 文件服务初始化失败: {e}")
+            logger.warning(f"WecomChannel 檔案服務初始化失敗: {e}")
             self._file_service = None
 
         try:
             await client.connect()
-            logger.info("WecomChannel WebSocket 已连接")
-            logger.info("WecomChannel 保活循环已启动（不因短暂断线退出，不打断 SDK 重连）")
+            logger.info("WecomChannel WebSocket 已連線")
+            logger.info("WecomChannel 保活迴圈已啟動（不因短暫斷線退出，不打斷 SDK 重連）")
 
-            # 不要把 is_connected 作为退出条件。
-            # wecom-aibot-sdk 在网络抖动/机器休眠唤醒后会先进入 disconnected，
-            # 然后在内部自动重连；若这里因短暂 disconnected 直接退出，会触发 finally
-            # 主动 disconnect，打断 SDK 的重连流程，导致通道长期停在 disconnected。
+            # 不要把 is_connected 作為退出條件。
+            # wecom-aibot-sdk 在網路抖動/機器休眠喚醒後會先進入 disconnected，
+            # 然後在內部自動重連；若這裡因短暫 disconnected 直接退出，會觸發 finally
+            # 主動 disconnect，打斷 SDK 的重連流程，導致通道長期停在 disconnected。
             while self._running:
                 await asyncio.sleep(1)
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            logger.error("WecomChannel WebSocket 异常: %s", e)
+            logger.error("WecomChannel WebSocket 異常: %s", e)
         finally:
             try:
                 await client.disconnect()
             except Exception as e:
-                logger.warning("WecomChannel 断开连接时异常: %s", e)
+                logger.warning("WecomChannel 斷開連線時異常: %s", e)
             self._ws_client = None
 
     async def start(self) -> None:
-        """启动企业微信通道。"""
+        """啟動企業微信通道。"""
         if not WECOM_AVAILABLE:
-            logger.error("WecomChannel 依赖未安装，请运行: pip install wecom-aibot-sdk")
+            logger.error("WecomChannel 依賴未安裝，請執行: pip install wecom-aibot-sdk")
             return
 
         if not self.config.bot_id or not self.config.secret:
@@ -1418,19 +1418,19 @@ class WecomChannel(BaseChannel):
             return
 
         if self._running:
-            logger.warning("WecomChannel 已在运行")
+            logger.warning("WecomChannel 已在執行")
             return
 
         self._running = True
         self._main_loop = asyncio.get_running_loop()
         self._connect_task = asyncio.create_task(self._run_client(), name="wecom-channel")
-        logger.info("WecomChannel 已启动（WebSocket 长连接）")
+        logger.info("WecomChannel 已啟動（WebSocket 長連線）")
 
         while self._running:
             await asyncio.sleep(1)
 
     async def stop(self) -> None:
-        """停止企业微信通道。"""
+        """停止企業微信通道。"""
         self._running = False
         self._stopping = True
         self._stream_text_buffers.clear()
@@ -1454,22 +1454,22 @@ class WecomChannel(BaseChannel):
             try:
                 await self._ws_client.disconnect()
             except Exception as e:
-                logger.warning("WecomChannel 停止时断开异常: %s", e)
+                logger.warning("WecomChannel 停止時斷開異常: %s", e)
             self._ws_client = None
 
         logger.info("WecomChannel 已停止")
         self._stopping = False
 
-    # ==================== 文件消息处理方法 ====================
+    # ==================== 檔案訊息處理方法 ====================
 
     async def _handle_image_message(self, frame: dict) -> None:
-        """处理图片消息"""
+        """處理圖片訊息"""
         if not self.config.enable_file_download:
-            logger.debug("WecomChannel 文件下载功能已禁用")
+            logger.debug("WecomChannel 檔案下載功能已禁用")
             return
 
         if not self._file_service:
-            logger.warning("WecomChannel 文件服务未初始化")
+            logger.warning("WecomChannel 檔案服務未初始化")
             return
 
         body = frame.get("body", {})
@@ -1478,14 +1478,14 @@ class WecomChannel(BaseChannel):
         aes_key = image_data.get("aeskey", "")
 
         if not url or not aes_key:
-            logger.warning("WecomChannel 图片消息缺少 url 或 aeskey")
+            logger.warning("WecomChannel 圖片訊息缺少 url 或 aeskey")
             return
 
-        # 提取消息信息
+        # 提取訊息資訊
         chatid, req_id, _ = self._extract_frame_info(frame)
         message_id = req_id or f"img_{int(time.time() * 1000)}"
 
-        # 下载图片
+        # 下載圖片
         file_info = await self._file_service.download_file(
             url=url,
             aes_key=aes_key,
@@ -1494,22 +1494,22 @@ class WecomChannel(BaseChannel):
         )
 
         if not file_info:
-            content = "[图片: 下载失败]"
+            content = "[圖片: 下載失敗]"
         else:
-            content = "[图片]"
-            logger.info(f"WecomChannel 图片下载成功: {file_info['path']}")
+            content = "[圖片]"
+            logger.info(f"WecomChannel 圖片下載成功: {file_info['path']}")
 
-        # 构建消息并发送
+        # 構建訊息併傳送
         await self._send_file_message_to_handler(frame, content, [file_info] if file_info else None)
 
     async def _handle_file_message(self, frame: dict) -> None:
-        """处理文件消息"""
+        """處理檔案訊息"""
         if not self.config.enable_file_download:
-            logger.debug("WecomChannel 文件下载功能已禁用")
+            logger.debug("WecomChannel 檔案下載功能已禁用")
             return
 
         if not self._file_service:
-            logger.warning("WecomChannel 文件服务未初始化")
+            logger.warning("WecomChannel 檔案服務未初始化")
             return
 
         body = frame.get("body", {})
@@ -1519,14 +1519,14 @@ class WecomChannel(BaseChannel):
         filename = file_data.get("filename", "unknown_file")
 
         if not url or not aes_key:
-            logger.warning("WecomChannel 文件消息缺少 url 或 aeskey")
+            logger.warning("WecomChannel 檔案訊息缺少 url 或 aeskey")
             return
 
-        # 提取消息信息
+        # 提取訊息資訊
         chatid, req_id, _ = self._extract_frame_info(frame)
         message_id = req_id or f"file_{int(time.time() * 1000)}"
 
-        # 下载文件
+        # 下載檔案
         file_info = await self._file_service.download_file(
             url=url,
             aes_key=aes_key,
@@ -1536,22 +1536,22 @@ class WecomChannel(BaseChannel):
         )
 
         if not file_info:
-            content = f"[文件: {filename} 下载失败]"
+            content = f"[檔案: {filename} 下載失敗]"
         else:
-            content = f"[文件: {filename}]"
-            logger.info(f"WecomChannel 文件下载成功: {file_info['path']}")
+            content = f"[檔案: {filename}]"
+            logger.info(f"WecomChannel 檔案下載成功: {file_info['path']}")
 
-        # 构建消息并发送
+        # 構建訊息併傳送
         await self._send_file_message_to_handler(frame, content, [file_info] if file_info else None)
 
     async def _handle_voice_message(self, frame: dict) -> None:
-        """处理语音消息"""
+        """處理語音訊息"""
         if not self.config.enable_file_download:
-            logger.debug("WecomChannel 文件下载功能已禁用")
+            logger.debug("WecomChannel 檔案下載功能已禁用")
             return
 
         if not self._file_service:
-            logger.warning("WecomChannel 文件服务未初始化")
+            logger.warning("WecomChannel 檔案服務未初始化")
             return
 
         body = frame.get("body", {})
@@ -1560,14 +1560,14 @@ class WecomChannel(BaseChannel):
         aes_key = voice_data.get("aeskey", "")
 
         if not url or not aes_key:
-            logger.warning("WecomChannel 语音消息缺少 url 或 aeskey")
+            logger.warning("WecomChannel 語音訊息缺少 url 或 aeskey")
             return
 
-        # 提取消息信息
+        # 提取訊息資訊
         chatid, req_id, _ = self._extract_frame_info(frame)
         message_id = req_id or f"voice_{int(time.time() * 1000)}"
 
-        # 下载语音
+        # 下載語音
         file_info = await self._file_service.download_file(
             url=url,
             aes_key=aes_key,
@@ -1576,22 +1576,22 @@ class WecomChannel(BaseChannel):
         )
 
         if not file_info:
-            content = "[语音: 下载失败]"
+            content = "[語音: 下載失敗]"
         else:
-            content = "[语音]"
-            logger.info(f"WecomChannel 语音下载成功: {file_info['path']}")
+            content = "[語音]"
+            logger.info(f"WecomChannel 語音下載成功: {file_info['path']}")
 
-        # 构建消息并发送
+        # 構建訊息併傳送
         await self._send_file_message_to_handler(frame, content, [file_info] if file_info else None)
 
     async def _handle_video_message(self, frame: dict) -> None:
-        """处理视频消息"""
+        """處理影片訊息"""
         if not self.config.enable_file_download:
-            logger.debug("WecomChannel 文件下载功能已禁用")
+            logger.debug("WecomChannel 檔案下載功能已禁用")
             return
 
         if not self._file_service:
-            logger.warning("WecomChannel 文件服务未初始化")
+            logger.warning("WecomChannel 檔案服務未初始化")
             return
 
         body = frame.get("body", {})
@@ -1600,14 +1600,14 @@ class WecomChannel(BaseChannel):
         aes_key = video_data.get("aeskey", "")
 
         if not url or not aes_key:
-            logger.warning("WecomChannel 视频消息缺少 url 或 aeskey")
+            logger.warning("WecomChannel 影片訊息缺少 url 或 aeskey")
             return
 
-        # 提取消息信息
+        # 提取訊息資訊
         chatid, req_id, _ = self._extract_frame_info(frame)
         message_id = req_id or f"video_{int(time.time() * 1000)}"
 
-        # 下载视频
+        # 下載影片
         file_info = await self._file_service.download_file(
             url=url,
             aes_key=aes_key,
@@ -1616,24 +1616,24 @@ class WecomChannel(BaseChannel):
         )
 
         if not file_info:
-            content = "[视频: 下载失败]"
+            content = "[影片: 下載失敗]"
         else:
-            content = "[视频]"
-            logger.info(f"WecomChannel 视频下载成功: {file_info['path']}")
+            content = "[影片]"
+            logger.info(f"WecomChannel 影片下載成功: {file_info['path']}")
 
-        # 构建消息并发送
+        # 構建訊息併傳送
         await self._send_file_message_to_handler(frame, content, [file_info] if file_info else None)
 
     async def _handle_mixed_message(self, frame: dict) -> None:
-        """处理图文混排消息"""
+        """處理圖文混排訊息"""
         if not self.config.enable_file_download:
-            logger.debug("WecomChannel 文件下载功能已禁用")
-            # 仍然处理文本部分
+            logger.debug("WecomChannel 檔案下載功能已禁用")
+            # 仍然處理文字部分
             await self._handle_incoming_message(frame)
             return
 
         if not self._file_service:
-            logger.warning("WecomChannel 文件服务未初始化")
+            logger.warning("WecomChannel 檔案服務未初始化")
             await self._handle_incoming_message(frame)
             return
 
@@ -1645,7 +1645,7 @@ class WecomChannel(BaseChannel):
             await self._handle_incoming_message(frame)
             return
 
-        # 提取文本和图片
+        # 提取文字和圖片
         text_parts = []
         file_infos = []
 
@@ -1675,32 +1675,32 @@ class WecomChannel(BaseChannel):
                     if file_info:
                         file_infos.append(file_info)
 
-        # 合并文本
-        content = " ".join(text_parts) if text_parts else "[图文混排]"
+        # 合併文字
+        content = " ".join(text_parts) if text_parts else "[圖文混排]"
         
-        # 构建消息并发送
+        # 構建訊息併傳送
         await self._send_file_message_to_handler(frame, content, file_infos if file_infos else None)
 
     async def _send_file_message_to_handler(
         self, frame: dict, content: str, files: list[dict] | None
     ) -> None:
-        """将文件消息发送到消息处理器"""
+        """將檔案訊息傳送到訊息處理器"""
         chatid, req_id, _ = self._extract_frame_info(frame)
         
         if not chatid:
-            logger.warning("WecomChannel 无法从 frame 提取 chatid，跳过文件消息")
+            logger.warning("WecomChannel 無法從 frame 提取 chatid，跳過檔案訊息")
             return
 
-        # 权限检查
+        # 許可權檢查
         if not self.is_allowed(chatid):
-            logger.warning("WecomChannel 发送者 %s 未被允许", chatid)
+            logger.warning("WecomChannel 傳送者 %s 未被允許", chatid)
             return
 
-        logger.info("WecomChannel 收到文件消息: chatid=%s content=%s", chatid, content[:50])
+        logger.info("WecomChannel 收到檔案訊息: chatid=%s content=%s", chatid, content[:50])
 
         req_id_final = req_id or f"wecom_{int(time.time() * 1000)}"
 
-        # 构建消息
+        # 構建訊息
         params = {"content": content, "query": content}
         if files:
             params["files"] = files
@@ -1727,16 +1727,16 @@ class WecomChannel(BaseChannel):
         else:
             await self.bus.route_user_message(msg)
 
-    # ==================== 文件发送方法 ====================
+    # ==================== 檔案傳送方法 ====================
 
     async def _send_file_message(self, msg: Message) -> None:
-        """发送文件消息"""
+        """傳送檔案訊息"""
         if not self._file_service or not self.config.send_file_allowed:
-            logger.warning("WecomChannel 文件发送功能未启用")
+            logger.warning("WecomChannel 檔案傳送功能未啟用")
             return
 
         if not self._ws_client or not getattr(self._ws_client, "is_connected", False):
-            logger.warning("WecomChannel 未连接，跳过文件发送")
+            logger.warning("WecomChannel 未連線，跳過檔案傳送")
             return
 
         payload = msg.payload if isinstance(msg.payload, dict) else {}
@@ -1751,10 +1751,10 @@ class WecomChannel(BaseChannel):
             chatid = getattr(msg, "session_id", None) or msg.id or ""
         
         if not chatid:
-            logger.warning("WecomChannel 文件发送: 未找到接收者")
+            logger.warning("WecomChannel 檔案傳送: 未找到接收者")
             return
 
-        # 获取当前 request_id 用于去重
+        # 獲取當前 request_id 用於去重
         request_id = getattr(msg, "id", "") or ""
         if request_id not in self._sent_file_paths_by_req:
             self._sent_file_paths_by_req[request_id] = set()
@@ -1762,40 +1762,40 @@ class WecomChannel(BaseChannel):
         for file_info in files:
             file_path = file_info if isinstance(file_info, str) else file_info.get("path", "")
             if not file_path or not os.path.isfile(file_path):
-                logger.warning(f"WecomChannel 文件发送: 文件不存在 {file_path}")
+                logger.warning(f"WecomChannel 檔案傳送: 檔案不存在 {file_path}")
                 continue
 
-            # 检查是否已发送
+            # 檢查是否已傳送
             if file_path in self._sent_file_paths_by_req[request_id]:
                 continue
 
-            # 确定媒体类型
+            # 確定媒體型別
             media_type = self._file_service.get_media_type_for_file(file_path)
 
             try:
-                # 上传文件
+                # 上傳檔案
                 media_id = await self._file_service.upload_file(file_path, media_type)
                 if not media_id:
-                    logger.error(f"WecomChannel 文件上传失败: {file_path}")
+                    logger.error(f"WecomChannel 檔案上傳失敗: {file_path}")
                     continue
 
-                # 发送媒体消息
+                # 傳送媒體訊息
                 await self._ws_client.send_media_message(
                     chatid=chatid,
                     media_type=media_type,
                     media_id=media_id,
                 )
 
-                # 记录已发送
+                # 記錄已傳送
                 self._sent_file_paths_by_req[request_id].add(file_path)
-                logger.info(f"WecomChannel 文件发送成功: {file_path} -> {chatid}")
+                logger.info(f"WecomChannel 檔案傳送成功: {file_path} -> {chatid}")
 
             except Exception as e:
-                logger.error(f"WecomChannel 文件发送失败: {file_path}, error: {e}")
+                logger.error(f"WecomChannel 檔案傳送失敗: {file_path}, error: {e}")
 
-        # 清理过期的去重记录
+        # 清理過期的去重記錄
         if len(self._sent_file_paths_by_req) > 100:
-            # 删除最早的 50 个
+            # 刪除最早的 50 個
             keys_to_remove = list(self._sent_file_paths_by_req.keys())[:50]
             for key in keys_to_remove:
                 del self._sent_file_paths_by_req[key]

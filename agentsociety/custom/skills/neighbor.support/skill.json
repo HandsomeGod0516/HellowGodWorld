@@ -23,7 +23,7 @@
   ],
   "status": "supporting_neighbor",
   "emotion": "helpful",
-  "speech": "我看看附近有没有人需要顺手帮一把。",
+  "speech": "我看看附近有沒有人需要順手幫一把。",
   "memory_template": "Used neighbor.support: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

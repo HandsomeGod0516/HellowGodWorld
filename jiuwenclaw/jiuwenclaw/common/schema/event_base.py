@@ -1,10 +1,10 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 """
-与 openjiuwen 0.1.9+ ``openjiuwen.core.runner.callback.events`` 中 EventBase 对齐的最小 HookEventBase。
+與 openjiuwen 0.1.9+ ``openjiuwen.core.runner.callback.events`` 中 EventBase 對齊的最小 HookEventBase。
 
-openjiuwen 0.1.7 未包含该模块，此处内建以便扩展事件名与作用域行为一致。
+openjiuwen 0.1.7 未包含該模組，此處內建以便擴充套件事件名與作用域行為一致。
 
-放在 schema 子包内，避免从 extensions 导入时执行 extensions/__init__.py 引发循环依赖。
+放在 schema 子包內，避免從 extensions 匯入時執行 extensions/__init__.py 引發迴圈依賴。
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ def parse_event_name(scoped_event: str) -> tuple[str, str]:
 
 
 class HookEventBase:
-    """带 scope 的钩子事件名基类（与 openjiuwen 0.1.9 EventBase 行为一致）。"""
+    """帶 scope 的鉤子事件名基類（與 openjiuwen 0.1.9 EventBase 行為一致）。"""
 
     scope: str = DEFAULT_SCOPE
 

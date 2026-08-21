@@ -1,7 +1,7 @@
-环境模块
+環境模組
 ========
 
-本模块提供环境路由与环境模块的基类。
+本模組提供環境路由與環境模組的基類。
 
 RouterBase
 ----------
@@ -19,7 +19,7 @@ EnvBase
    :undoc-members:
    :show-inheritance:
 
-内置路由器
+內建路由器
 ----------
 
 ReActRouter

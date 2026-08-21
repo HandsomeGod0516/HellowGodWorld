@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['library', 'home']
 TARGET_INTERACTIONS = ['quiet_work', 'read_at_home']
 STATUS = 'short_note'
 EMOTION = 'focused'
-SPEECH = '我会把这一点记成短句，之后容易查。'
+SPEECH = '我會把這一點記成短句，之後容易查。'
 MEMORY_TEMPLATE = 'Used record.shortnote: {summary} at {location_id}.'
 
 

@@ -21,7 +21,7 @@
   ],
   "status": "handwriting",
   "emotion": "calm",
-  "speech": "我慢慢写，确保内容清楚。",
+  "speech": "我慢慢寫，確保內容清楚。",
   "memory_template": "Used writing.hand: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

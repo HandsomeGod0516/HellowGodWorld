@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""TelegramChannel - Telegram Bot 通道实现."""
+"""TelegramChannel - Telegram Bot 通道實現."""
 
 from __future__ import annotations
 
@@ -40,8 +40,8 @@ class TelegramChannelConfig:
 
     enabled: bool = False
     bot_token: str = ""  # Telegram Bot Token from @BotFather
-    allow_from: list[str] = field(default_factory=list)  # 允许的 Telegram user_id 列表
-    parse_mode: str = "Markdown"  # 消息解析模式: Markdown, HTML, None
+    allow_from: list[str] = field(default_factory=list)  # 允許的 Telegram user_id 列表
+    parse_mode: str = "Markdown"  # 訊息解析模式: Markdown, HTML, None
     group_chat_mode: str = "mention"  # 群聊模式: all, mention, reply, off
 
 
@@ -49,10 +49,10 @@ class TelegramChannel(BaseChannel):
     """
     Telegram Bot 通道.
 
-    使用 Telegram Bot API 接收和发送消息.
+    使用 Telegram Bot API 接收和傳送訊息.
     需要:
-    - 来自 @BotFather 的 Bot Token
-    - 可选: 配置允许访问的用户白名单
+    - 來自 @BotFather 的 Bot Token
+    - 可選: 配置允許訪問的使用者白名單
     """
 
     name = "telegram"
@@ -64,24 +64,24 @@ class TelegramChannel(BaseChannel):
         self._running = False
         self._loop: asyncio.AbstractEventLoop | None = None
         self._on_message_cb: Callable[[Message], Any] | None = None
-        self._chat_sessions: dict[int, str] = {}  # chat_id -> session_id 映射
+        self._chat_sessions: dict[int, str] = {}  # chat_id -> session_id 對映
 
     @property
     def channel_id(self) -> str:
-        """ChannelManager 按 channel_id 注册与派发."""
+        """ChannelManager 按 channel_id 註冊與派發."""
         return self.name
 
     @property
     def clients(self) -> set[Any]:
-        """兼容 BaseChannel 接口."""
+        """相容 BaseChannel 介面."""
         return set()
 
     def on_message(self, callback: Callable[[Message], None]) -> None:
-        """ChannelManager 注册: 收到消息时调用 callback."""
+        """ChannelManager 註冊: 收到訊息時呼叫 callback."""
         self._on_message_cb = callback
 
     async def start(self) -> None:
-        """启动 Telegram Bot."""
+        """啟動 Telegram Bot."""
         if not TELEGRAM_AVAILABLE:
             logger.error(
                 "Telegram SDK not installed. Run: pip install python-telegram-bot"
@@ -89,7 +89,7 @@ class TelegramChannel(BaseChannel):
             return
 
         if not self.config.enabled:
-            logger.warning("TelegramChannel 未启用（enabled=False）")
+            logger.warning("TelegramChannel 未啟用（enabled=False）")
             return
 
         if not self.config.bot_token:
@@ -97,44 +97,44 @@ class TelegramChannel(BaseChannel):
             return
 
         if self._running:
-            logger.warning("TelegramChannel 已在运行")
+            logger.warning("TelegramChannel 已在執行")
             return
 
         self._running = True
         self._loop = asyncio.get_running_loop()
 
         try:
-            # 创建 Telegram Application
+            # 建立 Telegram Application
             self._application = (
                 Application.builder().token(self.config.bot_token).build()
             )
 
-            # 注册命令处理器
+            # 註冊命令處理器
             self._application.add_handler(CommandHandler("start", self._start_command))
             self._application.add_handler(CommandHandler("help", self._help_command))
 
-            # 注册消息处理器 (文本消息)
+            # 註冊訊息處理器 (文字訊息)
             self._application.add_handler(
                 MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message)
             )
 
-            # 初始化并启动 bot
+            # 初始化並啟動 bot
             await self._application.initialize()
             await self._application.start()
 
-            # 在后台运行 polling
+            # 在後臺執行 polling
             await self._application.updater.start_polling(
                 allowed_updates=Update.ALL_TYPES, drop_pending_updates=True
             )
 
-            logger.info("Telegram Bot 已启动")
+            logger.info("Telegram Bot 已啟動")
 
-            # 持续运行直到停止
+            # 持續執行直到停止
             while self._running:
                 await asyncio.sleep(1)
 
         except Exception as e:
-            logger.error("Telegram Bot 启动失败: %s", e)
+            logger.error("Telegram Bot 啟動失敗: %s", e)
             self._running = False
             raise
 
@@ -154,25 +154,25 @@ class TelegramChannel(BaseChannel):
         logger.info("Telegram Bot 已停止")
 
     async def send(self, msg: Message) -> None:
-        """通过 Telegram 发送消息."""
+        """透過 Telegram 傳送訊息."""
         if not self._application or not self._running:
             logger.warning("Telegram Bot not initialized or not running")
             return
 
         try:
-            # 从 session_id 或 metadata 获取 chat_id
+            # 從 session_id 或 metadata 獲取 chat_id
             chat_id = self._get_chat_id_from_message(msg)
             if not chat_id:
-                logger.warning("Telegram send: 无法确定 chat_id")
+                logger.warning("Telegram send: 無法確定 chat_id")
                 return
 
-            # 提取消息内容
+            # 提取訊息內容
             content = self._extract_content(msg)
             if not content:
-                logger.warning("Telegram send: content 为空，跳过发送")
+                logger.warning("Telegram send: content 為空，跳過傳送")
                 return
 
-            # 发送消息
+            # 傳送訊息
             parse_mode = (
                 self.config.parse_mode if self.config.parse_mode != "None" else None
             )
@@ -182,7 +182,7 @@ class TelegramChannel(BaseChannel):
                     chat_id=chat_id, text=content, parse_mode=parse_mode
                 )
             except Exception as send_error:
-                # 仅在 parse_mode 非空且错误涉及解析时重试
+                # 僅在 parse_mode 非空且錯誤涉及解析時重試
                 error_str = str(send_error)
                 if parse_mode and (
                         "parse" in error_str.lower() or "entity" in error_str.lower()
@@ -202,12 +202,12 @@ class TelegramChannel(BaseChannel):
             logger.error(f"Error sending Telegram message: {type(e).__name__}: {e}")
 
     def _get_chat_id_from_message(self, msg: Message) -> int | None:
-        """从 Message 中提取 chat_id."""
-        # 优先从 metadata 获取
+        """從 Message 中提取 chat_id."""
+        # 優先從 metadata 獲取
         if msg.metadata and "chat_id" in msg.metadata:
             return int(msg.metadata["chat_id"])
 
-        # 从 session_id 解析 (格式: "telegram_{chat_id}")
+        # 從 session_id 解析 (格式: "telegram_{chat_id}")
         if msg.session_id and msg.session_id.startswith("telegram_"):
             try:
                 return int(msg.session_id.split("_")[1])
@@ -217,15 +217,15 @@ class TelegramChannel(BaseChannel):
         return None
 
     def _extract_content(self, msg: Message) -> str:
-        """从 Message 中提取文本内容."""
-        # Gateway/Agent 响应在 payload.content
+        """從 Message 中提取文字內容."""
+        # Gateway/Agent 響應在 payload.content
         content = (
                 (msg.params or {}).get("content")
                 or (getattr(msg, "payload") or {}).get("content")
                 or ""
         )
 
-        # 处理字典格式
+        # 處理字典格式
         if isinstance(content, dict):
             content = content.get("output", str(content))
 
@@ -234,22 +234,22 @@ class TelegramChannel(BaseChannel):
     async def _start_command(
             self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        """处理 /start 命令."""
+        """處理 /start 命令."""
         if not update.effective_user or not update.effective_chat:
             return
 
         user_id = update.effective_user.id
         chat_id = update.effective_chat.id
 
-        # 检查权限
+        # 檢查許可權
         if not self.is_allowed(str(user_id)):
-            await update.message.reply_text("抱歉，您没有权限使用此机器人。")
+            await update.message.reply_text("抱歉，您沒有許可權使用此機器人。")
             return
 
         welcome_msg = (
-            "欢迎使用 JiuWenClaw 机器人! 🤖\n\n"
-            "您可以直接发送消息与我对话。\n"
-            "使用 /help 查看帮助信息。"
+            "歡迎使用 JiuWenClaw 機器人! 🤖\n\n"
+            "您可以直接傳送訊息與我對話。\n"
+            "使用 /help 檢視幫助資訊。"
         )
         await update.message.reply_text(welcome_msg)
         logger.info(f"Telegram /start from user_id={user_id} chat_id={chat_id}")
@@ -257,20 +257,20 @@ class TelegramChannel(BaseChannel):
     async def _help_command(
             self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        """处理 /help 命令."""
+        """處理 /help 命令."""
         help_msg = (
-            "JiuWenClaw 机器人帮助 📚\n\n"
+            "JiuWenClaw 機器人幫助 📚\n\n"
             "命令:\n"
-            "/start - 开始对话\n"
-            "/help - 显示帮助\n\n"
-            "您可以直接发送文本消息与我对话。"
+            "/start - 開始對話\n"
+            "/help - 顯示幫助\n\n"
+            "您可以直接傳送文字訊息與我對話。"
         )
         await update.message.reply_text(help_msg)
 
     async def _handle_message(
             self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        """处理接收到的消息."""
+        """處理接收到的訊息."""
         try:
             if (
                     not update.message
@@ -284,19 +284,19 @@ class TelegramChannel(BaseChannel):
             message_id = update.message.message_id
             text = update.message.text or ""
 
-            # 检查权限
+            # 檢查許可權
             if not self.is_allowed(str(user_id)):
                 logger.warning(f"Telegram message from unauthorized user: {user_id}")
                 return
 
-            # 检查是否为群聊
+            # 檢查是否為群聊
             is_group_chat = update.effective_chat.type in ["group", "supergroup"]
 
-            # 群聊模式检查
+            # 群聊模式檢查
             if is_group_chat:
                 group_mode = self.config.group_chat_mode
 
-                # off 模式: 不响应群聊消息
+                # off 模式: 不響應群聊訊息
                 if group_mode == "off":
                     logger.debug(
                         "Telegram group chat mode is 'off', ignoring message from chat_id=%s",
@@ -304,7 +304,7 @@ class TelegramChannel(BaseChannel):
                     )
                     return
 
-                # mention 模式: 只响应 @机器人 的消息
+                # mention 模式: 只響應 @機器人 的訊息
                 if group_mode == "mention":
                     bot_username = context.bot.username
                     if not bot_username:
@@ -313,7 +313,7 @@ class TelegramChannel(BaseChannel):
                         )
                         return
 
-                    # 检查是否 @ 了机器人
+                    # 檢查是否 @ 了機器人
                     mention_text = f"@{bot_username}"
                     if mention_text not in text:
                         logger.debug(
@@ -321,10 +321,10 @@ class TelegramChannel(BaseChannel):
                         )
                         return
 
-                    # 移除 @mention 从文本中
+                    # 移除 @mention 從文字中
                     text = text.replace(mention_text, "").strip()
 
-                # reply 模式: 只响应回复机器人的消息
+                # reply 模式: 只響應回覆機器人的訊息
                 elif group_mode == "reply":
                     if not update.message.reply_to_message:
                         logger.debug(
@@ -332,28 +332,28 @@ class TelegramChannel(BaseChannel):
                         )
                         return
 
-                    # 检查是否回复的是机器人的消息
+                    # 檢查是否回覆的是機器人的訊息
                     if update.message.reply_to_message.from_user.id != context.bot.id:
                         logger.debug(
                             f"Telegram group chat mode is 'reply', not replying to bot, ignoring"
                         )
                         return
 
-                # all 模式: 响应所有消息（默认行为）
+                # all 模式: 響應所有訊息（預設行為）
 
-            # 对原消息回应一个表情，表示正在处理
+            # 對原訊息回應一個表情，表示正在處理
             try:
-                await update.message.set_reaction("👀")  # 使用眼睛表情表示"正在查看"
+                await update.message.set_reaction("👀")  # 使用眼睛表情表示"正在檢視"
             except Exception as e:
                 logger.debug("Failed to set reaction: %s", e)
 
-            # 生成或获取 session_id
+            # 生成或獲取 session_id
             session_id = self._chat_sessions.get(chat_id)
             if not session_id:
                 session_id = f"telegram_{chat_id}"
                 self._chat_sessions[chat_id] = session_id
 
-            # 创建 Message 对象
+            # 建立 Message 物件
             user_message = Message(
                 id=str(message_id),
                 type="req",
@@ -372,7 +372,7 @@ class TelegramChannel(BaseChannel):
                 },
             )
 
-            # 发送到 Gateway 或 Router
+            # 傳送到 Gateway 或 Router
             if self._on_message_cb:
                 result = self._on_message_cb(user_message)
                 if asyncio.iscoroutine(result):
@@ -389,7 +389,7 @@ class TelegramChannel(BaseChannel):
             logger.error(f"Error processing Telegram message: {e}")
 
     def get_metadata(self) -> ChannelMetadata:
-        """获取 Channel 元数据."""
+        """獲取 Channel 後設資料."""
         return ChannelMetadata(
             channel_id=self.channel_id,
             source="telegram",

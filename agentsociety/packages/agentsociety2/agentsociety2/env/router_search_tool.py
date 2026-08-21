@@ -1,6 +1,6 @@
 """
 Search Tool as Tool Router Implementation
-增加一个search tool，使用search tool先找到合适的模块函数，然后使用function calling调用候选函数
+增加一個search tool，使用search tool先找到合適的模組函式，然後使用function calling呼叫候選函式
 """
 
 import json
@@ -19,13 +19,13 @@ __all__ = ["SearchToolRouter"]
 
 class SearchToolRouter(RouterBase):
     """
-    Search Tool as Tool模式Router：增加一个search tool，先搜索合适的模块函数，然后调用候选函数。
+    Search Tool as Tool模式Router：增加一個search tool，先搜尋合適的模組函式，然後呼叫候選函式。
 
     工作流程：
-    1. 提供一个search_tool，可以搜索所有可用的工具
-    2. 使用LLM的function calling能力，先调用search_tool找到相关工具
-    3. 然后使用function calling调用搜索到的候选工具
-    4. 重复直到任务完成
+    1. 提供一個search_tool，可以搜尋所有可用的工具
+    2. 使用LLM的function calling能力，先呼叫search_tool找到相關工具
+    3. 然後使用function calling呼叫搜尋到的候選工具
+    4. 重複直到任務完成
     """
 
     def __init__(
@@ -40,7 +40,7 @@ class SearchToolRouter(RouterBase):
             max_llm_call_retry=max_llm_call_retry,
         )
 
-        # 预收集所有工具信息
+        # 預收集所有工具資訊
         self._all_tools: List[ChatCompletionToolParam] = []
         self._all_readonly_tools: List[ChatCompletionToolParam] = []
         self._tool_name_to_module: Dict[str, EnvBase] = {}
@@ -49,19 +49,19 @@ class SearchToolRouter(RouterBase):
 
         self._collect_all_tools()
 
-        # 创建search tool的schema
+        # 建立search tool的schema
         self._search_tool_schema = self._create_search_tool_schema()
 
-        # 创建set_status工具的schema
+        # 建立set_status工具的schema
         self._set_status_tool_schema = self._create_set_status_tool_schema()
 
     def _collect_all_tools(self):
-        """收集所有模块的所有工具"""
+        """收集所有模組的所有工具"""
         for module in self.env_modules:
             registered_tools = getattr(module.__class__, "_registered_tools", {})
 
             for tool_name, tool_obj in registered_tools.items():
-                # 获取工具的LLM格式schema
+                # 獲取工具的LLM格式schema
                 tool_schema: ChatCompletionToolParam | None = None
                 for llm_tool in module._llm_tools:
                     if llm_tool["function"]["name"] == tool_name:
@@ -73,19 +73,19 @@ class SearchToolRouter(RouterBase):
                     self._tool_name_to_module[tool_name] = module
                     self._tool_name_to_tool_obj[tool_name] = tool_obj
 
-                    # 保存工具描述
+                    # 儲存工具描述
                     func_info = tool_schema["function"]
                     self._tool_descriptions[tool_name] = func_info.get(
                         "description", ""
                     )
 
-                    # 检查是否是readonly工具
+                    # 檢查是否是readonly工具
                     readonly_tools = getattr(module.__class__, "_readonly_tools", {})
                     if readonly_tools.get(tool_name, False):
                         self._all_readonly_tools.append(tool_schema)
 
     def _create_search_tool_schema(self) -> Dict[str, Any]:
-        """创建search tool的schema"""
+        """建立search tool的schema"""
         return {
             "type": "function",
             "function": {
@@ -110,7 +110,7 @@ class SearchToolRouter(RouterBase):
         }
 
     def _create_set_status_tool_schema(self) -> Dict[str, Any]:
-        """创建set_status工具的schema"""
+        """建立set_status工具的schema"""
         return {
             "type": "function",
             "function": {
@@ -142,18 +142,18 @@ class SearchToolRouter(RouterBase):
         template_mode: bool = False,
     ) -> Tuple[dict, str]:
         """
-        使用Search Tool模式处理指令。
+        使用Search Tool模式處理指令。
 
         Args:
             ctx: 上下文字典
-            instruction: 指令字符串
-            readonly: 是否只读模式
-            template_mode: 模板模式（SearchToolRouter 不使用，仅为签名兼容）
+            instruction: 指令字串
+            readonly: 是否只讀模式
+            template_mode: 模板模式（SearchToolRouter 不使用，僅為簽名相容）
 
         Returns:
-            (ctx, answer) 元组
+            (ctx, answer) 元組
         """
-        # 添加当前时间信息到 ctx，以便工具调用可以访问
+        # 新增當前時間資訊到 ctx，以便工具呼叫可以訪問
         self._add_current_time_to_ctx(ctx)
 
         get_logger().info(
@@ -168,7 +168,7 @@ class SearchToolRouter(RouterBase):
                 "No environment modules available to handle the request.",
             )
 
-        # 选择可用的工具列表
+        # 選擇可用的工具列表
         available_tools = self._all_readonly_tools if readonly else self._all_tools
 
         if not available_tools:
@@ -178,15 +178,15 @@ class SearchToolRouter(RouterBase):
             }
             return results, "No available tools to handle the request."
 
-        # 构建初始对话，包含ctx和instruction
+        # 構建初始對話，包含ctx和instruction
         initial_prompt = self._build_initial_prompt(instruction, ctx, readonly)
         dialog: List[AllMessageValues] = [{"role": "user", "content": initial_prompt}]
 
         results = {}
         step_count = 0
-        discovered_tools: set = set()  # 已发现的工具集合
-        execution_log: List[Dict[str, Any]] = []  # 记录执行历史
-        # status 表示用户的指令在环境模块中是否被有效地完成了，还是需要等待一段时间后由用户主动检测指令的完成性
+        discovered_tools: set = set()  # 已發現的工具集合
+        execution_log: List[Dict[str, Any]] = []  # 記錄執行歷史
+        # status 表示使用者的指令在環境模組中是否被有效地完成了，還是需要等待一段時間後由使用者主動檢測指令的完成性
         status = "success"
         error = None
 
@@ -194,15 +194,15 @@ class SearchToolRouter(RouterBase):
             step_count += 1
             get_logger().debug(f"SearchToolRouter: Step {step_count}/{self.max_steps}")
 
-            # 确定当前可用的工具列表
-            # 如果还没有发现工具，只提供search_tool + set_status
-            # 如果已经发现工具，提供search_tool + set_status + 已发现的工具
+            # 確定當前可用的工具列表
+            # 如果還沒有發現工具，只提供search_tool + set_status
+            # 如果已經發現工具，提供search_tool + set_status + 已發現的工具
             current_tools: List[ChatCompletionToolParam | Dict[str, Any]] = [
                 self._search_tool_schema,
                 self._set_status_tool_schema,
             ]
             if discovered_tools:
-                # 添加已发现的工具
+                # 新增已發現的工具
                 for tool_name in discovered_tools:
                     tool_schema = next(
                         (
@@ -215,13 +215,13 @@ class SearchToolRouter(RouterBase):
                     if tool_schema:
                         current_tools.append(tool_schema)
 
-            # 调用LLM
+            # 呼叫LLM
             try:
                 call_kwargs = {
                     "model": "coder",
                     "messages": dialog,
                 }
-                # 只有在提供tools时才设置tool_choice
+                # 只有在提供tools時才設定tool_choice
                 if current_tools:
                     call_kwargs["tools"] = current_tools
                     call_kwargs["tool_choice"] = "auto"
@@ -230,13 +230,13 @@ class SearchToolRouter(RouterBase):
             except Exception as e:
                 get_logger().error(f"SearchToolRouter: LLM call failed: {str(e)}")
                 error = str(e)
-                # 构建过程文本
+                # 構建過程文字
                 process_text = (
                     json.dumps(execution_log, indent=2, default=str)
                     if execution_log
                     else ""
                 )
-                # 使用基类的generate_final_answer生成最终答案
+                # 使用基類的generate_final_answer生成最終答案
                 final_answer, determined_status = await self.generate_final_answer(
                     ctx, instruction, results, process_text, "error", error
                 )
@@ -244,12 +244,12 @@ class SearchToolRouter(RouterBase):
                 results["error"] = error
                 return results, final_answer
 
-            # 检查tool calls
+            # 檢查tool calls
             message = response.choices[0].message  # type: ignore
             tool_calls = getattr(message, "tool_calls", None) or []
             assistant_content = message.content or ""
 
-            # 记录assistant响应
+            # 記錄assistant響應
             execution_log.append(
                 {
                     "step": step_count,
@@ -259,7 +259,7 @@ class SearchToolRouter(RouterBase):
                 }
             )
 
-            # 添加assistant响应
+            # 新增assistant響應
             dialog.append(
                 {
                     "role": "assistant",
@@ -282,18 +282,18 @@ class SearchToolRouter(RouterBase):
                 }
             )
 
-            # 如果没有tool calls，说明LLM认为任务完成
+            # 如果沒有tool calls，說明LLM認為任務完成
             if not tool_calls:
                 get_logger().info(
                     f"SearchToolRouter: Task completed after {step_count} steps"
                 )
-                # 构建过程文本
+                # 構建過程文字
                 process_text = (
                     json.dumps(execution_log, indent=2, default=str)
                     if execution_log
                     else ""
                 )
-                # 使用基类的generate_final_answer生成最终答案
+                # 使用基類的generate_final_answer生成最終答案
                 final_answer, determined_status = await self.generate_final_answer(
                     ctx, instruction, results, process_text, status, error
                 )
@@ -302,7 +302,7 @@ class SearchToolRouter(RouterBase):
                     results["error"] = error
                 return results, final_answer
 
-            # 执行所有tool calls
+            # 執行所有tool calls
             tool_results = []
             step_tool_calls = []
             for tool_call in tool_calls:
@@ -324,7 +324,7 @@ class SearchToolRouter(RouterBase):
                     )
                     continue
 
-                # 处理search_tool调用
+                # 處理search_tool呼叫
                 if func_name == "search_tools":
                     search_result = await self._search_tools(
                         func_args.get("query", ""),
@@ -339,7 +339,7 @@ class SearchToolRouter(RouterBase):
                             "content": json.dumps(search_result, indent=2),
                         }
                     )
-                    # 记录发现的工具
+                    # 記錄發現的工具
                     for tool_info in search_result.get("tools", []):
                         discovered_tools.add(tool_info["name"])
                     step_tool_calls.append(
@@ -376,7 +376,7 @@ class SearchToolRouter(RouterBase):
                     )
                     get_logger().info(f"SearchToolRouter: Status set to {status}")
                 else:
-                    # 执行普通工具调用
+                    # 執行普通工具呼叫
                     try:
                         result = await self._execute_tool(
                             func_name, func_args, readonly
@@ -422,10 +422,10 @@ class SearchToolRouter(RouterBase):
                                 "success": False,
                             }
                         )
-                        # 记录错误，但status由LLM在summary中判定
+                        # 記錄錯誤，但status由LLM在summary中判定
                         error = error_msg
 
-            # 记录工具调用结果
+            # 記錄工具呼叫結果
             execution_log.append(
                 {
                     "step": step_count,
@@ -434,16 +434,16 @@ class SearchToolRouter(RouterBase):
                 }
             )
 
-            # 将工具执行结果添加到对话
+            # 將工具執行結果新增到對話
             dialog.extend(tool_results)
 
-        # 达到最大步数
+        # 達到最大步數
         get_logger().warning(f"SearchToolRouter: Reached max steps ({self.max_steps})")
-        # 构建过程文本
+        # 構建過程文字
         process_text = (
             json.dumps(execution_log, indent=2, default=str) if execution_log else ""
         )
-        # 使用基类的generate_final_answer生成最终答案
+        # 使用基類的generate_final_answer生成最終答案
         final_answer, determined_status = await self.generate_final_answer(
             ctx, instruction, results, process_text, status, error
         )
@@ -455,23 +455,23 @@ class SearchToolRouter(RouterBase):
     async def _search_tools(
         self, query: str, max_results: int, readonly: bool
     ) -> Dict[str, Any]:
-        """执行工具搜索"""
-        # 使用简单的关键词匹配进行搜索
+        """執行工具搜尋"""
+        # 使用簡單的關鍵詞匹配進行搜尋
         query_lower = query.lower()
         query_words = set(query_lower.split())
 
-        # 选择可用的工具
+        # 選擇可用的工具
         available_tools = self._all_readonly_tools if readonly else self._all_tools
 
-        # 计算每个工具的相关性分数
+        # 計算每個工具的相關性分數
         tool_scores = []
         for tool in available_tools:
             tool_name = tool["function"]["name"]
             tool_desc = self._tool_descriptions.get(tool_name, "").lower()
 
-            # 计算匹配分数
+            # 計算匹配分數
             score = 0
-            # 名称匹配
+            # 名稱匹配
             if query_lower in tool_name.lower():
                 score += 10
 
@@ -482,7 +482,7 @@ class SearchToolRouter(RouterBase):
                 if word in tool_desc:
                     score += 2
 
-            # 参数匹配（简单检查）
+            # 引數匹配（簡單檢查）
             params = tool["function"].get("parameters", {})
             if isinstance(params, dict):
                 properties = params.get("properties", {})
@@ -494,10 +494,10 @@ class SearchToolRouter(RouterBase):
             if score > 0:
                 tool_scores.append((score, tool))
 
-        # 按分数排序
+        # 按分數排序
         tool_scores.sort(key=lambda x: x[0], reverse=True)
 
-        # 返回top结果
+        # 返回top結果
         top_tools = tool_scores[:max_results]
 
         result_tools = []
@@ -519,30 +519,30 @@ class SearchToolRouter(RouterBase):
         }
 
     async def _execute_tool(self, tool_name: str, args: dict, readonly: bool) -> Any:
-        """执行工具调用"""
-        # 获取工具所属的模块
+        """執行工具呼叫"""
+        # 獲取工具所屬的模組
         module = self._tool_name_to_module.get(tool_name)
         if not module:
             raise ValueError(f"Tool {tool_name} not found")
 
-        # 检查readonly约束
+        # 檢查readonly約束
         readonly_tools = getattr(module.__class__, "_readonly_tools", {})
         if readonly and not readonly_tools.get(tool_name, False):
             raise ValueError(
                 f"Tool {tool_name} is not readonly, but readonly mode is enabled"
             )
 
-        # 获取工具对象
+        # 獲取工具物件
         tool_obj = self._tool_name_to_tool_obj.get(tool_name)
         if not tool_obj:
             raise ValueError(f"Tool object for {tool_name} not found")
 
-        # 获取工具函数
+        # 獲取工具函式
         tool_func = tool_obj.fn
         if not tool_func:
             raise ValueError(f"Tool function for {tool_name} not found")
 
-        # 执行工具函数（可能是async）
+        # 執行工具函式（可能是async）
         import inspect
 
         if inspect.iscoroutinefunction(tool_func):
@@ -553,7 +553,7 @@ class SearchToolRouter(RouterBase):
         return result
 
     def _build_initial_prompt(self, instruction: str, ctx: dict, readonly: bool) -> str:
-        """构建初始prompt，包含ctx和instruction"""
+        """構建初始prompt，包含ctx和instruction"""
         readonly_note = (
             " (READONLY MODE - you can only use read-only tools)" if readonly else ""
         )

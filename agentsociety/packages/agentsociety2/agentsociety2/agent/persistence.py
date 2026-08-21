@@ -1,31 +1,31 @@
-"""Agent持久化模块。
+"""Agent持久化模組。
 
-整合检查点、预写日志、清理和会话恢复功能。
+整合檢查點、預寫日誌、清理和會話恢復功能。
 
-模块结构
+模組結構
 ========
 
-- :class:`Checkpoint`: ACID检查点管理，支持崩溃恢复
-- :class:`WriteAheadLog`: 预写日志（追加写入 + 内存索引 + fsync）
-- :class:`WorkspaceCleaner`: 工作区清理
-- :class:`SessionRecovery`: 会话恢复上下文构建
+- :class:`Checkpoint`: ACID檢查點管理，支援崩潰恢復
+- :class:`WriteAheadLog`: 預寫日誌（追加寫入 + 記憶體索引 + fsync）
+- :class:`WorkspaceCleaner`: 工作區清理
+- :class:`SessionRecovery`: 會話恢復上下文構建
 
-ACID保证
+ACID保證
 ========
 
-Checkpoint 实现原子写入：
+Checkpoint 實現原子寫入：
 
-1. **原子性**: 使用临时文件 + 原子重命名
-2. **一致性**: 包含版本号和校验和
-3. **持久性**: 写入后调用 fsync 刷新到磁盘
+1. **原子性**: 使用臨時檔案 + 原子重新命名
+2. **一致性**: 包含版本號和校驗和
+3. **永續性**: 寫入後呼叫 fsync 重新整理到磁碟
 
 WAL 特性
 ========
 
-- 追加写入，不重写文件
-- 内存索引追踪 intent_id -> offset
-- 每次写入后 fsync 确保持久化
-- 压缩时保护 pending 状态
+- 追加寫入，不重寫檔案
+- 記憶體索引追蹤 intent_id -> offset
+- 每次寫入後 fsync 確保持久化
+- 壓縮時保護 pending 狀態
 
 示例
 ====
@@ -34,12 +34,12 @@ WAL 特性
 
     from agentsociety2.agent.persistence import Checkpoint, WriteAheadLog
 
-    # 检查点
+    # 檢查點
     checkpoint = Checkpoint(workspace, config)
     checkpoint.save(tick=100, state={"step_count": 42})
     data = checkpoint.restore(100)
 
-    # 预写日志
+    # 預寫日誌
     wal = WriteAheadLog(workspace, max_entries=1000)
     intent_id = wal.log_intent("workspace_write", {"path": "test.txt"}, tick=1)
     wal.log_result(intent_id, {"ok": True})
@@ -65,13 +65,13 @@ RUNTIME_LOG_DIR = f"{RUNTIME_DIR}/logs"
 
 
 def _compute_checksum(data: dict[str, Any]) -> str:
-    """计算数据的校验和。"""
+    """計算資料的校驗和。"""
     content = _jr_dumps(data, indent=None)
     return hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
 
 
 def _fsync_path(path: Path) -> None:
-    """确保文件内容刷新到磁盘。"""
+    """確保檔案內容重新整理到磁碟。"""
     if path.exists():
         fd = os.open(path, os.O_RDONLY)
         try:
@@ -81,7 +81,7 @@ def _fsync_path(path: Path) -> None:
 
 
 class IntentStatus(str, Enum):
-    """意图状态枚举。"""
+    """意圖狀態列舉。"""
 
     PENDING = "pending"
     RUNNING = "running"
@@ -90,10 +90,10 @@ class IntentStatus(str, Enum):
 
 
 class Checkpoint:
-    """ACID检查点管理器。
+    """ACID檢查點管理器。
 
-    支持保存和恢复Agent在特定tick的完整状态。
-    使用临时文件 + 原子重命名实现原子写入。
+    支援儲存和恢復Agent在特定tick的完整狀態。
+    使用臨時檔案 + 原子重新命名實現原子寫入。
     """
 
     VERSION = 1
@@ -111,11 +111,11 @@ class Checkpoint:
         return self.dir / f"checkpoint_{tick}.tmp"
 
     def save(self, tick: int, state: dict[str, Any]) -> Path:
-        """保存检查点（原子写入）。
+        """儲存檢查點（原子寫入）。
 
-        :param tick: 时间步。
-        :param state: 状态数据。
-        :return: 检查点文件路径。
+        :param tick: 時間步。
+        :param state: 狀態資料。
+        :return: 檢查點檔案路徑。
         """
         data = {
             "version": self.VERSION,
@@ -137,10 +137,10 @@ class Checkpoint:
         return final_path
 
     def restore(self, tick: int) -> Optional[dict[str, Any]]:
-        """恢复检查点。
+        """恢復檢查點。
 
-        :param tick: 时间步。
-        :return: 检查点数据，不存在返回 None。
+        :param tick: 時間步。
+        :return: 檢查點資料，不存在返回 None。
         """
         path = self._path(tick)
         if not path.exists():
@@ -151,7 +151,7 @@ class Checkpoint:
             if not isinstance(data, dict):
                 return None
 
-            # 验证校验和
+            # 驗證校驗和
             expected = data.pop("checksum", None)
             if expected and expected != _compute_checksum(data):
                 return None
@@ -161,7 +161,7 @@ class Checkpoint:
             return None
 
     def latest_tick(self) -> Optional[int]:
-        """获取最新检查点的tick。"""
+        """獲取最新檢查點的tick。"""
         checkpoints = sorted(self.dir.glob("checkpoint_*.json"))
         if not checkpoints:
             return None
@@ -172,7 +172,7 @@ class Checkpoint:
         return None
 
     def _cleanup(self) -> None:
-        """清理旧检查点。"""
+        """清理舊檢查點。"""
         checkpoints = sorted(self.dir.glob("checkpoint_*.json"))
         while len(checkpoints) > self.config.persistence.checkpoint_max:
             checkpoints[0].unlink()
@@ -180,21 +180,21 @@ class Checkpoint:
 
 
 class WriteAheadLog:
-    """预写日志管理器。
+    """預寫日誌管理器。
 
-    在工具执行前记录意图，执行后记录结果。
-    使用追加日志 + 内存索引，每次写入后 fsync 确保持久化。
+    在工具執行前記錄意圖，執行後記錄結果。
+    使用追加日誌 + 記憶體索引，每次寫入後 fsync 確保持久化。
 
-    :ivar path: 日志文件路径。
-    :ivar index_path: 索引文件路径。
-    :ivar max_entries: 最大保留条目数。
+    :ivar path: 日誌檔案路徑。
+    :ivar index_path: 索引檔案路徑。
+    :ivar max_entries: 最大保留條目數。
     """
 
     def __init__(self, workspace: Path, max_entries: int = 1000):
         """初始化 WAL。
 
-        :param workspace: 工作区根目录。
-        :param max_entries: 最大保留条目数。
+        :param workspace: 工作區根目錄。
+        :param max_entries: 最大保留條目數。
         """
         self.path = workspace / RUNTIME_DIR / "wal" / "wal.jsonl"
         self.index_path = workspace / RUNTIME_DIR / "wal" / "index.json"
@@ -205,7 +205,7 @@ class WriteAheadLog:
         self._pending: dict[str, dict[str, Any]] = self._load_pending()
 
     def _load_index(self) -> dict[str, int]:
-        """从磁盘加载索引。"""
+        """從磁碟載入索引。"""
         if not self.index_path.exists():
             return {}
         try:
@@ -217,7 +217,7 @@ class WriteAheadLog:
         return {}
 
     def _load_pending(self) -> dict[str, dict[str, Any]]:
-        """从 WAL 文件重建 pending 状态。"""
+        """從 WAL 檔案重建 pending 狀態。"""
         pending = {}
         completed = set()
 
@@ -255,19 +255,19 @@ class WriteAheadLog:
         return pending
 
     def _save_index(self) -> None:
-        """保存索引到磁盘。"""
+        """儲存索引到磁碟。"""
         self.index_path.write_text(
             _jr_dumps(self._index, indent=None), encoding="utf-8"
         )
         _fsync_path(self.index_path)
 
     def log_intent(self, action: str, arguments: dict[str, Any], tick: int) -> str:
-        """记录执行意图，返回意图ID。
+        """記錄執行意圖，返回意圖ID。
 
-        :param action: 工具名称。
-        :param arguments: 工具参数。
-        :param tick: 当前 tick。
-        :return: 意图 ID。
+        :param action: 工具名稱。
+        :param arguments: 工具引數。
+        :param tick: 當前 tick。
+        :return: 意圖 ID。
         """
         self._counter += 1
         intent_id = f"intent_{tick}_{self._counter}"
@@ -298,10 +298,10 @@ class WriteAheadLog:
     def log_result(
         self, intent_id: str, result: dict[str, Any], success: bool = True
     ) -> None:
-        """记录执行结果。
+        """記錄執行結果。
 
-        :param intent_id: 意图 ID。
-        :param result: 执行结果。
+        :param intent_id: 意圖 ID。
+        :param result: 執行結果。
         :param success: 是否成功。
         """
         result_entry = {
@@ -322,17 +322,17 @@ class WriteAheadLog:
         self._pending.pop(intent_id, None)
 
     def get_pending(self) -> list[dict[str, Any]]:
-        """获取待处理意图列表。"""
+        """獲取待處理意圖列表。"""
         return list(self._pending.values())
 
     def get_pending_after_tick(self, tick: int) -> list[dict[str, Any]]:
-        """获取指定 tick 之后的待处理意图。"""
+        """獲取指定 tick 之後的待處理意圖。"""
         return [
             intent for intent in self._pending.values() if intent.get("tick", 0) > tick
         ]
 
     def _maybe_compact(self) -> None:
-        """当条目数超过限制时压缩文件。保护 pending 状态。"""
+        """當條目數超過限制時壓縮檔案。保護 pending 狀態。"""
         total_entries = len(self._index)
         if total_entries <= self.max_entries:
             return
@@ -379,7 +379,7 @@ class WriteAheadLog:
             pass
 
     def clear_completed(self) -> int:
-        """清理已完成和失败的意图记录。返回清理数量。"""
+        """清理已完成和失敗的意圖記錄。返回清理數量。"""
         if not self.path.exists():
             return 0
 
@@ -427,17 +427,17 @@ class WriteAheadLog:
 
 
 class WorkspaceCleaner:
-    """工作区清理器。"""
+    """工作區清理器。"""
 
     def __init__(self, workspace: Path, config: AgentConfig):
         self.workspace = workspace
         self.config = config
 
     async def cleanup(self) -> dict[str, Any]:
-        """执行清理。"""
+        """執行清理。"""
         stats = {"files_removed": 0, "bytes_freed": 0}
 
-        # 清理日志
+        # 清理日誌
         log_dir = self.workspace / RUNTIME_LOG_DIR
         if log_dir.exists():
             logs = sorted(
@@ -448,7 +448,7 @@ class WorkspaceCleaner:
                 log.unlink()
                 stats["files_removed"] += 1
 
-        # 清理对话历史文件
+        # 清理對話歷史檔案
         history_dir = log_dir / "thread_history"
         if history_dir.exists():
             history_files = sorted(
@@ -464,8 +464,8 @@ class WorkspaceCleaner:
                 hf.unlink()
                 stats["files_removed"] += 1
 
-        # 轮转 jsonl：避免长跑实验无限增长（保留最近 N 行）
-        # 这些文件是可裁剪的运行时日志；关键事实应由 thread compaction / AGENT.md 索引承载。
+        # 輪轉 jsonl：避免長跑實驗無限增長（保留最近 N 行）
+        # 這些檔案是可裁剪的執行時日誌；關鍵事實應由 thread compaction / AGENT.md 索引承載。
         jsonl_keep = int(getattr(self.config.context, "thread_max_messages", 50) * 50)
         jsonl_targets = [
             log_dir / "thread_messages.jsonl",
@@ -488,10 +488,10 @@ class WorkspaceCleaner:
                 if freed:
                     stats["bytes_freed"] += freed
             except Exception:
-                # 清理失败不应影响仿真主流程
+                # 清理失敗不應影響模擬主流程
                 pass
 
-        # 清理检查点
+        # 清理檢查點
         cp_dir = self.workspace / RUNTIME_DIR / "checkpoints"
         if cp_dir.exists():
             cps = sorted(
@@ -504,14 +504,14 @@ class WorkspaceCleaner:
                 cp.unlink()
                 stats["files_removed"] += 1
 
-        # 清理 WAL 已完成记录
+        # 清理 WAL 已完成記錄
         wal_dir = self.workspace / RUNTIME_DIR / "wal"
         if wal_dir.exists():
             wal = WriteAheadLog(self.workspace, self.config.persistence.wal_max_entries)
             cleaned = wal.clear_completed()
             stats["wal_cleaned"] = cleaned
 
-        # 归档旧文件
+        # 歸檔舊檔案
         archive_threshold = datetime.now() - timedelta(
             days=self.config.persistence.archive_after_days
         )
@@ -533,7 +533,7 @@ class WorkspaceCleaner:
         return stats
 
     def disk_usage(self) -> dict[str, Any]:
-        """获取磁盘使用情况。"""
+        """獲取磁碟使用情況。"""
         total = 0
         counts: dict[str, int] = {}
         for path in self.workspace.rglob("*"):
@@ -549,7 +549,7 @@ class WorkspaceCleaner:
 
 
 class SessionRecovery:
-    """会话恢复上下文构建器。"""
+    """會話恢復上下文構建器。"""
 
     def __init__(
         self,
@@ -562,7 +562,7 @@ class SessionRecovery:
         self.wal = wal
 
     def build_context(self, current_tick: int) -> str:
-        """构建恢复上下文。"""
+        """構建恢復上下文。"""
         parts = []
 
         latest = self.checkpoint.latest_tick()
@@ -577,7 +577,7 @@ class SessionRecovery:
             if content:
                 parts.append(f"**Context**:\n{content[:1000]}")
 
-        # 显示 WAL pending 意图
+        # 顯示 WAL pending 意圖
         if self.wal:
             pending = self.wal.get_pending_after_tick(latest or 0)
             if pending:
@@ -590,11 +590,11 @@ class SessionRecovery:
         return "\n\n".join(parts) if parts else ""
 
     def build_recovery_context(self, current_tick: int) -> str:
-        """构建恢复上下文（build_context 的别名）。"""
+        """構建恢復上下文（build_context 的別名）。"""
         return self.build_context(current_tick)
 
     def _state_summary(self) -> str:
-        """构建状态摘要。"""
+        """構建狀態摘要。"""
         summaries = []
         state_dir = self.workspace / "state"
         if not state_dir.exists():

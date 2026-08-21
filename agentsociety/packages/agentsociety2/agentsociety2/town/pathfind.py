@@ -1,4 +1,4 @@
-"""网格 A* 寻路。四方向邻居，曼哈顿距离启发。"""
+"""網格 A* 尋路。四方向鄰居，曼哈頓距離啟發。"""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ def neighbors(tile: Tile, walkable: set[Tile]) -> list[Tile]:
 
 
 def nearest_walkable(tile: Tile, walkable: set[Tile]) -> Tile:
-    """把任意格子吸附到最近的可走格；``walkable`` 为空时原样返回。"""
+    """把任意格子吸附到最近的可走格；``walkable`` 為空時原樣返回。"""
     if tile in walkable or not walkable:
         return tile
     return min(
@@ -27,7 +27,7 @@ def nearest_walkable(tile: Tile, walkable: set[Tile]) -> Tile:
 
 
 def astar(start: Tile, goal: Tile, walkable: set[Tile]) -> list[Tile] | None:
-    """返回含起点与终点的完整路径；不可达返回 ``None``。"""
+    """返回含起點與終點的完整路徑；不可達返回 ``None``。"""
     start = nearest_walkable(start, walkable)
     goal = nearest_walkable(goal, walkable)
     if start == goal:

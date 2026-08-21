@@ -1,5 +1,5 @@
 /**
- * 会话状态管理
+ * 會話狀態管理
  */
 
 import { create } from 'zustand';
@@ -126,7 +126,7 @@ interface SessionState {
   teamMembers: TeamMember[];
   availableModels: ModelEntry[];
   selectedModelName: string | null;
-  /** 过滤 is_default=true 的模型，供聊天窗口 ModelSelector 使用 */
+  /** 過濾 is_default=true 的模型，供聊天視窗 ModelSelector 使用 */
   chatAvailableModels: ModelEntry[];
 
   // Actions
@@ -402,7 +402,7 @@ export const useSessionStore = create<SessionState>((set) => ({
   setAvailableModels: (models, activeModel) => {
     set(() => {
       const chatModels = models.filter((m) => m.is_default !== false);
-      // 优先使用后端返回的 activeModel（默认模型），其次取第一个；有别名时存别名
+      // 優先使用後端返回的 activeModel（預設模型），其次取第一個；有別名時存別名
       const matchedModel = activeModel ? chatModels.find((m) => m.model_name === activeModel) : null;
       const selected = matchedModel
         ? (matchedModel.alias || matchedModel.model_name)

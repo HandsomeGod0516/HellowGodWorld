@@ -1,23 +1,23 @@
-"""并发控制模块。
+"""併發控制模組。
 
-提供Agent的并发执行、限流和任务调度功能。
+提供Agent的併發執行、限流和任務排程功能。
 
-模块结构
+模組結構
 ========
-- :class:`Priority`: 任务优先级枚举
-- :class:`PrioritizedTask`: 带优先级的任务封装
-- :class:`PriorityScheduler`: 优先级调度器
-- :class:`ParallelExecutor`: 并行工具执行器
+- :class:`Priority`: 任務優先順序列舉
+- :class:`PrioritizedTask`: 帶優先順序的任務封裝
+- :class:`PriorityScheduler`: 優先順序排程器
+- :class:`ParallelExecutor`: 並行工具執行器
 - :class:`RateLimiter`: 令牌桶限流器
-- :class:`TaskManager`: 后台任务管理器
-- :class:`DeadlockDetector`: 死锁检测器
+- :class:`TaskManager`: 後臺工作管理員
+- :class:`DeadlockDetector`: 死鎖檢測器
 
-设计原则
+設計原則
 ========
-1. 无全局单例：每个 Agent 拥有独立的并发控制实例
-2. 优先级调度：高优先级任务优先执行
-3. 死锁检测：基于超时的简单死锁检测
-4. 结构化并发：任务生命周期清晰可控
+1. 無全域性單例：每個 Agent 擁有獨立的併發控制例項
+2. 優先順序排程：高優先順序任務優先執行
+3. 死鎖檢測：基於超時的簡單死鎖檢測
+4. 結構化併發：任務生命週期清晰可控
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ T = TypeVar("T")
 
 
 class Priority(IntEnum):
-    """任务优先级，数值越大优先级越高。"""
+    """任務優先順序，數值越大優先順序越高。"""
 
     LOW = 0
     NORMAL = 10
@@ -44,7 +44,7 @@ class Priority(IntEnum):
 
 @dataclass(order=True)
 class PrioritizedTask:
-    """带优先级的任务封装。"""
+    """帶優先順序的任務封裝。"""
 
     priority: int
     task_id: str = field(compare=False)
@@ -53,9 +53,9 @@ class PrioritizedTask:
 
 
 class PriorityScheduler:
-    """优先级调度器。
+    """優先順序排程器。
 
-    按优先级顺序执行任务，支持并发限制。
+    按優先順序順序執行任務，支援併發限制。
 
     Example::
 
@@ -78,11 +78,11 @@ class PriorityScheduler:
         coro: Coroutine,
         priority: Priority = Priority.NORMAL,
     ) -> None:
-        """提交任务到调度队列。
+        """提交任務到排程佇列。
 
-        :param task_id: 任务唯一标识。
-        :param coro: 协程。
-        :param priority: 优先级。
+        :param task_id: 任務唯一標識。
+        :param coro: 協程。
+        :param priority: 優先順序。
         """
         task = PrioritizedTask(priority=priority.value, task_id=task_id, coro=coro)
         async with self._lock:
@@ -91,7 +91,7 @@ class PriorityScheduler:
             asyncio.create_task(self._run_next())
 
     async def _run_next(self) -> None:
-        """执行下一个待处理任务。"""
+        """執行下一個待處理任務。"""
         async with self._lock:
             if not self._pending:
                 return
@@ -116,12 +116,12 @@ class PriorityScheduler:
                     self._running.pop(ptask.task_id, None)
 
     async def get_result(self, task_id: str, timeout: float = 30.0) -> dict[str, Any]:
-        """获取任务结果。
+        """獲取任務結果。
 
-        :param task_id: 任务ID。
-        :param timeout: 超时时间（秒）。
-        :return: 执行结果。
-        :raises asyncio.TimeoutError: 超时。
+        :param task_id: 任務ID。
+        :param timeout: 超時時間（秒）。
+        :return: 執行結果。
+        :raises asyncio.TimeoutError: 超時。
         """
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
@@ -137,21 +137,21 @@ class PriorityScheduler:
 
     @property
     def pending_count(self) -> int:
-        """待处理任务数量。"""
+        """待處理任務數量。"""
         return len(self._pending)
 
     @property
     def running_count(self) -> int:
-        """运行中任务数量。"""
+        """執行中任務數量。"""
         return len(self._running)
 
 
 class ParallelExecutor:
-    """并行工具执行器。
+    """並行工具執行器。
 
-    自动识别可安全并行执行的工具，优化执行效率。
+    自動識別可安全並行執行的工具，最佳化執行效率。
 
-    可安全并行的工具：
+    可安全並行的工具：
         - workspace_read
         - glob
         - grep
@@ -171,7 +171,7 @@ class ParallelExecutor:
         self._semaphore = asyncio.Semaphore(config.concurrency.max_parallel_tools)
 
     def is_safe(self, tool: str) -> bool:
-        """检查工具是否可安全并行。"""
+        """檢查工具是否可安全並行。"""
         return tool in self.PARALLEL_SAFE
 
     async def execute(
@@ -179,13 +179,13 @@ class ParallelExecutor:
         tools: list[tuple[str, dict[str, Any]]],
         executor: Callable[[str, dict[str, Any]], Coroutine[Any, Any, dict[str, Any]]],
     ) -> list[dict[str, Any]]:
-        """执行工具列表。
+        """執行工具列表。
 
-        可安全并行的工具会并行执行，其他顺序执行。
+        可安全並行的工具會並行執行，其他順序執行。
 
-        :param tools: (工具名, 参数) 元组列表。
-        :param executor: 单个工具执行函数。
-        :return: 结果列表，与输入顺序一致。
+        :param tools: (工具名, 引數) 元組列表。
+        :param executor: 單個工具執行函式。
+        :return: 結果列表，與輸入順序一致。
         """
         if not tools:
             return []
@@ -197,7 +197,7 @@ class ParallelExecutor:
 
         results: list[dict[str, Any]] = [{}] * len(tools)
 
-        # 并行执行
+        # 並行執行
         if parallel:
             tasks = [self._exec(executor, t, a) for _, t, a in parallel]
             outcomes = await asyncio.gather(*tasks, return_exceptions=True)
@@ -208,7 +208,7 @@ class ParallelExecutor:
                     else result
                 )
 
-        # 顺序执行
+        # 順序執行
         for idx, tool, args in sequential:
             try:
                 results[idx] = await executor(tool, args)
@@ -223,7 +223,7 @@ class ParallelExecutor:
         tool: str,
         args: dict[str, Any],
     ) -> dict[str, Any]:
-        """带信号量保护的执行。"""
+        """帶訊號量保護的執行。"""
         async with self._semaphore:
             return await executor(tool, args)
 
@@ -231,7 +231,7 @@ class ParallelExecutor:
 class RateLimiter:
     """令牌桶限流器。
 
-    控制操作速率，防止过载。
+    控制操作速率，防止過載。
 
     Example::
 
@@ -249,7 +249,7 @@ class RateLimiter:
     async def acquire(self) -> None:
         """等待可用令牌。
 
-        使用非阻塞方式计算等待时间，避免持锁 sleep。
+        使用非阻塞方式計算等待時間，避免持鎖 sleep。
         """
         while True:
             async with self._lock:
@@ -263,17 +263,17 @@ class RateLimiter:
                     self._tokens -= 1
                     return
 
-                # 计算需要等待的时间
+                # 計算需要等待的時間
                 wait_time = (1 - self._tokens) / self.rate
 
-            # 释放锁后再 sleep，避免阻塞其他请求
+            # 釋放鎖後再 sleep，避免阻塞其他請求
             await asyncio.sleep(wait_time)
 
 
 class TaskManager:
-    """后台任务管理器。
+    """後臺工作管理員。
 
-    管理后台异步任务，支持启动、取消和等待。
+    管理後臺非同步任務，支援啟動、取消和等待。
 
     Example::
 
@@ -287,11 +287,11 @@ class TaskManager:
         self._lock = asyncio.Lock()
 
     async def start(self, task_id: str, coro: Coroutine) -> None:
-        """启动后台任务。
+        """啟動後臺任務。
 
-        :param task_id: 任务ID。
-        :param coro: 协程。
-        :raises ValueError: 任务已存在。
+        :param task_id: 任務ID。
+        :param coro: 協程。
+        :raises ValueError: 任務已存在。
         """
         async with self._lock:
             if task_id in self._tasks and not self._tasks[task_id].done():
@@ -299,12 +299,12 @@ class TaskManager:
             self._tasks[task_id] = asyncio.create_task(coro)
 
     async def wait(self, task_id: str, timeout: Optional[float] = None) -> Any:
-        """等待任务完成。
+        """等待任務完成。
 
-        :param task_id: 任务ID。
-        :param timeout: 超时时间。
-        :return: 任务结果。
-        :raises asyncio.TimeoutError: 超时。
+        :param task_id: 任務ID。
+        :param timeout: 超時時間。
+        :return: 任務結果。
+        :raises asyncio.TimeoutError: 超時。
         """
         async with self._lock:
             task = self._tasks.get(task_id)
@@ -314,9 +314,9 @@ class TaskManager:
         return await asyncio.wait_for(task, timeout=timeout)
 
     async def cancel(self, task_id: str) -> bool:
-        """取消后台任务。
+        """取消後臺任務。
 
-        :param task_id: 任务ID。
+        :param task_id: 任務ID。
         :return: 是否成功取消。
         """
         async with self._lock:
@@ -333,7 +333,7 @@ class TaskManager:
             return True
 
     async def cancel_all(self) -> None:
-        """取消所有后台任务。"""
+        """取消所有後臺任務。"""
         async with self._lock:
             for task in self._tasks.values():
                 if not task.done():
@@ -342,27 +342,27 @@ class TaskManager:
             self._tasks.clear()
 
     def list(self) -> list[str]:
-        """列出所有任务ID。"""
+        """列出所有任務ID。"""
         return list(self._tasks.keys())
 
     @property
     def running_count(self) -> int:
-        """运行中任务数量。"""
+        """執行中任務數量。"""
         return sum(1 for t in self._tasks.values() if not t.done())
 
 
 class DeadlockDetector:
-    """简单死锁检测器。
+    """簡單死鎖檢測器。
 
-    基于超时检测潜在死锁，适用于长时间运行的任务监控。
+    基於超時檢測潛在死鎖，適用於長時間執行的任務監控。
 
     Example::
 
         detector = DeadlockDetector(timeout=60.0)
         detector.register("operation1")
-        # ... 操作完成后
+        # ... 操作完成後
         detector.complete("operation1")
-        # 检查是否有超时操作
+        # 檢查是否有超時操作
         deadlocked = detector.check()
     """
 
@@ -372,23 +372,23 @@ class DeadlockDetector:
         self._lock = asyncio.Lock()
 
     def register(self, op_id: str) -> None:
-        """注册操作开始。
+        """註冊操作開始。
 
         :param op_id: 操作ID。
         """
         self._operations[op_id] = time.monotonic()
 
     def complete(self, op_id: str) -> None:
-        """标记操作完成。
+        """標記操作完成。
 
         :param op_id: 操作ID。
         """
         self._operations.pop(op_id, None)
 
     def check(self) -> list[str]:
-        """检查超时操作。
+        """檢查超時操作。
 
-        :return: 超时操作ID列表。
+        :return: 超時操作ID列表。
         """
         now = time.monotonic()
         return [
@@ -399,5 +399,5 @@ class DeadlockDetector:
 
     @property
     def active_count(self) -> int:
-        """活跃操作数量。"""
+        """活躍運算元量。"""
         return len(self._operations)

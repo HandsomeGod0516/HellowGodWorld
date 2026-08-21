@@ -104,8 +104,8 @@ Leave `tools_to_use` empty when done.
 - **Decide** which charts best support your analysis; embed them where they fit the narrative.
 - If EDA reports were generated, link or summarize their key findings.
 - **Bilingual format required**: Include all four sections:
-  - `<markdown_zh><![CDATA[中文 Markdown 报告]]></markdown_zh>`
-  - `<html_zh><![CDATA[中文 HTML 完整文档]]></html_zh>`
+  - `<markdown_zh><![CDATA[中文 Markdown 報告]]></markdown_zh>`
+  - `<html_zh><![CDATA[中文 HTML 完整文件]]></html_zh>`
   - `<markdown_en><![CDATA[English Markdown report]]></markdown_en>`
   - `<html_en><![CDATA[English HTML complete document]]></html_en>`
 - HTML must be a complete document (`<!DOCTYPE html>` ... `</html>`) with professional styles.

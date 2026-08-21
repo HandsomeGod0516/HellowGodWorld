@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['school', 'park']
 TARGET_INTERACTIONS = ['hold_office_hours', 'meet_friend']
 STATUS = 'youth_support'
 EMOTION = 'patient'
-SPEECH = '我用年轻人听得进去的方式聊。'
+SPEECH = '我用年輕人聽得進去的方式聊。'
 MEMORY_TEMPLATE = 'Used youth.communicate: {summary} at {location_id}.'
 
 

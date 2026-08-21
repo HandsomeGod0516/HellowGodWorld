@@ -1,10 +1,10 @@
-"""Agent统一配置管理。
+"""Agent統一配置管理。
 
-本模块提供Agent的统一配置系统。设计原则：
+本模組提供Agent的統一配置系統。設計原則：
 
-1. **开箱即用**: 大多数参数已写死，无需用户配置
-2. **最小暴露**: 仅暴露真正需要调整的参数
-3. **环境变量覆盖**: 核心参数支持环境变量动态调整
+1. **開箱即用**: 大多數引數已寫死，無需使用者配置
+2. **最小暴露**: 僅暴露真正需要調整的引數
+3. **環境變數覆蓋**: 核心引數支援環境變數動態調整
 
 示例
 ====
@@ -13,10 +13,10 @@
 
     from agentsociety2.agent.config import AgentConfig
 
-    config = AgentConfig()  # 使用默认值
-    config = AgentConfig.from_env()  # 从环境变量加载
+    config = AgentConfig()  # 使用預設值
+    config = AgentConfig.from_env()  # 從環境變數載入
 
-访问配置::
+訪問配置::
 
     config.model.context_window  # 200000
     config.loop.max_rounds  # 24
@@ -27,7 +27,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-# 环境变量白名单：允许传递给子进程的环境变量
+# 環境變數白名單：允許傳遞給子程序的環境變數
 ALLOWED_ENV_VARS = frozenset(
     {
         "PATH",
@@ -44,10 +44,10 @@ ALLOWED_ENV_VARS = frozenset(
 
 
 def _int(name: str, default: int) -> int:
-    """从环境变量读取整数配置。
+    """從環境變數讀取整數配置。
 
-    :param name: 环境变量名。
-    :param default: 默认值。
+    :param name: 環境變數名。
+    :param default: 預設值。
     :return: 配置值。
     """
     try:
@@ -57,10 +57,10 @@ def _int(name: str, default: int) -> int:
 
 
 # ============================================================================
-# 内部常量（写死，不暴露给用户）
+# 內部常量（寫死，不暴露給使用者）
 # ============================================================================
 
-# 上下文压缩阈值
+# 上下文壓縮閾值
 _COMPACT_WARNING_RATIO = 0.60
 _COMPACT_TRIGGER_RATIO = 0.75
 _COMPACT_AUTO_RATIO = 0.85
@@ -71,33 +71,33 @@ _THREAD_MAX_MESSAGES = 50
 _THREAD_MAX_TOKENS = 150_000
 _THREAD_KEEP_RECENT = 12
 
-# 输出限制
+# 輸出限制
 _STDOUT_MAX_CHARS = 10_000
 _STDERR_MAX_CHARS = 5_000
 _TOOL_RESULT_BUDGET = 32_000
 
-# 工作区限制
+# 工作區限制
 _WORKSPACE_READ_CHUNK_CAP = 32_000
 _WORKSPACE_CACHE_MAX_ENTRIES = 50
 
-# 循环检测阈值
+# 迴圈檢測閾值
 _MAX_TOOL_REPEATS = 5
 _MAX_CONTENT_REPEATS = 10
 _MAX_ERROR_REPEATS = 3
 _LOOP_HISTORY_SIZE = 20
 
-# 并发限制
+# 併發限制
 _MAX_PARALLEL_TOOLS = 5
 _MAX_LLM_CONCURRENT = 5
 _MAX_SUBPROCESS = 8
 _RATE_LIMIT_RPS = 10.0
 
-# Tiktoken 编码
+# Tiktoken 編碼
 _TIKTOKEN_ENCODING = "cl100k_base"
 
 
 # ============================================================================
-# 用户可配置项
+# 使用者可配置項
 # ============================================================================
 
 
@@ -105,8 +105,8 @@ _TIKTOKEN_ENCODING = "cl100k_base"
 class ModelConfig:
     """模型配置。
 
-    :ivar model: 模型名称。
-    :ivar context_window: 上下文窗口大小（tokens）。
+    :ivar model: 模型名稱。
+    :ivar context_window: 上下文視窗大小（tokens）。
     """
 
     model: str = ""
@@ -114,22 +114,22 @@ class ModelConfig:
 
     @property
     def effective_window(self) -> int:
-        """有效上下文窗口大小（减去输出预留和开销）。"""
+        """有效上下文視窗大小（減去輸出預留和開銷）。"""
         return max(8192, self.context_window - 24_000)
 
 
 @dataclass
 class LoopConfig:
-    """工具循环配置。
+    """工具迴圈配置。
 
-    :ivar max_rounds: 单步最大工具轮数。
-    :ivar step_timeout: 整步超时时间（秒）。
+    :ivar max_rounds: 單步最大工具輪數。
+    :ivar step_timeout: 整步超時時間（秒）。
     """
 
     max_rounds: int = 24
     step_timeout: int = 300
 
-    # 以下参数写死，不暴露
+    # 以下引數寫死，不暴露
     tool_timeout: float = 30.0
     bash_retries: int = 1
     llm_retries: int = 3
@@ -141,16 +141,16 @@ class LoopConfig:
 class PersistenceConfig:
     """持久化配置。
 
-    :ivar checkpoint_interval: 检查点间隔（ticks）。
-    :ivar checkpoint_max: 最大保留检查点数。
-    :ivar thread_history_max_files: 最大保留的对话历史文件数。
+    :ivar checkpoint_interval: 檢查點間隔（ticks）。
+    :ivar checkpoint_max: 最大保留檢查點數。
+    :ivar thread_history_max_files: 最大保留的對話歷史檔案數。
     """
 
     checkpoint_interval: int = 10
     checkpoint_max: int = 20
     thread_history_max_files: int = 20
 
-    # 以下参数写死
+    # 以下引數寫死
     checkpoint_include_workspace: bool = True
     max_log_files: int = 50
     max_memory_entries: int = 5000
@@ -162,40 +162,40 @@ class PersistenceConfig:
 
 @dataclass
 class ContextConfig:
-    """上下文管理配置（内部使用，大多数参数写死）。
+    """上下文管理配置（內部使用，大多數引數寫死）。
 
-    :ivar workspace_cache_max_entries: 工作区缓存最大条目数。
-    :ivar preload_workspace_paths: 预加载的工作区路径列表。
+    :ivar workspace_cache_max_entries: 工作區快取最大條目數。
+    :ivar preload_workspace_paths: 預載入的工作區路徑列表。
     """
 
     workspace_cache_max_entries: int = 50
     preload_workspace_paths: list[str] = field(default_factory=list)
 
-    # 压缩阈值（写死）
+    # 壓縮閾值（寫死）
     compact_warning_ratio: float = field(default=_COMPACT_WARNING_RATIO, repr=False)
     compact_trigger_ratio: float = field(default=_COMPACT_TRIGGER_RATIO, repr=False)
     compact_auto_ratio: float = field(default=_COMPACT_AUTO_RATIO, repr=False)
     compact_force_ratio: float = field(default=_COMPACT_FORCE_RATIO, repr=False)
 
-    # Thread 限制（写死）
+    # Thread 限制（寫死）
     thread_max_messages: int = field(default=_THREAD_MAX_MESSAGES, repr=False)
     thread_max_tokens: int = field(default=_THREAD_MAX_TOKENS, repr=False)
     thread_keep_recent: int = field(default=_THREAD_KEEP_RECENT, repr=False)
     thread_compact_max_chars: int = field(default=100_000, repr=False)
     thread_compact_keep_recent: int = field(default=8, repr=False)
 
-    # 输出限制（写死）
+    # 輸出限制（寫死）
     stdout_max_chars: int = field(default=_STDOUT_MAX_CHARS, repr=False)
     stderr_max_chars: int = field(default=_STDERR_MAX_CHARS, repr=False)
     tool_result_budget: int = field(default=_TOOL_RESULT_BUDGET, repr=False)
     tool_result_thread_budget: int = field(default=64_000, repr=False)
 
-    # 工作区限制（写死）
+    # 工作區限制（寫死）
     workspace_read_chunk_cap: int = field(default=_WORKSPACE_READ_CHUNK_CAP, repr=False)
     workspace_chunk_size: int = field(default=32_768, repr=False)
     key_state_file_limit: int = field(default=5000, repr=False)
 
-    # 其他（写死）
+    # 其他（寫死）
     tool_table_mode: str = field(default="full", repr=False)
     grep_max_files: int = field(default=2000, repr=False)
     grep_max_matches: int = field(default=1000, repr=False)
@@ -215,7 +215,7 @@ class ContextConfig:
 
 @dataclass
 class LoopDetectionConfig:
-    """循环检测配置（内部使用，参数写死）。"""
+    """迴圈檢測配置（內部使用，引數寫死）。"""
 
     max_tool_repeats: int = field(default=_MAX_TOOL_REPEATS, repr=False)
     max_content_repeats: int = field(default=_MAX_CONTENT_REPEATS, repr=False)
@@ -226,7 +226,7 @@ class LoopDetectionConfig:
 
 @dataclass
 class ConcurrencyConfig:
-    """并发控制配置（内部使用）。"""
+    """併發控制配置（內部使用）。"""
 
     max_parallel_tools: int = field(default=_MAX_PARALLEL_TOOLS, repr=False)
     max_llm_concurrent: int = field(default=_MAX_LLM_CONCURRENT, repr=False)
@@ -236,7 +236,7 @@ class ConcurrencyConfig:
 
 @dataclass
 class StateConfig:
-    """状态文件配置（内部使用）。"""
+    """狀態檔案配置（內部使用）。"""
 
     builtin_states: dict[str, tuple[str, str]] = field(
         default_factory=lambda: {
@@ -251,7 +251,7 @@ class StateConfig:
     summary_max_length: int = 100
 
     def get_all_states(self) -> dict[str, tuple[str, str]]:
-        """获取所有状态文件定义（内置 + 扩展）。"""
+        """獲取所有狀態檔案定義（內建 + 擴充套件）。"""
         result = dict(self.builtin_states)
         result.update(self.extra_states)
         return result
@@ -259,18 +259,18 @@ class StateConfig:
 
 @dataclass
 class AgentConfig:
-    """Agent统一配置。
+    """Agent統一配置。
 
-    整合所有子配置，提供统一的访问入口。
+    整合所有子配置，提供統一的訪問入口。
 
     :ivar model: 模型配置。
-    :ivar loop: 工具循环配置。
+    :ivar loop: 工具迴圈配置。
     :ivar context: 上下文管理配置。
     :ivar persistence: 持久化配置。
-    :ivar concurrency: 并发控制配置。
-    :ivar loop_detection: 循环检测配置。
-    :ivar state: 状态文件配置。
-    :ivar workspace_path: 工作区路径（可选）。
+    :ivar concurrency: 併發控制配置。
+    :ivar loop_detection: 迴圈檢測配置。
+    :ivar state: 狀態檔案配置。
+    :ivar workspace_path: 工作區路徑（可選）。
 
     Example:
 
@@ -289,16 +289,16 @@ class AgentConfig:
 
     @classmethod
     def from_env(cls) -> "AgentConfig":
-        """从环境变量加载配置。
+        """從環境變數載入配置。
 
-        支持的环境变量：
-            - AGENT_MODEL: 模型名称
-            - AGENT_CONTEXT_WINDOW: 上下文窗口大小
-            - AGENT_MAX_TOOL_ROUNDS: 最大工具轮数
-            - AGENT_STEP_TIMEOUT: 单步超时(秒)
-            - AGENT_CHECKPOINT_INTERVAL: 检查点间隔
+        支援的環境變數：
+            - AGENT_MODEL: 模型名稱
+            - AGENT_CONTEXT_WINDOW: 上下文視窗大小
+            - AGENT_MAX_TOOL_ROUNDS: 最大工具輪數
+            - AGENT_STEP_TIMEOUT: 單步超時(秒)
+            - AGENT_CHECKPOINT_INTERVAL: 檢查點間隔
 
-        :return: 配置实例。
+        :return: 配置例項。
         """
         return cls(
             model=ModelConfig(
@@ -316,13 +316,13 @@ class AgentConfig:
 
     @classmethod
     def from_kwargs(cls, kwargs: dict | None = None) -> "AgentConfig":
-        """从 kwargs 字典创建配置实例（支持最小可用覆盖）。
+        """從 kwargs 字典建立配置例項（支援最小可用覆蓋）。
 
-        该方法用于把 `PersonAgent(..., **capability_kwargs)` 传入的少数关键参数
-        映射到 `AgentConfig`。本仓库明确 **不需要向后兼容**：未识别的字段会被忽略，
-        但已支持字段会严格生效（并做 clamp）。
+        該方法用於把 `PersonAgent(..., **capability_kwargs)` 傳入的少數關鍵引數
+        對映到 `AgentConfig`。本倉庫明確 **不需要向後相容**：未識別的欄位會被忽略，
+        但已支援欄位會嚴格生效（並做 clamp）。
 
-        支持字段（约定名）：
+        支援欄位（約定名）：
         - max_tool_rounds -> loop.max_rounds
         - step_timeout -> loop.step_timeout
         - preload_workspace_paths -> context.preload_workspace_paths
@@ -437,7 +437,7 @@ class AgentConfig:
         return cfg
 
     def to_dict(self) -> dict:
-        """转换为字典。"""
+        """轉換為字典。"""
         import dataclasses
 
         result = {}
@@ -453,5 +453,5 @@ class AgentConfig:
         return result
 
 
-# 默认配置实例
+# 預設配置例項
 DEFAULT_CONFIG = AgentConfig()

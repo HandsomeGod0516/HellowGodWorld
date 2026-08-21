@@ -1,3 +1,3 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""平台适配器模块，包含各IM平台的适配器实现."""
+"""平臺介面卡模組，包含各IM平臺的介面卡實現."""

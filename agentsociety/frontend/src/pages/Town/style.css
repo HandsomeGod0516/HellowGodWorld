@@ -38,10 +38,6 @@
     margin: 0 !important;
 }
 
-.town-chat-input {
-    width: 260px;
-}
-
 .town-name-input {
     width: 160px;
 }
@@ -58,13 +54,56 @@
 .town-hint {
     position: absolute;
     left: 12px;
-    bottom: 12px;
+    bottom: 76px;
     padding: 4px 10px;
     border-radius: 6px;
     background: rgba(24, 38, 44, 0.72);
     color: #fffdf8;
     font-size: 12px;
     pointer-events: none;
+}
+
+.town-chat-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: linear-gradient(to top, rgba(15, 20, 26, 0.82), rgba(15, 20, 26, 0.55) 80%, transparent);
+}
+
+.town-chat-input.ant-input {
+    flex: 1 1 auto;
+    background: rgba(10, 14, 18, 0.75);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #fffdf8;
+    height: 40px;
+}
+
+.town-chat-input.ant-input::placeholder {
+    color: rgba(255, 253, 248, 0.45);
+}
+
+.town-chat-input.ant-input:hover,
+.town-chat-input.ant-input:focus {
+    background: rgba(10, 14, 18, 0.9);
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+.town-chat-send.ant-btn {
+    height: 40px;
+    background: #1b2229;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #fffdf8;
+}
+
+.town-chat-send.ant-btn:hover {
+    background: #262f38;
+    color: #fffdf8;
+    border-color: rgba(255, 255, 255, 0.28);
 }
 
 .town-side {

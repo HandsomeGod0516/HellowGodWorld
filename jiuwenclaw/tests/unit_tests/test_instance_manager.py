@@ -123,7 +123,7 @@ class TestInstanceNameValidation:
         assert validate_instance_name("alice@example") is not None
         assert validate_instance_name("my instance") is not None  # space
         assert validate_instance_name("instance.name") is not None  # dot
-        assert validate_instance_name("中文实例") is not None  # non-ASCII
+        assert validate_instance_name("中文例項") is not None  # non-ASCII
 
     @staticmethod
     def test_invalid_leading_dot():

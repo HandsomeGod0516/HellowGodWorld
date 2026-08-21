@@ -1,7 +1,7 @@
-配置模块
+配置模組
 ========
 
-本模块提供 LLM 配置与工具函数。
+本模組提供 LLM 配置與工具函式。
 
 LLM Router
 ----------
@@ -10,14 +10,14 @@ LLM Router
 
 .. autofunction:: agentsociety2.config.get_llm_router_and_model
 
-Config 类
+Config 類
 ---------
 
 .. autoclass:: agentsociety2.config.Config
    :members:
    :undoc-members:
 
-工具函数
+工具函式
 --------
 
 .. autofunction:: agentsociety2.config.extract_json

@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""AgentManager - 管理 Agent 实例."""
+"""AgentManager - 管理 Agent 例項."""
 
 from __future__ import annotations
 
@@ -41,11 +41,11 @@ def _build_acp_agent_config(extra_config: dict[str, Any] | None = None) -> dict[
 
 
 class AgentManager:
-    """管理多个 Agent 实例.
+    """管理多個 Agent 例項.
 
-    支持多种通道:
-    - "acp": ACP 协议通道
-    - "default": 默认通道
+    支援多種通道:
+    - "acp": ACP 協議通道
+    - "default": 預設通道
     """
 
     def __init__(self) -> None:
@@ -56,14 +56,14 @@ class AgentManager:
     async def _create_agent(
         self, agent_key: str, mode: str = "agent", config: dict[str, Any] | None = None, sub_mode: str = None
     ) -> "JiuWenClaw":
-        """创建 Agent 实例.
+        """建立 Agent 例項.
 
         Args:
-            agent_key: Agent 键（如 "acp" 或 "default"）
-            config: 可选配置
+            agent_key: Agent 鍵（如 "acp" 或 "default"）
+            config: 可選配置
             sub_mode: 子模式
         Returns:
-            JiuWenClaw 实例
+            JiuWenClaw 例項
         """
         from jiuwenclaw.server.runtime.agent_adapter.interface import JiuWenClaw
 
@@ -85,14 +85,14 @@ class AgentManager:
     ) -> dict[str, Any] | None:
         """初始化 AgentManager.
 
-        对于 ACP 通道，创建 agent 并返回 capabilities。
+        對於 ACP 通道，建立 agent 並返回 capabilities。
 
         Args:
             channel_id: 通道 ID
-            extra_config: 额外配置（如 protocol_version, client_capabilities）
+            extra_config: 額外配置（如 protocol_version, client_capabilities）
 
         Returns:
-            对于 ACP 通道，返回 capabilities；对于其他通道，返回 None
+            對於 ACP 通道，返回 capabilities；對於其他通道，返回 None
         """
         if channel_id == "acp":
             logger.info("[AgentManager] ACP initialize")
@@ -118,7 +118,7 @@ class AgentManager:
         return None
 
     async def cancel_all_inflight_work(self, reason: str = "[gateway ws disconnect] ") -> None:
-        """Gateway 与 AgentServer 的 WebSocket 断开时：取消所有已创建 Agent 实例上的在途任务。"""
+        """Gateway 與 AgentServer 的 WebSocket 斷開時：取消所有已建立 Agent 例項上的在途任務。"""
         for modes in list(self.agents.values()):
             for agent in list(modes.values()):
                 try:
@@ -132,13 +132,13 @@ class AgentManager:
         return dict(caps) if isinstance(caps, dict) else {}
 
     async def create_session(self, channel_id: str = "", session_id: str | None = None) -> str:
-        """创建会话.
+        """建立會話.
 
         Args:
             channel_id: 通道 ID
 
         Returns:
-            会话 ID
+            會話 ID
         """
         explicit_session_id = str(session_id or "").strip()
         if explicit_session_id:
@@ -157,18 +157,18 @@ class AgentManager:
             project_dir: str = None,
             sub_mode: str = None
     ) -> "JiuWenClaw | None":
-        """获取 Agent 实例（自动创建）.
+        """獲取 Agent 例項（自動建立）.
 
-        如果 agent 不存在，会自动创建（仅用于非 ACP 场景）。
+        如果 agent 不存在，會自動建立（僅用於非 ACP 場景）。
 
         Args:
             channel_id: 通道 ID
-            mode: 每个模式对应的实例
+            mode: 每個模式對應的例項
             project_dir: user project dir (e.g. trusted_dirs[0])
             sub_mode: 子模式
 
         Returns:
-            JiuWenClaw | None: Agent 实例
+            JiuWenClaw | None: Agent 例項
         """
         if channel_id in self.agents and mode in self.agents[channel_id]:
             return self.agents[channel_id][mode]
@@ -185,13 +185,13 @@ class AgentManager:
         return self.agents.get(channel_id, {}).get(mode)
 
     def get_agent_nowait(self, channel_id: str = "") -> "JiuWenClaw | None":
-        """获取 Agent 实例（同步，不自动创建）.
+        """獲取 Agent 例項（同步，不自動建立）.
 
         Args:
             channel_id: 通道 ID
 
         Returns:
-            JiuWenClaw | None: Agent 实例，如果不存在则返回 None
+            JiuWenClaw | None: Agent 例項，如果不存在則返回 None
         """
         channel_key = channel_id or "default"
         channel_agents = self.agents.get(channel_key, {})
@@ -225,7 +225,7 @@ class AgentManager:
             logger.info(f"channel {channel_id} reload agent config success.")
 
     async def cleanup(self) -> None:
-        """清理所有 agent 实例."""
+        """清理所有 agent 例項."""
         for key, agents in list(self.agents.items()):
             for agent in agents.values():
                 if hasattr(agent, "cleanup"):

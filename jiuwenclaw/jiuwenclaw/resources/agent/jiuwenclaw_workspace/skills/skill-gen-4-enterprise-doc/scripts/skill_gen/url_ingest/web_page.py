@@ -145,11 +145,11 @@ async def fetch_web_page(
         id_=effective_id,
         text=text,
         source_url=url,
-        title=title or "(无标题)",
+        title=title or "(無標題)",
         source_type="web_page",
-        metadata={"source_url": url, "title": title or "(无标题)", "source_type": "web_page"},
+        metadata={"source_url": url, "title": title or "(無標題)", "source_type": "web_page"},
     )
-    logger.info("Parsed web page: url=%s title=%s", url, title or "(无标题)")
+    logger.info("Parsed web page: url=%s title=%s", url, title or "(無標題)")
     return [page]
 
 

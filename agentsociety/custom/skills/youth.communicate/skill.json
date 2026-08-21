@@ -21,7 +21,7 @@
   ],
   "status": "youth_support",
   "emotion": "patient",
-  "speech": "我用年轻人听得进去的方式聊。",
+  "speech": "我用年輕人聽得進去的方式聊。",
   "memory_template": "Used youth.communicate: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

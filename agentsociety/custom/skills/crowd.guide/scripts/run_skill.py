@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'supply_store']
 TARGET_INTERACTIONS = ['coordinate_group', 'public_announcement']
 STATUS = 'guiding_crowd'
 EMOTION = 'steady'
-SPEECH = '大家先别急，我来把方向和顺序说清楚。'
+SPEECH = '大家先別急，我來把方向和順序說清楚。'
 MEMORY_TEMPLATE = 'Used crowd.guide: {summary} at {location_id}.'
 
 

@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""企业微信平台的 IMPlatformAdapter 实现，处理企业微信特定的用户信息获取、历史消息加载和元数据构建."""
+"""企業微信平臺的 IMPlatformAdapter 實現，處理企業微信特定的使用者資訊獲取、歷史訊息載入和後設資料構建."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ class WecomIMPlatformAdapter:
         if user_id.startswith("bot"):
             return "bot"
 
-        # 企微暂无用户名 API，返回 user_id 作为兜底显示名
+        # 企微暫無使用者名稱 API，返回 user_id 作為兜底顯示名
         return user_id
 
     def resolve_user_display_name(self, user_id: str) -> str:
@@ -122,7 +122,7 @@ class WecomIMPlatformAdapter:
 
     @property
     def platform_name(self) -> str:
-        return "企业微信"
+        return "企業微信"
 
     @property
     def reply_user_id_key(self) -> str:
@@ -136,7 +136,7 @@ class WecomIMPlatformAdapter:
         candidate = str(metadata.get("reply_candidate_wecom_user_id") or "").strip()
         if candidate:
             return candidate
-        # 回退：通过自身的 build_relevance_metadata 补全候选用户
+        # 回退：透過自身的 build_relevance_metadata 補全候選使用者
         patch = self.build_relevance_metadata(
             metadata,
             sender_user_id=metadata.get("im_sender_user_id", ""),
@@ -150,7 +150,7 @@ class WecomIMPlatformAdapter:
 
     @staticmethod
     def resolve_user_id_by_name(name: str) -> str:
-        """根据用户名在群聊历史中查找对应的 user_id。"""
+        """根據使用者名稱在群聊歷史中查詢對應的 user_id。"""
         if not name:
             return ""
         try:
@@ -165,8 +165,8 @@ class WecomIMPlatformAdapter:
                         if uid:
                             return uid
                 except Exception as e:
-                    logger.debug("[WecomIMAdapter] 解析交互文件 %s 失败: %s", fp, e)
+                    logger.debug("[WecomIMAdapter] 解析互動檔案 %s 失敗: %s", fp, e)
                     continue
         except Exception as e:
-            logger.warning("[WecomIMAdapter] resolve_user_id_by_name 失败: %s", e)
+            logger.warning("[WecomIMAdapter] resolve_user_id_by_name 失敗: %s", e)
         return ""

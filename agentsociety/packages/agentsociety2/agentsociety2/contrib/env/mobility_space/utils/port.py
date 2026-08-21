@@ -47,7 +47,7 @@ def wait_for_port(host: str, port: int, timeout: float = 30.0, check_interval: f
                     # Port is open and listening
                     return True
         except (socket.error, socket.timeout) as e:
-            # 输出报错内容
+            # 輸出報錯內容
             logger.warning(f"Error: {e}")
             pass
         time.sleep(check_interval)

@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""IM 输入管道，负责处理收到的 IM 消息，包括解析、验证、路由等."""
+"""IM 輸入管道，負責處理收到的 IM 訊息，包括解析、驗證、路由等."""
 
 from __future__ import annotations
 
@@ -19,40 +19,40 @@ from jiuwenclaw.common.schema.message import Message, ReqMethod
 from jiuwenclaw.gateway.message_handler.command_parser.slash_command import CONTROL_MESSAGE_TEXTS
 from jiuwenclaw.common.utils import get_deepagent_user_md_path, logger
 SYSTEM_PROMPT_TEMPLATE = """
-你是{principal_name}的数字分身，活跃在即时通讯群聊中。当群里有其他用户发送与{principal_name}相关的消息时，你的任务是改写这条消息，使其更清晰、更完整，以便后续帮助{principal_name}生成恰当的回复。
+你是{principal_name}的數字分身，活躍在即時通訊群聊中。當群裡有其他使用者傳送與{principal_name}相關的訊息時，你的任務是改寫這條訊息，使其更清晰、更完整，以便後續幫助{principal_name}生成恰當的回覆。
 
-## 消息格式说明
+## 訊息格式說明
 
-收到的消息格式为：`[时间戳] [发送者]: 消息内容`
+收到的訊息格式為：`[時間戳] [傳送者]: 訊息內容`
 例如：`[2026-03-20 14:44:34] [某人]: {bot_mention_hint} @{principal_name} 111`
 
-## 判断是否需要处理（按优先级顺序）
+## 判斷是否需要處理（按優先順序順序）
 
-### 必须回复的情况（不能输出[无需处理]）：
+### 必須回覆的情況（不能輸出[無需處理]）：
 
-1. **消息中@了机器人**：如果消息内容中出现机器人 mention（例如 {bot_mention_hint}），无论发送者是谁，都必须回复
-2. **其他人@了用户本人**：如果发送者不是{principal_name}本人，且消息中@了{principal_name}，必须回复
+1. **訊息中@了機器人**：如果訊息內容中出現機器人 mention（例如 {bot_mention_hint}），無論傳送者是誰，都必須回覆
+2. **其他人@了使用者本人**：如果傳送者不是{principal_name}本人，且訊息中@了{principal_name}，必須回覆
 
-### 由模型判断的情况：
+### 由模型判斷的情況：
 
-如果以上条件都不满足，则根据以下标准判断：
-- 当前消息中提到了{principal_name}的名字
-- 当前消息是对{principal_name}之前发言的回复或延续
-- 当前消息是群聊中需要{principal_name}参与讨论的话题
-- 当前消息是否与群里其他人所发历史消息有关
+如果以上條件都不滿足，則根據以下標準判斷：
+- 當前訊息中提到了{principal_name}的名字
+- 當前訊息是對{principal_name}之前發言的回覆或延續
+- 當前訊息是群聊中需要{principal_name}參與討論的話題
+- 當前訊息是否與群裡其他人所發歷史訊息有關
 
-如果判断为无关，输出：[无需处理]
+如果判斷為無關，輸出：[無需處理]
 
-## 改写原则
+## 改寫原則
 
-1. 明确发送者意图：对方想表达什么？是提问、请求、讨论还是闲聊？
-2. 补充上下文：如果消息涉及历史对话（如"那个文件"、"刚才说的"），补充具体信息
-3. 明确回复期望：对方期望什么样的回应？是解答问题、确认信息、还是参与讨论？
-4. 保留原意：不要改变消息的核心意图
+1. 明確傳送者意圖：對方想表達什麼？是提問、請求、討論還是閒聊？
+2. 補充上下文：如果訊息涉及歷史對話（如"那個檔案"、"剛才說的"），補充具體資訊
+3. 明確回覆期望：對方期望什麼樣的回應？是解答問題、確認資訊、還是參與討論？
+4. 保留原意：不要改變訊息的核心意圖
 
-## 输出要求
+## 輸出要求
 
-直接输出改写后的消息，不要添加任何解释或额外内容。
+直接輸出改寫後的訊息，不要新增任何解釋或額外內容。
 """.strip()
 
 
@@ -65,9 +65,9 @@ class IMHistoryMessage:
 
 
 class IMPlatformAdapter(Protocol):
-    """统一的平台适配器接口，同时服务入站和出站管线。
+    """統一的平臺介面卡介面，同時服務入站和出站管線。
 
-    每个 IM 平台（飞书 / 企微）实现一个适配器，注册后供
+    每個 IM 平臺（飛書 / 企微）實現一個介面卡，註冊後供
     IMInboundPipeline 和 IMOutboundPipeline 共享使用。
     """
 
@@ -105,25 +105,25 @@ class IMPlatformAdapter(Protocol):
 
     @property
     def platform_name(self) -> str:
-        """平台显示名，用于 LLM prompt（如 "飞书"、"企业微信"）。"""
+        """平臺顯示名，用於 LLM prompt（如 "飛書"、"企業微信"）。"""
         ...
 
     @property
     def reply_user_id_key(self) -> str:
-        """metadata 中设置回复目标用户 ID 的 key。
+        """metadata 中設定回覆目標使用者 ID 的 key。
 
-        飞书: "reply_feishu_open_id"
+        飛書: "reply_feishu_open_id"
         企微: "reply_wecom_user_id"
         """
         ...
 
     @property
     def use_keyword_override(self) -> bool:
-        """LLM 判断为 CHAT 但关键词命中时，是否覆盖为 DM。"""
+        """LLM 判斷為 CHAT 但關鍵詞命中時，是否覆蓋為 DM。"""
         ...
 
     def get_candidate_user_id(self, metadata: dict[str, Any]) -> str:
-        """从 metadata 中提取候选私发目标用户 ID；无候选返回空字符串。"""
+        """從 metadata 中提取候選私發目標使用者 ID；無候選返回空字串。"""
         ...
 
 
@@ -152,7 +152,7 @@ class IMConversationProcessor:
 
     @staticmethod
     def _load_model_config(model_name_override: str | None = None) -> tuple[str, dict]:
-        """与 react agent 一致的模型配置读取：config.yaml → 环境变量 → 默认值。"""
+        """與 react agent 一致的模型配置讀取：config.yaml → 環境變數 → 預設值。"""
         try:
             from jiuwenclaw.common.config import get_config
             cfg = get_config() or {}
@@ -205,7 +205,7 @@ class IMConversationProcessor:
         ).strip()
 
         principal_user_id = adapter.get_principal_user_id().strip()
-        principal_name = adapter.get_principal_display_name().strip() or "用户"
+        principal_name = adapter.get_principal_display_name().strip() or "使用者"
         if not principal_user_id:
             return InboundProcessResult(reason="missing-principal-user")
 
@@ -240,7 +240,7 @@ class IMConversationProcessor:
             return InboundProcessResult(reason="rewrite-failed")
 
         normalized_content = rewritten_content.strip()
-        if normalized_content == "[无需处理]":
+        if normalized_content == "[無需處理]":
             if self._has_image_context(metadata):
                 return InboundProcessResult(reason="image-fallback")
             return InboundProcessResult(should_forward=False, reason="irrelevant")
@@ -305,7 +305,7 @@ class IMConversationProcessor:
         for token in bot_mentions:
             if token and token in text:
                 return True
-            # 同时检查机器人名称（从配置读取）是否在文本中
+            # 同時檢查機器人名稱（從配置讀取）是否在文字中
             try:
                 from jiuwenclaw.common.config import get_config
                 cfg = get_config()
@@ -336,32 +336,32 @@ class IMConversationProcessor:
         pending_context: str | None = None,
     ) -> str:
         prompt_parts: list[str] = []
-        prompt_parts.append("=== 群聊历史消息 ===")
+        prompt_parts.append("=== 群聊歷史訊息 ===")
         history = adapter.load_recent_messages(thread_id, limit=500)
         if history:
-            prompt_parts.append(f"最近 {len(history)} 条消息：\n")
+            prompt_parts.append(f"最近 {len(history)} 條訊息：\n")
             for msg in history:
                 dt = datetime.fromtimestamp(int(msg.timestamp_ms) / 1000)
                 prompt_parts.append(
                     f"[{dt.strftime('%Y-%m-%d %H:%M:%S')}] "
-                    f"[{msg.user_name or '未知用户'}]: {msg.content}"
+                    f"[{msg.user_name or '未知使用者'}]: {msg.content}"
                 )
             prompt_parts.append("")
         else:
-            prompt_parts.append("暂无历史消息\n")
+            prompt_parts.append("暫無歷史訊息\n")
 
-        prompt_parts.append("=== 用户画像 ===")
+        prompt_parts.append("=== 使用者畫像 ===")
         user_profile = self._load_user_profile()
-        prompt_parts.append(user_profile if user_profile else "暂无用户画像信息")
+        prompt_parts.append(user_profile if user_profile else "暫無使用者畫像資訊")
         prompt_parts.append("")
 
         if pending_context:
-            prompt_parts.append("=== 待回答的追问 ===")
+            prompt_parts.append("=== 待回答的追問 ===")
             prompt_parts.append(pending_context)
             prompt_parts.append("")
 
-        prompt_parts.append("=== 当前消息 ===")
-        sender_name = adapter.resolve_user_display_name(sender_user_id) or "未知用户"
+        prompt_parts.append("=== 當前訊息 ===")
+        sender_name = adapter.resolve_user_display_name(sender_user_id) or "未知使用者"
         dt = datetime.fromtimestamp(int(timestamp_ms) / 1000)
         prompt_parts.append(
             f"[{dt.strftime('%Y-%m-%d %H:%M:%S')}] [{sender_name}]: {text}"
@@ -376,7 +376,7 @@ class IMConversationProcessor:
                 return ""
             return self._user_profile_path.read_text(encoding="utf-8")
         except OSError as exc:
-            logger.warning("[IMConversationProcessor] 读取 USER.md 失败: %s", exc)
+            logger.warning("[IMConversationProcessor] 讀取 USER.md 失敗: %s", exc)
             return ""
 
     def _ensure_llm(self) -> Model | None:
@@ -410,7 +410,7 @@ class IMConversationProcessor:
             )
         except Exception as exc:
             logger.warning(
-                "[IMConversationProcessor] 初始化 LLM 失败，将回退原始消息: %s",
+                "[IMConversationProcessor] 初始化 LLM 失敗，將回退原始訊息: %s",
                 exc,
             )
             self._llm = None
@@ -427,7 +427,7 @@ class IMConversationProcessor:
             return None
 
         bot_mentions = adapter.get_bot_mention_tokens()
-        bot_mention_hint = " / ".join(bot_mentions) if bot_mentions else "@机器人"
+        bot_mention_hint = " / ".join(bot_mentions) if bot_mentions else "@機器人"
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
             principal_name=principal_name,
             bot_mention_hint=bot_mention_hint,
@@ -445,7 +445,7 @@ class IMConversationProcessor:
             
         except Exception as exc:
             logger.warning(
-                "[IMConversationProcessor] 调用 LLM 改写失败，将回退原始消息: %s",
+                "[IMConversationProcessor] 呼叫 LLM 改寫失敗，將回退原始訊息: %s",
                 exc,
             )
         return None
@@ -508,7 +508,7 @@ class IMInboundPipeline:
                     pi.save()
                     pi.remove()
             logger.info(
-                "[IMInboundPipeline] resume 消息直接放行: channel=%s id=%s",
+                "[IMInboundPipeline] resume 訊息直接放行: channel=%s id=%s",
                 msg.channel_id, msg.id,
             )
             return True
@@ -631,10 +631,10 @@ class IMInboundPipeline:
         if pi is None:
             return None
         return (
-            f"【追问上下文】你之前在处理以下任务时向 {pi.target_user_name or '用户'} 追问了信息：\n"
-            f"- 原始请求：{pi.origin_content}\n"
-            f"- 你的追问：{pi.question}\n"
-            f"现在 {pi.target_user_name or '用户'} 已回复，请综合「原始请求」和「用户回复」中的所有信息继续完成任务，"
-            f"原始请求中已明确提供的信息（如时间、地点等）直接使用即可，不要再次追问。"
-            f"不要与群聊历史中的其他任务混淆。"
+            f"【追問上下文】你之前在處理以下任務時向 {pi.target_user_name or '使用者'} 追問了資訊：\n"
+            f"- 原始請求：{pi.origin_content}\n"
+            f"- 你的追問：{pi.question}\n"
+            f"現在 {pi.target_user_name or '使用者'} 已回覆，請綜合「原始請求」和「使用者回覆」中的所有資訊繼續完成任務，"
+            f"原始請求中已明確提供的資訊（如時間、地點等）直接使用即可，不要再次追問。"
+            f"不要與群聊歷史中的其他任務混淆。"
         )

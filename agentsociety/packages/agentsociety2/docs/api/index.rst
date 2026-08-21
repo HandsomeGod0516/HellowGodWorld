@@ -1,7 +1,7 @@
-API 参考
+API 參考
 =========
 
-本节提供 AgentSociety 2 的完整 API 参考，由 Sphinx autodoc 自动从源代码生成。
+本節提供 AgentSociety 2 的完整 API 參考，由 Sphinx autodoc 自動從原始碼生成。
 
 .. toctree::
    :maxdepth: 2
@@ -17,4 +17,4 @@ API 参考
 
 .. note::
 
-   API 文档从代码中的 docstring 自动生成。如果发现文档不完整或有误，请直接修改源代码中的注释。
+   API 文件從程式碼中的 docstring 自動生成。如果發現文件不完整或有誤，請直接修改原始碼中的註釋。

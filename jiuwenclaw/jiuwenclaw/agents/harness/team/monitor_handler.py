@@ -1,8 +1,8 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""Team Monitor 处理器.
+"""Team Monitor 處理器.
 
-处理 Team Monitor 的事件流和状态查询，将团队状态转换为前端可消费的格式.
+處理 Team Monitor 的事件流和狀態查詢，將團隊狀態轉換為前端可消費的格式.
 """
 
 from __future__ import annotations
@@ -24,9 +24,9 @@ logger = logging.getLogger(__name__)
 
 
 class TeamMonitorHandler:
-    """Team Monitor 处理器.
+    """Team Monitor 處理器.
 
-    封装 Monitor 的创建、事件处理和状态查询，提供简化的接口给前端.
+    封裝 Monitor 的建立、事件處理和狀態查詢，提供簡化的介面給前端.
     """
 
     def __init__(
@@ -34,11 +34,11 @@ class TeamMonitorHandler:
         team_agent: TeamAgent,
         session_id: str,
     ):
-        """初始化处理器.
+        """初始化處理器.
 
         Args:
-            team_agent: TeamAgent 实例
-            session_id: 会话 ID
+            team_agent: TeamAgent 例項
+            session_id: 會話 ID
         """
         self._team_agent = team_agent
         self._session_id = session_id
@@ -48,7 +48,7 @@ class TeamMonitorHandler:
         self._running = False
 
     async def start(self) -> None:
-        """启动 Monitor."""
+        """啟動 Monitor."""
         if self._running:
             return
 
@@ -64,17 +64,17 @@ class TeamMonitorHandler:
             
             self._running = True
 
-            # 启动事件收集任务
+            # 啟動事件收集任務
             self._event_task = asyncio.create_task(self._collect_events())
 
             logger.info(
-                "[TeamMonitorHandler] Monitor 启动成功: session_id=%s",
+                "[TeamMonitorHandler] Monitor 啟動成功: session_id=%s",
                 self._session_id,
             )
 
         except Exception as e:
             logger.error(
-                "[TeamMonitorHandler] Monitor 启动失败: session_id=%s, error=%s",
+                "[TeamMonitorHandler] Monitor 啟動失敗: session_id=%s, error=%s",
                 self._session_id,
                 e,
             )
@@ -97,7 +97,7 @@ class TeamMonitorHandler:
                 await self._monitor.stop()
             except Exception as e:
                 logger.warning(
-                    "[TeamMonitorHandler] Monitor 停止失败: session_id=%s, error=%s",
+                    "[TeamMonitorHandler] Monitor 停止失敗: session_id=%s, error=%s",
                     self._session_id,
                     e,
                 )
@@ -109,7 +109,7 @@ class TeamMonitorHandler:
         )
 
     async def _collect_events(self) -> None:
-        """后台任务：收集 Monitor 事件."""
+        """後臺任務：收集 Monitor 事件."""
         if self._monitor is None:
             return
 
@@ -124,20 +124,20 @@ class TeamMonitorHandler:
 
         except Exception as e:
             logger.error(
-                "[TeamMonitorHandler] 事件收集失败: session_id=%s, error=%s",
+                "[TeamMonitorHandler] 事件收集失敗: session_id=%s, error=%s",
                 self._session_id,
                 e,
             )
 
     @staticmethod
     def _handle_member_spawned(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理成员创建事件."""
+        """處理成員建立事件."""
         base["member_id"] = event.member_id
         return base
 
     @staticmethod
     def _handle_member_status_changed(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理成员状态变更事件."""
+        """處理成員狀態變更事件."""
         base.update({
             "member_id": event.member_id,
             "old_status": event.old_status,
@@ -147,7 +147,7 @@ class TeamMonitorHandler:
 
     @staticmethod
     def _handle_member_execution_changed(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理成员执行状态变更事件."""
+        """處理成員執行狀態變更事件."""
         base.update({
             "member_id": event.member_id,
             "old_status": event.old_status,
@@ -157,7 +157,7 @@ class TeamMonitorHandler:
 
     @staticmethod
     def _handle_member_restarted(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理成员重启事件."""
+        """處理成員重啟事件."""
         base.update({
             "member_id": event.member_id,
             "reason": event.reason,
@@ -167,7 +167,7 @@ class TeamMonitorHandler:
 
     @staticmethod
     def _handle_member_shutdown(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理成员关闭事件."""
+        """處理成員關閉事件."""
         base.update({
             "member_id": event.member_id,
             "force": event.force,
@@ -176,7 +176,7 @@ class TeamMonitorHandler:
 
     @staticmethod
     def _handle_task_created(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理任务创建事件."""
+        """處理任務建立事件."""
         base.update({
             "task_id": event.task_id,
             "status": event.status,
@@ -185,30 +185,30 @@ class TeamMonitorHandler:
 
     @staticmethod
     def _handle_task_claimed(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理任务认领事件."""
+        """處理任務認領事件."""
         base["task_id"] = event.task_id
         return base
 
     @staticmethod
     def _handle_task_completed(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理任务完成事件."""
+        """處理任務完成事件."""
         base["task_id"] = event.task_id
         return base
 
     @staticmethod
     def _handle_task_cancelled(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理任务取消事件."""
+        """處理任務取消事件."""
         base["task_id"] = event.task_id
         return base
 
     @staticmethod
     def _handle_task_unblocked(base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理任务解除阻塞事件."""
+        """處理任務解除阻塞事件."""
         base["task_id"] = event.task_id
         return base
 
     async def _handle_message(self, base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理点对点消息事件."""
+        """處理點對點訊息事件."""
         message_content = await self._get_message_content(event.message_id)
         base.update({
             "message_id": event.message_id,
@@ -219,7 +219,7 @@ class TeamMonitorHandler:
         return base
 
     async def _handle_broadcast(self, base: dict[str, Any], event: MonitorEvent) -> dict[str, Any]:
-        """处理广播消息事件."""
+        """處理廣播訊息事件."""
         message_content = await self._get_message_content(event.message_id)
         base.update({
             "message_id": event.message_id,
@@ -229,13 +229,13 @@ class TeamMonitorHandler:
         return base
 
     async def _get_message_content(self, message_id: str | None) -> str:
-        """获取消息内容.
+        """獲取訊息內容.
 
         Args:
-            message_id: 消息 ID
+            message_id: 訊息 ID
 
         Returns:
-            消息内容，如果获取失败返回空字符串
+            訊息內容，如果獲取失敗返回空字串
         """
         if not message_id or not self._monitor:
             return ""
@@ -254,20 +254,20 @@ class TeamMonitorHandler:
                 reset_session_id(token)
         except Exception as e:
             logger.warning(
-                "[TeamMonitorHandler] 查询消息内容失败: message_id=%s, error=%s",
+                "[TeamMonitorHandler] 查詢訊息內容失敗: message_id=%s, error=%s",
                 message_id,
                 e,
             )
             return ""
 
     async def _convert_event_to_dict(self, event: MonitorEvent) -> dict[str, Any] | None:
-        """将 MonitorEvent 转换为字典格式.
+        """將 MonitorEvent 轉換為字典格式.
 
         Args:
-            event: MonitorEvent 实例
+            event: MonitorEvent 例項
 
         Returns:
-            事件字典，如果事件类型不需要处理返回 None
+            事件字典，如果事件型別不需要處理返回 None
         """
         team_event_type = get_team_event_type(event.event_type)
         if team_event_type is None:
@@ -313,7 +313,7 @@ class TeamMonitorHandler:
         }
 
     async def events(self) -> AsyncIterator[dict[str, Any]]:
-        """获取事件流.
+        """獲取事件流.
 
         Yields:
             事件字典
@@ -326,7 +326,7 @@ class TeamMonitorHandler:
                 continue
             except Exception as e:
                 logger.error(
-                    "[TeamMonitorHandler] 事件流错误: session_id=%s, error=%s",
+                    "[TeamMonitorHandler] 事件流錯誤: session_id=%s, error=%s",
                     self._session_id,
                     e,
                 )
@@ -334,10 +334,10 @@ class TeamMonitorHandler:
 
     @property
     def is_running(self) -> bool:
-        """Monitor 是否正在运行."""
+        """Monitor 是否正在執行."""
         return self._running
 
     @property
     def team_id(self) -> str | None:
-        """团队 ID."""
+        """團隊 ID."""
         return self._monitor.team_id if self._monitor else None

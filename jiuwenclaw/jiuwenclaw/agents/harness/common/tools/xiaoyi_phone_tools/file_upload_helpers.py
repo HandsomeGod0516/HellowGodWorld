@@ -1,6 +1,6 @@
 # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 
-"""OBS 上传辅助：prepare、upload、completeAndQuery 获取公网 URL."""
+"""OBS 上傳輔助：prepare、upload、completeAndQuery 獲取公網 URL."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from jiuwenclaw.common.utils import logger
 
 @dataclass
 class XiaoyiObsUploadConfig:
-    """小艺 OBS 上传：服务端点与鉴权（对应 channels.xiaoyi 配置项）."""
+    """小藝 OBS 上傳：服務端點與鑑權（對應 channels.xiaoyi 配置項）."""
 
     base_url: str
     api_key: str
@@ -28,10 +28,10 @@ async def upload_local_file_public_url(
     file_path: str,
     object_type: str = "TEMPORARY_MATERIAL_DOC",
 ) -> str:
-    """上传本地文件并通过 completeAndQuery 返回可公网访问的 URL.
+    """上傳本地檔案並透過 completeAndQuery 返回可公網訪問的 URL.
 
     Raises:
-        RuntimeError: 任一步骤失败（prepare、上传、completeAndQuery 或缺少 url）。
+        RuntimeError: 任一步驟失敗（prepare、上傳、completeAndQuery 或缺少 url）。
     """
     base = config.base_url.rstrip("/")
     uid = config.uid
@@ -94,4 +94,4 @@ async def upload_local_file_public_url(
         raise
     except Exception as e:
         logger.error("[upload_local_file_public_url] %s", e)
-        raise RuntimeError(f"OBS 上传失败: {e}") from e
+        raise RuntimeError(f"OBS 上傳失敗: {e}") from e

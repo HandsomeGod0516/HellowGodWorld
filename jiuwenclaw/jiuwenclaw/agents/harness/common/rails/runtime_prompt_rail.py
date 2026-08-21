@@ -24,9 +24,9 @@ _CN_WEEKDAYS = ["星期一", "星期二", "星期三", "星期四", "星期五",
 
 
 class RuntimePromptRail(DeepAgentRail):
-    """在 before_model_call 中注入时间及运行时状态文件路径。"""
+    """在 before_model_call 中注入時間及執行時狀態檔案路徑。"""
 
-    priority = 5  # 高优先级，确保早于其他 rail 执行
+    priority = 5  # 高優先順序，確保早於其他 rail 執行
 
     def __init__(
         self,
@@ -44,11 +44,11 @@ class RuntimePromptRail(DeepAgentRail):
         self._mode: str = ""
 
     def init(self, agent) -> None:
-        """从 agent 获取 system_prompt_builder 引用。"""
+        """從 agent 獲取 system_prompt_builder 引用。"""
         self.system_prompt_builder = getattr(agent, "system_prompt_builder", None)
 
     def uninit(self, agent) -> None:
-        """清理注入的 section 并释放引用。"""
+        """清理注入的 section 並釋放引用。"""
         if self.system_prompt_builder is not None:
             self.system_prompt_builder.remove_section("time")
             self.system_prompt_builder.remove_section("runtime")
@@ -57,23 +57,23 @@ class RuntimePromptRail(DeepAgentRail):
         self.system_prompt_builder = None
 
     def set_language(self, language: str) -> None:
-        """per-request 更新语言。"""
+        """per-request 更新語言。"""
         self._language = language
 
     def set_channel(self, channel: str) -> None:
-        """per-request 更新频道。"""
+        """per-request 更新頻道。"""
         self._channel = channel
 
     def set_trusted_dirs(self, trusted_dirs: list[str] | None) -> None:
-        """per-request 更新可信目录。"""
+        """per-request 更新可信目錄。"""
         self._trusted_dirs = trusted_dirs
 
     def set_model_name(self, model_name: str) -> None:
-        """per-request 更新模型名称，作为文件读取失败时的兜底。"""
+        """per-request 更新模型名稱，作為檔案讀取失敗時的兜底。"""
         self._model_name = model_name or ""
 
     def set_mode(self, mode: str) -> None:
-        """per-request 更新运行模式，作为文件读取失败时的兜底。"""
+        """per-request 更新執行模式，作為檔案讀取失敗時的兜底。"""
         self._mode = mode or ""
 
     async def before_model_call(self, ctx: AgentCallbackContext) -> None:
@@ -87,11 +87,11 @@ class RuntimePromptRail(DeepAgentRail):
 
         if self._language == "cn":
             time_content = (
-                f"# 当前日期与时间\n\n"
-                f"- 当前时间：{now_str}（{weekday_cn}）\n"
-                f"- 当前年份：{current_year}\n"
-                "- 当用户询问“最新、当前、今年、本年、实时、近期”等信息并需要搜索时，"
-                "搜索 query 必须优先使用当前年份或日期"
+                f"# 當前日期與時間\n\n"
+                f"- 當前時間：{now_str}（{weekday_cn}）\n"
+                f"- 當前年份：{current_year}\n"
+                "- 當使用者詢問“最新、當前、今年、本年、實時、近期”等資訊並需要搜尋時，"
+                "搜尋 query 必須優先使用當前年份或日期"
             )
         else:
             time_content = (
@@ -124,13 +124,13 @@ class RuntimePromptRail(DeepAgentRail):
 
         if self._language == "cn":
             runtime_content = (
-                "# 运行时状态\n\n"
-                f"- 当前模型：{model}\n"
-                f"- 当前模式：{mode}\n"
-                f"- 当前语言：{language_val}\n"
-                f"- 当前渠道：{channel}\n"
-                "- 当用户询问「你是什么模型」「当前用的是哪个模型」等问题时，"
-                "直接用上方「当前模型」的值回答，只说模型名称，不要介绍身份或列出能力"
+                "# 執行時狀態\n\n"
+                f"- 當前模型：{model}\n"
+                f"- 當前模式：{mode}\n"
+                f"- 當前語言：{language_val}\n"
+                f"- 當前渠道：{channel}\n"
+                "- 當使用者詢問「你是什麼模型」「當前用的是哪個模型」等問題時，"
+                "直接用上方「當前模型」的值回答，只說模型名稱，不要介紹身份或列出能力"
             )
         else:
             runtime_content = (
@@ -175,22 +175,22 @@ class RuntimePromptRail(DeepAgentRail):
                 workspace_dir = str(get_agent_workspace_dir())
                 project_dir = self._trusted_dirs[0]
                 other_dirs = self._trusted_dirs[1:]
-                other_dirs_display = ", ".join(other_dirs) if other_dirs else "无"
+                other_dirs_display = ", ".join(other_dirs) if other_dirs else "無"
                 if self._language == "cn":
                     trusted_dirs_content = (
-                        "# 工作目录策略\n\n"
-                        f"- 系统目录（不要在其中查找或运行项目文件）：{workspace_dir}\n"
-                        f"- 当前项目目录（你正在工作的项目，查询文件、运行测试、执行命令等均应在此目录下进行）：{project_dir}\n"
-                        f"- 其他可访问目录（可读写其中的资源，但不是当前项目目录）：{other_dirs_display}\n\n"
-                        "重要规则：\n"
-                        "- 命令执行工具（mcp_exec_command）默认的工作目录是系统目录，"
-                        "如果你要在项目目录下执行命令，必须将工具的 workdir 参数设置为当前项目目录，"
-                        f"即 workdir=\"{project_dir}\"，不要使用默认值或 cd 方式切换，"
-                        "因为 cd 只在子shell中生效，不会改变工具本身的工作目录\n"
-                        "- 查找项目文件、读取项目代码时，应在当前项目目录下搜索，不要在系统目录下查找\n"
-                        "- 不要在系统目录下运行项目测试或构建，系统目录仅用于存放配置和状态文件\n"
-                        "- 若用户请求的操作涉及超出上述目录范围的路径，必须先向用户确认是否允许此次操作\n"
-                        "- 确认时需明确告知：操作的完整路径、操作类型（读取/编辑/执行）、潜在风险\n"
+                        "# 工作目錄策略\n\n"
+                        f"- 系統目錄（不要在其中查詢或執行專案檔案）：{workspace_dir}\n"
+                        f"- 當前專案目錄（你正在工作的專案，查詢檔案、執行測試、執行命令等均應在此目錄下進行）：{project_dir}\n"
+                        f"- 其他可訪問目錄（可讀寫其中的資源，但不是當前專案目錄）：{other_dirs_display}\n\n"
+                        "重要規則：\n"
+                        "- 命令執行工具（mcp_exec_command）預設的工作目錄是系統目錄，"
+                        "如果你要在專案目錄下執行命令，必須將工具的 workdir 引數設定為當前專案目錄，"
+                        f"即 workdir=\"{project_dir}\"，不要使用預設值或 cd 方式切換，"
+                        "因為 cd 只在子shell中生效，不會改變工具本身的工作目錄\n"
+                        "- 查詢專案檔案、讀取專案程式碼時，應在當前專案目錄下搜尋，不要在系統目錄下查詢\n"
+                        "- 不要在系統目錄下執行專案測試或構建，系統目錄僅用於存放配置和狀態檔案\n"
+                        "- 若使用者請求的操作涉及超出上述目錄範圍的路徑，必須先向使用者確認是否允許此次操作\n"
+                        "- 確認時需明確告知：操作的完整路徑、操作型別（讀取/編輯/執行）、潛在風險\n"
                     )
                 else:
                     trusted_dirs_content = (

@@ -1,6 +1,6 @@
 """
 Two-Tier Plan-and-Execute Router Implementation
-双层Plan-and-Execute模式：先选择Module并制定计划，然后执行计划
+雙層Plan-and-Execute模式：先選擇Module並制定計劃，然後執行計劃
 """
 
 import json
@@ -19,12 +19,12 @@ __all__ = ["TwoTierPlanExecuteRouter"]
 
 class TwoTierPlanExecuteRouter(RouterBase):
     """
-    双层Plan-and-Execute模式Router：先选择Module并制定计划，然后执行计划。
+    雙層Plan-and-Execute模式Router：先選擇Module並制定計劃，然後執行計劃。
 
     工作流程：
-    1. 第一层：选择合适的环境模块并制定执行计划
-    2. 第二层：按照计划执行选中模块的工具调用
-    3. 如果需要多个模块，可以循环执行
+    1. 第一層：選擇合適的環境模組並制定執行計劃
+    2. 第二層：按照計劃執行選中模組的工具呼叫
+    3. 如果需要多個模組，可以迴圈執行
     """
 
     def __init__(
@@ -39,7 +39,7 @@ class TwoTierPlanExecuteRouter(RouterBase):
             max_llm_call_retry=max_llm_call_retry,
         )
 
-        # 预收集模块信息和工具信息
+        # 預收集模組資訊和工具資訊
         self._module_info: Dict[str, Dict[str, Any]] = {}
         self._module_tools: Dict[str, List[Dict[str, Any]]] = {}
         self._module_readonly_tools: Dict[str, List[Dict[str, Any]]] = {}
@@ -49,12 +49,12 @@ class TwoTierPlanExecuteRouter(RouterBase):
         self._collect_module_info()
 
     def _collect_module_info(self):
-        """收集模块信息和工具信息"""
+        """收集模組資訊和工具資訊"""
         for module in self.env_modules:
             module_name = module.name
             module_description = module.description
 
-            # 收集该模块的所有工具
+            # 收集該模組的所有工具
             all_tools = []
             readonly_tools = []
 
@@ -62,7 +62,7 @@ class TwoTierPlanExecuteRouter(RouterBase):
             readonly_tools_dict = getattr(module.__class__, "_readonly_tools", {})
 
             for tool_name, tool_obj in registered_tools.items():
-                # 获取工具的LLM格式schema
+                # 獲取工具的LLM格式schema
                 tool_schema = None
                 for llm_tool in module._llm_tools:
                     if llm_tool["function"]["name"] == tool_name:
@@ -93,18 +93,18 @@ class TwoTierPlanExecuteRouter(RouterBase):
         template_mode: bool = False,
     ) -> Tuple[dict, str]:
         """
-        使用双层Plan-and-Execute模式处理指令。
+        使用雙層Plan-and-Execute模式處理指令。
 
         Args:
             ctx: 上下文字典
-            instruction: 指令字符串
-            readonly: 是否只读模式
-            template_mode: 模板模式（TwoTierPlanExecuteRouter 不使用，仅为签名兼容）
+            instruction: 指令字串
+            readonly: 是否只讀模式
+            template_mode: 模板模式（TwoTierPlanExecuteRouter 不使用，僅為簽名相容）
 
         Returns:
-            (ctx, answer) 元组
+            (ctx, answer) 元組
         """
-        # 添加当前时间信息到 ctx，以便工具调用可以访问
+        # 新增當前時間資訊到 ctx，以便工具呼叫可以訪問
         self._add_current_time_to_ctx(ctx)
 
         get_logger().info(
@@ -122,7 +122,7 @@ class TwoTierPlanExecuteRouter(RouterBase):
         results = {}
         step_count = 0
         used_modules = set()
-        execution_log: List[Dict[str, Any]] = []  # 记录执行历史
+        execution_log: List[Dict[str, Any]] = []  # 記錄執行歷史
         error = None
 
         while step_count < self.max_steps:
@@ -131,7 +131,7 @@ class TwoTierPlanExecuteRouter(RouterBase):
                 f"TwoTierPlanExecuteRouter: Step {step_count}/{self.max_steps}"
             )
 
-            # 第一层：选择模块并制定计划
+            # 第一層：選擇模組並制定計劃
             module_plan = await self._select_module_and_plan(
                 instruction, ctx, used_modules, readonly
             )
@@ -150,7 +150,7 @@ class TwoTierPlanExecuteRouter(RouterBase):
                 f"TwoTierPlanExecuteRouter: Selected module: {selected_module}, plan has {len(plan)} steps"
             )
 
-            # 记录模块选择和计划
+            # 記錄模組選擇和計劃
             execution_log.append(
                 {
                     "step": step_count,
@@ -160,12 +160,12 @@ class TwoTierPlanExecuteRouter(RouterBase):
                 }
             )
 
-            # 第二层：执行计划
+            # 第二層：執行計劃
             module_result = await self._execute_module_plan(
                 selected_module, plan, ctx, readonly
             )
 
-            # 记录模块执行结果
+            # 記錄模組執行結果
             execution_log.append(
                 {
                     "step": step_count,
@@ -175,17 +175,17 @@ class TwoTierPlanExecuteRouter(RouterBase):
                 }
             )
 
-            # 合并结果
+            # 合併結果
             results.update(module_result)
 
-            # 检查是否有明显的错误
+            # 檢查是否有明顯的錯誤
             if isinstance(module_result, dict):
                 for key, value in module_result.items():
                     if isinstance(value, dict) and "error" in value:
                         error = str(value.get("error"))
                         break
 
-            # 检查是否需要更多模块
+            # 檢查是否需要更多模組
             if await self._needs_more_modules(
                 instruction, ctx, results, used_modules, readonly
             ):
@@ -193,11 +193,11 @@ class TwoTierPlanExecuteRouter(RouterBase):
             else:
                 break
 
-        # 构建过程文本
+        # 構建過程文字
         process_text = (
             json.dumps(execution_log, indent=2, default=str) if execution_log else ""
         )
-        # 使用基类的generate_final_answer生成最终答案
+        # 使用基類的generate_final_answer生成最終答案
         final_answer, determined_status = await self.generate_final_answer(
             ctx, instruction, results, process_text, "unknown", error
         )
@@ -210,8 +210,8 @@ class TwoTierPlanExecuteRouter(RouterBase):
     async def _select_module_and_plan(
         self, instruction: str, ctx: dict, used_modules: set, readonly: bool
     ) -> Dict[str, Any]:
-        """第一层：选择模块并制定计划"""
-        # 构建可用模块列表
+        """第一層：選擇模組並制定計劃"""
+        # 構建可用模組列表
         modules_list = [
             {
                 "name": name,
@@ -297,9 +297,9 @@ Your selection and plan:"""
 
             if isinstance(module_plan, dict) and module_plan.get("module"):
                 module_name = module_plan["module"]
-                # 验证模块是否有效
+                # 驗證模組是否有效
                 if module_name in self._module_info and module_name not in used_modules:
-                    # 确保plan是列表格式
+                    # 確保plan是列表格式
                     if not isinstance(module_plan.get("plan"), list):
                         module_plan["plan"] = []
                     return module_plan
@@ -308,7 +308,7 @@ Your selection and plan:"""
                         f"TwoTierPlanExecuteRouter: Invalid module: {module_name}"
                     )
 
-            # Fallback: 返回第一个未使用的模块，空计划
+            # Fallback: 返回第一個未使用的模組，空計劃
             for module_name in self._module_info.keys():
                 if module_name not in used_modules:
                     return {"module": module_name, "plan": []}
@@ -326,7 +326,7 @@ Your selection and plan:"""
             return {}
 
     def _format_tools_for_module(self, module_name: str, readonly: bool) -> str:
-        """格式化模块的工具列表"""
+        """格式化模組的工具列表"""
         tools = (
             self._module_readonly_tools.get(module_name, [])
             if readonly
@@ -345,9 +345,9 @@ Your selection and plan:"""
         return "\n".join(descriptions)
 
     def _extract_json_from_text(self, text: str) -> Any:
-        """从文本中提取JSON"""
+        """從文字中提取JSON"""
 
-        # 尝试找到JSON对象
+        # 嘗試找到JSON物件
         json_match = re.search(r"\{[\s\S]*\}", text)
         if json_match:
             try:
@@ -355,7 +355,7 @@ Your selection and plan:"""
             except Exception:
                 pass
 
-        # 尝试直接解析
+        # 嘗試直接解析
         try:
             return json_repair.loads(text)
         except Exception:
@@ -366,7 +366,7 @@ Your selection and plan:"""
     async def _execute_module_plan(
         self, module_name: str, plan: List[Dict[str, Any]], ctx: dict, readonly: bool
     ) -> Dict[str, Any]:
-        """第二层：执行模块计划"""
+        """第二層：執行模組計劃"""
         results = {}
 
         for step in plan:
@@ -376,7 +376,7 @@ Your selection and plan:"""
             if not tool_name:
                 continue
 
-            # 处理set_status工具
+            # 處理set_status工具
             if tool_name == "set_status":
                 status = arguments.get("status", "unknown")
                 reason = arguments.get("reason", "")
@@ -400,7 +400,7 @@ Your selection and plan:"""
         return results
 
     async def _execute_tool(self, tool_name: str, args: dict, readonly: bool) -> Any:
-        """执行工具调用"""
+        """執行工具呼叫"""
         module = self._tool_name_to_module.get(tool_name)
         if not module:
             raise ValueError(f"Tool {tool_name} not found")
@@ -436,7 +436,7 @@ Your selection and plan:"""
         used_modules: set,
         readonly: bool,
     ) -> bool:
-        """判断是否还需要更多模块"""
+        """判斷是否還需要更多模組"""
         unused_modules = set(self._module_info.keys()) - used_modules
         if not unused_modules:
             return False

@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['library', 'park']
 TARGET_INTERACTIONS = ['quiet_work', 'public_announcement']
 STATUS = 'writing_notice'
 EMOTION = 'focused'
-SPEECH = '我把公告写得短一点、清楚一点。'
+SPEECH = '我把公告寫得短一點、清楚一點。'
 MEMORY_TEMPLATE = 'Used notice.write: {summary} at {location_id}.'
 
 

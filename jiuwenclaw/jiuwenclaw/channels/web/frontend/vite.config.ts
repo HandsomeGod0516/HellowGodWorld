@@ -12,8 +12,8 @@ interface ErrorWithCode {
 }
 
 /**
- * file-api 使用的项目根目录，需与后端 get_root_dir() 一致，前端编辑的 HEARTBEAT.md 才会被心跳读到。
- * 优先级：命名实例数据目录 > 显式根目录 > 已存在的用户工作区 ~/.jiuwenclaw > 仓库根。
+ * file-api 使用的專案根目錄，需與後端 get_root_dir() 一致，前端編輯的 HEARTBEAT.md 才會被心跳讀到。
+ * 優先順序：命名例項資料目錄 > 顯式根目錄 > 已存在的使用者工作區 ~/.jiuwenclaw > 倉庫根。
  */
 function resolveProjectRootDir(): string {
   const envWorkspace = process.env.JIUWENCLAW_DATA_DIR
@@ -25,32 +25,32 @@ function resolveProjectRootDir(): string {
   const envRoot = process.env.JIUWENCLAW_ROOT || process.env.JIUWENCLAW_PROJECT_ROOT
   if (envRoot) {
     const resolved = path.resolve(envRoot)
-    console.log('[file-api] 使用环境变量根目录:', resolved)
+    console.log('[file-api] 使用環境變數根目錄:', resolved)
     return resolved
   }
   const home = process.env.USERPROFILE || process.env.HOME || ''
   if (home) {
     const userWorkspace = path.join(home, '.jiuwenclaw')
     if (fs.existsSync(userWorkspace)) {
-      console.log('[file-api] 使用用户工作区:', path.resolve(userWorkspace))
+      console.log('[file-api] 使用使用者工作區:', path.resolve(userWorkspace))
       return path.resolve(userWorkspace)
     }
   }
   const repoRoot = path.resolve(__dirname, '../..')
-  console.log('[file-api] 使用仓库根目录:', repoRoot)
+  console.log('[file-api] 使用倉庫根目錄:', repoRoot)
   return repoRoot
 }
 
-/** WS proxy 中常见的、可安全忽略的 socket 错误码（跨平台） */
+/** WS proxy 中常見的、可安全忽略的 socket 錯誤碼（跨平臺） */
 const WS_PROXY_IGNORABLE_CODES = new Set([
-  'EPIPE',          // 对端已关闭
-  'ECONNRESET',     // 连接被重置
-  'ECONNABORTED',   // 连接被中止 (Windows 常见)
-  'ECONNREFUSED',   // 后端未启动 / 端口不可达
+  'EPIPE',          // 對端已關閉
+  'ECONNRESET',     // 連線被重置
+  'ECONNABORTED',   // 連線被中止 (Windows 常見)
+  'ECONNREFUSED',   // 後端未啟動 / 埠不可達
   'ERR_STREAM_WRITE_AFTER_END',
 ])
 
-/** 过滤 Vite 内置的 ws proxy socket 报错，避免控制台刷屏 */
+/** 過濾 Vite 內建的 ws proxy socket 報錯，避免控制檯刷屏 */
 function suppressWsProxySocketErrors(): Plugin {
   return {
     name: 'suppress-ws-proxy-socket-errors',
@@ -69,7 +69,7 @@ function suppressWsProxySocketErrors(): Plugin {
   }
 }
 
-/** 在 dev 模式下将前端上报的 /ws req/res/event 记录到本地文件 */
+/** 在 dev 模式下將前端上報的 /ws req/res/event 記錄到本地檔案 */
 function devWsTrafficLogger(): Plugin {
   return {
     name: 'dev-ws-traffic-logger',
@@ -78,7 +78,7 @@ function devWsTrafficLogger(): Plugin {
       const logDir = path.resolve(projectRootDir, '.logs')
       const logFile = path.resolve(logDir, 'ws-dev.log')
       fs.mkdirSync(logDir, { recursive: true })
-      // 每次前端 dev 服务启动时清空日志，避免历史数据干扰排查。
+      // 每次前端 dev 服務啟動時清空日誌，避免歷史資料干擾排查。
       fs.writeFileSync(logFile, '', 'utf8')
 
       server.middlewares.use('/__dev/ws-log', (req, res) => {
@@ -160,13 +160,13 @@ function devWsTrafficLogger(): Plugin {
   }
 }
 
-/** 将文件读取接口挂到 Vite dev server，避免额外占用 3003 端口 */
+/** 將檔案讀取介面掛到 Vite dev server，避免額外佔用 3003 埠 */
 function devFileContentApi(): Plugin {
   const projectRootDir = resolveProjectRootDir()
   const workspaceRootDir = path.resolve(projectRootDir, 'agent')
   const webLogsRootDir = path.resolve(projectRootDir, '.logs')
   const generateAgentFoldersScriptPath = path.resolve(__dirname, '../../../scripts/generate-agent-folders.js')
-  // dev 模式默认开启调试视图，与“前端 dev 即调试模式”一致。
+  // dev 模式預設開啟除錯檢視，與“前端 dev 即除錯模式”一致。
   let wsDisableCompress = true
   const isMarkdownFile = (targetPath: string) => {
     const ext = path.extname(targetPath).toLowerCase()
@@ -370,7 +370,7 @@ function devFileContentApi(): Plugin {
           if (!filePath) {
             res.statusCode = 400
             res.setHeader('content-type', 'application/json; charset=utf-8')
-            res.end(JSON.stringify({ error: '缺少文件路径' }))
+            res.end(JSON.stringify({ error: '缺少檔案路徑' }))
             return
           }
 
@@ -403,7 +403,7 @@ function devFileContentApi(): Plugin {
               }
               res.statusCode = 404
               res.setHeader('content-type', 'application/json; charset=utf-8')
-              res.end(JSON.stringify({ error: '文件不存在', fullPath }))
+              res.end(JSON.stringify({ error: '檔案不存在', fullPath }))
               return
             }
 
@@ -446,13 +446,13 @@ function devFileContentApi(): Plugin {
           if (typeof requestPath !== 'string' || !requestPath.trim()) {
             res.statusCode = 400
             res.setHeader('content-type', 'application/json; charset=utf-8')
-            res.end(JSON.stringify({ error: '缺少文件路径' }))
+            res.end(JSON.stringify({ error: '缺少檔案路徑' }))
             return
           }
           if (typeof requestContent !== 'string') {
             res.statusCode = 400
             res.setHeader('content-type', 'application/json; charset=utf-8')
-            res.end(JSON.stringify({ error: '缺少文件内容' }))
+            res.end(JSON.stringify({ error: '缺少檔案內容' }))
             return
           }
 
@@ -466,13 +466,13 @@ function devFileContentApi(): Plugin {
           if (!isMarkdownFile(fullPath)) {
             res.statusCode = 400
             res.setHeader('content-type', 'application/json; charset=utf-8')
-            res.end(JSON.stringify({ error: '仅支持保存 Markdown 文件' }))
+            res.end(JSON.stringify({ error: '僅支援儲存 Markdown 檔案' }))
             return
           }
           if (!fs.existsSync(fullPath)) {
             res.statusCode = 404
             res.setHeader('content-type', 'application/json; charset=utf-8')
-            res.end(JSON.stringify({ error: '文件不存在' }))
+            res.end(JSON.stringify({ error: '檔案不存在' }))
             return
           }
 

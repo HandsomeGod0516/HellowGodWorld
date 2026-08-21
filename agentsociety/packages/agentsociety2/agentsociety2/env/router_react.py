@@ -1,6 +1,6 @@
 """
 ReAct Router Implementation
-使用ReAct模式（Reasoning + Acting）直接通过function calling选择并调用所有模块的所有函数
+使用ReAct模式（Reasoning + Acting）直接透過function calling選擇並呼叫所有模組的所有函式
 """
 
 import json
@@ -19,14 +19,14 @@ __all__ = ["ReActRouter"]
 
 class ReActRouter(RouterBase):
     """
-    ReAct模式Router：通过Reasoning-Acting循环，使用function calling直接调用所有模块的所有函数。
+    ReAct模式Router：透過Reasoning-Acting迴圈，使用function calling直接呼叫所有模組的所有函式。
 
     工作流程：
-    1. 收集所有环境模块的工具信息
-    2. 使用LLM的function calling能力选择并调用工具
-    3. 执行工具调用，获取结果
-    4. 将结果反馈给LLM，继续下一轮Reasoning-Acting循环
-    5. 直到LLM判断任务完成或达到最大步数
+    1. 收集所有環境模組的工具資訊
+    2. 使用LLM的function calling能力選擇並呼叫工具
+    3. 執行工具呼叫，獲取結果
+    4. 將結果反饋給LLM，繼續下一輪Reasoning-Acting迴圈
+    5. 直到LLM判斷任務完成或達到最大步數
     """
 
     def __init__(
@@ -41,7 +41,7 @@ class ReActRouter(RouterBase):
             max_llm_call_retry=max_llm_call_retry,
         )
 
-        # 预收集所有工具（包括readonly和非readonly）
+        # 預收集所有工具（包括readonly和非readonly）
         self._all_tools: List[ChatCompletionToolParam] = []
         self._all_readonly_tools: List[ChatCompletionToolParam] = []
         self._tool_name_to_module: Dict[str, EnvBase] = {}
@@ -49,16 +49,16 @@ class ReActRouter(RouterBase):
 
         self._collect_all_tools()
 
-        # 创建set_status工具的schema
+        # 建立set_status工具的schema
         self._set_status_tool_schema = self._create_set_status_tool_schema()
 
     def _collect_all_tools(self):
-        """收集所有模块的所有工具"""
+        """收集所有模組的所有工具"""
         for module in self.env_modules:
             registered_tools = getattr(module.__class__, "_registered_tools", {})
 
             for tool_name, tool_obj in registered_tools.items():
-                # 获取工具的LLM格式schema
+                # 獲取工具的LLM格式schema
                 tool_schema: ChatCompletionToolParam | None = None
                 for llm_tool in module._llm_tools:
                     if llm_tool["function"]["name"] == tool_name:
@@ -70,13 +70,13 @@ class ReActRouter(RouterBase):
                     self._tool_name_to_module[tool_name] = module
                     self._tool_name_to_tool_obj[tool_name] = tool_obj
 
-                    # 检查是否是readonly工具
+                    # 檢查是否是readonly工具
                     readonly_tools = getattr(module.__class__, "_readonly_tools", {})
                     if readonly_tools.get(tool_name, False):
                         self._all_readonly_tools.append(tool_schema)
 
     def _create_set_status_tool_schema(self) -> ChatCompletionToolParam:
-        """创建set_status工具的schema"""
+        """建立set_status工具的schema"""
         return {
             "type": "function",
             "function": {
@@ -108,18 +108,18 @@ class ReActRouter(RouterBase):
         template_mode: bool = False,
     ) -> Tuple[dict, str]:
         """
-        使用ReAct模式处理指令。
+        使用ReAct模式處理指令。
 
         Args:
             ctx: 上下文字典
-            instruction: 指令字符串
-            readonly: 是否只读模式
-            template_mode: 模板模式（ReActRouter 不使用，仅为签名兼容）
+            instruction: 指令字串
+            readonly: 是否只讀模式
+            template_mode: 模板模式（ReActRouter 不使用，僅為簽名相容）
 
         Returns:
-            (ctx, answer) 元组
+            (ctx, answer) 元組
         """
-        # 添加当前时间信息到 ctx，以便工具调用可以访问
+        # 新增當前時間資訊到 ctx，以便工具呼叫可以訪問
         self._add_current_time_to_ctx(ctx)
 
         get_logger().info(
@@ -134,7 +134,7 @@ class ReActRouter(RouterBase):
                 "No environment modules available to handle the request.",
             )
 
-        # 选择可用的工具列表
+        # 選擇可用的工具列表
         available_tools = self._all_readonly_tools if readonly else self._all_tools
 
         if not available_tools:
@@ -144,18 +144,18 @@ class ReActRouter(RouterBase):
             }
             return results, "No available tools to handle the request."
 
-        # 构建初始对话，包含ctx和instruction
+        # 構建初始對話，包含ctx和instruction
         initial_prompt = self._build_initial_prompt(instruction, ctx, readonly)
         dialog: List[AllMessageValues] = [{"role": "user", "content": initial_prompt}]
 
-        # 添加set_status工具到可用工具列表
+        # 新增set_status工具到可用工具列表
         tools_with_status = available_tools + [self._set_status_tool_schema]
 
-        # ReAct循环
+        # ReAct迴圈
         step_count = 0
         results = {}
-        execution_log: List[Dict[str, Any]] = []  # 记录执行历史
-        # status 表示用户的指令在环境模块中是否被有效地完成了，还是需要等待一段时间后由用户主动检测指令的完成性
+        execution_log: List[Dict[str, Any]] = []  # 記錄執行歷史
+        # status 表示使用者的指令在環境模組中是否被有效地完成了，還是需要等待一段時間後由使用者主動檢測指令的完成性
         status = "success"
         error: str | None = None
 
@@ -163,15 +163,15 @@ class ReActRouter(RouterBase):
             step_count += 1
             get_logger().debug(f"ReActRouter: Step {step_count}/{self.max_steps}")
 
-            # 调用LLM，允许function calling
+            # 呼叫LLM，允許function calling
             try:
-                # 只在第一步提供tools，后续步骤通过对话历史传递工具调用信息
+                # 只在第一步提供tools，後續步驟透過對話歷史傳遞工具呼叫資訊
                 tools_for_call = tools_with_status if step_count == 1 else None
                 call_kwargs = {
                     "model": "coder",
                     "messages": dialog,
                 }
-                # 只有在提供tools时才设置tool_choice
+                # 只有在提供tools時才設定tool_choice
                 if tools_for_call:
                     call_kwargs["tools"] = tools_for_call
                     call_kwargs["tool_choice"] = "auto"
@@ -183,25 +183,25 @@ class ReActRouter(RouterBase):
                 error_msg = str(e)
                 results["status"] = status
                 results["error"] = error_msg
-                # 构建过程文本
+                # 構建過程文字
                 process_text = (
                     json.dumps(execution_log, indent=2, default=str)
                     if execution_log
                     else ""
                 )
-                # 使用基类的generate_final_answer生成最终答案
+                # 使用基類的generate_final_answer生成最終答案
                 final_answer, determined_status = await self.generate_final_answer(
                     ctx, instruction, results, process_text, status, error_msg
                 )
                 results["status"] = determined_status
                 return results, final_answer
 
-            # 检查是否有tool calls
+            # 檢查是否有tool calls
             message = response.choices[0].message  # type: ignore
             tool_calls = getattr(message, "tool_calls", None) or []
             assistant_content = message.content or ""
 
-            # 记录assistant的响应
+            # 記錄assistant的響應
             execution_log.append(
                 {
                     "step": step_count,
@@ -211,7 +211,7 @@ class ReActRouter(RouterBase):
                 }
             )
 
-            # 添加assistant的响应到对话
+            # 新增assistant的響應到對話
             dialog.append(
                 {
                     "role": "assistant",
@@ -234,18 +234,18 @@ class ReActRouter(RouterBase):
                 }
             )
 
-            # 如果没有tool calls，说明LLM认为任务完成
+            # 如果沒有tool calls，說明LLM認為任務完成
             if not tool_calls:
                 get_logger().info(
                     f"ReActRouter: Task completed after {step_count} steps"
                 )
-                # 构建过程文本
+                # 構建過程文字
                 process_text = (
                     json.dumps(execution_log, indent=2, default=str)
                     if execution_log
                     else ""
                 )
-                # 使用基类的generate_final_answer生成最终答案
+                # 使用基類的generate_final_answer生成最終答案
                 final_answer, determined_status = await self.generate_final_answer(
                     ctx, instruction, results, process_text, status, error
                 )
@@ -254,7 +254,7 @@ class ReActRouter(RouterBase):
                     results["error"] = error
                 return results, final_answer
 
-            # 执行所有tool calls
+            # 執行所有tool calls
             tool_results = []
             step_tool_calls = []
             for tool_call in tool_calls:
@@ -286,7 +286,7 @@ class ReActRouter(RouterBase):
                     )
                     continue
 
-                # 处理set_status工具调用
+                # 處理set_status工具呼叫
                 if func_name == "set_status":
                     status = func_args.get("status", "unknown")
                     reason = func_args.get("reason", "")
@@ -314,7 +314,7 @@ class ReActRouter(RouterBase):
                     get_logger().info(f"ReActRouter: Status set to {status}")
                     continue
 
-                # 执行工具调用
+                # 執行工具呼叫
                 try:
                     result = await self._execute_tool(func_name, func_args, readonly)
                     result_str = json.dumps(result, default=str)
@@ -358,11 +358,11 @@ class ReActRouter(RouterBase):
                             "success": False,
                         }
                     )
-                    # 如果工具执行失败，标记为 fail
+                    # 如果工具執行失敗，標記為 fail
                     status = "fail"
                     error = error_msg
 
-            # 记录工具调用结果
+            # 記錄工具呼叫結果
             execution_log.append(
                 {
                     "step": step_count,
@@ -371,16 +371,16 @@ class ReActRouter(RouterBase):
                 }
             )
 
-            # 将工具执行结果添加到对话
+            # 將工具執行結果新增到對話
             dialog.extend(tool_results)
 
-        # 达到最大步数
+        # 達到最大步數
         get_logger().warning(f"ReActRouter: Reached max steps ({self.max_steps})")
-        # 构建过程文本
+        # 構建過程文字
         process_text = (
             json.dumps(execution_log, indent=2, default=str) if execution_log else ""
         )
-        # 使用基类的generate_final_answer生成最终答案
+        # 使用基類的generate_final_answer生成最終答案
         final_answer, determined_status = await self.generate_final_answer(
             ctx, instruction, results, process_text, status, error
         )
@@ -390,30 +390,30 @@ class ReActRouter(RouterBase):
         return results, final_answer
 
     async def _execute_tool(self, tool_name: str, args: dict, readonly: bool) -> Any:
-        """执行工具调用"""
-        # 获取工具所属的模块
+        """執行工具呼叫"""
+        # 獲取工具所屬的模組
         module = self._tool_name_to_module.get(tool_name)
         if not module:
             raise ValueError(f"Tool {tool_name} not found")
 
-        # 检查readonly约束
+        # 檢查readonly約束
         readonly_tools = getattr(module.__class__, "_readonly_tools", {})
         if readonly and not readonly_tools.get(tool_name, False):
             raise ValueError(
                 f"Tool {tool_name} is not readonly, but readonly mode is enabled"
             )
 
-        # 获取工具对象
+        # 獲取工具物件
         tool_obj = self._tool_name_to_tool_obj.get(tool_name)
         if not tool_obj:
             raise ValueError(f"Tool object for {tool_name} not found")
 
-        # 获取工具函数
+        # 獲取工具函式
         tool_func = tool_obj.fn
         if not tool_func:
             raise ValueError(f"Tool function for {tool_name} not found")
 
-        # 执行工具函数（可能是async）
+        # 執行工具函式（可能是async）
         import inspect
 
         if inspect.iscoroutinefunction(tool_func):
@@ -424,7 +424,7 @@ class ReActRouter(RouterBase):
         return result
 
     def _build_initial_prompt(self, instruction: str, ctx: dict, readonly: bool) -> str:
-        """构建初始prompt，包含ctx和instruction"""
+        """構建初始prompt，包含ctx和instruction"""
         readonly_note = (
             " (READONLY MODE - you can only use read-only tools)" if readonly else ""
         )

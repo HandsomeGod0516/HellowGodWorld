@@ -1,16 +1,16 @@
-"""LLM 配置（从环境变量读取）。
+"""LLM 配置（從環境變數讀取）。
 
-该模块集中管理 AgentSociety2 的 LLM 相关配置，并提供若干便捷函数：
+該模組集中管理 AgentSociety2 的 LLM 相關配置，並提供若干便捷函式：
 
-- :class:`~agentsociety2.config.config.Config`：从环境变量读取各类 API Key / base_url / model name 等。
-- :func:`~agentsociety2.config.config.get_llm_router`：获取（并缓存）指定用途的 LiteLLM :class:`litellm.router.Router`。
-- :func:`~agentsociety2.config.config.get_llm_router_and_model`：同时返回 Router 与模型名。
-- :func:`~agentsociety2.config.config.get_model_name`：获取指定用途的模型名。
-- :func:`~agentsociety2.config.config.extract_json`：从 LLM 响应文本中提取 JSON 片段。
+- :class:`~agentsociety2.config.config.Config`：從環境變數讀取各類 API Key / base_url / model name 等。
+- :func:`~agentsociety2.config.config.get_llm_router`：獲取（並快取）指定用途的 LiteLLM :class:`litellm.router.Router`。
+- :func:`~agentsociety2.config.config.get_llm_router_and_model`：同時返回 Router 與模型名。
+- :func:`~agentsociety2.config.config.get_model_name`：獲取指定用途的模型名。
+- :func:`~agentsociety2.config.config.extract_json`：從 LLM 響應文字中提取 JSON 片段。
 
 .. important::
-   ``AGENTSOCIETY_LLM_API_KEY`` 与 ``AGENTSOCIETY_LLM_API_BASE`` 在创建 LLM Router
-   或启动实验时校验。这样只需要配置向导的后端也能在缺少 API key 时启动。
+   ``AGENTSOCIETY_LLM_API_KEY`` 與 ``AGENTSOCIETY_LLM_API_BASE`` 在建立 LLM Router
+   或啟動實驗時校驗。這樣只需要配置嚮導的後端也能在缺少 API key 時啟動。
 """
 
 from __future__ import annotations
@@ -23,13 +23,13 @@ from litellm.router import Router
 
 from agentsociety2.logger import get_logger, setup_litellm_logging
 
-# 禁用遥测（避免连接 Posthog/Facebook 等外部服务）
+# 禁用遙測（避免連線 Posthog/Facebook 等外部服務）
 # mem0 telemetry has per-call Posthog client creation in current upstream version,
 # which may lead to excessive background threads in long simulations.
 # Keep override capability: users can still export MEM0_TELEMETRY=true explicitly.
 os.environ.setdefault("MEM0_TELEMETRY", "False")
 
-# ChromaDB 也使用 Posthog 进行遥测，必须禁用
+# ChromaDB 也使用 Posthog 進行遙測，必須禁用
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
 from mem0.memory.main import MemoryConfig
@@ -65,10 +65,10 @@ def _is_truthy(value: str) -> bool:
 
 
 def _disable_mem0_telemetry_if_needed() -> None:
-    """必要时强制禁用 mem0 遥测。
+    """必要時強制禁用 mem0 遙測。
 
-    避免上游版本在每次调用时创建 Posthog client，导致长仿真中后台线程过多。
-    若用户显式设置 ``MEM0_TELEMETRY=true`` 则尊重用户配置，不做覆盖。
+    避免上游版本在每次呼叫時建立 Posthog client，導致長模擬中後臺執行緒過多。
+    若使用者顯式設定 ``MEM0_TELEMETRY=true`` 則尊重使用者配置，不做覆蓋。
     """
     if _is_truthy(os.getenv("MEM0_TELEMETRY", "False")):
         return
@@ -86,17 +86,17 @@ _litellm_logging_initialized = False
 
 
 class Config:
-    """AgentSociety2 配置（环境变量来源）。
+    """AgentSociety2 配置（環境變數來源）。
 
-    该类以“类属性”的形式暴露配置项，便于在不实例化的情况下读取。
+    該類以“類屬性”的形式暴露配置項，便於在不例項化的情況下讀取。
 
-    主要环境变量（节选）：
+    主要環境變數（節選）：
 
-    - ``AGENTSOCIETY_HOME_DIR``：数据目录
-    - ``AGENTSOCIETY_LLM_API_KEY`` / ``AGENTSOCIETY_LLM_API_BASE`` / ``AGENTSOCIETY_LLM_MODEL``：默认模型配置
-    - ``AGENTSOCIETY_CODER_LLM_*``：代码生成模型配置
-    - ``AGENTSOCIETY_NANO_LLM_*``：高频/低延迟模型配置
-    - ``AGENTSOCIETY_ANALYSIS_LLM_*``：分析写作模型配置
+    - ``AGENTSOCIETY_HOME_DIR``：資料目錄
+    - ``AGENTSOCIETY_LLM_API_KEY`` / ``AGENTSOCIETY_LLM_API_BASE`` / ``AGENTSOCIETY_LLM_MODEL``：預設模型配置
+    - ``AGENTSOCIETY_CODER_LLM_*``：程式碼生成模型配置
+    - ``AGENTSOCIETY_NANO_LLM_*``：高頻/低延遲模型配置
+    - ``AGENTSOCIETY_ANALYSIS_LLM_*``：分析寫作模型配置
     - ``AGENTSOCIETY_EMBEDDING_*``：embedding 配置
     """
 
@@ -420,11 +420,11 @@ class Config:
     def get_router(
         cls, model_type: Literal["default", "coder", "nano", "analysis"] = "default"
     ) -> Router:
-        """获取指定用途的 LLM Router（不做全局缓存）。
+        """獲取指定用途的 LLM Router（不做全域性快取）。
 
         :param model_type: ``default`` / ``coder`` / ``nano`` / ``analysis``。
-        :returns: LiteLLM :class:`litellm.router.Router` 实例。
-        :raises ValueError: 当所需 API key 未配置时抛出。
+        :returns: LiteLLM :class:`litellm.router.Router` 例項。
+        :raises ValueError: 當所需 API key 未配置時丟擲。
         """
         global _litellm_logging_initialized
 
@@ -578,7 +578,7 @@ class Config:
                 model_list=model_list,
                 fallbacks=fallbacks,
                 cache_responses=True,
-                num_retries=10,  # 设置429错误的重试次数为10次
+                num_retries=10,  # 設定429錯誤的重試次數為10次
             )
         elif model_type == "default":
             # Default model with fallback to nano
@@ -634,7 +634,7 @@ class Config:
                 model_list=model_list,
                 fallbacks=fallbacks,
                 cache_responses=True,
-                num_retries=10,  # 设置429错误的重试次数为10次
+                num_retries=10,  # 設定429錯誤的重試次數為10次
             )
         else:  # nano
             api_key = cls.NANO_LLM_API_KEY
@@ -664,7 +664,7 @@ class Config:
             return Router(
                 model_list=model_list,
                 cache_responses=True,
-                num_retries=10,  # 设置429错误的重试次数为10次
+                num_retries=10,  # 設定429錯誤的重試次數為10次
             )
 
     @classmethod
@@ -713,7 +713,7 @@ class Config:
 
     @classmethod
     def get_default_router(cls) -> Router:
-        """:returns: 默认用途的 LLM Router。"""
+        """:returns: 預設用途的 LLM Router。"""
         return cls.get_router("default")
 
     @classmethod
@@ -768,10 +768,10 @@ _analysis_router: Optional[Router] = None
 
 
 def get_llm_router(model_type: str = "default") -> Router:
-    """获取（并缓存）指定用途的 LLM Router。
+    """獲取（並快取）指定用途的 LLM Router。
 
     :param model_type: ``default`` / ``coder`` / ``nano`` / ``analysis``。
-    :returns: LiteLLM :class:`litellm.router.Router` 实例（进程内单例缓存）。
+    :returns: LiteLLM :class:`litellm.router.Router` 例項（程序內單例快取）。
     """
     global _default_router, _coder_router, _nano_router, _analysis_router
 
@@ -794,10 +794,10 @@ def get_llm_router(model_type: str = "default") -> Router:
 
 
 def get_model_name(model_type: str = "default") -> str:
-    """获取指定用途的模型名。
+    """獲取指定用途的模型名。
 
     :param model_type: ``default`` / ``coder`` / ``nano`` / ``analysis``。
-    :returns: 模型名字符串。
+    :returns: 模型名字串。
     """
     if model_type == "analysis":
         return Config.ANALYSIS_LLM_MODEL
@@ -810,7 +810,7 @@ def get_model_name(model_type: str = "default") -> str:
 
 
 def get_llm_router_and_model(model_type: str = "default") -> tuple[Router, str]:
-    """同时获取 Router 与模型名（Router 使用缓存）。
+    """同時獲取 Router 與模型名（Router 使用快取）。
 
     :param model_type: ``default`` / ``coder`` / ``nano`` / ``analysis``。
     :returns: ``(router, model_name)``。
@@ -821,12 +821,12 @@ def get_llm_router_and_model(model_type: str = "default") -> tuple[Router, str]:
 
 
 def extract_json(text: str) -> str | None:
-    """从文本中尽量稳健地提取 JSON 字符串片段。
+    """從文字中儘量穩健地提取 JSON 字串片段。
 
-    该函数只做“截取”，不负责修复不合法 JSON；若需要修复，请配合 ``json_repair`` 等工具。
+    該函式只做“擷取”，不負責修復不合法 JSON；若需要修復，請配合 ``json_repair`` 等工具。
 
-    :param text: 可能包含 JSON 的文本（例如 LLM 输出，可能夹杂 Markdown code fences）。
-    :returns: 提取出的 JSON 文本；若未找到则返回 ``None``。
+    :param text: 可能包含 JSON 的文字（例如 LLM 輸出，可能夾雜 Markdown code fences）。
+    :returns: 提取出的 JSON 文字；若未找到則返回 ``None``。
     """
     if not text:
         return None

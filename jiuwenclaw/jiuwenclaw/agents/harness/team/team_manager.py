@@ -967,7 +967,7 @@ class TeamManager:
         self._stream_tasks[session_id] = task
 
     async def terminate_session_runtime(self, session_id: str, reason: str = "") -> bool:
-        """终止指定 session 的 Team 运行时（stream/monitor/team agent/runtime cleanup）。"""
+        """終止指定 session 的 Team 執行時（stream/monitor/team agent/runtime cleanup）。"""
         async with self._lock:
             has_stream_task = session_id in self._stream_tasks
             has_team_runtime = session_id in self._team_agents or session_id in self._team_monitors
@@ -988,11 +988,11 @@ class TeamManager:
         return True
 
     async def cancel_session_stream_task(self, session_id: str, reason: str = "") -> bool:
-        """兼容旧命名；实际语义为终止该 session 的 Team runtime。"""
+        """相容舊命名；實際語義為終止該 session 的 Team runtime。"""
         return await self.terminate_session_runtime(session_id, reason=reason)
 
     async def cancel_all_stream_tasks(self, reason: str = "") -> None:
-        """Gateway 与 AgentServer 断开时取消 Team 后台 stream 协程（含 create_task 绕开 SessionManager 的任务）。"""
+        """Gateway 與 AgentServer 斷開時取消 Team 後臺 stream 協程（含 create_task 繞開 SessionManager 的任務）。"""
         async with self._lock:
             pending = list(self._stream_tasks.items())
         for session_id, task in pending:

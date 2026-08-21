@@ -193,28 +193,28 @@ def _write_todos_file(file_path: str, todos: List[TodoItem]):
 
 @tool(
     name="user_todos",
-    description="管理用户的个人待办事项和日程安排（如会议、提醒、计划）。当用户提到未来的安排或计划时应主动调用。注意：\
-        这是用户的个人待办工具，不要用于 agent 内部的任务规划（内部任务规划请用 todo_create/todo_insert 等工具）。",
+    description="管理使用者的個人待辦事項和日程安排（如會議、提醒、計劃）。當使用者提到未來的安排或計劃時應主動呼叫。注意：\
+        這是使用者的個人待辦工具，不要用於 agent 內部的任務規劃（內部任務規劃請用 todo_create/todo_insert 等工具）。",
 )
 async def user_todos(params: UserTodosParams) -> Dict[str, Any]:
-    """管理用户的待办事项列表。支持按 channel 隔离，每个 channel 有独立的待办列表。
+    """管理使用者的待辦事項列表。支援按 channel 隔離，每個 channel 有獨立的待辦列表。
 
     Args:
-        params: 待办事项操作参数，包含以下字段：
-            - action: 操作类型，可选值: list, get, create, update, delete, search
-            - channel_id: Channel ID，用于隔离不同 channel 的待办事项（默认使用全局 channel_id）
-            - todo_id: 待办事项 ID（用于 get, update, delete 操作）
-            - title: 待办事项标题（用于 create, update 操作）
-            - status: 状态 (pending, in_progress, completed, cancelled)
-            - priority: 优先级 (high, medium, low)
-            - due_at: 截止时间 (ISO 格式)
-            - remind_at: 提醒时间 (ISO 格式)
-            - created_by: 创建者
-            - description: 详细描述
-            - query: 搜索关键词（用于 search 操作）
+        params: 待辦事項操作引數，包含以下欄位：
+            - action: 操作型別，可選值: list, get, create, update, delete, search
+            - channel_id: Channel ID，用於隔離不同 channel 的待辦事項（預設使用全域性 channel_id）
+            - todo_id: 待辦事項 ID（用於 get, update, delete 操作）
+            - title: 待辦事項標題（用於 create, update 操作）
+            - status: 狀態 (pending, in_progress, completed, cancelled)
+            - priority: 優先順序 (high, medium, low)
+            - due_at: 截止時間 (ISO 格式)
+            - remind_at: 提醒時間 (ISO 格式)
+            - created_by: 建立者
+            - description: 詳細描述
+            - query: 搜尋關鍵詞（用於 search 操作）
 
     Returns:
-        操作结果字典
+        操作結果字典
     """
     if isinstance(params, dict):
         params = UserTodosParams(**{k: v for k, v in params.items() if k in UserTodosParams.__dataclass_fields__})
@@ -222,13 +222,13 @@ async def user_todos(params: UserTodosParams) -> Dict[str, Any]:
 
 
 async def _handle_user_todos(params: UserTodosParams) -> Dict[str, Any]:
-    """处理用户待办事项的核心逻辑。
+    """處理使用者待辦事項的核心邏輯。
 
     Args:
-        params: 用户待办事项参数封装
+        params: 使用者待辦事項引數封裝
 
     Returns:
-        操作结果字典
+        操作結果字典
     """
     try:
         cid = params.channel_id or _ctx_channel_id.get()
@@ -292,7 +292,7 @@ async def _handle_user_todos(params: UserTodosParams) -> Dict[str, Any]:
             return {
                 "success": True,
                 "todo": new_todo.to_dict(),
-                "message": f"待办事项已创建: {params.title}",
+                "message": f"待辦事項已建立: {params.title}",
             }
         
         elif params.action == "update":
@@ -329,7 +329,7 @@ async def _handle_user_todos(params: UserTodosParams) -> Dict[str, Any]:
             return {
                 "success": True,
                 "todo": todo.to_dict(),
-                "message": f"待办事项已更新: {todo.title}",
+                "message": f"待辦事項已更新: {todo.title}",
             }
         
         elif params.action == "delete":
@@ -349,7 +349,7 @@ async def _handle_user_todos(params: UserTodosParams) -> Dict[str, Any]:
             
             return {
                 "success": True,
-                "message": f"待办事项已删除: {todo.title}",
+                "message": f"待辦事項已刪除: {todo.title}",
             }
         
         elif params.action == "search":
@@ -387,5 +387,5 @@ async def _handle_user_todos(params: UserTodosParams) -> Dict[str, Any]:
 
 
 def get_decorated_tools() -> List:
-    """获取使用 @tool 装饰器的工具列表"""
+    """獲取使用 @tool 裝飾器的工具列表"""
     return [user_todos]

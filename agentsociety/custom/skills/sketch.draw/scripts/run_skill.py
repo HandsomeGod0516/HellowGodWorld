@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['park', 'library']
 TARGET_INTERACTIONS = ['bird_watch', 'quiet_work']
 STATUS = 'sketching'
 EMOTION = 'calm'
-SPEECH = '我把眼前这个细节画下来。'
+SPEECH = '我把眼前這個細節畫下來。'
 MEMORY_TEMPLATE = 'Used sketch.draw: {summary} at {location_id}.'
 
 

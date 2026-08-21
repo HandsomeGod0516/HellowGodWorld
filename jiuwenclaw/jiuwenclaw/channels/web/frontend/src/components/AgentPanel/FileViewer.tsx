@@ -53,7 +53,7 @@ export function FileViewer({ filePath, fileName, reloadNonce = 0 }: FileViewerPr
   const fileNotFound = Boolean(error && error.includes('HTTP 404'));
   const [historyChatPreview, setHistoryChatPreview] = useState(true);
 
-  /** 任意 .json 单次 parse，避免预览/格式化重复 JSON.parse */
+  /** 任意 .json 單次 parse，避免預覽/格式化重複 JSON.parse */
   const jsonDerived = useMemo(() => {
     if (!isJson || !content.trim()) {
       return {
@@ -322,8 +322,8 @@ export function FileViewer({ filePath, fileName, reloadNonce = 0 }: FileViewerPr
 
                 return (
                   <>
-                    {renderGroup('进行中', inProgress, 'text-accent', '▶')}
-                    {renderGroup('待处理', pending, 'text-text-muted', '○')}
+                    {renderGroup('進行中', inProgress, 'text-accent', '▶')}
+                    {renderGroup('待處理', pending, 'text-text-muted', '○')}
                     {renderGroup('已完成', completed, 'text-green-600', '✓')}
                     {renderGroup('已取消', cancelled, 'text-danger', '×')}
                   </>

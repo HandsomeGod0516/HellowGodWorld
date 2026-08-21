@@ -195,7 +195,7 @@ async def _resolve_team_rebuild_followup(
     tm = get_team_manager(channel_id)
     rail = tm.get_team_skill_rail(session_id)
     if rail is None:
-        return None, "团队技能重建不可用：未找到 TeamSkillRail。"
+        return None, "團隊技能重建不可用：未找到 TeamSkillRail。"
 
     store = rail.store
     parts = stripped.split(maxsplit=2)
@@ -203,20 +203,20 @@ async def _resolve_team_rebuild_followup(
     user_intent = parts[2] if len(parts) > 2 else None
 
     if not skill_name:
-        return None, "请指定 Skill 名称：`/evolve_rebuild <skill_name> [user_intent]`"
+        return None, "請指定 Skill 名稱：`/evolve_rebuild <skill_name> [user_intent]`"
 
     if not store.skill_exists(skill_name):
-        available = "、".join(store.list_skill_names()) or "（无可用 Skill）"
-        return None, f"未找到 Skill '{skill_name}'。当前可用：{available}"
+        available = "、".join(store.list_skill_names()) or "（無可用 Skill）"
+        return None, f"未找到 Skill '{skill_name}'。當前可用：{available}"
 
     try:
         followup_prompt = await rail.request_rebuild(skill_name, user_intent)
     except Exception as exc:
         logger.warning("[TeamHelpers] evolve_rebuild failed: session_id=%s error=%s", session_id, exc)
-        return None, f"团队技能重建分析失败：{exc}"
+        return None, f"團隊技能重建分析失敗：{exc}"
 
     if not followup_prompt:
-        return None, f"Skill '{skill_name}' 未生成可执行的重建指令。"
+        return None, f"Skill '{skill_name}' 未生成可執行的重建指令。"
 
     return followup_prompt, None
 
@@ -235,7 +235,7 @@ async def _handle_team_evolve_list_command(
     rail = tm.get_team_skill_rail(session_id)
     if rail is None:
         return {
-            "output": "团队技能演进记录不可用：未找到 TeamSkillRail。",
+            "output": "團隊技能演進記錄不可用：未找到 TeamSkillRail。",
             "result_type": "error",
         }
 
@@ -244,28 +244,28 @@ async def _handle_team_evolve_list_command(
     skill_name = parts[1] if len(parts) > 1 else ""
     if not skill_name or skill_name.startswith("--"):
         return {
-            "output": "请指定 Skill 名称：`/evolve_list <skill_name>`",
+            "output": "請指定 Skill 名稱：`/evolve_list <skill_name>`",
             "result_type": "error",
         }
 
     if not store.skill_exists(skill_name):
-        available = "、".join(store.list_skill_names()) or "（无可用 Skill）"
+        available = "、".join(store.list_skill_names()) or "（無可用 Skill）"
         return {
-            "output": f"未找到 Skill '{skill_name}'。当前可用：{available}",
+            "output": f"未找到 Skill '{skill_name}'。當前可用：{available}",
             "result_type": "error",
         }
 
     records = await store.get_records_by_score(skill_name)
     if not records:
         return {
-            "output": f"Skill '{skill_name}' 暂无演进经验。",
+            "output": f"Skill '{skill_name}' 暫無演進經驗。",
             "result_type": "answer",
         }
 
     avg_score = sum(r.score for r in records) / len(records)
     lines = [
-        f'📊 Skill "{skill_name}" — 经验库摘要\n',
-        f"共 {len(records)} 条经验 | 平均分：{avg_score:.2f}\n",
+        f'📊 Skill "{skill_name}" — 經驗庫摘要\n',
+        f"共 {len(records)} 條經驗 | 平均分：{avg_score:.2f}\n",
         "| # | Score | Used | Effect | Section | Content (preview) |",
         "|---|---:|---|---|---|---|",
     ]
@@ -287,7 +287,7 @@ async def _handle_team_evolve_list_command(
             f"| {i} | {record.score:.2f} | {used_str} | {effect_str} | {section} | {preview} |"
         )
 
-    lines.append(f"\n提示：使用 /evolve_simplify {skill_name} 执行智能整理")
+    lines.append(f"\n提示：使用 /evolve_simplify {skill_name} 執行智慧整理")
     return {
         "output": "\n".join(lines),
         "result_type": "answer",
@@ -316,7 +316,7 @@ async def _handle_team_slash_command(
     rail = tm.get_team_skill_rail(session_id)
     if rail is None:
         return {
-            "output": "团队技能演进不可用：未找到 TeamSkillRail。",
+            "output": "團隊技能演進不可用：未找到 TeamSkillRail。",
             "result_type": "error",
         }
 
@@ -329,14 +329,14 @@ async def _handle_team_slash_command(
 
         if not skill_name:
             return {
-                "output": "请指定 Skill 名称：`/evolve_simplify <skill_name> [user_intent]`",
+                "output": "請指定 Skill 名稱：`/evolve_simplify <skill_name> [user_intent]`",
                 "result_type": "error",
             }
 
         if not store.skill_exists(skill_name):
-            available = "、".join(store.list_skill_names()) or "（无可用 Skill）"
+            available = "、".join(store.list_skill_names()) or "（無可用 Skill）"
             return {
-                "output": f"未找到 Skill '{skill_name}'。当前可用：{available}",
+                "output": f"未找到 Skill '{skill_name}'。當前可用：{available}",
                 "result_type": "error",
             }
 
@@ -349,13 +349,13 @@ async def _handle_team_slash_command(
                 exc,
             )
             return {
-                "output": f"团队技能整理分析失败：{exc}",
+                "output": f"團隊技能整理分析失敗：{exc}",
                 "result_type": "error",
             }
 
         if not simplify_result:
             return {
-                "output": f"Skill '{skill_name}' 经验库状态良好，无需整理。",
+                "output": f"Skill '{skill_name}' 經驗庫狀態良好，無需整理。",
                 "result_type": "answer",
             }
 
@@ -380,7 +380,7 @@ async def _handle_team_slash_command(
     parts = stripped.split(maxsplit=2)
     if len(parts) < 2:
         return {
-            "output": "请补充演进意图：`/evolve <skill_name> <user_query>`",
+            "output": "請補充演進意圖：`/evolve <skill_name> <user_query>`",
             "result_type": "error",
         }
 
@@ -388,15 +388,15 @@ async def _handle_team_slash_command(
     user_query = parts[2].strip() if len(parts) > 2 else ""
 
     if not store.skill_exists(skill_name):
-        available = "、".join(store.list_skill_names()) or "（无可用 Skill）"
+        available = "、".join(store.list_skill_names()) or "（無可用 Skill）"
         return {
-            "output": f"未找到 Skill '{skill_name}'。当前可用：{available}",
+            "output": f"未找到 Skill '{skill_name}'。當前可用：{available}",
             "result_type": "error",
         }
 
     if not user_query:
         return {
-            "output": "请补充演进意图：`/evolve <skill_name> <user_query>`",
+            "output": "請補充演進意圖：`/evolve <skill_name> <user_query>`",
             "result_type": "error",
         }
 
@@ -413,12 +413,12 @@ async def _handle_team_slash_command(
             exc,
         )
         return {
-            "output": f"团队技能演进请求失败：{exc}",
+            "output": f"團隊技能演進請求失敗：{exc}",
             "result_type": "error",
         }
 
     return {
-        "output": f"Skill '{skill_name}' 演进请求已提交，请等待审批。",
+        "output": f"Skill '{skill_name}' 演進請求已提交，請等待審批。",
         "result_type": "answer",
     }
 
@@ -986,7 +986,7 @@ async def _watch_team_evolution_and_push(
                     request_id=active_cycle_request_id,
                     status="end",
                     stage="failed",
-                    message=f"团队技能演进分析失败: {exc}",
+                    message=f"團隊技能演進分析失敗: {exc}",
                 ),
             )
         except Exception as push_exc:

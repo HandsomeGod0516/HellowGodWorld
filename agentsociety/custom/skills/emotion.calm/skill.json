@@ -23,7 +23,7 @@
   ],
   "status": "calming",
   "emotion": "calm",
-  "speech": "我先让气氛慢下来，大家才好做决定。",
+  "speech": "我先讓氣氛慢下來，大家才好做決定。",
   "memory_template": "Used emotion.calm: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

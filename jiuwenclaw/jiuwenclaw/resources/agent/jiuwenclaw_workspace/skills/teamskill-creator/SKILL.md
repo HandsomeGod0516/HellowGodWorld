@@ -197,7 +197,7 @@ For each role, evaluate whether to recommend community skill search:
 
 The default must be **recommend**, with the burden of proof on **not** recommending. The test is: *"Does a domain-specific community skill exist that would give this role capabilities beyond what its current generic skills provide?"* If plausible → recommend.
 
-> **Anti-pattern: "通用即覆盖" (generic = covered)**
+> **Anti-pattern: "通用即覆蓋" (generic = covered)**
 >
 > In `ecommerce-compare-debate-team`, three platform shopper roles (`taobao-shopper`, `pinduoduo-shopper`, `jingdong-shopper`) each had `web-research` assigned. The agent concluded "already covered — no community search needed." This is wrong: `web-research` is general-purpose retrieval; it knows nothing about Taobao store tiers, PDD subsidy eligibility, or JD self-operated logistics. Community registries carry platform-specific shopping and buyer-agent skills that fill exactly this gap.
 >
@@ -208,7 +208,7 @@ The default must be **recommend**, with the burden of proof on **not** recommend
 - **Binary/office file output** (PPTX, DOCX, XLSX, PDF) — LLM cannot generate binary formats natively; needs a skill wrapping python-pptx / docx etc.
 - **Diagram/chart rendering** (Mermaid, Excalidraw, matplotlib) — LLM can describe but cannot render visuals without a generation skill.
 - **Specific file format parsing** (CSV, images, audio, JSON-LD) — specialized parsing/validation skill is far more reliable than raw LLM attempts.
-- **Domain-specific platform / service interaction** (e-commerce platforms, social media, financial services, travel booking, healthcare systems, government portals, etc.) — community registries often have skills that encode platform-specific rules, workflows, API integrations, or operational knowledge that generic retrieval skills cannot replicate. Examples: 淘宝/天猫购物 skills with store-tier logic, 京东 price-tracking skills, 拼多多 deal-finding skills, 买手/personal-shopper skills. A role whose identity is tied to a specific platform or professional domain should **always** trigger a community search, even if generic skills like `web-research` are already assigned.
+- **Domain-specific platform / service interaction** (e-commerce platforms, social media, financial services, travel booking, healthcare systems, government portals, etc.) — community registries often have skills that encode platform-specific rules, workflows, API integrations, or operational knowledge that generic retrieval skills cannot replicate. Examples: 淘寶/天貓購物 skills with store-tier logic, 京東 price-tracking skills, 拼多多 deal-finding skills, 買手/personal-shopper skills. A role whose identity is tied to a specific platform or professional domain should **always** trigger a community search, even if generic skills like `web-research` are already assigned.
 
 If any role hits these patterns and no **domain-specific** local skill covers it, recommend "Yes" — do not rationalize it away with "the role can still produce text instructions" or "generic retrieval already handles it."
 

@@ -1,5 +1,5 @@
 """
-输出层：EDA、资源管理、双语报告（ReportWriter / Reporter）、附属文件。
+輸出層：EDA、資源管理、雙語報告（ReportWriter / Reporter）、附屬檔案。
 """
 
 from __future__ import annotations
@@ -57,12 +57,12 @@ logger = get_logger()
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# 数据结构
+# 資料結構
 # ─────────────────────────────────────────────────────────────────────────
 
 @dataclass
 class ReportPaths:
-    """报告路径"""
+    """報告路徑"""
     markdown: Path
     html: Path
     markdown_zh: Optional[Path] = None
@@ -73,7 +73,7 @@ class ReportPaths:
 
 
 class ReportJudgment(BaseModel):
-    """报告判断"""
+    """報告判斷"""
     success: bool
     reason: str
     has_markdown: bool = False
@@ -83,11 +83,11 @@ class ReportJudgment(BaseModel):
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# AssetManager: 资源管理器
+# AssetManager: 資源管理器
 # ─────────────────────────────────────────────────────────────────────────
 
 class AssetManager:
-    """资源管理器"""
+    """資源管理器"""
 
     def __init__(self, workspace_path: Path):
         self.workspace_path = Path(workspace_path)
@@ -98,7 +98,7 @@ class AssetManager:
         experiment_id: str,
         hypothesis_id: str,
     ) -> List[ReportAsset]:
-        """发现 `run/artifacts` 下的可视化资源。"""
+        """發現 `run/artifacts` 下的視覺化資源。"""
         hid = _sanitize_id(hypothesis_id)
         eid = _sanitize_id(experiment_id)
         asset_path = (
@@ -132,7 +132,7 @@ class AssetManager:
         assets: List[ReportAsset],
         output_dir: Path,
     ) -> Dict[str, Any]:
-        """复制到 `assets/` 并生成可选 base64 嵌入数据。"""
+        """複製到 `assets/` 並生成可選 base64 嵌入資料。"""
         assets_dir = output_dir / DIR_REPORT_ASSETS
         assets_dir.mkdir(exist_ok=True)
         processed: Dict[str, Any] = {}
@@ -165,21 +165,21 @@ class AssetManager:
         return processed
 
     def _format_title(self, filename: str) -> str:
-        """格式化文件名为标题"""
+        """格式化檔名為標題"""
         title = filename.replace("_", " ").replace("-", " ")
         return " ".join(word.capitalize() for word in title.split())
 
 
-# 历史名称兼容（与 AssetManager 同一实现）
+# 歷史名稱相容（與 AssetManager 同一實現）
 AssetProcessor = AssetManager
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# EDAGenerator: EDA 报告生成器
+# EDAGenerator: EDA 報告生成器
 # ─────────────────────────────────────────────────────────────────────────
 
 class EDAGenerator:
-    """EDA 报告生成器 - 集成多种现成的自动分析工具"""
+    """EDA 報告生成器 - 整合多種現成的自動分析工具"""
 
     def __init__(self, config: AnalysisConfig):
         self.config = config
@@ -190,7 +190,7 @@ class EDAGenerator:
         db_path: Path,
         max_rows: int = 5000,
     ) -> Optional[str]:
-        """生成快速统计摘要"""
+        """生成快速統計摘要"""
         if not db_path.exists():
             return None
 
@@ -207,10 +207,10 @@ class EDAGenerator:
         output_dir: Path,
         max_rows: int = 50000,
     ) -> Optional[Path]:
-        """生成 missingno 缺失值可视化报告
+        """生成 missingno 缺失值視覺化報告
 
-        missingno 是一个专门用于可视化缺失数据的工具，
-        可以生成矩阵图、条形图、热力图等来展示数据缺失模式。
+        missingno 是一個專門用於視覺化缺失資料的工具，
+        可以生成矩陣圖、條形圖、熱力圖等來展示資料缺失模式。
         """
         if not db_path.exists():
             return None
@@ -222,22 +222,22 @@ class EDAGenerator:
         if not sample:
             return None
 
-        # 合并所有表的数据进行缺失值分析
+        # 合併所有表的資料進行缺失值分析
         all_dfs = []
         for table_name, data in sample.items():
             if data and len(data) > 0:
                 df = pd.DataFrame(data)
-                # 添加表名前缀避免列名冲突
+                # 新增表名字首避免列名衝突
                 df.columns = [f"{table_name}.{col}" for col in df.columns]
                 all_dfs.append(df)
 
         if not all_dfs:
             return None
 
-        # 只取前几个表的列（避免太多列导致图表混乱）
+        # 只取前幾個表的列（避免太多列導致圖表混亂）
         combined_df = pd.concat(all_dfs, axis=1)
         if len(combined_df.columns) > 50:
-            # 选择缺失值最多的列
+            # 選擇缺失值最多的列
             missing_counts = combined_df.isnull().sum()
             top_missing = missing_counts.nlargest(50).index.tolist()
             combined_df = combined_df[top_missing]
@@ -250,10 +250,10 @@ class EDAGenerator:
 
             out_file = output_dir / "eda_missingno.html"
 
-            # 创建多子图
+            # 建立多子圖
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
-            # 1. 缺失值矩阵
+            # 1. 缺失值矩陣
             try:
                 msno.matrix(combined_df, ax=axes[0, 0], fontsize=8)
                 axes[0, 0].set_title("Missing Value Matrix", fontsize=12)
@@ -261,7 +261,7 @@ class EDAGenerator:
                 axes[0, 0].text(0.5, 0.5, "Matrix plot failed", ha='center', va='center')
                 axes[0, 0].set_title("Missing Value Matrix (Error)")
 
-            # 2. 缺失值条形图
+            # 2. 缺失值條形圖
             try:
                 msno.bar(combined_df, ax=axes[0, 1], fontsize=8)
                 axes[0, 1].set_title("Missing Value Bar Chart", fontsize=12)
@@ -269,7 +269,7 @@ class EDAGenerator:
                 axes[0, 1].text(0.5, 0.5, "Bar plot failed", ha='center', va='center')
                 axes[0, 1].set_title("Missing Value Bar (Error)")
 
-            # 3. 缺失值热力图
+            # 3. 缺失值熱力圖
             try:
                 if len(combined_df.columns) > 1:
                     msno.heatmap(combined_df, ax=axes[1, 0], fontsize=8)
@@ -281,7 +281,7 @@ class EDAGenerator:
                 axes[1, 0].text(0.5, 0.5, "Heatmap failed", ha='center', va='center')
                 axes[1, 0].set_title("Correlation Heatmap (Error)")
 
-            # 4. 缺失值树状图
+            # 4. 缺失值樹狀圖
             try:
                 if len(combined_df.columns) > 1:
                     msno.dendrogram(combined_df, ax=axes[1, 1], fontsize=8)
@@ -297,7 +297,7 @@ class EDAGenerator:
             plt.savefig(str(out_file).replace('.html', '.png'), dpi=150, bbox_inches='tight')
             plt.close()
 
-            # 生成 HTML 包装
+            # 生成 HTML 包裝
             html_content = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -327,14 +327,14 @@ class EDAGenerator:
 </html>"""
             out_file.write_text(html_content, encoding="utf-8")
 
-            self.logger.info("生成 missingno 缺失值报告: %s", out_file)
+            self.logger.info("生成 missingno 缺失值報告: %s", out_file)
             return out_file
 
         except ImportError:
-            self.logger.warning("missingno 未安装，跳过缺失值可视化")
+            self.logger.warning("missingno 未安裝，跳過缺失值視覺化")
             return None
         except Exception as e:
-            self.logger.warning("missingno 生成失败: %s", e)
+            self.logger.warning("missingno 生成失敗: %s", e)
             return None
 
     def generate_correlation_report(
@@ -343,9 +343,9 @@ class EDAGenerator:
         output_dir: Path,
         max_rows: int = 50000,
     ) -> Optional[Path]:
-        """生成相关性分析报告
+        """生成相關性分析報告
 
-        使用 pandas 和 seaborn 生成变量相关性矩阵热力图。
+        使用 pandas 和 seaborn 生成變數相關性矩陣熱力圖。
         """
         if not db_path.exists():
             return None
@@ -374,10 +374,10 @@ class EDAGenerator:
                 import matplotlib.pyplot as plt
                 import seaborn as sns
 
-                # 计算相关系数矩阵
+                # 計算相關係數矩陣
                 corr_matrix = numeric_df.corr()
 
-                # 生成热力图
+                # 生成熱力圖
                 fig, ax = plt.subplots(figsize=(12, 10))
                 sns.heatmap(
                     corr_matrix,
@@ -398,15 +398,15 @@ class EDAGenerator:
                 plt.close()
 
                 generated_files.append((table_name, str(out_file)))
-                self.logger.info("生成相关性矩阵: %s (表: %s, %d 列)", out_file, table_name, len(numeric_df.columns))
+                self.logger.info("生成相關性矩陣: %s (表: %s, %d 列)", out_file, table_name, len(numeric_df.columns))
 
             except Exception as e:
-                self.logger.warning("生成表 %s 的相关性矩阵失败: %s", table_name, e)
+                self.logger.warning("生成表 %s 的相關性矩陣失敗: %s", table_name, e)
 
         if not generated_files:
             return None
 
-        # 创建索引页面
+        # 建立索引頁面
         index_file = output_dir / "correlation_index.html"
         rows = "\n".join(
             f'<tr><td>{name}</td><td><img src="{Path(path).name}" style="max-width:800px"></td></tr>'
@@ -443,10 +443,10 @@ class EDAGenerator:
         output_dir: Path,
         max_rows: int = 10000,
     ) -> Optional[Path]:
-        """生成 ydata-profiling EDA 报告
+        """生成 ydata-profiling EDA 報告
 
-        为所有非空表生成 EDA 报告，合并为一个 HTML 文件。
-        如果只有一张表，直接生成单表报告；多张表则生成索引页面。
+        為所有非空表生成 EDA 報告，合併為一個 HTML 檔案。
+        如果只有一張表，直接生成單表報告；多張表則生成索引頁面。
         """
         if not db_path.exists():
             return None
@@ -458,7 +458,7 @@ class EDAGenerator:
         if not sample:
             return None
 
-        # 过滤出有数据的表
+        # 過濾出有資料的表
         non_empty_tables = {
             t: data for t, data in sample.items()
             if data and len(data) > 0
@@ -473,48 +473,48 @@ class EDAGenerator:
             from ydata_profiling import ProfileReport
 
             if len(non_empty_tables) == 1:
-                # 单表：直接生成报告
+                # 單表：直接生成報告
                 table_name = next(iter(non_empty_tables.keys()))
                 df = pd.DataFrame(non_empty_tables[table_name])
                 out_file = output_dir / "eda_profile.html"
                 profile = ProfileReport(df, title=f"EDA: {table_name}", minimal=True)
                 profile.to_file(str(out_file))
-                self.logger.info("生成 ydata-profiling 报告: %s (表: %s, %d 行)", out_file, table_name, len(df))
+                self.logger.info("生成 ydata-profiling 報告: %s (表: %s, %d 行)", out_file, table_name, len(df))
                 return out_file
 
-            # 多表：为每张表生成独立报告，并创建索引页
+            # 多表：為每張表生成獨立報告，並建立索引頁
             generated_files = []
             for table_name, data in non_empty_tables.items():
                 df = pd.DataFrame(data)
                 if df.empty:
                     continue
-                # 每张表的报告文件名
+                # 每張表的報告檔名
                 safe_name = "".join(c if c.isalnum() or c in "_-" else "_" for c in table_name)
                 table_file = output_dir / f"eda_profile_{safe_name}.html"
                 try:
                     profile = ProfileReport(df, title=f"EDA: {table_name}", minimal=True)
                     profile.to_file(str(table_file))
                     generated_files.append((table_name, table_file.name, len(df)))
-                    self.logger.info("生成 ydata-profiling 表报告: %s (表: %s, %d 行)", table_file, table_name, len(df))
+                    self.logger.info("生成 ydata-profiling 表報告: %s (表: %s, %d 行)", table_file, table_name, len(df))
                 except Exception as e:
-                    self.logger.warning("生成表 %s 的 EDA 报告失败: %s", table_name, e)
+                    self.logger.warning("生成表 %s 的 EDA 報告失敗: %s", table_name, e)
 
             if not generated_files:
                 return None
 
-            # 创建索引页面
+            # 建立索引頁面
             index_file = output_dir / "eda_profile.html"
             index_content = self._build_eda_index_html(generated_files, "ydata-profiling")
             index_file.write_text(index_content, encoding="utf-8")
-            self.logger.info("生成 EDA 索引页: %s (%d 张表)", index_file, len(generated_files))
+            self.logger.info("生成 EDA 索引頁: %s (%d 張表)", index_file, len(generated_files))
             return index_file
 
         except Exception as e:
-            self.logger.debug("ydata-profiling 生成失败: %s", e)
+            self.logger.debug("ydata-profiling 生成失敗: %s", e)
             return None
 
     def _build_eda_index_html(self, table_files: List[Tuple[str, str, int]], tool_name: str) -> str:
-        """构建 EDA 索引页面 HTML"""
+        """構建 EDA 索引頁面 HTML"""
         rows = "\n".join(
             f'<tr><td><a href="{filename}">{name}</a></td><td>{rows}</td></tr>'
             for name, filename, rows in table_files
@@ -552,10 +552,10 @@ class EDAGenerator:
         output_dir: Path,
         max_rows: int = 10000,
     ) -> Optional[Path]:
-        """生成 Sweetviz EDA 报告
+        """生成 Sweetviz EDA 報告
 
-        为所有非空表生成 EDA 报告。
-        如果只有一张表，直接生成单表报告；多张表则生成索引页面。
+        為所有非空表生成 EDA 報告。
+        如果只有一張表，直接生成單表報告；多張表則生成索引頁面。
         """
         if not db_path.exists():
             return None
@@ -567,7 +567,7 @@ class EDAGenerator:
         if not sample:
             return None
 
-        # 过滤出有数据的表
+        # 過濾出有資料的表
         non_empty_tables = {
             t: data for t, data in sample.items()
             if data and len(data) > 0
@@ -582,24 +582,24 @@ class EDAGenerator:
             import sweetviz as sv
 
             if len(non_empty_tables) == 1:
-                # 单表：直接生成报告
+                # 單表：直接生成報告
                 table_name = next(iter(non_empty_tables.keys()))
                 df = pd.DataFrame(non_empty_tables[table_name])
                 out_file = output_dir / "eda_sweetviz.html"
                 report = sv.analyze(df)
                 report.show_html(str(out_file), open_browser=False)
                 if out_file.exists():
-                    self.logger.info("生成 Sweetviz 报告: %s (表: %s, %d 行)", out_file, table_name, len(df))
+                    self.logger.info("生成 Sweetviz 報告: %s (表: %s, %d 行)", out_file, table_name, len(df))
                     return out_file
                 return None
 
-            # 多表：为每张表生成独立报告，并创建索引页
+            # 多表：為每張表生成獨立報告，並建立索引頁
             generated_files = []
             for table_name, data in non_empty_tables.items():
                 df = pd.DataFrame(data)
                 if df.empty:
                     continue
-                # 每张表的报告文件名
+                # 每張表的報告檔名
                 safe_name = "".join(c if c.isalnum() or c in "_-" else "_" for c in table_name)
                 table_file = output_dir / f"eda_sweetviz_{safe_name}.html"
                 try:
@@ -607,32 +607,32 @@ class EDAGenerator:
                     report.show_html(str(table_file), open_browser=False)
                     if table_file.exists():
                         generated_files.append((table_name, table_file.name, len(df)))
-                        self.logger.info("生成 Sweetviz 表报告: %s (表: %s, %d 行)", table_file, table_name, len(df))
+                        self.logger.info("生成 Sweetviz 表報告: %s (表: %s, %d 行)", table_file, table_name, len(df))
                 except Exception as e:
-                    self.logger.warning("生成表 %s 的 Sweetviz 报告失败: %s", table_name, e)
+                    self.logger.warning("生成表 %s 的 Sweetviz 報告失敗: %s", table_name, e)
 
             if not generated_files:
                 return None
 
-            # 创建索引页面
+            # 建立索引頁面
             index_file = output_dir / "eda_sweetviz.html"
             index_content = self._build_eda_index_html(generated_files, "Sweetviz")
             index_file.write_text(index_content, encoding="utf-8")
-            self.logger.info("生成 Sweetviz EDA 索引页: %s (%d 张表)", index_file, len(generated_files))
+            self.logger.info("生成 Sweetviz EDA 索引頁: %s (%d 張表)", index_file, len(generated_files))
             return index_file
 
         except Exception as e:
-            self.logger.debug("Sweetviz 生成失败: %s", e)
+            self.logger.debug("Sweetviz 生成失敗: %s", e)
 
         return None
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# ReportWriter: 报告生成器
+# ReportWriter: 報告生成器
 # ─────────────────────────────────────────────────────────────────────────
 
 class ReportWriter:
-    """报告生成器"""
+    """報告生成器"""
 
     def __init__(self, config: AnalysisConfig, llm_router, model_name: str):
         self.config = config
@@ -652,7 +652,7 @@ class ReportWriter:
         quick_stats_md: Optional[str] = None,
         data_summary: Optional[Any] = None,
     ) -> Tuple[ReportPaths, bool]:
-        """生成报告"""
+        """生成報告"""
         max_retries = self.config.max_analysis_retries
 
         for attempt in range(max_retries):
@@ -678,7 +678,7 @@ class ReportWriter:
 
             except XmlParseError as e:
                 if attempt >= max_retries - 1:
-                    self.logger.warning("报告生成失败: %s", e)
+                    self.logger.warning("報告生成失敗: %s", e)
                     return await self._save_partial_report(context, output_dir), False
 
         return await self._save_partial_report(context, output_dir), False
@@ -694,7 +694,7 @@ class ReportWriter:
         quick_stats_md: Optional[str],
         data_summary: Optional[Any],
     ) -> ReportContent:
-        """生成报告内容"""
+        """生成報告內容"""
         prompt = self._build_prompt(
             context,
             analysis_result,
@@ -721,7 +721,7 @@ class ReportWriter:
         return self._parse_content(raw, context)
 
     def _build_system_prompt(self) -> str:
-        """构建系统 prompt"""
+        """構建系統 prompt"""
         skills = get_analysis_skills(
             selected_names=self.config.analysis_skill_names,
             strict_selection=self.config.analysis_skill_strict_selection,
@@ -750,7 +750,7 @@ Include charts where they support the narrative.
         quick_stats_md: Optional[str],
         data_summary: Optional[Any],
     ) -> str:
-        """构建报告 prompt"""
+        """構建報告 prompt"""
         viz_block = self._format_viz_for_llm(processed_assets)
         literature_block = f"\n## Literature\n{literature_summary[:3000]}\n" if literature_summary else ""
         eda_block = self._format_eda_block(eda_profile_path, eda_sweetviz_path)
@@ -779,7 +779,7 @@ Include charts where they support the narrative.
 {report_xml_instruction()}"""
 
     def _format_viz_for_llm(self, assets: Dict[str, Any]) -> str:
-        """格式化可视化资源"""
+        """格式化視覺化資源"""
         if not assets:
             return "No visualizations available."
 
@@ -796,7 +796,7 @@ Include charts where they support the narrative.
         eda_profile: Optional[Path],
         eda_sweetviz: Optional[Path],
     ) -> str:
-        """格式化 EDA 信息"""
+        """格式化 EDA 資訊"""
         files = []
         if eda_profile and eda_profile.exists():
             files.append("- **data/eda_profile.html** (ydata-profiling)")
@@ -809,7 +809,7 @@ Include charts where they support the narrative.
         return "\n## EDA Reports\n" + "\n".join(files) + "\n"
 
     def _format_data_context(self, data_summary: Optional[Any]) -> str:
-        """格式化数据上下文"""
+        """格式化資料上下文"""
         if not data_summary:
             return ""
 
@@ -835,7 +835,7 @@ Include charts where they support the narrative.
         return "\n".join([f"- {str(i)[:200]}" for i in items[:8]])
 
     def _parse_content(self, content: str, context: ExperimentContext) -> ReportContent:
-        """解析报告内容"""
+        """解析報告內容"""
         data = parse_llm_report_response(content)
 
         return ReportContent(
@@ -849,12 +849,12 @@ Include charts where they support the narrative.
         )
 
     async def _save_report(self, content: ReportContent, output_dir: Path) -> ReportPaths:
-        """保存报告"""
+        """儲存報告"""
         output_dir.mkdir(parents=True, exist_ok=True)
         assets_dir = output_dir / DIR_REPORT_ASSETS
         assets_dir.mkdir(exist_ok=True)
 
-        # 保存中文报告
+        # 儲存中文報告
         md_zh, html_zh = None, None
         if content.full_content_markdown_zh:
             md_zh = output_dir / FILE_REPORT_ZH_MD
@@ -865,7 +865,7 @@ Include charts where they support the narrative.
             html_zh.write_text(content.full_content_html_zh, encoding="utf-8")
             (output_dir / FILE_REPORT_HTML).write_text(content.full_content_html_zh, encoding="utf-8")
 
-        # 保存英文报告
+        # 儲存英文報告
         md_en, html_en = None, None
         if content.full_content_markdown_en:
             md_en = output_dir / FILE_REPORT_EN_MD
@@ -894,7 +894,7 @@ Include charts where they support the narrative.
         paths: ReportPaths,
         assets: Dict[str, Any],
     ) -> ReportJudgment:
-        """判断报告质量"""
+        """判斷報告質量"""
         md_len = len(content.full_content_markdown or "")
         html_len = len(content.full_content_html or "")
         html_preview = (content.full_content_html or "")[:800]
@@ -931,10 +931,10 @@ Include charts where they support the narrative.
         context: ExperimentContext,
         output_dir: Path,
     ) -> ReportPaths:
-        """保存部分报告"""
+        """儲存部分報告"""
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # 创建空报告
+        # 建立空報告
         md_path = output_dir / FILE_REPORT_MD
         html_path = output_dir / FILE_REPORT_HTML
 
@@ -944,7 +944,7 @@ Include charts where they support the narrative.
         return ReportPaths(markdown=md_path, html=html_path)
 
 class ReportGenerationResult(BaseModel):
-    """报告生成结果判断"""
+    """報告生成結果判斷"""
 
     success: bool
     reason: str
@@ -954,37 +954,37 @@ class ReportGenerationResult(BaseModel):
     retry_instruction: str = ""
 
 class Reporter:
-    """报告子智能体：将洞察与图表组装成图文并茂的 Markdown/HTML 报告。"""
+    """報告子智慧體：將洞察與圖表組裝成圖文並茂的 Markdown/HTML 報告。"""
 
     def __init__(self, agent: AnalysisAgent, config: AnalysisConfig):
         """
         Args:
-            agent: AnalysisAgent 实例（用于 LLM 生成内容）
-            config: 分析配置（必须，用于 max_retries 等）
+            agent: AnalysisAgent 例項（用於 LLM 生成內容）
+            config: 分析配置（必須，用於 max_retries 等）
         """
         self.logger = get_logger()
         self.agent = agent
         self.config = config
         self.max_retries = config.max_analysis_retries
-        self.logger.info("使用 %s 来生成报告", self.agent.model_name)
+        self.logger.info("使用 %s 來生成報告", self.agent.model_name)
 
     @staticmethod
     def _build_retry_feedback(error_history: list[str]) -> str:
-        """构建包含错误历史的反馈内容。
+        """構建包含錯誤歷史的反饋內容。
 
-        将累积的错误历史格式化为反馈信息，供 LLM 在下一次迭代时参考，
-        避免重复相同的错误。
+        將累積的錯誤歷史格式化為反饋資訊，供 LLM 在下一次迭代時參考，
+        避免重複相同的錯誤。
 
         Args:
-            error_history: 累积的错误历史列表。
+            error_history: 累積的錯誤歷史列表。
 
         Returns:
-            格式化后的反馈字符串，最多显示最近 3 个错误。
+            格式化後的反饋字串，最多顯示最近 3 個錯誤。
         """
         if not error_history:
             return ""
         parts = ["**Previous issues (avoid these mistakes)**:"]
-        for i, err in enumerate(error_history[-3:]):  # 只保留最近3个
+        for i, err in enumerate(error_history[-3:]):  # 只保留最近3個
             parts.append(f"  {i+1}. {err}")
         return "\n".join(parts)
 
@@ -1001,26 +1001,26 @@ class Reporter:
         data_summary: Optional[Any] = None,
         on_progress: AnalysisProgressCallback = None,
     ) -> Tuple[Dict[str, str], bool]:
-        """生成图文并茂的报告（Markdown + HTML）。
+        """生成圖文並茂的報告（Markdown + HTML）。
 
-        支持重试机制，累积错误历史以提高迭代效率。
+        支援重試機制，累積錯誤歷史以提高迭代效率。
 
         Args:
-            context: 实验上下文。
-            analysis_result: 分析结果。
-            processed_assets: 处理后的资产字典。
-            output_dir: 输出目录。
-            literature_summary: 文献摘要，可选。
-            eda_profile_path: ydata-profiling EDA 概览路径，可选。
-            eda_sweetviz_path: Sweetviz EDA 报告路径，可选。
-            quick_stats_md: pandas describe 统计摘要，可选。
-            data_summary: DataSummary 对象，用于交叉验证，可选。
-            on_progress: 进度回调函数，可选。
+            context: 實驗上下文。
+            analysis_result: 分析結果。
+            processed_assets: 處理後的資產字典。
+            output_dir: 輸出目錄。
+            literature_summary: 文獻摘要，可選。
+            eda_profile_path: ydata-profiling EDA 概覽路徑，可選。
+            eda_sweetviz_path: Sweetviz EDA 報告路徑，可選。
+            quick_stats_md: pandas describe 統計摘要，可選。
+            data_summary: DataSummary 物件，用於交叉驗證，可選。
+            on_progress: 進度回撥函式，可選。
 
         Returns:
-            元组 (files, success):
-            - files: 生成的文件路径字典
-            - success: 报告是否成功生成
+            元組 (files, success):
+            - files: 生成的檔案路徑字典
+            - success: 報告是否成功生成
         """
 
         async def progress(msg: str) -> None:
@@ -1029,10 +1029,10 @@ class Reporter:
 
         max_retries = self.max_retries
         retry_count = 0
-        error_history: list[str] = []  # 累积错误历史
+        error_history: list[str] = []  # 累積錯誤歷史
 
         while retry_count < max_retries:
-            # 构建包含历史错误的反馈
+            # 構建包含歷史錯誤的反饋
             combined_feedback = self._build_retry_feedback(error_history)
             
             try:
@@ -1068,7 +1068,7 @@ class Reporter:
                     content, md_path, html_path, processed_assets
                 )
             except XmlParseError as e:
-                self.logger.warning("报告XML解析失败: %s", e)
+                self.logger.warning("報告XML解析失敗: %s", e)
                 if retry_count >= max_retries - 1:
                     files = await self._save_supporting_files(
                         context, analysis_result, output_dir
@@ -1076,27 +1076,27 @@ class Reporter:
                     files["markdown"] = str(output_dir / FILE_REPORT_MD)
                     files["html"] = str(output_dir / FILE_REPORT_HTML)
                     return (files, False)
-                error_history.append(f"XML解析错误: {str(e)[:200]}")
+                error_history.append(f"XML解析錯誤: {str(e)[:200]}")
                 retry_count += 1
                 self.logger.info(
-                    "重试报告生成，XML解析错误 (%s/%s)", retry_count, max_retries
+                    "重試報告生成，XML解析錯誤 (%s/%s)", retry_count, max_retries
                 )
                 continue
             except Exception as e:
-                self.logger.warning("报告生成异常: %s", e)
+                self.logger.warning("報告生成異常: %s", e)
                 judgment = await self._judge_exception(e, retry_count, max_retries)
                 if not judgment.should_retry or retry_count >= max_retries - 1:
-                    self.logger.error("报告生成异常后失败: %s", judgment.reason)
+                    self.logger.error("報告生成異常後失敗: %s", judgment.reason)
                     files = await self._save_supporting_files(
                         context, analysis_result, output_dir
                     )
                     files["markdown"] = str(output_dir / FILE_REPORT_MD)
                     files["html"] = str(output_dir / FILE_REPORT_HTML)
                     return (files, False)
-                error_history.append(f"异常: {judgment.reason}")
+                error_history.append(f"異常: {judgment.reason}")
                 retry_count += 1
                 self.logger.info(
-                    "重试报告生成，异常 (%s/%s): %s",
+                    "重試報告生成，異常 (%s/%s): %s",
                     retry_count,
                     max_retries,
                     judgment.retry_instruction,
@@ -1113,7 +1113,7 @@ class Reporter:
 
             if not judgment.should_retry or retry_count >= max_retries - 1:
                 self.logger.warning(
-                    "报告生成失败: %s. 保存部分结果。",
+                    "報告生成失敗: %s. 儲存部分結果。",
                     judgment.reason,
                 )
                 files.update(
@@ -1126,14 +1126,14 @@ class Reporter:
             error_history.append(judgment.reason)
             retry_count += 1
             self.logger.info(
-                "重试报告生成 (%s/%s): %s",
+                "重試報告生成 (%s/%s): %s",
                 retry_count,
                 max_retries,
                 judgment.retry_instruction,
             )
 
-        # 重试耗尽，保存部分结果
-        self.logger.warning("报告生成重试耗尽，保存部分结果")
+        # 重試耗盡，儲存部分結果
+        self.logger.warning("報告生成重試耗盡，儲存部分結果")
         files = await self._save_supporting_files(
             context, analysis_result, output_dir
         )
@@ -1153,21 +1153,21 @@ class Reporter:
         data_summary: Optional[Any] = None,
         previous_retry_instruction: Optional[str] = None,
     ) -> ReportContent:
-        """构建报告生成 prompt 并调用 LLM 生成内容。
+        """構建報告生成 prompt 並呼叫 LLM 生成內容。
 
         Args:
-            context: 实验上下文。
-            analysis_result: 分析结果。
-            processed_assets: 处理后的资产字典。
-            literature_summary: 文献摘要，可选。
-            eda_profile_path: ydata-profiling EDA 概览路径，可选。
-            eda_sweetviz_path: Sweetviz EDA 报告路径，可选。
-            quick_stats_md: pandas describe 统计摘要，可选。
-            data_summary: DataSummary 对象，可选。
-            previous_retry_instruction: 上一次重试的反馈信息，可选。
+            context: 實驗上下文。
+            analysis_result: 分析結果。
+            processed_assets: 處理後的資產字典。
+            literature_summary: 文獻摘要，可選。
+            eda_profile_path: ydata-profiling EDA 概覽路徑，可選。
+            eda_sweetviz_path: Sweetviz EDA 報告路徑，可選。
+            quick_stats_md: pandas describe 統計摘要，可選。
+            data_summary: DataSummary 物件，可選。
+            previous_retry_instruction: 上一次重試的反饋資訊，可選。
 
         Returns:
-            ReportContent 对象，包含中英文 Markdown 和 HTML 内容。
+            ReportContent 物件，包含中英文 Markdown 和 HTML 內容。
         """
         prompt = self._build_prompt(
             context,
@@ -1201,7 +1201,7 @@ class Reporter:
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
         ]
-        self.logger.info("使用 %s 生成报告内容", self.agent.model_name)
+        self.logger.info("使用 %s 生成報告內容", self.agent.model_name)
 
         response = await self.agent.llm_router.acompletion(
             model=self.agent.model_name,
@@ -1211,7 +1211,7 @@ class Reporter:
 
         llm_content = response.choices[0].message.content or ""
         self.logger.info(
-            "报告生成 LLM 返回长度: %d 字符, 前 200 字符: %s",
+            "報告生成 LLM 返回長度: %d 字元, 前 200 字元: %s",
             len(llm_content),
             llm_content[:200].replace("\n", " "),
         )
@@ -1269,7 +1269,7 @@ class Reporter:
                 f"{qs}\n\n"
             )
 
-        # 数据验证区块：确保洞察基于实际数据
+        # 資料驗證區塊：確保洞察基於實際資料
         data_validation_block = ""
         if data_summary is not None:
             tables = getattr(data_summary, "tables", [])
@@ -1335,7 +1335,7 @@ Based on the above content, generate a professional report. **Decide** which vis
 **IMPORTANT**: Cross-validate insights against the Data Context section. Do NOT reference tables/columns that don't exist."""
 
     def _format_viz_for_llm(self, processed_assets: Dict[str, Any]) -> str:
-        """将图表信息提供给 LLM，仅传路径和标题以控制 prompt 长度（不传 base64）。"""
+        """將圖表資訊提供給 LLM，僅傳路徑和標題以控制 prompt 長度（不傳 base64）。"""
         if not processed_assets:
             return "No visualizations available."
         lines = []
@@ -1356,12 +1356,12 @@ Based on the above content, generate a professional report. **Decide** which vis
         return "\n".join(lines)
 
     def _parse_content(self, content: str, context: ExperimentContext) -> ReportContent:
-        """解析 LLM 返回的 XML，获取中英双语 markdown 与 html。"""
+        """解析 LLM 返回的 XML，獲取中英雙語 markdown 與 html。"""
         try:
             data = parse_llm_report_response(content)
         except XmlParseError as e:
             self.logger.warning(
-                "报告 XML 解析失败: %s, 原始内容前 500 字符: %s",
+                "報告 XML 解析失敗: %s, 原始內容前 500 字元: %s",
                 e,
                 (e.raw_content or content)[:500].replace("\n", "\\n"),
             )
@@ -1373,7 +1373,7 @@ Based on the above content, generate a professional report. **Decide** which vis
         md_en_len = len(data.get("markdown_en") or "")
         html_en_len = len(data.get("html_en") or "")
         self.logger.info(
-            "报告解析成功: markdown_zh=%d, html_zh=%d, markdown_en=%d, html_en=%d 字符",
+            "報告解析成功: markdown_zh=%d, html_zh=%d, markdown_en=%d, html_en=%d 字元",
             md_zh_len, html_zh_len, md_en_len, html_en_len,
         )
         return ReportContent(
@@ -1389,7 +1389,7 @@ Based on the above content, generate a professional report. **Decide** which vis
     async def _judge_exception(
         self, exc: Exception, retry_count: int, max_retries: int
     ) -> ReportGenerationResult:
-        """出现异常时由 LLM 裁判判断是否可重试及改进方向。"""
+        """出現異常時由 LLM 裁判判斷是否可重試及改進方向。"""
         prompt = f"""An exception occurred during report generation:
 
 **Exception type**: {type(exc).__name__}
@@ -1415,7 +1415,7 @@ Current retry count: {retry_count}/{max_retries}
                     content, ReportGenerationResult, root_tag="judgment"
                 )
         except Exception as judge_err:
-            self.logger.warning("裁判异常失败: %s", judge_err)
+            self.logger.warning("裁判異常失敗: %s", judge_err)
         is_import = isinstance(exc, ImportError)
         return ReportGenerationResult(
             success=False,
@@ -1437,18 +1437,18 @@ Current retry count: {retry_count}/{max_retries}
         html_path: Path,
         processed_assets: Optional[Dict[str, Any]] = None,
     ) -> ReportGenerationResult:
-        """裁判报告生成结果。
+        """裁判報告生成結果。
 
-        检查生成的报告是否完整、格式是否正确，决定是否需要重试。
+        檢查生成的報告是否完整、格式是否正確，決定是否需要重試。
 
         Args:
-            content: 报告内容对象。
-            md_path: Markdown 文件路径。
-            html_path: HTML 文件路径。
-            processed_assets: 处理后的资产字典，可选。
+            content: 報告內容物件。
+            md_path: Markdown 檔案路徑。
+            html_path: HTML 檔案路徑。
+            processed_assets: 處理後的資產字典，可選。
 
         Returns:
-            ReportGenerationResult 对象，包含 success、reason、should_retry 等字段。
+            ReportGenerationResult 物件，包含 success、reason、should_retry 等欄位。
         """
         md_exists = md_path.exists() and md_path.stat().st_size > 0
         html_exists = html_path.exists() and html_path.stat().st_size > 0
@@ -1460,7 +1460,7 @@ Current retry count: {retry_count}/{max_retries}
         num_assets = len(processed_assets) if processed_assets else 0
 
         self.logger.info(
-            "报告裁判: md_exists=%s, html_exists=%s, md_len=%d, html_len=%d, assets=%d",
+            "報告裁判: md_exists=%s, html_exists=%s, md_len=%d, html_len=%d, assets=%d",
             md_exists, html_exists, len(md_text), len(html_text), num_assets,
         )
 
@@ -1499,7 +1499,7 @@ Evaluate:
 
         response_content = response.choices[0].message.content
         if not response_content:
-            self.logger.warning("报告裁判: LLM 返回空响应")
+            self.logger.warning("報告裁判: LLM 返回空響應")
             return ReportGenerationResult(
                 success=False,
                 reason="LLM returned empty response",
@@ -1514,12 +1514,12 @@ Evaluate:
                 response_content, ReportGenerationResult, root_tag="judgment"
             )
             self.logger.info(
-                "报告裁判结果: success=%s, reason=%s, should_retry=%s",
+                "報告裁判結果: success=%s, reason=%s, should_retry=%s",
                 result.success, result.reason[:100] if result.reason else "", result.should_retry,
             )
             return result
         except XmlParseError as e:
-            self.logger.warning("报告裁判 XML 解析失败: %s", e)
+            self.logger.warning("報告裁判 XML 解析失敗: %s", e)
             return ReportGenerationResult(
                 success=False,
                 reason=f"Judge XML parse failed: {e}",
@@ -1534,7 +1534,7 @@ Evaluate:
         content: ReportContent,
         output_dir: Path,
     ) -> Path:
-        """保存双语 Markdown 报告。中文版为主文件，英文版为 report_en.md。"""
+        """儲存雙語 Markdown 報告。中文版為主檔案，英文版為 report_en.md。"""
         primary_path = output_dir / FILE_REPORT_MD
 
         if content.full_content_markdown_zh:
@@ -1542,12 +1542,12 @@ Evaluate:
                 content.full_content_markdown_zh, encoding="utf-8"
             )
             primary_path.write_text(content.full_content_markdown_zh, encoding="utf-8")
-            self.logger.info("保存中文 Markdown 报告: %s", primary_path)
+            self.logger.info("儲存中文 Markdown 報告: %s", primary_path)
 
         if content.full_content_markdown_en:
             en_path = output_dir / FILE_REPORT_EN_MD
             en_path.write_text(content.full_content_markdown_en, encoding="utf-8")
-            self.logger.info("保存英文 Markdown 报告: %s", en_path)
+            self.logger.info("儲存英文 Markdown 報告: %s", en_path)
             if not content.full_content_markdown_zh:
                 primary_path.write_text(content.full_content_markdown_en, encoding="utf-8")
 
@@ -1561,7 +1561,7 @@ Evaluate:
         content: ReportContent,
         output_dir: Path,
     ) -> Path:
-        """保存双语 HTML 报告。中文版为主文件，英文版为 report_en.html。"""
+        """儲存雙語 HTML 報告。中文版為主檔案，英文版為 report_en.html。"""
         primary_path = output_dir / FILE_REPORT_HTML
 
         if content.full_content_html_zh:
@@ -1569,12 +1569,12 @@ Evaluate:
                 content.full_content_html_zh, encoding="utf-8"
             )
             primary_path.write_text(content.full_content_html_zh, encoding="utf-8")
-            self.logger.info("保存中文 HTML 报告: %s", primary_path)
+            self.logger.info("儲存中文 HTML 報告: %s", primary_path)
 
         if content.full_content_html_en:
             en_path = output_dir / FILE_REPORT_EN_HTML
             en_path.write_text(content.full_content_html_en, encoding="utf-8")
-            self.logger.info("保存英文 HTML 报告: %s", en_path)
+            self.logger.info("儲存英文 HTML 報告: %s", en_path)
             if not content.full_content_html_zh:
                 primary_path.write_text(content.full_content_html_en, encoding="utf-8")
 
@@ -1590,8 +1590,8 @@ Evaluate:
         processed_assets: Dict[str, Any],
     ) -> Path:
         """
-        图表嵌入由分析子智能体在生成报告时智能决定，此处不做硬编码补充。
-        图表文件已由 process_assets 复制到 assets/，分析子智能体通过相对路径引用即可。
+        圖表嵌入由分析子智慧體在生成報告時智慧決定，此處不做硬編碼補充。
+        圖表檔案已由 process_assets 複製到 assets/，分析子智慧體透過相對路徑引用即可。
         """
         return html_path
 
@@ -1602,7 +1602,7 @@ Evaluate:
         processed_assets: Dict[str, Any],
     ) -> Path:
         """
-        图表嵌入由分析子智能体在生成报告时智能决定，此处不做硬编码补充。
+        圖表嵌入由分析子智慧體在生成報告時智慧決定，此處不做硬編碼補充。
         """
         return md_path
 
@@ -1614,7 +1614,7 @@ Evaluate:
         eda_sweetviz_path: Optional[Path] = None,
     ) -> Path:
         """
-        将 EDA 报告嵌入报告 HTML，形成统一入口。在 </body> 前插入 Data Overview 区块，
+        將 EDA 報告嵌入報告 HTML，形成統一入口。在 </body> 前插入 Data Overview 區塊，
         含 iframe 嵌入 ydata/sweetviz 生成的 HTML。
         """
         eda_parts: List[Tuple[str, str]] = []
@@ -1635,11 +1635,11 @@ Evaluate:
         else:
             html_content += eda_section
         html_path.write_text(html_content, encoding="utf-8")
-        self.logger.info("将 EDA 报告嵌入报告 HTML")
+        self.logger.info("將 EDA 報告嵌入報告 HTML")
         return html_path
 
     def _build_eda_embed_section(self, eda_parts: List[Tuple[str, str]]) -> str:
-        """构建 EDA 报告嵌入区块 HTML。"""
+        """構建 EDA 報告嵌入區塊 HTML。"""
         style = """
         .eda-embed-section { margin-top: 2em; padding: 1em; border-top: 1px solid #ddd; }
         .eda-embed-section h2 { font-size: 1.25em; margin-bottom: 0.5em; }
@@ -1663,15 +1663,15 @@ Evaluate:
         output_dir: Path,
     ) -> Dict[str, str]:
         """
-        保存支持文件。
+        儲存支援檔案。
 
         Args:
-            context: 实验上下文
-            analysis_result: 分析结果
-            output_dir: 输出目录
+            context: 實驗上下文
+            analysis_result: 分析結果
+            output_dir: 輸出目錄
 
         Returns:
-            文件路径字典
+            檔案路徑字典
         """
         files = {}
 
@@ -1707,20 +1707,20 @@ Evaluate:
 
     def _format_list(self, items: List[Any]) -> str:
         """
-        格式化列表用于提示词。
+        格式化列表用於提示詞。
 
         Args:
-            items: 要格式化的项目列表
+            items: 要格式化的專案列表
 
         Returns:
-            格式化的 Markdown 列表字符串
+            格式化的 Markdown 列表字串
         """
         return "\n".join([f"- {item}" for item in items]) if items else "None"
 
     def _format_list_truncated(
         self, items: List[Any], max_items: int = 10, max_item_len: int = 300
     ) -> str:
-        """格式化列表并截断，控制 prompt 长度。"""
+        """格式化列表並截斷，控制 prompt 長度。"""
         if not items:
             return "None"
         truncated = [
@@ -1733,14 +1733,14 @@ Evaluate:
         return "\n".join([f"- {t}" for t in truncated]) + suffix
 
     def _truncate_text(self, text: str, max_len: int) -> str:
-        """截断文本到指定长度。"""
+        """截斷文字到指定長度。"""
         if not text:
             return ""
         s = str(text).strip()
         return s[:max_len] + ("..." if len(s) > max_len else "")
 
     def _get_status_message(self, status: str) -> str:
-        """与 ExperimentStatus 枚举值一致。"""
+        """與 ExperimentStatus 列舉值一致。"""
         messages = {
             "successful": "Experiment completed successfully. Focus on positive outcomes.",
             "partial_success": "Partial success. Discuss achievements and limitations.",

@@ -21,7 +21,7 @@
   ],
   "status": "short_note",
   "emotion": "focused",
-  "speech": "我会把这一点记成短句，之后容易查。",
+  "speech": "我會把這一點記成短句，之後容易查。",
   "memory_template": "Used record.shortnote: {summary} at {location_id}.",
   "failure_strategy": "set_state",
   "strategy": "configured_action",

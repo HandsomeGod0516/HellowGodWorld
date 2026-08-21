@@ -1,5 +1,5 @@
 """
-推荐服务层
+推薦服務層
 """
 
 import asyncio
@@ -14,12 +14,12 @@ from .algorithms.core import RecommenderAlgorithm, RatingMatrix
 @dataclass
 class ServiceConfig:
     """
-    推荐服务配置
+    推薦服務配置
 
     Args:
-        cache_ttl: 缓存过期时间 (秒),默认 300秒
-        max_batch_size: 最大批量推荐大小,默认 100
-        timeout: 请求超时时间 (秒),默认 10秒
+        cache_ttl: 快取過期時間 (秒),預設 300秒
+        max_batch_size: 最大批次推薦大小,預設 100
+        timeout: 請求超時時間 (秒),預設 10秒
     """
     cache_ttl: int = 300
     max_batch_size: int = 100
@@ -28,7 +28,7 @@ class ServiceConfig:
 
 class RecommendationService:
     """
-    推荐服务
+    推薦服務
     """
 
     def __init__(
@@ -37,19 +37,19 @@ class RecommendationService:
         config: ServiceConfig = ServiceConfig()
     ):
         """
-        初始化推荐服务
+        初始化推薦服務
 
         Args:
-            algorithm: 推荐算法实例
-            config: 服务配置
+            algorithm: 推薦演算法例項
+            config: 服務配置
         """
         self._algorithm = algorithm
         self._config = config
 
-        # 缓存: cache_key -> (timestamp, result)
+        # 快取: cache_key -> (timestamp, result)
         self._cache: Dict[str, Tuple[float, List[Tuple[int, float]]]] = {}
 
-        # 锁保护模型访问
+        # 鎖保護模型訪問
         self._lock = asyncio.Lock()
 
         get_logger().info(
@@ -60,32 +60,32 @@ class RecommendationService:
 
     async def fit(self, data: RatingMatrix) -> None:
         """
-        训练模型 (异步包装)
+        訓練模型 (非同步包裝)
 
         Args:
-            data: 评分矩阵
+            data: 評分矩陣
         """
-        get_logger().info(f"开始训练模型: {data}")
+        get_logger().info(f"開始訓練模型: {data}")
 
         async with self._lock:
-            # 在线程池中执行同步训练
+            # 線上程池中執行同步訓練
             await asyncio.to_thread(self._algorithm.fit, data)
 
-        # 训练后清空缓存
+        # 訓練後清空快取
         self._cache.clear()
 
-        get_logger().info("模型训练完成")
+        get_logger().info("模型訓練完成")
 
     async def predict(self, user_id: int, item_id: int) -> float:
         """
-        预测评分 (异步包装)
+        預測評分 (非同步包裝)
 
         Args:
-            user_id: 用户ID
+            user_id: 使用者ID
             item_id: 物品ID
 
         Returns:
-            预测评分 (1.0-5.0)
+            預測評分 (1.0-5.0)
         """
         return await asyncio.to_thread(
             self._algorithm.predict,
@@ -101,28 +101,28 @@ class RecommendationService:
         exclude_ids: Optional[Set[int]] = None
     ) -> List[Tuple[int, float]]:
         """
-        生成推荐 (带缓存)
+        生成推薦 (帶快取)
 
         Args:
-            user_id: 用户ID
-            n: 推荐数量
-            exclude_rated: 是否排除已评分物品 (暂未实现,保留接口)
-            exclude_ids: 额外要排除的物品ID集合
+            user_id: 使用者ID
+            n: 推薦數量
+            exclude_rated: 是否排除已評分物品 (暫未實現,保留介面)
+            exclude_ids: 額外要排除的物品ID集合
 
         Returns:
             [(item_id, score), ...] 按 score 降序排列
         """
-        # 检查缓存
+        # 檢查快取
         exclude_set = exclude_ids or set()
         cache_key = f"{user_id}:{n}:{len(exclude_set)}"
 
         if cache_key in self._cache:
             timestamp, cached_result = self._cache[cache_key]
             if time.time() - timestamp < self._config.cache_ttl:
-                get_logger().debug(f"缓存命中: user={user_id}")
+                get_logger().debug(f"快取命中: user={user_id}")
                 return cached_result
 
-        # 调用算法生成推荐
+        # 呼叫演算法生成推薦
         result = await asyncio.to_thread(
             self._algorithm.recommend,
             user_id,
@@ -130,11 +130,11 @@ class RecommendationService:
             exclude_set
         )
 
-        # 更新缓存
+        # 更新快取
         self._cache[cache_key] = (time.time(), result)
 
         get_logger().debug(
-            f"为用户 {user_id} 生成 {len(result)} 条推荐"
+            f"為使用者 {user_id} 生成 {len(result)} 條推薦"
         )
 
         return result
@@ -146,19 +146,19 @@ class RecommendationService:
         exclude_ids: Optional[Dict[int, Set[int]]] = None
     ) -> Dict[int, List[Tuple[int, float]]]:
         """
-        批量生成推荐
+        批次生成推薦
 
         Args:
-            user_ids: 用户ID列表
-            n: 每个用户的推荐数量
-            exclude_ids: 每个用户要排除的物品ID字典
+            user_ids: 使用者ID列表
+            n: 每個使用者的推薦數量
+            exclude_ids: 每個使用者要排除的物品ID字典
 
         Returns:
             {user_id: [(item_id, score), ...], ...}
         """
         exclude_dict = exclude_ids or {}
 
-        # 并发执行推荐
+        # 併發執行推薦
         tasks = [
             self.recommend(
                 user_id=uid,
@@ -177,51 +177,51 @@ class RecommendationService:
 
     async def save_model(self, path: str) -> None:
         """
-        保存模型 (异步包装)
+        儲存模型 (非同步包裝)
 
         Args:
-            path: 模型保存路径
+            path: 模型儲存路徑
         """
         async with self._lock:
             await asyncio.to_thread(self._algorithm.save, path)
 
-        get_logger().info(f"模型已保存到 {path}")
+        get_logger().info(f"模型已儲存到 {path}")
 
     async def load_model(self, path: str) -> None:
         """
-        加载模型 (异步包装)
+        載入模型 (非同步包裝)
 
         Args:
-            path: 模型文件路径
+            path: 模型檔案路徑
         """
         async with self._lock:
             await asyncio.to_thread(self._algorithm.load, path)
 
-        # 加载后清空缓存
+        # 載入後清空快取
         self._cache.clear()
 
-        get_logger().info(f"模型已从 {path} 加载")
+        get_logger().info(f"模型已從 {path} 載入")
 
     def get_algorithm_info(self) -> Dict[str, any]:
         """
-        获取算法信息
+        獲取演算法資訊
 
         Returns:
-            算法信息字典
+            演算法資訊字典
         """
         return self._algorithm.get_algorithm_info()
 
     def clear_cache(self) -> None:
-        """清空缓存"""
+        """清空快取"""
         self._cache.clear()
-        get_logger().info("推荐缓存已清空")
+        get_logger().info("推薦快取已清空")
 
     def get_cache_stats(self) -> Dict[str, any]:
         """
-        获取缓存统计
+        獲取快取統計
 
         Returns:
-            缓存统计信息
+            快取統計資訊
         """
         current_time = time.time()
         valid_entries = sum(

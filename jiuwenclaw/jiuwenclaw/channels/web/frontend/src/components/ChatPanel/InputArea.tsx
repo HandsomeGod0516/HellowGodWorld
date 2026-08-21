@@ -85,7 +85,7 @@ export function InputArea({
       autoSendTimeoutRef.current = setTimeout(() => {}, 100);
     },
     onError: (error) => {
-      console.error('语音识别错误:', error);
+      console.error('語音識別錯誤:', error);
     },
   });
 
@@ -178,7 +178,7 @@ export function InputArea({
 
   const handleVoicePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLButtonElement>) => {
-      // 仅响应主按钮按压，避免右键/多指导致状态抖动
+      // 僅響應主按鈕按壓，避免右鍵/多指導致狀態抖動
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (activePointerIdRef.current !== null) return;
       e.preventDefault();
@@ -230,7 +230,7 @@ export function InputArea({
   const handleModeSwitch = useCallback(async (targetMode: AgentMode) => {
     if (mode === targetMode) return;
     
-    // 切换任何模式时都 newSession
+    // 切換任何模式時都 newSession
     if (hasHistoryMessages) {
       setPendingMode(targetMode);
       setShowModeSwitchModal(true);
@@ -276,7 +276,7 @@ export function InputArea({
         </div>
       )}
 
-      {/* 智能执行模式下的等待任务盒子 */}
+      {/* 智慧執行模式下的等待任務盒子 */}
       {isAgentMode && taskQueue.length > 0 && (
         <div className="chat-input-task-queue">
           <div className="chat-input-task-queue-header">

@@ -32,34 +32,34 @@ logger = logging.getLogger(__name__)
 
 
 class FeishuConfig(BaseModel):
-    """飞书通道配置模型，使用WebSocket长连接接收消息。"""
+    """飛書通道配置模型，使用WebSocket長連線接收訊息。"""
 
-    enabled: bool = False  # 是否启用飞书通道
-    app_id: str = ""  # 飞书开放平台的应用ID
-    app_secret: str = ""  # 飞书开放平台的应用密钥
-    encrypt_key: str = ""  # 事件订阅的加密密钥（可选）
-    verification_token: str = ""  # 事件订阅的验证令牌（可选）
-    allow_from: list[str] = Field(default_factory=list)  # 允许的用户的open_id列表
-    enable_streaming: bool = True  # 是否开启流式/过程消息下发
-    chat_id: str = ""  # 可选：固定推送目标 chat_id（群聊 oc_xxx 或个人 open_id）
-    channel_id: str = "feishu"  # ChannelManager 路由键，支持多实例
-    bot_key: str = ""  # 企业飞书多 bot 配置键（仅 feishu_enterprise 使用）
-    # 收消息时写入 config.yaml，用于无 metadata 时的回发兜底（与 session_id 解耦）
+    enabled: bool = False  # 是否啟用飛書通道
+    app_id: str = ""  # 飛書開放平臺的應用ID
+    app_secret: str = ""  # 飛書開放平臺的應用金鑰
+    encrypt_key: str = ""  # 事件訂閱的加密金鑰（可選）
+    verification_token: str = ""  # 事件訂閱的驗證令牌（可選）
+    allow_from: list[str] = Field(default_factory=list)  # 允許的使用者的open_id列表
+    enable_streaming: bool = True  # 是否開啟流式/過程訊息下發
+    chat_id: str = ""  # 可選：固定推送目標 chat_id（群聊 oc_xxx 或個人 open_id）
+    channel_id: str = "feishu"  # ChannelManager 路由鍵，支援多例項
+    bot_key: str = ""  # 企業飛書多 bot 配置鍵（僅 feishu_enterprise 使用）
+    # 收訊息時寫入 config.yaml，用於無 metadata 時的回發兜底（與 session_id 解耦）
     last_chat_id: str = ""
     last_open_id: str = ""
 
-    # 文件处理配置
-    max_download_size: int = 100 * 1024 * 1024  # 最大下载文件大小（默认100MB）
-    download_timeout: int = 60  # 下载超时时间（秒）
-    enable_file_upload: bool = True  # 是否启用文件上传功能
-    temp_file_dir: str = ""  # 临时文件存储目录，默认使用工作空间
+    # 檔案處理配置
+    max_download_size: int = 100 * 1024 * 1024  # 最大下載檔案大小（預設100MB）
+    download_timeout: int = 60  # 下載超時時間（秒）
+    enable_file_upload: bool = True  # 是否啟用檔案上傳功能
+    temp_file_dir: str = ""  # 臨時檔案儲存目錄，預設使用工作空間
 
-    # 数字分身配置
-    my_user_id: str = ""  # 可选：当前数字分身对应的用户open_id
-    bot_name: str = ""  # 可选：机器人在群聊中的名称，用于@识别
-    group_digital_avatar: bool = False  # 是否启用群聊数字分身功能
-    enable_memory: bool = False  # 是否启用群聊记忆功能
-    message_merge_window_ms: int = 15000  # 连续消息合并窗口（毫秒）
+    # 數字分身配置
+    my_user_id: str = ""  # 可選：當前數字分身對應的使用者open_id
+    bot_name: str = ""  # 可選：機器人在群聊中的名稱，用於@識別
+    group_digital_avatar: bool = False  # 是否啟用群聊數字分身功能
+    enable_memory: bool = False  # 是否啟用群聊記憶功能
+    message_merge_window_ms: int = 15000  # 連續訊息合併視窗（毫秒）
 
 
 try:
@@ -87,7 +87,7 @@ except ImportError:
     lark = None
     Emoji = None
 
-# 非文本消息类型的显示占位符映射
+# 非文字訊息型別的顯示佔位符對映
 MSG_TYPE_MAP = {
     "image": "[image]",
     "audio": "[audio]",
@@ -117,7 +117,7 @@ class _ThreadLocalLoopProxy:
 
 @dataclass
 class FeishuInboundMessage:
-    """Feishu 入站消息载体，避免参数列表持续膨胀。"""
+    """Feishu 入站訊息載體，避免引數列表持續膨脹。"""
 
     message_id: str
     chat_id: str
@@ -130,7 +130,7 @@ class FeishuInboundMessage:
 
 @dataclass
 class FeishuMessageSendRequest:
-    """飞书消息发送请求参数封装。"""
+    """飛書訊息傳送請求引數封裝。"""
 
     receive_id: str
     id_type: str
@@ -142,18 +142,18 @@ class FeishuMessageSendRequest:
 
 class FeishuChannel(BaseChannel):
     """
-    飞书/飞书IM通道实现，基于WebSocket长连接。
+    飛書/飛書IM通道實現，基於WebSocket長連線。
 
     特性：
-    - 使用WebSocket接收事件，无需公网IP或webhook
-    - 支持群聊和私聊消息
-    - 自动添加"已读"反应表情
-    - 支持Markdown表格渲染为飞书表格元素
+    - 使用WebSocket接收事件，無需公網IP或webhook
+    - 支援群聊和私聊訊息
+    - 自動新增"已讀"反應表情
+    - 支援Markdown表格渲染為飛書表格元素
 
-    依赖：
-    - 飞书开放平台的应用ID和应用密钥
-    - 机器人功能已启用
-    - 事件订阅已启用（im.message.receive_v1）
+    依賴：
+    - 飛書開放平臺的應用ID和應用金鑰
+    - 機器人功能已啟用
+    - 事件訂閱已啟用（im.message.receive_v1）
     """
 
     name = "feishu"
@@ -167,23 +167,23 @@ class FeishuChannel(BaseChannel):
         im_platform_adapter: Any | None = None,
     ):
         """
-        初始化飞书通道实例。
+        初始化飛書通道例項。
 
         Args:
-            config: 飞书配置对象
-            router: 消息路由器实例
-            im_platform_adapter: 平台适配器实例（可选，用于数字分身功能）
+            config: 飛書配置物件
+            router: 訊息路由器例項
+            im_platform_adapter: 平臺介面卡例項（可選，用於數字分身功能）
         """
         super().__init__(config, router)
         self.config: FeishuConfig = config
         self._channel_id = str(getattr(config, "channel_id", "") or self.name).strip() or self.name
-        self._api_client: Any = None  # 飞书API客户端（用于发送消息）
-        self._websocket_client: Any = None  # WebSocket客户端（用于接收消息）
-        self._websocket_thread: threading.Thread | None = None  # WebSocket运行线程
-        self._message_dedup_cache: OrderedDict[str, None] = OrderedDict()  # 消息去重缓存
-        self._main_loop: asyncio.AbstractEventLoop | None = None  # 主线程事件循环
-        self._ws_thread_loop: asyncio.AbstractEventLoop | None = None  # WebSocket线程事件循环
-        self._message_callback: Callable[[Message], None] | None = None  # 网关模式回调
+        self._api_client: Any = None  # 飛書API客戶端（用於傳送訊息）
+        self._websocket_client: Any = None  # WebSocket客戶端（用於接收訊息）
+        self._websocket_thread: threading.Thread | None = None  # WebSocket執行執行緒
+        self._message_dedup_cache: OrderedDict[str, None] = OrderedDict()  # 訊息去重快取
+        self._main_loop: asyncio.AbstractEventLoop | None = None  # 主執行緒事件迴圈
+        self._ws_thread_loop: asyncio.AbstractEventLoop | None = None  # WebSocket執行緒事件迴圈
+        self._message_callback: Callable[[Message], None] | None = None  # 閘道器模式回撥
         self._im_platform_adapter = im_platform_adapter
         self._message_storage = MessageStore(api_client=None, platform_adapter=self._im_platform_adapter)
         self._pending_message_batches: dict[tuple[str, str], dict[str, Any]] = {}
@@ -191,29 +191,29 @@ class FeishuChannel(BaseChannel):
         self._pending_group_progress_tasks: dict[str, asyncio.Task[None]] = {}
         self._sent_group_progress_requests: set[str] = set()
         self._stopping = False
-        # 按 request_id 聚合 chat.delta，避免同一任务被拆分成多条消息发送到飞书。
+        # 按 request_id 聚合 chat.delta，避免同一任務被拆分成多條訊息傳送到飛書。
         self._stream_text_buffers: dict[str, str] = {}
-        # 文件服务（延迟初始化）
+        # 檔案服務（延遲初始化）
         self._file_service: FeishuFileService | None = None
-        # 按 request_id 记录已通过 chat.file 发送的文件路径，用于兜底去重
+        # 按 request_id 記錄已透過 chat.file 傳送的檔案路徑，用於兜底去重
         # key=request_id, value=set of absolute file paths
         self._sent_file_paths_by_req: dict[str, set[str]] = {}
-        # 自演进用户确认卡片, key=request_id, value=query card
+        # 自演進使用者確認卡片, key=request_id, value=query card
         self._user_question_card: dict[str, dict] = {}
 
     @property
     def channel_id(self) -> str:
-        """返回通道唯一标识符，用于ChannelManager注册与消息派发。"""
+        """返回通道唯一識別符號，用於ChannelManager註冊與訊息派發。"""
         return self._channel_id
 
     def on_message(self, callback: Callable[[Message], None]) -> None:
         """
-        注册消息回调函数，用于Gateway模式。
+        註冊訊息回撥函式，用於Gateway模式。
 
-        当收到消息时调用此回调函数，而非通过router路由。
+        當收到訊息時呼叫此回撥函式，而非透過router路由。
 
         Args:
-            callback: 消息回调函数
+            callback: 訊息回撥函式
         """
         self._message_callback = callback
 
@@ -222,12 +222,12 @@ class FeishuChannel(BaseChannel):
         inbound: FeishuInboundMessage,
     ) -> None:
         """
-        处理接收到的消息并分发。
+        處理接收到的訊息並分發。
 
-        若已通过on_message注册网关回调，则直接回调；否则通过router路由消息。
+        若已透過on_message註冊閘道器回撥，則直接回撥；否則透過router路由訊息。
 
         Args:
-            inbound: Feishu 入站消息
+            inbound: Feishu 入站訊息
         """
         from jiuwenclaw.gateway.routing.interaction_context import PendingInteraction
 
@@ -307,7 +307,7 @@ class FeishuChannel(BaseChannel):
             await self.bus.route_user_message(msg)
 
     async def start(self) -> None:
-        """启动飞书机器人，使用WebSocket长连接接收消息。"""
+        """啟動飛書機器人，使用WebSocket長連線接收訊息。"""
         if not self._validate_start_conditions():
             return
 
@@ -316,27 +316,27 @@ class FeishuChannel(BaseChannel):
         self._initialize_api_client()
         self._start_websocket_in_thread()
 
-        logger.info("飞书机器人已启动，使用WebSocket长连接接收消息")
-        logger.info("无需公网IP - 通过WebSocket接收事件")
+        logger.info("飛書機器人已啟動，使用WebSocket長連線接收訊息")
+        logger.info("無需公網IP - 透過WebSocket接收事件")
 
-        # 持续运行直到停止
+        # 持續執行直到停止
         while self._running:
             await asyncio.sleep(1)
 
     def _validate_start_conditions(self) -> bool:
-        """验证启动所需的条件是否满足。"""
+        """驗證啟動所需的條件是否滿足。"""
         if not FEISHU_AVAILABLE:
-            logger.error("飞书SDK未安装，请先安装 lark_oapi")
+            logger.error("飛書SDK未安裝，請先安裝 lark_oapi")
             return False
 
         if not self.config.app_id or not self.config.app_secret:
-            logger.error("飞书应用ID或应用密钥未配置")
+            logger.error("飛書應用ID或應用金鑰未配置")
             return False
 
         return True
 
     def _initialize_api_client(self) -> None:
-        """初始化飞书API客户端，用于发送消息。"""
+        """初始化飛書API客戶端，用於傳送訊息。"""
         self._api_client = (
             lark.Client.builder()
             .app_id(self.config.app_id)
@@ -349,7 +349,7 @@ class FeishuChannel(BaseChannel):
             self._im_platform_adapter.set_api_client(self._api_client)
         if hasattr(self._message_storage, 'set_platform_adapter'):
             self._message_storage.set_platform_adapter(self._im_platform_adapter)
-        # 初始化文件服务
+        # 初始化檔案服務
         from jiuwenclaw.common.utils import get_agent_workspace_dir
         workspace_dir = self.config.temp_file_dir or str(get_agent_workspace_dir())
         self._file_service = FeishuFileService(
@@ -359,7 +359,7 @@ class FeishuChannel(BaseChannel):
         )
 
     def _start_websocket_in_thread(self) -> None:
-        """在独立线程中启动WebSocket客户端，避免事件循环冲突。"""
+        """在獨立執行緒中啟動WebSocket客戶端，避免事件迴圈衝突。"""
         config = {
             "app_id": self.config.app_id,
             "app_secret": self.config.app_secret,
@@ -374,21 +374,21 @@ class FeishuChannel(BaseChannel):
         )
         self._websocket_thread.start()
 
-        # 等待WebSocket客户端创建完成
+        # 等待WebSocket客戶端建立完成
         self._wait_for_websocket_client_ready()
 
     def _run_websocket_client(self, config: dict) -> None:
         """
-        在子线程中运行WebSocket客户端。
+        在子執行緒中執行WebSocket客戶端。
 
         Args:
-            config: WebSocket配置参数
+            config: WebSocket配置引數
         """
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self._ws_thread_loop = loop
 
-        # 将 SDK 的模块级 loop 替换为线程内代理，避免多实例时相互覆盖。
+        # 將 SDK 的模組級 loop 替換為執行緒內代理，避免多例項時相互覆蓋。
         self._ensure_thread_local_ws_loop_proxy()
 
         ws_client = None
@@ -415,9 +415,9 @@ class FeishuChannel(BaseChannel):
             ws_client.start()
         except Exception as e:
             if self._stopping or not self._running:
-                logger.info("飞书WebSocket线程退出: %s", e)
+                logger.info("飛書WebSocket執行緒退出: %s", e)
             else:
-                logger.error("飞书WebSocket连接建立失败: %s", e)
+                logger.error("飛書WebSocket連線建立失敗: %s", e)
         finally:
             self._cleanup_websocket_thread(ws_client, loop)
 
@@ -431,7 +431,7 @@ class FeishuChannel(BaseChannel):
             cls._ws_loop_proxy_installed = True
 
     def _cleanup_websocket_thread(self, ws_client: Any, loop: asyncio.AbstractEventLoop) -> None:
-        """清理WebSocket线程资源。"""
+        """清理WebSocket執行緒資源。"""
 
         if ws_client is None:
             self._websocket_client = None
@@ -454,14 +454,14 @@ class FeishuChannel(BaseChannel):
         self._ws_thread_loop = None
 
     def _wait_for_websocket_client_ready(self) -> None:
-        """等待WebSocket客户端创建完成。"""
+        """等待WebSocket客戶端建立完成。"""
         for _ in range(50):
             if self._websocket_client is not None:
                 break
             time.sleep(0.1)
 
     async def stop(self) -> None:
-        """停止飞书机器人。"""
+        """停止飛書機器人。"""
         self._running = False
         self._stopping = True
         self._stream_text_buffers.clear()
@@ -470,7 +470,7 @@ class FeishuChannel(BaseChannel):
             try:
                 await self._shutdown_ws_client()
             except Exception as e:
-                logger.warning("停止WebSocket客户端时发生异常: {}", e)
+                logger.warning("停止WebSocket客戶端時發生異常: {}", e)
 
         if self._ws_thread_loop and self._ws_thread_loop.is_running():
             self._ws_thread_loop.call_soon_threadsafe(self._ws_thread_loop.stop)
@@ -478,11 +478,11 @@ class FeishuChannel(BaseChannel):
         if self._websocket_thread and self._websocket_thread.is_alive():
             self._websocket_thread.join(timeout=2.0)
 
-        logger.info("飞书机器人已停止")
+        logger.info("飛書機器人已停止")
         self._stopping = False
 
     async def _shutdown_ws_client(self) -> None:
-        """在飞书 websocket 线程中执行断连与任务清理."""
+        """在飛書 websocket 執行緒中執行斷連與任務清理."""
         loop = self._ws_thread_loop
         ws_client = self._websocket_client
         if loop is None or ws_client is None or not loop.is_running():
@@ -499,7 +499,7 @@ class FeishuChannel(BaseChannel):
                 try:
                     await conn.close(code=1000, reason="bye")
                 except Exception as e:
-                    logger.debug("飞书连接关闭时出现异常: {}", e)
+                    logger.debug("飛書連線關閉時出現異常: {}", e)
 
             await asyncio.sleep(0.05)
 
@@ -509,13 +509,13 @@ class FeishuChannel(BaseChannel):
         except concurrent.futures.CancelledError:
             pass
         except asyncio.TimeoutError:
-            logger.debug("飞书客户端清理超时，继续停止事件循环")
+            logger.debug("飛書客戶端清理超時，繼續停止事件迴圈")
         except Exception as e:
-            logger.debug("飞书客户端清理任务异常: {}", e)
+            logger.debug("飛書客戶端清理任務異常: {}", e)
 
     @staticmethod
     def _patch_ws_client_shutdown(ws_client: Any) -> None:
-        """修复 lark_oapi 在并发关闭时可能触发的 Lock release 异常."""
+        """修復 lark_oapi 在併發關閉時可能觸發的 Lock release 異常."""
         original_disconnect = getattr(ws_client, "_disconnect", None)
         if not callable(original_disconnect):
             return
@@ -527,7 +527,7 @@ class FeishuChannel(BaseChannel):
                 return await original_disconnect()
             except RuntimeError as e:
                 if "Lock is not acquired" in str(e):
-                    logger.debug("忽略 lark_oapi 断连并发异常: {}", e)
+                    logger.debug("忽略 lark_oapi 斷連併發異常: {}", e)
                     return None
                 raise
 
@@ -536,11 +536,11 @@ class FeishuChannel(BaseChannel):
 
     def _add_reaction_sync(self, message_id: str, emoji_type: str) -> None:
         """
-        添加消息反应的同步方法（在线程池中运行）。
+        新增訊息反應的同步方法（線上程池中執行）。
 
         Args:
-            message_id: 消息ID
-            emoji_type: 表情类型
+            message_id: 訊息ID
+            emoji_type: 表情型別
         """
         try:
             request = (
@@ -558,28 +558,28 @@ class FeishuChannel(BaseChannel):
 
             if not response.success():
                 logger.warning(
-                    f"添加消息反应失败: 错误码={response.code}, 消息={response.msg}"
+                    f"新增訊息反應失敗: 錯誤碼={response.code}, 訊息={response.msg}"
                 )
             else:
-                logger.debug("已为消息 %s 添加 %s 表情", message_id, emoji_type)
+                logger.debug("已為訊息 %s 新增 %s 表情", message_id, emoji_type)
         except Exception as e:
-            logger.warning(f"添加消息反应时发生异常: {e}")
+            logger.warning(f"新增訊息反應時發生異常: {e}")
 
     async def _add_reaction(self, message_id: str, emoji_type: str = "THUMBSUP") -> None:
         """
-        为消息添加反应表情符号（非阻塞）。
+        為訊息新增反應表情符號（非阻塞）。
 
-        常见表情符号类型：
-        - THUMBSUP: 点赞
-        - OK: 确认
-        - EYES: 查看
+        常見表情符號型別：
+        - THUMBSUP: 點贊
+        - OK: 確認
+        - EYES: 檢視
         - DONE: 完成
-        - OnIt: 处理中
-        - HEART: 爱心
+        - OnIt: 處理中
+        - HEART: 愛心
 
         Args:
-            message_id: 消息ID
-            emoji_type: 表情类型
+            message_id: 訊息ID
+            emoji_type: 表情型別
         """
         if not self._api_client or not Emoji:
             return
@@ -588,7 +588,7 @@ class FeishuChannel(BaseChannel):
         await loop.run_in_executor(None, self._add_reaction_sync, message_id, emoji_type)
 
     def _get_target_user_open_id(self) -> str:
-        """返回当前数字分身对应的用户 open_id。"""
+        """返回當前數字分身對應的使用者 open_id。"""
         return str(
             (self.config.my_user_id or "").strip()
             or os.getenv("MY_USER_ID", "").strip()
@@ -596,7 +596,7 @@ class FeishuChannel(BaseChannel):
 
     @staticmethod
     def _extract_mentioned_users(message: Any) -> list[dict[str, str]]:
-        """从飞书消息事件中提取被 @ 用户的 open_id 和姓名。"""
+        """從飛書訊息事件中提取被 @ 使用者的 open_id 和姓名。"""
         mentions = getattr(message, "mentions", None) or []
         users: list[dict[str, str]] = []
         for mention in mentions:
@@ -618,7 +618,7 @@ class FeishuChannel(BaseChannel):
         return users
 
     def _resolve_user_display_name(self, open_id: str, fallback_name: str = "") -> str:
-        """优先使用已知姓名，必要时再查询飞书联系人信息。"""
+        """優先使用已知姓名，必要時再查詢飛書聯絡人資訊。"""
         if fallback_name.strip():
             return fallback_name.strip()
         if self._im_platform_adapter and hasattr(self._im_platform_adapter, 'get_user_name_by_open_id'):
@@ -628,15 +628,15 @@ class FeishuChannel(BaseChannel):
 
     def _replace_mentions_with_names(self, message: Any, text: str) -> str:
         """
-        将消息中的 @mentions 占位符（如 @_user_1）替换为真实用户名。
-        当 @all 时，替换为数字分身用户本人的名字。
+        將訊息中的 @mentions 佔位符（如 @_user_1）替換為真實使用者名稱。
+        當 @all 時，替換為數字分身使用者本人的名字。
 
         Args:
-            message: 飞书消息对象
-            text: 原始文本内容
+            message: 飛書訊息物件
+            text: 原始文字內容
 
         Returns:
-            str: 替换后的文本内容
+            str: 替換後的文字內容
         """
         mentions = getattr(message, "mentions", None) or []
 
@@ -683,13 +683,13 @@ class FeishuChannel(BaseChannel):
     _GROUP_PROGRESS_HINT_DELAY_SECONDS = 6.0
     _GROUP_PROGRESS_HINT_TEXTS: tuple[str, ...] = (
         "收到，我先看一下。",
-        "我先确认下，马上回复。",
-        "这个我在处理，稍等我一下。",
+        "我先確認下，馬上回復。",
+        "這個我在處理，稍等我一下。",
     )
 
     @staticmethod
     def _should_send_group_ack(metadata: dict[str, Any]) -> bool:
-        """仅在待办/提醒类私发场景下，才补发群内短确认。"""
+        """僅在待辦/提醒類私發場景下，才補發群內短確認。"""
         if bool(metadata.get("is_cron_job")):
             return False
         if str(metadata.get("reply_scope") or "").strip().lower() != "dm":
@@ -705,7 +705,7 @@ class FeishuChannel(BaseChannel):
 
     @staticmethod
     def _should_send_interaction_ack(metadata: dict[str, Any]) -> bool:
-        """追问场景下，群内补发简短确认。"""
+        """追問場景下，群內補發簡短確認。"""
         if bool(metadata.get("is_cron_job")):
             return False
         has_interaction = bool(metadata.get("interaction_mention_user")) or bool(
@@ -718,7 +718,7 @@ class FeishuChannel(BaseChannel):
         return True
 
     async def _send_interaction_ack(self, metadata: dict[str, Any], content: str) -> None:
-        """追问场景下在群内补发简短确认。"""
+        """追問場景下在群內補發簡短確認。"""
         try:
             group_chat_id = str(metadata.get("feishu_chat_id") or "").strip()
             if not group_chat_id:
@@ -726,24 +726,24 @@ class FeishuChannel(BaseChannel):
 
             mention_name = str(metadata.get("interaction_mention_user") or "").strip()
             if mention_name:
-                ack_text = f"已向 {mention_name} 追问，等回复后继续处理。"
+                ack_text = f"已向 {mention_name} 追問，等回覆後繼續處理。"
             else:
-                ack_text = "已私聊确认，等回复后继续处理。"
+                ack_text = "已私聊確認，等回覆後繼續處理。"
 
             card = self._build_card_content(ack_text)
             await self._send_feishu_message(group_chat_id, "chat_id", card, "interaction_ack")
-            logger.info("[FeishuChannel] 追问确认已发送: chat_id=%s", group_chat_id)
+            logger.info("[FeishuChannel] 追問確認已傳送: chat_id=%s", group_chat_id)
         except Exception as e:
-            logger.warning("[FeishuChannel] 追问确认发送失败: %s", e)
+            logger.warning("[FeishuChannel] 追問確認傳送失敗: %s", e)
 
     @staticmethod
     def _fallback_group_ack() -> str:
-        """群内短回复兜底文案，保持第一人称口吻。"""
-        return "好的，我知道了，会跟进处理。"
+        """群內短回覆兜底文案，保持第一人稱口吻。"""
+        return "好的，我知道了，會跟進處理。"
 
     @classmethod
     def _normalize_group_ack_text(cls, target_name: str, text: str) -> str:
-        """过滤掉机器人旁白式短回复，尽量保留像用户本人说的话。"""
+        """過濾掉機器人旁白式短回覆，儘量保留像使用者本人說的話。"""
         normalized = re.split(r"[\r\n]+", (text or "").strip(), maxsplit=1)[0]
         normalized = re.sub(r"\s+", " ", normalized).strip(' "\'""''「」')
         if not normalized:
@@ -754,13 +754,13 @@ class FeishuChannel(BaseChannel):
             "已通知",
             "私下通知",
             "私聊",
-            "转告",
+            "轉告",
             "提醒了",
             "通知了",
-            "告诉了",
-            "帮你",
-            "帮您",
-            "代为",
+            "告訴了",
+            "幫你",
+            "幫您",
+            "代為",
         )
         if target_name and target_name in normalized:
             return ""
@@ -769,7 +769,7 @@ class FeishuChannel(BaseChannel):
         return normalized
 
     def _generate_group_ack_sync(self, target_name: str, content: str) -> str:
-        """调用轻量 LLM 生成群内简短确认文案。"""
+        """呼叫輕量 LLM 生成群內簡短確認文案。"""
         api_key = os.getenv("API_KEY", "").strip()
         api_base = os.getenv("API_BASE", "").strip()
         model_name = os.getenv("MODEL_NAME", "").strip() or "GLM-4.7"
@@ -777,18 +777,18 @@ class FeishuChannel(BaseChannel):
             return self._fallback_group_ack()
 
         prompt = (
-            "你是一个飞书群聊机器人。群里有一条需要{name}关注的消息,"
-            "你已经把详细回复私发给了{name}。"
-            "现在群里需要补一句很短的话，但这句话必须像{name}本人在群里的直接回复,"
-            "而不是机器人旁白或转述。\n\n"
+            "你是一個飛書群聊機器人。群裡有一條需要{name}關注的訊息,"
+            "你已經把詳細回覆私發給了{name}。"
+            "現在群裡需要補一句很短的話，但這句話必須像{name}本人在群裡的直接回復,"
+            "而不是機器人旁白或轉述。\n\n"
             "要求：\n"
-            "- 一句话，不超过30个字\n"
-            "- 用第一人称口吻，像当事人本人在说话\n"
+            "- 一句話，不超過30個字\n"
+            "- 用第一人稱口吻，像當事人本人在說話\n"
             "- 不要提到{name}的名字\n"
-            "- 不要写成'我已经提醒了{name}''已通知{name}''我帮{name}处理了'这类机器人/第三人称表达\n"
-            "- 更像'好的，我知道了，会准时参加会议''收到，我会跟进这件事'\n"
-            "- 不要照搬原文，保留核心动作即可\n\n"
-            "你私发给{name}的内容是：\n{content}"
+            "- 不要寫成'我已經提醒了{name}''已通知{name}''我幫{name}處理了'這類機器人/第三人稱表達\n"
+            "- 更像'好的，我知道了，會準時參加會議''收到，我會跟進這件事'\n"
+            "- 不要照搬原文，保留核心動作即可\n\n"
+            "你私發給{name}的內容是：\n{content}"
         ).format(   
             name=target_name,
             content=content[:500],
@@ -816,14 +816,14 @@ class FeishuChannel(BaseChannel):
                 if text:
                     return text
         except Exception as e:
-            logger.warning("[FeishuChannel] 生成群确认文案失败，使用回退: %s", e)
+            logger.warning("[FeishuChannel] 生成群確認文案失敗，使用回退: %s", e)
 
         return self._fallback_group_ack()
 
     async def _send_group_ack(self, metadata: dict[str, Any], content: str) -> None:
-        """后台生成并发送群内简短确认，不阻塞主回复。"""
+        """後臺生成併傳送群內簡短確認，不阻塞主回覆。"""
         try:
-            target_name = str(metadata.get("reply_target_name") or "").strip() or "对方"
+            target_name = str(metadata.get("reply_target_name") or "").strip() or "對方"
             group_chat_id = str(metadata.get("feishu_chat_id") or "").strip()
             if not group_chat_id:
                 return
@@ -834,20 +834,20 @@ class FeishuChannel(BaseChannel):
             if ack_text:
                 card = self._build_card_content(ack_text)
                 await self._send_feishu_message(group_chat_id, "chat_id", card, "group_ack")
-                logger.info("[FeishuChannel] 群确认已发送: chat_id=%s text=%s", group_chat_id, ack_text[:50])
+                logger.info("[FeishuChannel] 群確認已傳送: chat_id=%s text=%s", group_chat_id, ack_text[:50])
         except Exception as e:
-            logger.warning("[FeishuChannel] 后台群确认发送失败: %s", e)
+            logger.warning("[FeishuChannel] 後臺群確認傳送失敗: %s", e)
 
     @staticmethod
     def _should_send_group_progress_hint(metadata: dict[str, Any]) -> bool:
-        """仅对群聊消息展示轻量处理进度。"""
+        """僅對群聊訊息展示輕量處理進度。"""
         return (
             str(metadata.get("chat_type") or "").strip() == "group"
             and bool(str(metadata.get("feishu_chat_id") or "").strip())
         )
 
     def _build_group_progress_hint_text(self, metadata: dict[str, Any]) -> str:
-        """根据场景挑选一条尽量自然的群内处理提示。"""
+        """根據場景挑選一條儘量自然的群內處理提示。"""
         try:
             merged_count = int(metadata.get("merged_count", 1) or 1)
         except (TypeError, ValueError):
@@ -860,14 +860,14 @@ class FeishuChannel(BaseChannel):
         return self._GROUP_PROGRESS_HINT_TEXTS[0]
 
     def _clear_group_progress_state(self, request_id: str) -> None:
-        """清理指定请求的延迟提示任务和已发送标记。"""
+        """清理指定請求的延遲提示任務和已傳送標記。"""
         pending_task = self._pending_group_progress_tasks.pop(request_id, None)
         if pending_task and not pending_task.done():
             pending_task.cancel()
         self._sent_group_progress_requests.discard(request_id)
 
     def _should_skip_group_progress_scheduling(self, request_id: str, metadata: dict[str, Any]) -> bool:
-        """判断是否应该跳过群内处理提示的调度。"""
+        """判斷是否應該跳過群內處理提示的排程。"""
         if not request_id:
             return True
         if request_id in self._pending_group_progress_tasks:
@@ -879,7 +879,7 @@ class FeishuChannel(BaseChannel):
         return False
 
     def _schedule_group_progress_hint(self, request_id: str, metadata: dict[str, Any]) -> None:
-        """为慢请求安排一条延迟发送的群内处理提示。"""
+        """為慢請求安排一條延遲傳送的群內處理提示。"""
         if self._should_skip_group_progress_scheduling(request_id, metadata):
             return
 
@@ -892,7 +892,7 @@ class FeishuChannel(BaseChannel):
     async def _send_group_progress_hint_after_delay(
         self, request_id: str, metadata: dict[str, Any]
     ) -> None:
-        """仅在请求持续较久时，补发一条极短群内处理提示。"""
+        """僅在請求持續較久時，補發一條極短群內處理提示。"""
         try:
             await asyncio.sleep(self._GROUP_PROGRESS_HINT_DELAY_SECONDS)
             if self._pending_group_progress_tasks.get(request_id) is not asyncio.current_task():
@@ -916,13 +916,13 @@ class FeishuChannel(BaseChannel):
             )
             self._sent_group_progress_requests.add(request_id)
             logger.info(
-                "[FeishuChannel] 群进度提示已发送: request_id=%s chat_id=%s text=%s",
+                "[FeishuChannel] 群進度提示已傳送: request_id=%s chat_id=%s text=%s",
                 request_id,
                 group_chat_id,
                 hint_text,
             )
         except Exception as e:
-            logger.warning("[FeishuChannel] 群进度提示发送失败: %s", e)
+            logger.warning("[FeishuChannel] 群進度提示傳送失敗: %s", e)
         finally:
             if self._pending_group_progress_tasks.get(request_id) is asyncio.current_task():
                 self._pending_group_progress_tasks.pop(request_id, None)
@@ -930,7 +930,7 @@ class FeishuChannel(BaseChannel):
     async def _handle_processing_status_event(
         self, msg: Message, metadata: dict[str, Any], payload: dict[str, Any]
     ) -> None:
-        """处理网关发出的 processing_status 事件。"""
+        """處理閘道器發出的 processing_status 事件。"""
         request_id = str(msg.id or "").strip()
         if not request_id or not self._should_send_group_progress_hint(metadata):
             return
@@ -944,7 +944,7 @@ class FeishuChannel(BaseChannel):
     def _build_reply_metadata(
         self, *, message: Any, sender_open_id: str, base_metadata: dict[str, Any]
     ) -> dict[str, Any]:
-        """根据群聊上下文补充默认的回复投递意图。"""
+        """根據群聊上下文補充預設的回覆投遞意圖。"""
         if not self.config.group_digital_avatar:
             return dict(base_metadata)
         metadata = dict(base_metadata)
@@ -1008,7 +1008,7 @@ class FeishuChannel(BaseChannel):
         timestamp_ms: int,
         metadata: dict[str, Any],
     ) -> None:
-        """将同一用户的连续消息做短暂聚合，再统一交给 gateway 入站链路。"""
+        """將同一使用者的連續訊息做短暫聚合，再統一交給 gateway 入站鏈路。"""
         if self._is_control_message(content):
             if content == "/mode team":
                 await self._process_batched_message(
@@ -1123,7 +1123,7 @@ class FeishuChannel(BaseChannel):
 
         if len(items) > 1:
             logger.info(
-                "[FeishuChannel] 合并连续消息: chat_id=%s open_id=%s count=%s",
+                "[FeishuChannel] 合併連續訊息: chat_id=%s open_id=%s count=%s",
                 batch.get("chat_id", ""),
                 batch.get("open_id", ""),
                 len(items),
@@ -1146,7 +1146,7 @@ class FeishuChannel(BaseChannel):
         timestamp_ms: int,
         metadata: dict[str, Any],
     ) -> None:
-        """对单条或合并后的消息做平台整理后转发。"""
+        """對單條或合併後的訊息做平臺整理後轉發。"""
         chat_type = metadata.get("chat_type", "")
         is_group_chat = chat_type == "group"
 
@@ -1167,7 +1167,7 @@ class FeishuChannel(BaseChannel):
         )
         await self._handle_message(inbound)
 
-    # Markdown表格正则表达式（标题行+分隔符行+数据行）
+    # Markdown表格正規表示式（標題行+分隔符行+資料行）
     _TABLE_RE = re.compile(
         r"((?:^[ \t]*\|.+\|[ \t]*\n)(?:^[ \t]*\|[-:\s|]+\|[ \t]*\n)(?:^[ \t]*\|.+\|[ \t]*\n?)+)",
         re.MULTILINE,
@@ -1176,13 +1176,13 @@ class FeishuChannel(BaseChannel):
     @staticmethod
     def _parse_markdown_table(table_text: str) -> dict | None:
         """
-        将Markdown表格解析为飞书表格元素。
+        將Markdown表格解析為飛書表格元素。
 
         Args:
-            table_text: Markdown表格文本
+            table_text: Markdown表格文字
 
         Returns:
-            dict: 飞书表格元素，解析失败返回None
+            dict: 飛書表格元素，解析失敗返回None
         """
         lines = [
             line.strip() for line in table_text.strip().split("\n") if line.strip()
@@ -1213,20 +1213,20 @@ class FeishuChannel(BaseChannel):
 
     def _build_feishu_card_elements(self, content: str) -> list[dict]:
         """
-        将内容分割为Markdown和表格元素，用于构建飞书卡片。
+        將內容分割為Markdown和表格元素，用於構建飛書卡片。
 
         Args:
-            content: 要处理的内容
+            content: 要處理的內容
 
         Returns:
-            list[dict]: 飞书卡片元素列表
+            list[dict]: 飛書卡片元素列表
         """
         elements, last_end = [], 0
 
         for m in self._TABLE_RE.finditer(content):
             before = content[last_end: m.start()].strip()
             if before:
-                # 转换非表格内容为富文本 div 元素
+                # 轉換非表格內容為富文字 div 元素
                 elements.extend(self._markdown_to_feishu_elements(before))
 
             elements.append(
@@ -1243,13 +1243,13 @@ class FeishuChannel(BaseChannel):
 
     def _markdown_to_feishu_elements(self, md_content: str) -> list[dict]:
         """
-        将 Markdown 内容转换为飞书卡片元素列表。
+        將 Markdown 內容轉換為飛書卡片元素列表。
 
         Args:
-            md_content: Markdown 内容
+            md_content: Markdown 內容
 
         Returns:
-            list[dict]: 飞书卡片元素列表
+            list[dict]: 飛書卡片元素列表
         """
         elements = []
         lines = md_content.split('\n')
@@ -1258,7 +1258,7 @@ class FeishuChannel(BaseChannel):
         for line in lines:
             stripped = line.strip()
 
-            # 处理标题
+            # 處理標題
             if stripped.startswith('## '):
                 if current_text:
                     elements.append(self._create_div_element('\n'.join(current_text)))
@@ -1292,16 +1292,16 @@ class FeishuChannel(BaseChannel):
                         "content": f"**{stripped[2:]}**"
                     }
                 })
-            # 处理分隔线
+            # 處理分隔線
             elif stripped == '---':
                 if current_text:
                     elements.append(self._create_div_element('\n'.join(current_text)))
                     current_text = []
                 elements.append({"tag": "hr"})
-            # 处理引用块
+            # 處理引用塊
             elif stripped.startswith('> '):
                 current_text.append(stripped[2:])
-            # 处理列表项
+            # 處理列表項
             elif stripped.startswith('- ') or stripped.startswith('* '):
                 current_text.append(f"• {stripped[2:]}")
             elif re.match(r'^\d+\. ', stripped):
@@ -1316,20 +1316,20 @@ class FeishuChannel(BaseChannel):
 
     def _create_div_element(self, content: str) -> dict:
         """
-        创建飞书 div 元素。
+        建立飛書 div 元素。
 
         Args:
-            content: 文本内容
+            content: 文字內容
 
         Returns:
-            dict: 飞书 div 元素
+            dict: 飛書 div 元素
         """
-        # 处理内联格式：粗体、斜体、代码等
+        # 處理內聯格式：粗體、斜體、程式碼等
         formatted = content
-        # 保留粗体和斜体
-        # 处理行内代码
+        # 保留粗體和斜體
+        # 處理行內程式碼
         formatted = re.sub(r'`([^`]+)`', r'`\1`', formatted)
-        # 处理链接
+        # 處理連結
         formatted = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'[\1](\2)', formatted)
 
         return {
@@ -1342,13 +1342,13 @@ class FeishuChannel(BaseChannel):
 
     async def send(self, msg: Message) -> None:
         """
-        通过飞书发送消息。
+        透過飛書傳送訊息。
 
         Args:
-            msg: 要发送的消息对象
+            msg: 要傳送的訊息物件
         """
         if not self._api_client:
-            logger.warning("飞书客户端未初始化")
+            logger.warning("飛書客戶端未初始化")
             return
 
         try:
@@ -1360,29 +1360,29 @@ class FeishuChannel(BaseChannel):
 
             meta = dict(getattr(msg, "metadata", None) or {})
 
-            # 处理文件消息
+            # 處理檔案訊息
             if msg.event_type == EventType.CHAT_FILE or msg.event_type == EventType.CHAT_REASONING:
                 if self.config.enable_file_upload and self._file_service:
                     await self._send_file_message(msg)
                 return
 
-            # 处理媒体消息
+            # 處理媒體訊息
             if msg.event_type == EventType.CHAT_MEDIA:
                 if self.config.enable_file_upload and self._file_service:
                     await self._send_media_message(msg)
                 return
 
-            # 处理team message
+            # 處理team message
             if msg.event_type == EventType.TEAM_MESSAGE:
                 await self._send_team_message(msg)
                 return
 
-            # 处理用户询问消息（发送确认卡片）
+            # 處理使用者詢問訊息（傳送確認卡片）
             if msg.event_type == EventType.CHAT_ASK_USER_QUESTION:
                 await self._send_ask_user_question_card(msg)
                 return
 
-            # 流式增量：先缓存；若开启流式则实时发送，否则仅缓存不发送。
+            # 流式增量：先快取；若開啟流式則實時傳送，否則僅快取不傳送。
             if event_name == "chat.delta":
                 delta = self._extract_message_content(msg)
                 if delta and stream_key:
@@ -1391,11 +1391,11 @@ class FeishuChannel(BaseChannel):
                     )
                 return
 
-            # 非 streaming 模式下仅下发最终结果，屏蔽执行过程类事件。
+            # 非 streaming 模式下僅下發最終結果，遮蔽執行過程類事件。
             if (not streaming_enabled) and event_name in {"chat.tool_call", "chat.tool_result", "todo.updated"}:
                 return
 
-            # 流式结束兜底：有些场景不会携带非空 chat.final，使用 processing_status=false 冲刷缓存。
+            # 流式結束兜底：有些場景不會攜帶非空 chat.final，使用 processing_status=false 沖刷快取。
             if event_name == "chat.processing_status":
                 is_processing = payload.get("is_processing")
                 if is_processing is not False:
@@ -1445,18 +1445,18 @@ class FeishuChannel(BaseChannel):
                 content_str = str(payload.get("heartbeat"))
 
             if not content_str.strip():
-                logger.warning("飞书发送：消息内容为空，跳过发送")
+                logger.warning("飛書傳送：訊息內容為空，跳過傳送")
                 return
 
             request_id = str(msg.id or "").strip()
             if request_id and msg.event_type != EventType.HEARTBEAT_RELAY:
                 self._clear_group_progress_state(request_id)
 
-            # 过滤群聊消息中的用户敏感信息
+            # 過濾群聊訊息中的使用者敏感資訊
             content_str = self._filter_user_info_for_group(content_str, meta)
 
-            # 兜底：chat.final 中提到了 workspace 文件但 LLM 未调用 send_file_to_user 时，
-            # 自动提取文件路径并发送，避免用户收不到文件。
+            # 兜底：chat.final 中提到了 workspace 檔案但 LLM 未呼叫 send_file_to_user 時，
+            # 自動提取檔案路徑併傳送，避免使用者收不到檔案。
             if (
                 event_name == "chat.final"
                 and self.config.enable_file_upload
@@ -1470,7 +1470,7 @@ class FeishuChannel(BaseChannel):
                 ]
                 if detected_files:
                     logger.info(
-                        "飞书兜底文件发送：从 chat.final 中检测到 %d 个未发送文件: %s",
+                        "飛書兜底檔案傳送：從 chat.final 中檢測到 %d 個未傳送檔案: %s",
                         len(detected_files),
                         detected_files,
                     )
@@ -1485,9 +1485,9 @@ class FeishuChannel(BaseChannel):
                             else:
                                 await self._send_file_card(receive_id, id_type, fp, os.path.basename(fp))
                         except Exception as file_err:
-                            logger.error("飞书兜底文件发送失败: %s %s", fp, file_err)
+                            logger.error("飛書兜底檔案傳送失敗: %s %s", fp, file_err)
             
-            # 群聊数字分身回复到群聊时，@发送人
+            # 群聊數字分身回覆到群聊時，@傳送人
             if msg.group_digital_avatar and id_type == "chat_id":
                 mention_user_id = str(
                     meta.get("interaction_mention_user_id") or ""
@@ -1525,7 +1525,7 @@ class FeishuChannel(BaseChannel):
                     else:
                         chat_id = meta.get("feishu_chat_id") or ""
 
-                # 记录机器人回复消息到群聊历史中去（仅数字分身模式）
+                # 記錄機器人回覆訊息到群聊歷史中去（僅數字分身模式）
                 if chat_id and self.config.group_digital_avatar:
                     self._message_storage.add_message_to_memory(
                             chat_id=chat_id,
@@ -1539,18 +1539,18 @@ class FeishuChannel(BaseChannel):
                         }
                     )
             except Exception as e:
-                logger.warning(f"记录机器人回复消息失败: {e}")
+                logger.warning(f"記錄機器人回覆訊息失敗: {e}")
 
         except Exception as e:
-            logger.error(f"发送飞书消息时发生异常: {e}")
+            logger.error(f"傳送飛書訊息時發生異常: {e}")
 
     def _detect_workspace_files(self, text: str) -> list[str]:
-        """从文本中提取 workspace 下实际存在的文件路径。
+        """從文字中提取 workspace 下實際存在的檔案路徑。
 
-        用于兜底检测 LLM 提到但未通过 send_file_to_user 发送的文件。
-        支持两种模式：
-        1. 完整绝对路径：/home/xxx/.jiuwenclaw/agent/workspace/xxx.docx
-        2. 仅文件名：'xxx.docx' 或 "xxx.docx"——在 workspace 目录下查找
+        用於兜底檢測 LLM 提到但未透過 send_file_to_user 傳送的檔案。
+        支援兩種模式：
+        1. 完整絕對路徑：/home/xxx/.jiuwenclaw/agent/workspace/xxx.docx
+        2. 僅檔名：'xxx.docx' 或 "xxx.docx"——在 workspace 目錄下查詢
         """
         from jiuwenclaw.common.utils import get_agent_workspace_dir
         workspace_dir = str(get_agent_workspace_dir())
@@ -1558,8 +1558,8 @@ class FeishuChannel(BaseChannel):
         seen: set[str] = set()
         result: list[str] = []
 
-        # 模式1：完整路径 - 动态匹配当前 workspace 目录
-        # 支持 Linux (/home/xxx/.jiuwenclaw/...) 和 Windows (C:\Users\xxx\.jiuwenclaw\...)
+        # 模式1：完整路徑 - 動態匹配當前 workspace 目錄
+        # 支援 Linux (/home/xxx/.jiuwenclaw/...) 和 Windows (C:\Users\xxx\.jiuwenclaw\...)
         workspace_pattern = re.escape(workspace_dir) + r"[^\s\[\]\"']+\.\w+"
         for m in re.findall(workspace_pattern, text):
             m = m.rstrip(".,;:!?)")
@@ -1567,8 +1567,8 @@ class FeishuChannel(BaseChannel):
                 seen.add(m)
                 result.append(m)
 
-        # 模式2：从引号或书名号中提取文件名，在 workspace 下查找
-        # 匹配 '文件名.ext'、"文件名.ext"、《文件名.ext》
+        # 模式2：從引號或書名號中提取檔名，在 workspace 下查詢
+        # 匹配 '檔名.ext'、"檔名.ext"、《檔名.ext》
         name_pattern = (
             r"""['"'《]([^'"'》\n]+\."""
             r"""(?:docx?|xlsx?|pptx?|pdf|csv|txt|md|zip|tar|gz|"""
@@ -1584,7 +1584,7 @@ class FeishuChannel(BaseChannel):
 
     @staticmethod
     def _merge_stream_and_final_content(stream_text: str, final_text: str) -> str:
-        """合并流式累积文本和 final 文本，优先保留信息更完整的一侧。"""
+        """合併流式累積文字和 final 文字，優先保留資訊更完整的一側。"""
         stream_text = stream_text or ""
         final_text = final_text or ""
         if not stream_text.strip():
@@ -1601,27 +1601,27 @@ class FeishuChannel(BaseChannel):
 
     def _extract_receive_info(self, msg: Message) -> tuple[str, str]:
         """
-        从消息对象中提取接收者ID和ID类型。
-        优先使用 metadata 中的平台身份（feishu_chat_id / feishu_open_id），
-        避免 \new_session 覆盖 session_id 后导致 Invalid ids。
+        從訊息物件中提取接收者ID和ID型別。
+        優先使用 metadata 中的平臺身份（feishu_chat_id / feishu_open_id），
+        避免 \new_session 覆蓋 session_id 後導致 Invalid ids。
 
         Args:
-            msg: 消息对象
+            msg: 訊息物件
 
         Returns:
-            tuple: (接收者ID, ID类型)
+            tuple: (接收者ID, ID型別)
         """
         meta = getattr(msg, "metadata", None) or {}
         receive_id = ""
         id_type = "open_id"
 
-        # 0) 群聊数字分身场景：仅当 outbound pipeline 确认 reply_scope=dm 时，
-        #    才用 reply_candidate_feishu_open_id 作为私发目标；
-        #    否则 candidate 仅作为候选，不影响实际发送路由。
+        # 0) 群聊數字分身場景：僅當 outbound pipeline 確認 reply_scope=dm 時，
+        #    才用 reply_candidate_feishu_open_id 作為私發目標；
+        #    否則 candidate 僅作為候選，不影響實際傳送路由。
         reply_scope = str(meta.get("reply_scope") or "").strip().lower()
         if reply_scope == "dm":
-            # 优先使用 reply_candidate_feishu_open_id（由 outbound pipeline 设置）
-            # 兼容 reply_feishu_open_id（由入站阶段 sender_is_target_user 场景设置）
+            # 優先使用 reply_candidate_feishu_open_id（由 outbound pipeline 設定）
+            # 相容 reply_feishu_open_id（由入站階段 sender_is_target_user 場景設定）
             reply_candidate_open_id = (
                 meta.get("reply_candidate_feishu_open_id")
                 or meta.get("reply_feishu_open_id")
@@ -1631,7 +1631,7 @@ class FeishuChannel(BaseChannel):
                 receive_id = reply_candidate_open_id
                 id_type = "open_id"
 
-        # 1) 优先用 metadata 中的平台身份
+        # 1) 優先用 metadata 中的平臺身份
         if not receive_id:
             feishu_chat_id = (meta.get("feishu_chat_id") or "").strip()
             feishu_open_id = (meta.get("feishu_open_id") or "").strip()
@@ -1643,7 +1643,7 @@ class FeishuChannel(BaseChannel):
                 receive_id = feishu_open_id
                 id_type = "open_id"
 
-        # 2) 若 metadata 中没有平台身份，则使用配置中的 chat_id 作为固定推送目标
+        # 2) 若 metadata 中沒有平臺身份，則使用配置中的 chat_id 作為固定推送目標
         if not receive_id:
             cfg_chat_id = getattr(self.config, "chat_id", "") or ""
             cfg_chat_id = cfg_chat_id.strip()
@@ -1651,7 +1651,7 @@ class FeishuChannel(BaseChannel):
                 receive_id = cfg_chat_id
                 id_type = "chat_id" if cfg_chat_id.startswith("oc_") else "open_id"
 
-        # 2b) 最近一次会话（收消息时写入 config / 内存），避免 supplement 等路径丢 metadata 后误用 session_id
+        # 2b) 最近一次會話（收訊息時寫入 config / 記憶體），避免 supplement 等路徑丟 metadata 後誤用 session_id
         if not receive_id:
             last_cid = str(getattr(self.config, "last_chat_id", "") or "").strip()
             last_oid = str(getattr(self.config, "last_open_id", "") or "").strip()
@@ -1662,26 +1662,26 @@ class FeishuChannel(BaseChannel):
                 receive_id = last_oid
                 id_type = "open_id"
 
-        # 3) 仍然没有，则回退到 session_id / id（兼容旧逻辑）
+        # 3) 仍然沒有，則回退到 session_id / id（相容舊邏輯）
         if not receive_id:
             receive_id = getattr(msg, "session_id", None) or msg.id or ""
             if receive_id.startswith("oc_"):
                 id_type = "chat_id"
             else:
                 id_type = "open_id"
-            logger.warning(f"飞书回发未找到有效平台身份，使用回退值: {receive_id}")
+            logger.warning(f"飛書回發未找到有效平臺身份，使用回退值: {receive_id}")
 
         return receive_id, id_type
 
     def _extract_message_content(self, msg: Message) -> str:
         """
-        从消息对象中提取内容字符串。
+        從訊息物件中提取內容字串。
 
         Args:
-            msg: 消息对象
+            msg: 訊息物件
 
         Returns:
-            str: 消息内容字符串
+            str: 訊息內容字串
         """
         payload = msg.payload if isinstance(msg.payload, dict) else {}
         event_name = getattr(msg.event_type, "value", None) or payload.get("event_type") or ""
@@ -1697,20 +1697,20 @@ class FeishuChannel(BaseChannel):
                     or tool_info.get("params")
                 )
                 args_text = self._truncate_text(self._extract_preferred_text(args), max_len=240)
-                return f"[工具调用] {tool_name}" if not args_text else f"[工具调用] {tool_name}\n参数: {args_text}"
+                return f"[工具呼叫] {tool_name}" if not args_text else f"[工具呼叫] {tool_name}\n引數: {args_text}"
             tool_text = self._extract_preferred_text(tool_info)
             tool_text = self._truncate_text(tool_text, max_len=160)
-            return f"[工具调用] {tool_text}" if tool_text else "[工具调用]"
+            return f"[工具呼叫] {tool_text}" if tool_text else "[工具呼叫]"
 
         if event_name == "chat.tool_result":
             tool_name = payload.get("tool_name") or "unknown_tool"
             result_text = self._extract_tool_result_text(payload.get("result"))
-            return f"[工具结果] {tool_name}" if not result_text else f"[工具结果] {tool_name}\n{result_text}"
+            return f"[工具結果] {tool_name}" if not result_text else f"[工具結果] {tool_name}\n{result_text}"
 
         if event_name == "todo.updated":
             todos = payload.get("todos")
             if not isinstance(todos, list) or not todos:
-                return "[待办更新]"
+                return "[待辦更新]"
             total = len(todos)
             completed = 0
             running = 0
@@ -1727,34 +1727,34 @@ class FeishuChannel(BaseChannel):
                 elif status in ("cancelled", "canceled"):
                     cancelled += 1
                 else:
-                    # waiting/pending/unknown 统一归为待处理
+                    # waiting/pending/unknown 統一歸為待處理
                     pending += 1
             return (
-                f"[待办更新] 已完成 {completed}/{total}"
-                f"｜进行中 {running}"
-                f"｜待处理 {pending}"
+                f"[待辦更新] 已完成 {completed}/{total}"
+                f"｜進行中 {running}"
+                f"｜待處理 {pending}"
                 f"｜已取消 {cancelled}"
             )
 
         if event_name == "chat.error":
             error_text = self._extract_preferred_text(payload.get("error"))
-            return f"[错误] {error_text}" if error_text else "[错误] 未知错误"
+            return f"[錯誤] {error_text}" if error_text else "[錯誤] 未知錯誤"
 
         if event_name == "chat.processing_status":
             is_processing = payload.get("is_processing")
             if is_processing is True:
-                return "[状态] 处理中"
+                return "[狀態] 處理中"
             if is_processing is False:
-                return "[状态] 已完成"
+                return "[狀態] 已完成"
             return ""
 
         if event_name == "chat.interrupt_result":
-            return self._extract_preferred_text(payload.get("message")) or "[状态] 任务已中断"
+            return self._extract_preferred_text(payload.get("message")) or "[狀態] 任務已中斷"
 
         if event_name == "heartbeat.relay":
             return self._extract_preferred_text(payload.get("heartbeat"))
 
-        # Gateway/Agent 响应在 payload.content，直接发送可能在 params.content
+        # Gateway/Agent 響應在 payload.content，直接傳送可能在 params.content
         content_str = (msg.params or {}).get("content") or payload.get("content") or ""
         if isinstance(content_str, dict):
             content_str = content_str.get("output", content_str)
@@ -1762,11 +1762,11 @@ class FeishuChannel(BaseChannel):
         if text:
             return text
 
-        # 最后仅尝试提取可读字段，不再整包透传 JSON，避免渠道侧出现原始结构化噪音。
+        # 最後僅嘗試提取可讀欄位，不再整包透傳 JSON，避免渠道側出現原始結構化噪音。
         return self._extract_preferred_text(payload if payload else msg.payload)
 
     def _extract_tool_result_text(self, value: Any) -> str:
-        """提取工具结果可读摘要，限制长度，避免飞书消息过载。"""
+        """提取工具結果可讀摘要，限制長度，避免飛書訊息過載。"""
         if isinstance(value, dict):
             for key in ("summary", "message", "output", "result", "content", "text", "error"):
                 if key in value:
@@ -1778,7 +1778,7 @@ class FeishuChannel(BaseChannel):
 
     @staticmethod
     def _extract_preferred_text(value: Any) -> str:
-        """从结构化数据中提取可读文本，避免直接发送 JSON."""
+        """從結構化資料中提取可讀文字，避免直接傳送 JSON."""
         if value is None:
             return ""
         if isinstance(value, str):
@@ -1792,7 +1792,7 @@ class FeishuChannel(BaseChannel):
                 try:
                     parsed = json.loads(text)
                 except Exception:
-                    # 兼容 Python dict 字符串
+                    # 相容 Python dict 字串
                     match = re.search(
                         r"['\"](output|content|text|message|result|error|summary)['\"]\s*:\s*['\"](.+?)['\"]",
                         text,
@@ -1869,20 +1869,20 @@ class FeishuChannel(BaseChannel):
 
             if not response.success():
                 logger.warning(
-                    "飞书图片上传失败: code=%s msg=%s path=%s",
+                    "飛書圖片上傳失敗: code=%s msg=%s path=%s",
                     response.code, response.msg, abs_path,
                 )
                 return None
 
             image_key = getattr(response.data, "image_key", None)
             if image_key:
-                logger.info("飞书图片上传成功: image_key=%s", image_key)
+                logger.info("飛書圖片上傳成功: image_key=%s", image_key)
             return image_key
         except FileNotFoundError:
-            logger.warning("飞书图片上传失败: 文件不存在 path=%s", abs_path)
+            logger.warning("飛書圖片上傳失敗: 檔案不存在 path=%s", abs_path)
             return None
         except Exception as e:
-            logger.error("飞书图片上传异常: %s path=%s", e, abs_path)
+            logger.error("飛書圖片上傳異常: %s path=%s", e, abs_path)
             return None
 
     def _upload_file(self, abs_path: str) -> str | None:
@@ -1907,31 +1907,31 @@ class FeishuChannel(BaseChannel):
 
             if not response.success():
                 logger.warning(
-                    "飞书文件上传失败: code=%s msg=%s path=%s",
+                    "飛書檔案上傳失敗: code=%s msg=%s path=%s",
                     response.code, response.msg, abs_path,
                 )
                 return None
 
             file_key = getattr(response.data, "file_key", None)
             if file_key:
-                logger.info("飞书文件上传成功: file_key=%s", file_key)
+                logger.info("飛書檔案上傳成功: file_key=%s", file_key)
             return file_key
         except FileNotFoundError:
-            logger.warning("飞书文件上传失败: 文件不存在 path=%s", abs_path)
+            logger.warning("飛書檔案上傳失敗: 檔案不存在 path=%s", abs_path)
             return None
         except Exception as e:
-            logger.error("飞书文件上传异常: %s path=%s", e, abs_path)
+            logger.error("飛書檔案上傳異常: %s path=%s", e, abs_path)
             return None
 
     def _build_card_content(self, content_str: str) -> str:
         """
-        构建飞书卡片内容。
+        構建飛書卡片內容。
 
         Args:
-            content_str: 消息内容字符串
+            content_str: 訊息內容字串
 
         Returns:
-            str: JSON格式的卡片内容
+            str: JSON格式的卡片內容
         """
         elements = self._build_feishu_card_elements(content_str)
         card = {
@@ -1941,7 +1941,7 @@ class FeishuChannel(BaseChannel):
         return json.dumps(card, ensure_ascii=False)
 
     def _build_skills_list_card_content(self, payload: Any, event_name: str) -> str | None:
-        """将 skills.list 返回渲染为飞书卡片；非 skills.list 数据返回 None。"""
+        """將 skills.list 返回渲染為飛書卡片；非 skills.list 資料返回 None。"""
         if event_name != "chat.final":
             return None
         if not isinstance(payload, dict):
@@ -1957,12 +1957,12 @@ class FeishuChannel(BaseChannel):
         if error_text:
             elements.append({
                 "tag": "div",
-                "text": {"tag": "lark_md", "content": f"获取技能列表失败：{error_text}"},
+                "text": {"tag": "lark_md", "content": f"獲取技能列表失敗：{error_text}"},
             })
         elif not isinstance(skills, list) or not skills:
             elements.append({
                 "tag": "div",
-                "text": {"tag": "lark_md", "content": "当前无可用技能。"},
+                "text": {"tag": "lark_md", "content": "當前無可用技能。"},
             })
         else:
             source_counter: dict[str, int] = {}
@@ -1980,8 +1980,8 @@ class FeishuChannel(BaseChannel):
                 elements.append({
                     "tag": "note",
                     "elements": [
-                        {"tag": "plain_text", "content": f"总数: {len(skills)}"},
-                        {"tag": "plain_text", "content": f"来源: {source_summary}"},
+                        {"tag": "plain_text", "content": f"總數: {len(skills)}"},
+                        {"tag": "plain_text", "content": f"來源: {source_summary}"},
                     ],
                 })
                 elements.append({"tag": "hr"})
@@ -2013,7 +2013,7 @@ class FeishuChannel(BaseChannel):
             if len(skills) > limit:
                 elements.append({
                     "tag": "note",
-                    "elements": [{"tag": "plain_text", "content": f"共 {len(skills)} 项，仅显示前 {limit} 项"}],
+                    "elements": [{"tag": "plain_text", "content": f"共 {len(skills)} 項，僅顯示前 {limit} 項"}],
                 })
 
         card = {
@@ -2028,19 +2028,19 @@ class FeishuChannel(BaseChannel):
 
     @staticmethod
     def _looks_like_skills_error_payload(payload: dict[str, Any]) -> bool:
-        """判定是否为 skills.list 的错误透传载荷。"""
+        """判定是否為 skills.list 的錯誤透傳載荷。"""
         if "error" not in payload:
             return False
-        # 避免误判 chat.error/chat.final 的普通错误消息
+        # 避免誤判 chat.error/chat.final 的普通錯誤訊息
         noisy_keys = {"content", "output", "result", "text", "event_type"}
         return not any(k in payload for k in noisy_keys)
 
     async def _send_ask_user_question_card(self, msg: Message) -> None:
         """
-        发送用户询问卡片（带选项按钮的确认卡片）。
+        傳送使用者詢問卡片（帶選項按鈕的確認卡片）。
 
         Args:
-            msg: 包含 ask_user_question payload 的消息对象
+            msg: 包含 ask_user_question payload 的訊息物件
         """
         try:
             payload = msg.payload if isinstance(msg.payload, dict) else {}
@@ -2048,13 +2048,13 @@ class FeishuChannel(BaseChannel):
             request_id = payload.get("request_id", "")
 
             if not questions:
-                logger.warning("发送用户询问卡片：没有问题数据")
+                logger.warning("傳送使用者詢問卡片：沒有問題資料")
                 return
 
-            # 构建 card 元素，每次只显示一个问题
+            # 構建 card 元素，每次只顯示一個問題
             elements = []
 
-            # 添加问题文本
+            # 新增問題文字
             question = questions[0]
             question_text = question.get("question", "")
             if question_text:
@@ -2066,10 +2066,10 @@ class FeishuChannel(BaseChannel):
                     }
                 })
 
-            # 添加分隔线
+            # 新增分隔線
             elements.append({"tag": "hr"})
 
-            # 添加按钮
+            # 新增按鈕
             options = question.get("options", [])
             if options:
                 actions = []
@@ -2092,13 +2092,13 @@ class FeishuChannel(BaseChannel):
                     "actions": actions
                 })
 
-            # 构建卡片
+            # 構建卡片
             card = {
                 "config": {"wide_screen_mode": True},
                 "elements": elements,
             }
 
-            # 添加 header 用于存储 request_id
+            # 新增 header 用於儲存 request_id
             header_text = question.get("header", "")
             if header_text:
                 card["header"] = {
@@ -2106,11 +2106,11 @@ class FeishuChannel(BaseChannel):
                         "tag": "plain_text",
                         "content": header_text
                     },
-                    "template": request_id  # 使用 template 字段存储 request_id
+                    "template": request_id  # 使用 template 欄位儲存 request_id
                 }
 
             self._user_question_card[request_id] = card
-            # 发送卡片
+            # 傳送卡片
             receive_id, id_type = self._extract_receive_info(msg)
             card_json = json.dumps(card, ensure_ascii=False)
 
@@ -2125,25 +2125,25 @@ class FeishuChannel(BaseChannel):
             )
 
             logger.info(
-                "[FeishuChannel] 发送用户询问卡片: request_id=%s, chat_id=%s",
+                "[FeishuChannel] 傳送使用者詢問卡片: request_id=%s, chat_id=%s",
                 request_id,
                 receive_id,
             )
 
         except Exception as e:
-            logger.error(f"发送用户询问卡片时发生异常: {e}", exc_info=True)
+            logger.error(f"傳送使用者詢問卡片時發生異常: {e}", exc_info=True)
 
     async def _send_feishu_message(
         self, receive_id: str, id_type: str, content: str, msg_id: str,
     ) -> Any:
         """
-        发送飞书卡片消息（异步，在线程池中执行同步 SDK 调用）。
+        傳送飛書卡片訊息（非同步，線上程池中執行同步 SDK 呼叫）。
 
         Args:
             receive_id: 接收者ID
-            id_type: ID类型
-            content: 消息内容（JSON字符串）
-            msg_id: 发送消息ID（用于日志）
+            id_type: ID型別
+            content: 訊息內容（JSON字串）
+            msg_id: 傳送訊息ID（用於日誌）
         """
         await self._create_and_send_message(
             FeishuMessageSendRequest(
@@ -2157,74 +2157,74 @@ class FeishuChannel(BaseChannel):
 
     def _on_message_sync(self, data: "P2ImMessageReceiveV1") -> None:
         """
-        传入消息的同步处理器（从WebSocket线程调用）。
+        傳入訊息的同步處理器（從WebSocket執行緒呼叫）。
 
-        在主事件循环中调度异步处理。
+        在主事件迴圈中排程非同步處理。
 
         Args:
-            data: 飞书消息事件数据
+            data: 飛書訊息事件資料
         """
         if self._main_loop and self._main_loop.is_running():
             asyncio.run_coroutine_threadsafe(self._on_message(data), self._main_loop)
 
     async def _on_message(self, data: "P2ImMessageReceiveV1") -> None:
         """
-        处理来自飞书的传入消息。
+        處理來自飛書的傳入訊息。
 
         Args:
-            data: 飞书消息事件数据
+            data: 飛書訊息事件資料
         """
         try:
             event = data.event
             message = event.message
             sender = event.sender
 
-            # 消息去重检查
+            # 訊息去重檢查
             if self._is_duplicate_message(message.message_id):
                 return
 
-            # 跳过机器人发送的消息
+            # 跳過機器人傳送的訊息
             if sender.sender_type == "bot":
                 return
 
-            # 群聊数字分身模式下不自动点赞
+            # 群聊數字分身模式下不自動點贊
             if not self.config.group_digital_avatar:
                 asyncio.create_task(self._add_reaction(message.message_id, "THUMBSUP"))
 
-            # 解析消息内容（支持文件类型）
+            # 解析訊息內容（支援檔案型別）
             content, file_info = await self._parse_message_content_with_file(message)
             if content == "/mode team" and self.config.enable_streaming == False:
-                # 非流式情况下不支持team模式，向用户发送提示
+                # 非流式情況下不支援team模式，向使用者傳送提示
                 try:
-                    # 提取发送者open_id
+                    # 提取傳送者open_id
                     open_id = (
                         getattr(getattr(sender, "sender_id", None), "open_id", None) or ""
                     )
-                    # 获取chat_id和判断ID类型
+                    # 獲取chat_id和判斷ID型別
                     chat_id = getattr(message, "chat_id", None) or ""
                     if chat_id.startswith("oc_"):
                         receive_id = chat_id
                         id_type = "chat_id"
                     else:
-                        # 私聊场景使用open_id
+                        # 私聊場景使用open_id
                         receive_id = open_id
                         id_type = "open_id"
-                    hint_text = "⚠️ 非流式模式下不支持 Team 模式，已保持原有模式。\n\n" \
-                        "如需使用 Team 模式，请在配置中开启流式输出 (enable_streaming: true)。"
+                    hint_text = "⚠️ 非流式模式下不支援 Team 模式，已保持原有模式。\n\n" \
+                        "如需使用 Team 模式，請在配置中開啟流式輸出 (enable_streaming: true)。"
                     card = self._build_card_content(hint_text)
                     await self._send_feishu_message(receive_id, id_type, card, message.message_id)
                 except Exception as e:
-                    logger.warning(f"[FeishuChannel] 发送Team模式提示失败: {e}")
+                    logger.warning(f"[FeishuChannel] 傳送Team模式提示失敗: {e}")
                 return
             if not content and not file_info:
                 return
 
-            # 提取发送者open_id
+            # 提取傳送者open_id
             open_id = (
                 getattr(getattr(sender, "sender_id", None), "open_id", None) or ""
             )
 
-            # 将最近一次可回发的飞书身份写入 config.yaml，供 cron 推送时使用
+            # 將最近一次可回發的飛書身份寫入 config.yaml，供 cron 推送時使用
             if self.channel_id == self.name:
                 try:
                     from jiuwenclaw.common.config import update_channel_in_config
@@ -2238,7 +2238,7 @@ class FeishuChannel(BaseChannel):
                         },
                     )
                 except Exception:
-                    # 不影响正常收消息
+                    # 不影響正常收訊息
                     pass
             elif self.channel_id.startswith("feishu_enterprise:") and self.config.bot_key:
                 try:
@@ -2254,10 +2254,10 @@ class FeishuChannel(BaseChannel):
                         },
                     )
                 except Exception:
-                    # 不影响正常收消息
+                    # 不影響正常收訊息
                     pass
 
-            # 内存同步 last_*：无 metadata 的回发兜底立即生效，不必等通道重启从 yaml 加载
+            # 記憶體同步 last_*：無 metadata 的回發兜底立即生效，不必等通道重啟從 yaml 載入
             lc = str(getattr(message, "chat_id", None) or "").strip()
             lo = str(open_id or "").strip()
             try:
@@ -2267,12 +2267,12 @@ class FeishuChannel(BaseChannel):
             except Exception:
                 pass
 
-            # 构建消息参数
+            # 構建訊息引數
             params = {"content": content, "query": content}
             if file_info:
                 params["files"] = [file_info]
 
-            # 构建基础 metadata
+            # 構建基礎 metadata
             base_metadata = {
                 "message_id": message.message_id,
                 "chat_type": message.chat_type,
@@ -2283,7 +2283,7 @@ class FeishuChannel(BaseChannel):
                 **({"file_info": file_info} if file_info else {}),
             }
 
-            # 记录消息到本地存储（仅数字分身模式）
+            # 記錄訊息到本地儲存（僅數字分身模式）
             if self.config.group_digital_avatar:
                 try:
                     self._message_storage.add_message_to_memory(
@@ -2298,9 +2298,9 @@ class FeishuChannel(BaseChannel):
                         }
                     )
                 except Exception as e:
-                    logger.warning(f"记录消息到本地存储失败: {e}")
+                    logger.warning(f"記錄訊息到本地儲存失敗: {e}")
 
-            # 数字分身模式：走消息批次合并；否则直接处理
+            # 數字分身模式：走訊息批次合併；否則直接處理
             _ts = int(getattr(message, "create_time", int(time.time() * 1000)))
             _meta = self._build_reply_metadata(
                 message=message,
@@ -2325,42 +2325,42 @@ class FeishuChannel(BaseChannel):
                 )
 
         except Exception as e:
-            logger.error(f"处理飞书消息时发生异常: {e}")
+            logger.error(f"處理飛書訊息時發生異常: {e}")
 
     def _on_message_read_event(self, data: Any) -> None:
         """
-        处理飞书消息已读事件（空处理器，仅用于消除 SDK 日志警告）。
+        處理飛書訊息已讀事件（空處理器，僅用於消除 SDK 日誌警告）。
 
-        飞书会在用户阅读消息后推送 im.message.message_read_v1 事件，
-        但当前场景不需要处理此事件，注册空处理器避免 SDK 打印 ERROR 日志。
+        飛書會在使用者閱讀訊息後推送 im.message.message_read_v1 事件，
+        但當前場景不需要處理此事件，註冊空處理器避免 SDK 列印 ERROR 日誌。
 
         Args:
-            data: 飞书消息已读事件数据（忽略）
+            data: 飛書訊息已讀事件資料（忽略）
         """
-        pass  # 不处理，仅用于消除日志警告
+        pass  # 不處理，僅用於消除日誌警告
 
     def _on_card_action_trigger_sync(self, data: P2CardActionTrigger) -> P2CardActionTriggerResponse:
         """
-        处理飞书卡片按钮点击事件的同步处理器（从WebSocket线程调用）。
+        處理飛書卡片按鈕點選事件的同步處理器（從WebSocket執行緒呼叫）。
 
-        根据飞书SDK规范，需要返回 P2CardActionTriggerResponse 对象。
+        根據飛書SDK規範，需要返回 P2CardActionTriggerResponse 物件。
 
         Args:
-            data: 飞书卡片回调事件数据 (P2CardActionTrigger)
+            data: 飛書卡片回撥事件資料 (P2CardActionTrigger)
 
         Returns:
-            Any: P2CardActionTriggerResponse 响应对象
+            Any: P2CardActionTriggerResponse 響應物件
         """
         try:
             event = data.event
             action = event.action
 
-            # 提取回调信息
+            # 提取回撥資訊
             token = event.token or ""
             action_value = action.value or ""
 
-            # 返回成功的响应：更新卡片去除按钮，显示已选择的内容
-            selected_label = action_value.get("label", "已选择")
+            # 返回成功的響應：更新卡片去除按鈕，顯示已選擇的內容
+            selected_label = action_value.get("label", "已選擇")
             request_id = action_value.get("request_id", "")
             if not request_id or request_id not in self._user_question_card:
                 card_data = {
@@ -2369,7 +2369,7 @@ class FeishuChannel(BaseChannel):
                                 "tag": "div",
                                 "text": {
                                     "tag": "lark_md",
-                                    "content": f"您已选择：**{selected_label}**"
+                                    "content": f"您已選擇：**{selected_label}**"
                                 }
                             }
                         ]
@@ -2385,33 +2385,33 @@ class FeishuChannel(BaseChannel):
                         "tag": "div",
                         "text": {
                             "tag": "lark_md",
-                            "content": f"{content} <br> <br> 您已选择：**{selected_label}**"
+                            "content": f"{content} <br> <br> 您已選擇：**{selected_label}**"
                             }
                         }]
                 }
                 self._user_question_card.pop(request_id)
-            # 获取用户和上下文信息
+            # 獲取使用者和上下文資訊
             operator_id = event.operator.open_id if event.operator and event.operator.open_id else ""
 
             logger.info(
-                "[FeishuChannel] 收到卡片回调: token=%s, action=%s, user=%s",
+                "[FeishuChannel] 收到卡片回撥: token=%s, action=%s, user=%s",
                 token,
                 action_value,
                 operator_id,
             )
 
-            # 在主事件循环中调度异步处理
+            # 在主事件迴圈中排程非同步處理
             if self._main_loop and self._main_loop.is_running():
                 asyncio.run_coroutine_threadsafe(
                     self._handle_card_callback_async(token, action_value, operator_id),
                     self._main_loop
                 )
 
-            # 返回成功的响应：更新卡片去除按钮，提示已接受
+            # 返回成功的響應：更新卡片去除按鈕，提示已接受
             response = {
                 "toast": {
                     "type": "info",
-                    "content": "已收到您的选择"
+                    "content": "已收到您的選擇"
                 },
                 "card": {
                     "type": "raw",
@@ -2427,12 +2427,12 @@ class FeishuChannel(BaseChannel):
             }
             return P2CardActionTriggerResponse(response)
         except Exception as e:
-            logger.error(f"处理飞书卡片回调时发生异常: {e}", exc_info=True)
-            # 返回错误响应
+            logger.error(f"處理飛書卡片回撥時發生異常: {e}", exc_info=True)
+            # 返回錯誤響應
             error_response = {
                 "toast": {
                     "type": "error",
-                    "content": "处理失败"
+                    "content": "處理失敗"
                 }
             }
             if P2CardActionTriggerResponse:
@@ -2446,22 +2446,22 @@ class FeishuChannel(BaseChannel):
         operator_id: str,
     ) -> None:
         """
-        异步处理卡片回调，将回调转换为 chat.user_answer 事件。
+        非同步處理卡片回撥，將回撥轉換為 chat.user_answer 事件。
 
         Args:
             token: 卡片 token
-            action_value: 用户选择的值
+            action_value: 使用者選擇的值
             operator_id: 操作者 ID
         """
         try:
             request_id = action_value.pop("request_id", "")
             if not request_id:
                 raise ValueError("missing request_id")
-            # 构建用户响应（符合 evolution service 期望的格式）
+            # 構建使用者響應（符合 evolution service 期望的格式）
             answers = [{"selected_options": list(action_value.values())}] if action_value else []
 
             logger.info(
-                "[FeishuChannel] 发送用户答案: token=%s, answer=%s",
+                "[FeishuChannel] 傳送使用者答案: token=%s, answer=%s",
                 token,
                 action_value,
             )
@@ -2475,42 +2475,42 @@ class FeishuChannel(BaseChannel):
                     ok=True,
                     req_method=ReqMethod.CHAT_ANSWER,
                     provider=self.name,
-                    chat_id="",  # 卡片回调不直接关联特定chat_id
+                    chat_id="",  # 卡片回撥不直接關聯特定chat_id
                     user_id=operator_id,
                     bot_id=self.config.app_id,
-                    event_type=None,  # 不使用特定事件类型，通过 params 传递答案
+                    event_type=None,  # 不使用特定事件型別，透過 params 傳遞答案
                     metadata={
                         "request_id": token,
                         "answers": answers,
                     },
                 )
-            # 发送 chat.user_answer 事件到 gateway
+            # 傳送 chat.user_answer 事件到 gateway
             if self._message_callback:
-                # 构建 Message 对象
+                # 構建 Message 物件
                 self._message_callback(msg)
             else:
-                # 通过 bus 路由
+                # 透過 bus 路由
                 await self.bus.publish_user_message(msg)
 
         except Exception as e:
-            logger.error(f"异步处理卡片回调时发生异常: {e}", exc_info=True)
+            logger.error(f"非同步處理卡片回撥時發生異常: {e}", exc_info=True)
 
     def _is_duplicate_message(self, message_id: str) -> bool:
         """
-        检查消息是否重复。
+        檢查訊息是否重複。
 
         Args:
-            message_id: 消息ID
+            message_id: 訊息ID
 
         Returns:
-            bool: True表示消息重复，False表示新消息
+            bool: True表示訊息重複，False表示新訊息
         """
         if message_id in self._message_dedup_cache:
             return True
 
         self._message_dedup_cache[message_id] = None
 
-        # 修剪缓存：当超过1000时保留最近的500条
+        # 修剪快取：當超過1000時保留最近的500條
         while len(self._message_dedup_cache) > 1000:
             self._message_dedup_cache.popitem(last=False)
 
@@ -2518,20 +2518,20 @@ class FeishuChannel(BaseChannel):
 
     def _parse_message_content(self, message: Any) -> str:
         """
-        解析消息内容。
+        解析訊息內容。
 
         Args:
-            message: 飞书消息对象
+            message: 飛書訊息物件
 
         Returns:
-            str: 解析后的消息内容
+            str: 解析後的訊息內容
         """
         msg_type = message.message_type
 
         if msg_type == "text":
             try:
                 text = json.loads(message.content).get("text", "")
-                # 替换 @mentions 占位符为真实用户名
+                # 替換 @mentions 佔位符為真實使用者名稱
                 text = self._replace_mentions_with_names(message, text)
                 return text
             except json.JSONDecodeError:
@@ -2544,97 +2544,97 @@ class FeishuChannel(BaseChannel):
         message: Any,
     ) -> tuple[str, dict | None]:
         """
-        解析消息内容，支持文件类型（异步版本）。
+        解析訊息內容，支援檔案型別（非同步版本）。
 
         Args:
-            message: 飞书消息对象
+            message: 飛書訊息物件
 
         Returns:
-            tuple: (文本内容, 文件信息字典或None)
+            tuple: (文字內容, 檔案資訊字典或None)
         """
         if not self._file_service:
             return self._parse_message_content(message), None
 
         msg_type = message.message_type
 
-        # 文本消息
+        # 文字訊息
         if msg_type == "text":
             try:
                 text = json.loads(message.content).get("text", "")
-                # 替换 @mentions 占位符为真实用户名
+                # 替換 @mentions 佔位符為真實使用者名稱
                 text = self._replace_mentions_with_names(message, text)
                 return text, None
             except json.JSONDecodeError:
                 return message.content or "", None
 
-        # 图片消息
+        # 圖片訊息
         if msg_type == "image":
             return await self._handle_image_message(message)
 
-        # 文件消息
+        # 檔案訊息
         if msg_type == "file":
             return await self._handle_file_message(message)
 
-        # 音频消息
+        # 音訊訊息
         if msg_type == "audio":
             return await self._handle_audio_message(message)
 
-        # 视频/媒体消息
+        # 影片/媒體訊息
         if msg_type == "media":
             return await self._handle_media_message(message)
 
-        # 贴纸消息
+        # 貼紙訊息
         if msg_type == "sticker":
-            return "[贴纸]", None
+            return "[貼紙]", None
 
-        # 其他类型
+        # 其他型別
         return MSG_TYPE_MAP.get(msg_type, f"[{msg_type}]"), None
 
     async def _handle_image_message(self, message: Any) -> tuple[str, dict | None]:
-        """处理图片消息。"""
+        """處理圖片訊息。"""
         try:
             content = json.loads(message.content)
             image_key = content.get("image_key")
 
             if not image_key:
-                return "[图片]", None
+                return "[圖片]", None
 
-            # 下载图片
+            # 下載圖片
             file_info = await self._file_service.download_image(
                 file_key=image_key,
                 message_id=message.message_id,
             )
 
             if file_info:
-                return "[图片]", file_info
+                return "[圖片]", file_info
 
-            return "[图片下载失败]", None
+            return "[圖片下載失敗]", None
 
         except Exception as e:
-            logger.error(f"处理图片消息失败: {e}")
-            return "[图片]", None
+            logger.error(f"處理圖片訊息失敗: {e}")
+            return "[圖片]", None
 
     async def _handle_file_message(self, message: Any) -> tuple[str, dict | None]:
-        """处理文件消息。"""
+        """處理檔案訊息。"""
         try:
             content = json.loads(message.content)
             file_key = content.get("file_key")
             file_name = content.get("file_name", "unknown")
             file_size = content.get("file_size", 0)
 
-            logger.info(f"飞书文件消息: file_name={file_name}, file_size={file_size}, file_key={file_key}")
+            logger.info(f"飛書檔案訊息: file_name={file_name}, file_size={file_size}, file_key={file_key}")
 
             if not file_key:
-                return f"[文件: {file_name}]", None
+                return f"[檔案: {file_name}]", None
 
-            # 检查文件大小限制
+            # 檢查檔案大小限制
             max_size = self.config.max_download_size
             if file_size > max_size:
-                logger.warning(f"文件过大，跳过下载: {file_name} ({file_size} > {max_size})")
-                return f"[文件过大: {file_name}]", None
+                logger.warning(f"檔案過大，跳過下載: {file_name} ({file_size} > {max_size})")
+                return f"[檔案過大: {file_name}]", None
 
-            # 下载文件
-            logger.info(f"开始下载飞书文件: {file_name}")
+            # 下載檔案
+            logger.info(f"開始下載飛書檔案: {file_name}")
             file_info = await self._file_service.download_file_resource(
                 file_key=file_key,
                 message_id=message.message_id,
@@ -2644,27 +2644,27 @@ class FeishuChannel(BaseChannel):
             if file_info:
                 file_info["name"] = file_name
                 file_info["size"] = file_size
-                logger.info(f"飞书文件下载成功: {file_name}, path={file_info.get('path')}")
-                return f"[文件: {file_name}]", file_info
+                logger.info(f"飛書檔案下載成功: {file_name}, path={file_info.get('path')}")
+                return f"[檔案: {file_name}]", file_info
 
-            logger.warning(f"飞书文件下载失败: {file_name}")
-            return f"[文件下载失败: {file_name}]", None
+            logger.warning(f"飛書檔案下載失敗: {file_name}")
+            return f"[檔案下載失敗: {file_name}]", None
 
         except Exception as e:
-            logger.error(f"处理文件消息失败: {e}")
-            return "[文件]", None
+            logger.error(f"處理檔案訊息失敗: {e}")
+            return "[檔案]", None
 
     async def _handle_audio_message(self, message: Any) -> tuple[str, dict | None]:
-        """处理音频消息。"""
+        """處理音訊訊息。"""
         try:
             content = json.loads(message.content)
             file_key = content.get("file_key")
             duration = content.get("duration", 0)
 
             if not file_key:
-                return "[音频]", None
+                return "[音訊]", None
 
-            # 下载音频
+            # 下載音訊
             file_info = await self._file_service.download_audio(
                 file_key=file_key,
                 message_id=message.message_id,
@@ -2672,25 +2672,25 @@ class FeishuChannel(BaseChannel):
 
             if file_info:
                 duration_sec = duration / 1000
-                return f"[音频: {duration_sec:.1f}秒]", file_info
+                return f"[音訊: {duration_sec:.1f}秒]", file_info
 
-            return "[音频下载失败]", None
+            return "[音訊下載失敗]", None
 
         except Exception as e:
-            logger.error(f"处理音频消息失败: {e}")
-            return "[音频]", None
+            logger.error(f"處理音訊訊息失敗: {e}")
+            return "[音訊]", None
 
     async def _handle_media_message(self, message: Any) -> tuple[str, dict | None]:
-        """处理视频/媒体消息。"""
+        """處理影片/媒體訊息。"""
         try:
             content = json.loads(message.content)
             file_key = content.get("file_key")
             duration = content.get("duration", 0)
 
             if not file_key:
-                return "[视频]", None
+                return "[影片]", None
 
-            # 下载视频
+            # 下載影片
             file_info = await self._file_service.download_media(
                 file_key=file_key,
                 message_id=message.message_id,
@@ -2698,57 +2698,57 @@ class FeishuChannel(BaseChannel):
 
             if file_info:
                 duration_sec = duration / 1000
-                return f"[视频: {duration_sec:.1f}秒]", file_info
+                return f"[影片: {duration_sec:.1f}秒]", file_info
 
-            return "[视频下载失败]", None
+            return "[影片下載失敗]", None
 
         except Exception as e:
-            logger.error(f"处理视频消息失败: {e}")
-            return "[视频]", None
+            logger.error(f"處理影片訊息失敗: {e}")
+            return "[影片]", None
 
     def _extract_text_from_file(self, file_path: str, max_len: int = 50000) -> str | None:
-        """从文本文件中提取内容。"""
+        """從文字檔案中提取內容。"""
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read(max_len + 1)
             if len(content) > max_len:
-                content = content[:max_len] + "\n... [内容已截断]"
+                content = content[:max_len] + "\n... [內容已截斷]"
             return content
         except UnicodeDecodeError:
-            # 尝试其他编码
+            # 嘗試其他編碼
             try:
                 with open(file_path, "r", encoding="gbk") as f:
                     content = f.read(max_len + 1)
                 if len(content) > max_len:
-                    content = content[:max_len] + "\n... [内容已截断]"
+                    content = content[:max_len] + "\n... [內容已截斷]"
                 return content
             except Exception:
                 return None
         except Exception as e:
-            logger.warning(f"提取文件内容失败: {e}")
+            logger.warning(f"提取檔案內容失敗: {e}")
             return None
 
-    # ==================== 文件消息发送 ====================
+    # ==================== 檔案訊息傳送 ====================
 
     async def _send_file_message(self, msg: Message) -> None:
         """
-        发送文件消息（支持图片/音频/视频/普通文件）。
+        傳送檔案訊息（支援圖片/音訊/影片/普通檔案）。
 
         Args:
-            msg: 包含文件信息的消息对象
+            msg: 包含檔案資訊的訊息物件
         """
         payload = msg.payload if isinstance(msg.payload, dict) else {}
         files = payload.get("files", [])
 
         if not files:
-            logger.warning("飞书发送文件消息：无文件信息")
+            logger.warning("飛書傳送檔案訊息：無檔案資訊")
             return
 
         receive_id, id_type = self._extract_receive_info(msg)
-        logger.info(f"飞书发送文件消息: receive_id={receive_id}, id_type={id_type}")
+        logger.info(f"飛書傳送檔案訊息: receive_id={receive_id}, id_type={id_type}")
 
         for file_info in files:
-            # 支持两种格式：路径字符串 或 包含 path 字段的字典
+            # 支援兩種格式：路徑字串 或 包含 path 欄位的字典
             if isinstance(file_info, dict):
                 file_path = file_info.get("path", "")
                 file_name = file_info.get("name", os.path.basename(file_path))
@@ -2757,7 +2757,7 @@ class FeishuChannel(BaseChannel):
                 file_name = os.path.basename(file_path)
 
             if not file_path or not os.path.exists(file_path):
-                logger.warning(f"飞书发送文件：文件不存在 {file_path}")
+                logger.warning(f"飛書傳送檔案：檔案不存在 {file_path}")
                 continue
 
             req_id = str(getattr(msg, "id", "") or "")
@@ -2779,7 +2779,7 @@ class FeishuChannel(BaseChannel):
         self,
         request: FeishuMessageSendRequest,
     ) -> None:
-        """构建并发送飞书消息（在线程池中执行同步 SDK 调用，支持重试）。"""
+        """構建併傳送飛書訊息（線上程池中執行同步 SDK 呼叫，支援重試）。"""
         loop = asyncio.get_running_loop()
         
         for attempt in range(request.max_retries):
@@ -2803,7 +2803,7 @@ class FeishuChannel(BaseChannel):
 
                 if not response.success():
                     logger.warning(
-                        "飞书发送消息失败 (尝试 %d/%d, msg_type=%s%s): code=%s msg=%s",
+                        "飛書傳送訊息失敗 (嘗試 %d/%d, msg_type=%s%s): code=%s msg=%s",
                         attempt + 1, request.max_retries,
                         request.msg_type,
                         f" {request.log_label}" if request.log_label else "",
@@ -2814,13 +2814,13 @@ class FeishuChannel(BaseChannel):
                         await asyncio.sleep(1 * (attempt + 1))
                         continue
                 else:
-                    logger.info("飞书消息发送成功: msg_type=%s%s", request.msg_type,
+                    logger.info("飛書訊息傳送成功: msg_type=%s%s", request.msg_type,
                                 f" {request.log_label}" if request.log_label else "")
                     return
                     
             except Exception as e:
                 logger.warning(
-                    "飞书发送消息异常 (尝试 %d/%d, msg_type=%s%s): %s",
+                    "飛書傳送訊息異常 (嘗試 %d/%d, msg_type=%s%s): %s",
                     attempt + 1, request.max_retries,
                     request.msg_type,
                     f" {request.log_label}" if request.log_label else "",
@@ -2830,7 +2830,7 @@ class FeishuChannel(BaseChannel):
                     await asyncio.sleep(1 * (attempt + 1))
                     continue
                 else:
-                    logger.error("发送飞书消息异常: %s", e)
+                    logger.error("傳送飛書訊息異常: %s", e)
 
     async def _send_image_message(
         self,
@@ -2839,15 +2839,15 @@ class FeishuChannel(BaseChannel):
         file_path: str,
     ) -> None:
         """
-        发送图片消息。
+        傳送圖片訊息。
 
-        优先使用 image.create API（返回 image_key，发送 image 消息），
-        失败时回退到 file.create API（发送 file 消息）。
+        優先使用 image.create API（返回 image_key，傳送 image 訊息），
+        失敗時回退到 file.create API（傳送 file 訊息）。
         """
         try:
             upload_result = await self._file_service.upload_image(file_path)
             if not upload_result:
-                logger.error(f"飞书上传图片失败: {file_path}")
+                logger.error(f"飛書上傳圖片失敗: {file_path}")
                 return
 
             file_type = upload_result.get("file_type", "image")
@@ -2861,7 +2861,7 @@ class FeishuChannel(BaseChannel):
                 content = json.dumps({"file_key": file_key}, ensure_ascii=False)
                 msg_type = "file"
             else:
-                logger.error(f"飞书上传图片返回无效: {upload_result}")
+                logger.error(f"飛書上傳圖片返回無效: {upload_result}")
                 return
 
             await self._create_and_send_message(
@@ -2875,7 +2875,7 @@ class FeishuChannel(BaseChannel):
             )
 
         except Exception as e:
-            logger.error(f"发送飞书图片消息异常: {e}")
+            logger.error(f"傳送飛書圖片訊息異常: {e}")
 
     async def _send_audio_message(
         self,
@@ -2885,30 +2885,30 @@ class FeishuChannel(BaseChannel):
         file_name: str,
     ) -> None:
         """
-        发送音频消息。
+        傳送音訊訊息。
 
-        若文件为 .opus 格式（飞书原生），使用 msg_type=audio 发送（可在线播放）；
-        其他格式降级为普通文件消息。
+        若檔案為 .opus 格式（飛書原生），使用 msg_type=audio 傳送（可線上播放）；
+        其他格式降級為普通檔案訊息。
         """
         try:
             upload_result = await self._file_service.upload_file_resource(file_path)
             if not upload_result:
-                logger.error(f"飞书上传音频失败: {file_path}")
+                logger.error(f"飛書上傳音訊失敗: {file_path}")
                 return
 
             file_key = upload_result.get("file_key")
             if not file_key:
-                logger.error(f"飞书上传音频返回无效: {file_path}")
+                logger.error(f"飛書上傳音訊返回無效: {file_path}")
                 return
 
             feishu_file_type = upload_result.get("file_type", "stream")
 
             if feishu_file_type == "opus":
-                # opus 格式支持在线播放
+                # opus 格式支援線上播放
                 content = json.dumps({"file_key": file_key}, ensure_ascii=False)
                 msg_type = "audio"
             else:
-                # 其他音频格式作为普通文件发送
+                # 其他音訊格式作為普通檔案傳送
                 content = json.dumps({"file_key": file_key}, ensure_ascii=False)
                 msg_type = "file"
 
@@ -2923,7 +2923,7 @@ class FeishuChannel(BaseChannel):
             )
 
         except Exception as e:
-            logger.error(f"发送飞书音频消息异常: {e}")
+            logger.error(f"傳送飛書音訊訊息異常: {e}")
 
     async def _send_video_message(
         self,
@@ -2933,19 +2933,19 @@ class FeishuChannel(BaseChannel):
         file_name: str,
     ) -> None:
         """
-        发送视频消息（msg_type=media，支持在线播放）。
+        傳送影片訊息（msg_type=media，支援線上播放）。
 
-        飞书 media 消息内容：{"file_key": "..."}（thumbnail 可选，此处省略）
+        飛書 media 訊息內容：{"file_key": "..."}（thumbnail 可選，此處省略）
         """
         try:
             upload_result = await self._file_service.upload_file_resource(file_path)
             if not upload_result:
-                logger.error(f"飞书上传视频失败: {file_path}")
+                logger.error(f"飛書上傳影片失敗: {file_path}")
                 return
 
             file_key = upload_result.get("file_key")
             if not file_key:
-                logger.error(f"飞书上传视频返回无效: {file_path}")
+                logger.error(f"飛書上傳影片返回無效: {file_path}")
                 return
 
             content = json.dumps({"file_key": file_key}, ensure_ascii=False)
@@ -2961,7 +2961,7 @@ class FeishuChannel(BaseChannel):
             )
 
         except Exception as e:
-            logger.error(f"发送飞书视频消息异常: {e}")
+            logger.error(f"傳送飛書影片訊息異常: {e}")
 
     async def _send_file_card(
         self,
@@ -2970,16 +2970,16 @@ class FeishuChannel(BaseChannel):
         file_path: str,
         file_name: str,
     ) -> None:
-        """发送普通文件消息（msg_type=file）。"""
+        """傳送普通檔案訊息（msg_type=file）。"""
         try:
             upload_result = await self._file_service.upload_file_resource(file_path)
             if not upload_result:
-                logger.error(f"飞书上传文件失败: {file_path}")
+                logger.error(f"飛書上傳檔案失敗: {file_path}")
                 return
 
             file_key = upload_result.get("file_key")
             if not file_key:
-                logger.error(f"飞书上传文件返回无效: {file_path}")
+                logger.error(f"飛書上傳檔案返回無效: {file_path}")
                 return
 
             content = json.dumps({"file_key": file_key}, ensure_ascii=False)
@@ -2995,14 +2995,14 @@ class FeishuChannel(BaseChannel):
             )
 
         except Exception as e:
-            logger.error(f"发送飞书文件消息异常: {e}")
+            logger.error(f"傳送飛書檔案訊息異常: {e}")
 
     async def _send_team_message(self, msg: Message) -> None:
         """
-        发送Agent Team消息卡片。
+        傳送Agent Team訊息卡片。
 
         Args:
-            msg: 包含 team.message payload 的消息对象
+            msg: 包含 team.message payload 的訊息物件
         """
         try:
             payload = msg.payload if isinstance(msg.payload, dict) else {}
@@ -3013,19 +3013,19 @@ class FeishuChannel(BaseChannel):
             content = event.get("content", "")
 
             if not from_member or not content:
-                logger.warning("发送Team消息卡片：缺少必要字段 from_member 或 content")
+                logger.warning("傳送Team訊息卡片：缺少必要欄位 from_member 或 content")
                 return
 
-            # 构建 card 元素
+            # 構建 card 元素
             elements = []
 
-            # 接收者信息
+            # 接收者資訊
             if message_type == "team.message.broadcast":
-                receiver_text = "📢 **广播消息**"
+                receiver_text = "📢 **廣播訊息**"
             elif message_type == "team.message.p2p":
-                receiver_text = f"👤 **发给: {to_member}**"
+                receiver_text = f"👤 **發給: {to_member}**"
             else:
-                receiver_text = f"📋 **类型: {message_type}**"
+                receiver_text = f"📋 **型別: {message_type}**"
 
             elements.append({
                 "tag": "div",
@@ -3035,10 +3035,10 @@ class FeishuChannel(BaseChannel):
                 }
             })
 
-            # 添加分隔线
+            # 新增分隔線
             elements.append({"tag": "hr"})
 
-            # 消息内容
+            # 訊息內容
             elements.append({
                 "tag": "div",
                 "text": {
@@ -3047,7 +3047,7 @@ class FeishuChannel(BaseChannel):
                 }
             })
 
-            # 构建卡片
+            # 構建卡片
             card = {
                 "config": {"wide_screen_mode": True},
                 "header": {
@@ -3060,7 +3060,7 @@ class FeishuChannel(BaseChannel):
                 "elements": elements,
             }
 
-            # 发送卡片
+            # 傳送卡片
             receive_id, id_type = self._extract_receive_info(msg)
             card_json = json.dumps(card, ensure_ascii=False)
 
@@ -3075,34 +3075,34 @@ class FeishuChannel(BaseChannel):
             )
 
             logger.info(
-                "[FeishuChannel] 发送Team消息卡片: type=%s, from=%s, to=%s",
+                "[FeishuChannel] 傳送Team訊息卡片: type=%s, from=%s, to=%s",
                 message_type,
                 from_member,
                 to_member if message_type == "team.message.p2p" else "broadcast",
             )
 
         except Exception as e:
-            logger.error(f"发送Team消息卡片时发生异常: {e}", exc_info=True)
+            logger.error(f"傳送Team訊息卡片時發生異常: {e}", exc_info=True)
 
     async def _send_media_message(self, msg: Message) -> None:
         """
-        发送媒体消息（video/audio）入口，与文件消息统一处理。
+        傳送媒體訊息（video/audio）入口，與檔案訊息統一處理。
         """
         await self._send_file_message(msg)
 
     def _filter_user_info_for_group(self, content: str, metadata: dict[str, Any]) -> str:
         """
-        过滤群聊消息中的用户实际信息。
+        過濾群聊訊息中的使用者實際資訊。
 
-        在群聊中回复时，移除可能包含用户隐私信息的内容。
-        私聊时不过滤。
+        在群聊中回覆時，移除可能包含使用者隱私資訊的內容。
+        私聊時不過濾。
 
         Args:
-            content: 原始消息内容
-            metadata: 消息元数据
+            content: 原始訊息內容
+            metadata: 訊息後設資料
 
         Returns:
-            str: 过滤后的消息内容
+            str: 過濾後的訊息內容
         """
         chat_type = str(metadata.get("chat_type") or "").strip()
         im_chat_type = str(metadata.get("im_chat_type") or "").strip()
@@ -3115,17 +3115,17 @@ class FeishuChannel(BaseChannel):
 
         user_sensitive_patterns = [
             r'\b[\w\.-]+@[\w\.-]+\.\w+\b',
-            r'\b(?:电话|手机|联系方式|手机号|电话号码)[:：]?\s*[\d\s-]{7,15}\b',
+            r'\b(?:電話|手機|聯絡方式|手機號|電話號碼)[:：]?\s*[\d\s-]{7,15}\b',
             r'\b1[3-9]\d{9}\b',
-            r'\b(?:身份证|身份证号|ID)[:：]?\s*\d{15,18}\b',
+            r'\b(?:身份證|身份證號|ID)[:：]?\s*\d{15,18}\b',
             r'\b\d{15,18}\b',
             r'ou_[a-zA-Z0-9]{20,}',
             r'on_[a-zA-Z0-9]{20,}',
-            r'\b(?:密码|password|pwd)[:：]?\s*\S+\b',
+            r'\b(?:密碼|password|pwd)[:：]?\s*\S+\b',
             r'\b(?:地址|住址|家庭住址)[:：]?\s*[^\n]{10,50}\b',
         ]
 
         for pattern in user_sensitive_patterns:
-            filtered_content = re.sub(pattern, '[已过滤]', filtered_content, flags=re.IGNORECASE)
+            filtered_content = re.sub(pattern, '[已過濾]', filtered_content, flags=re.IGNORECASE)
 
         return filtered_content

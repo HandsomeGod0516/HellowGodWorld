@@ -1,4 +1,4 @@
-"""模块初始化与后端请求的数据模型（Pydantic）。"""
+"""模組初始化與後端請求的資料模型（Pydantic）。"""
 
 from datetime import datetime
 from typing import Any, Dict, List
@@ -14,7 +14,7 @@ __all__ = [
 
 
 class EnvModuleInitConfig(BaseModel):
-    """环境模块初始化配置。"""
+    """環境模組初始化配置。"""
 
     module_type: str = Field(
         ...,
@@ -43,7 +43,7 @@ class AgentInitConfig(BaseModel):
 
 
 class CreateInstanceRequest(BaseModel):
-    """创建 AgentSociety 实例的请求体。"""
+    """建立 AgentSociety 例項的請求體。"""
 
     instance_id: str = Field(
         ..., description="Unique identifier for this society instance"
@@ -65,7 +65,7 @@ class CreateInstanceRequest(BaseModel):
 
 
 class AskRequest(BaseModel):
-    """对实例进行 ask 的请求体。"""
+    """對例項進行 ask 的請求體。"""
 
     instance_id: str = Field(..., description="The ID of the society instance")
 
@@ -73,7 +73,7 @@ class AskRequest(BaseModel):
 
 
 class InterventionRequest(BaseModel):
-    """对实例进行 intervene 的请求体。"""
+    """對例項進行 intervene 的請求體。"""
 
     instance_id: str = Field(..., description="The ID of the society instance")
 

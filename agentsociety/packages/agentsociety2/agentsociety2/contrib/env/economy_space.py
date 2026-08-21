@@ -89,7 +89,7 @@ class SetPersonIncomeResponse(BaseModel):
 
 
 class EconomySpace(EnvBase):
-    # 声明式状态持久化
+    # 宣告式狀態持久化
     _agent_state_columns: ClassVar[list[ColumnDef]] = [
         ColumnDef("currency", "REAL"),
         ColumnDef("income", "REAL"),
@@ -380,14 +380,14 @@ Your task is to use the available economy functions to manage persons, their fin
                     )
         self.t = t
 
-        # 持久化 agent 状态
+        # 持久化 agent 狀態
         for person in self._persons.values():
             await self._write_agent_state(
                 agent_id=person.id, step=self._step_counter, t=t,
                 currency=person.currency, income=person.income,
                 consumption=person.consumption,
             )
-        # 持久化环境全局状态
+        # 持久化環境全域性狀態
         await self._write_env_state(
             step=self._step_counter, t=t,
             bank_interest_rate=self._bank_interest_rate,

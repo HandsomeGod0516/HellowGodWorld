@@ -19,31 +19,31 @@ class BaseExtension(ABC):
 
     @abstractmethod
     async def initialize(self, config: ExtensionConfig) -> None:
-        """扩展初始化
+        """擴充套件初始化
 
         Args:
-            config: 扩展配置对象，包含全局配置和 logger
-                   扩展可通过 self._load_config_from_yaml() 加载自己的 config.yaml
+            config: 擴充套件配置物件，包含全域性配置和 logger
+                   擴充套件可透過 self._load_config_from_yaml() 載入自己的 config.yaml
         """
         pass
 
     @abstractmethod
     async def shutdown(self) -> None:
-        """扩展关闭
+        """擴充套件關閉
 
-        用于释放扩展占用的资源
+        用於釋放擴充套件佔用的資源
         """
         pass
 
     @property
     def metadata(self) -> ExtensionMetadata:
-        """扩展元数据
+        """擴充套件後設資料
 
-        默认从扩展目录下的 extension.yaml 加载，如果文件不存在或解析失败，
-        子类可以覆盖此属性提供自定义实现。
+        預設從擴充套件目錄下的 extension.yaml 載入，如果檔案不存在或解析失敗，
+        子類可以覆蓋此屬性提供自定義實現。
 
         Returns:
-            包含扩展信息的 ExtensionMetadata 对象
+            包含擴充套件資訊的 ExtensionMetadata 物件
         """
         if self._metadata_cache is not None:
             return self._metadata_cache
@@ -52,19 +52,19 @@ class BaseExtension(ABC):
         return self._metadata_cache
 
     def _load_metadata_from_yaml(self) -> ExtensionMetadata:
-        """从扩展目录的清单 YAML 加载元数据"""
+        """從擴充套件目錄的清單 YAML 載入後設資料"""
         import yaml
 
         root = self._get_extension_dir()
         if root is None:
             raise ValueError(
-                "无法确定扩展目录，请在子类中设置目录或调用 set_extension_dir，或覆盖 metadata 属性"
+                "無法確定擴充套件目錄，請在子類中設定目錄或呼叫 set_extension_dir，或覆蓋 metadata 屬性"
             )
 
         yaml_path = _manifest_path(root)
         if yaml_path is None:
             raise FileNotFoundError(
-                f"扩展元数据文件不存在（期望 {MANIFEST_FILENAME}）: {root}"
+                f"擴充套件後設資料檔案不存在（期望 {MANIFEST_FILENAME}）: {root}"
             )
 
         with open(yaml_path, "r", encoding="utf-8") as f:
@@ -82,7 +82,7 @@ class BaseExtension(ABC):
         )
 
     def _get_extension_dir(self) -> Optional[Path]:
-        """获取扩展包根目录路径"""
+        """獲取擴充套件包根目錄路徑"""
         if self._extension_dir is not None:
             return self._extension_dir
 
@@ -98,16 +98,16 @@ class BaseExtension(ABC):
         return None
 
     def set_extension_dir(self, path: Path) -> None:
-        """手动设置扩展根目录（含清单 YAML）"""
+        """手動設定擴充套件根目錄（含清單 YAML）"""
         self._extension_dir = path
         self._metadata_cache = None
         self._config_cache = None
 
     def _load_config_from_yaml(self) -> dict:
-        """从扩展目录的 config.yaml 加载配置
+        """從擴充套件目錄的 config.yaml 載入配置
 
         Returns:
-            配置字典，如果文件不存在则返回空字典
+            配置字典，如果檔案不存在則返回空字典
         """
         if self._config_cache is not None:
             return self._config_cache

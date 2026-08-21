@@ -18,7 +18,7 @@ function parseArguments(raw: unknown): Record<string, unknown> {
         return parsed as Record<string, unknown>;
       }
     } catch {
-      // ignore: 非 JSON 字符串时保持空对象
+      // ignore: 非 JSON 字串時保持空物件
     }
   }
   return {};

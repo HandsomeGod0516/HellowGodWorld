@@ -1,33 +1,33 @@
-环境模块
+環境模組
 ===================
 
-本部分介绍如何创建和使用环境模块。
+本部分介紹如何建立和使用環境模組。
 
-创建自定义模块
+建立自定義模組
 ------------------------
 
-继承 EnvBase
+繼承 EnvBase
 ~~~~~~~~~~~~~~~~~~~~
 
-要创建自定义环境模块，请继承 ``EnvBase`` 并实现必需的方法：
+要建立自定義環境模組，請繼承 ``EnvBase`` 並實現必需的方法：
 
-需要实现的方法
+需要實現的方法
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-创建自定义环境模块时，必须实现：
+建立自定義環境模組時，必須實現：
 
 1. **async def step(self, tick: int, t: datetime) -> None**
 
-   执行一个模拟步骤。在 AgentSociety 模拟期间自动调用。
-   使用此方法更新时间相关的状态。
+   執行一個模擬步驟。在 AgentSociety 模擬期間自動呼叫。
+   使用此方法更新時間相關的狀態。
 
-   参数:
-       tick: 此步骤的持续时间（秒）
-       t: 此步骤后的当前模拟日期时间
+   引數:
+       tick: 此步驟的持續時間（秒）
+       t: 此步驟後的當前模擬日期時間
 
-2. **使用 @tool 装饰的工具**
+2. **使用 @tool 裝飾的工具**
 
-   使用 ``@tool`` 装饰器将方法公开为智能体的可调用函数。
+   使用 ``@tool`` 裝飾器將方法公開為智慧體的可呼叫函式。
 
    .. code-block:: python
 
@@ -49,19 +49,19 @@
               self._values[agent_id] = value
               return f"Set value for agent {agent_id}"
 
-参考实现
+參考實現
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-有关完整的参考实现，请参阅：
+有關完整的參考實現，請參閱：
 
-* ``SimpleSocialSpace`` - 社交互动模块
-* ``PublicGoodsEnv`` - 公共物品博弈模块
-* ``PrisonersDilemmaEnv`` - 囚徒困境模块
+* ``SimpleSocialSpace`` - 社互動動模組
+* ``PublicGoodsEnv`` - 公共物品博弈模組
+* ``PrisonersDilemmaEnv`` - 囚徒困境模組
 
-@tool 装饰器
+@tool 裝飾器
 ~~~~~~~~~~~~~~~~~~~
 
-``@tool`` 装饰器将方法标记为可被智能体调用：
+``@tool`` 裝飾器將方法標記為可被智慧體呼叫：
 
 .. code-block:: python
 
@@ -72,27 +72,27 @@
        """Get the status of an agent."""
        return f"Agent {agent_id} status"
 
-参数：
+引數：
 
-* **readonly** (bool): 工具是否修改环境
-  * ``True`` = 只读，可用于查询
-  * ``False`` = 修改状态，可用于干预
+* **readonly** (bool): 工具是否修改環境
+  * ``True`` = 只讀，可用於查詢
+  * ``False`` = 修改狀態，可用於干預
 
-* **kind** (str): 工具的类型
-  * ``"observe"``: 单参数观察（需要 readonly=True）
-  * ``"statistics"``: 聚合查询（无参数，需要 readonly=True）
-  * ``None`` 或省略: 常规工具（任何签名，任何 readonly 值）
+* **kind** (str): 工具的型別
+  * ``"observe"``: 單引數觀察（需要 readonly=True）
+  * ``"statistics"``: 聚合查詢（無引數，需要 readonly=True）
+  * ``None`` 或省略: 常規工具（任何簽名，任何 readonly 值）
 
-工具类型
+工具型別
 ----------
 
-* **observe**: 单参数观察（需要 readonly=True）
-* **statistics**: 聚合查询（无参数，需要 readonly=True）
-* **regular**: 任何其他工具（可以是只读或读写）
+* **observe**: 單引數觀察（需要 readonly=True）
+* **statistics**: 聚合查詢（無引數，需要 readonly=True）
+* **regular**: 任何其他工具（可以是隻讀或讀寫）
 
-有关工具类型的更多详情，请参阅 :doc:`concepts`。
+有關工具型別的更多詳情，請參閱 :doc:`concepts`。
 
-注册模块
+註冊模組
 --------------------
 
 .. code-block:: python
@@ -158,9 +158,9 @@
 示例
 --------
 
-请参阅 ``agentsociety2.contrib.env`` 中的内置环境类（类名以当前代码为准）：
+請參閱 ``agentsociety2.contrib.env`` 中的內建環境類（類名以當前程式碼為準）：
 
-* ``SimpleSocialSpace``（社交互动）
+* ``SimpleSocialSpace``（社互動動）
 * ``PublicGoodsEnv``（公共物品博弈）
 * ``PrisonersDilemmaEnv``（囚徒困境）
 * ``TrustGameEnv``（信任博弈）

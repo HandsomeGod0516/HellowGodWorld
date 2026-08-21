@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['pharmacy', 'home']
 TARGET_INTERACTIONS = ['refill_prescription', 'blood_pressure_check']
 STATUS = 'following_up'
 EMOTION = 'careful'
-SPEECH = '我会把长期需要跟进的事项记清楚。'
+SPEECH = '我會把長期需要跟進的事項記清楚。'
 MEMORY_TEMPLATE = 'Used chronic.followup: {summary} at {location_id}.'
 
 

@@ -47,7 +47,7 @@ class TestSignalDetector:
         detector = SignalDetector()
         messages = [
             {"role": "assistant", "content": "Here's the result"},
-            {"role": "user", "content": "不对，应该这样做"},
+            {"role": "user", "content": "不對，應該這樣做"},
         ]
         signals = detector.detect(messages)
         assert len(signals) == 1
@@ -78,7 +78,7 @@ class TestSignalDetector:
                 "content": "Error: Connection timeout",
                 "name": "http.request",
             },
-            {"role": "user", "content": "不对，重新来"},
+            {"role": "user", "content": "不對，重新來"},
             {
                 "role": "tool",
                 "content": "TypeError: NoneType has no attribute",
@@ -160,9 +160,9 @@ class TestSignalDetector:
             "traceback",
             "failed",
             "timeout",
-            "错误",
-            "异常",
-            "失败",
+            "錯誤",
+            "異常",
+            "失敗",
         ]
         for keyword in error_keywords:
             detector = SignalDetector()

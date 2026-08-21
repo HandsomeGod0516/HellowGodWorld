@@ -24,7 +24,7 @@ TARGET_LOCATIONS = ['market']
 TARGET_INTERACTIONS = ['work_shop_shift', 'restock_vegetables']
 STATUS = 'stall_working'
 EMOTION = 'focused'
-SPEECH = '我先把摊位收拾好，再接待顾客。'
+SPEECH = '我先把攤位收拾好，再接待顧客。'
 MEMORY_TEMPLATE = 'Used stall.run: {summary} at {location_id}.'
 
 
