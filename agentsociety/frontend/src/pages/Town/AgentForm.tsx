@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Alert,
     Button,
@@ -33,6 +33,13 @@ export type AgentFormValues = {
 const DEFAULT_BASE_URL: Record<Provider, string> = {
     ollama: 'http://localhost:11434',
     openai: 'https://api.openai.com/v1',
+    anthropic: 'https://api.anthropic.com/v1',
+};
+
+const MODEL_PLACEHOLDER: Record<Provider, string> = {
+    ollama: 'qwen2.5:7b',
+    openai: 'gpt-4o-mini',
+    anthropic: 'claude-3-5-haiku-20241022',
 };
 
 const initialValues = (
@@ -74,6 +81,17 @@ const AgentForm = ({ open, agent, rooms, sprites, defaults, submitting, onCancel
     const [form] = Form.useForm<AgentFormValues>();
     const [testing, setTesting] = useState(false);
     const [result, setResult] = useState<EndpointTestResult | undefined>();
+    const selectedProvider = Form.useWatch('provider', form) ?? agent?.llm.provider ?? defaults?.provider ?? 'ollama';
+
+    // form 是同一個例項被反覆重用的（Modal 只是開關，不會重新建立它），
+    // 只靠 initialValues 在「已經填過值」的例項上不會重新生效——
+    // 所以每次開窗都要手動把值塞回去，不然會看到上一次編輯/新增留下的舊內容。
+    useEffect(() => {
+        if (open) {
+            form.setFieldsValue(initialValues(agent, rooms, sprites, defaults));
+            setResult(undefined);
+        }
+    }, [open, agent, rooms, sprites, defaults, form]);
 
     const runTest = async () => {
         try {
@@ -165,6 +183,7 @@ const AgentForm = ({ open, agent, rooms, sprites, defaults, submitting, onCancel
                             options={[
                                 { value: 'ollama', label: 'Ollama' },
                                 { value: 'openai', label: t('town.form.openaiCompatible') },
+                                { value: 'anthropic', label: 'Anthropic (Claude)' },
                             ]}
                             onChange={(provider: Provider) =>
                                 form.setFieldValue('base_url', DEFAULT_BASE_URL[provider])
@@ -177,7 +196,7 @@ const AgentForm = ({ open, agent, rooms, sprites, defaults, submitting, onCancel
                         rules={[{ required: true }]}
                         style={{ flex: 1 }}
                     >
-                        <Input placeholder="http://localhost:11434" />
+                        <Input placeholder={DEFAULT_BASE_URL[selectedProvider]} />
                     </Form.Item>
                 </Space>
 
@@ -188,7 +207,7 @@ const AgentForm = ({ open, agent, rooms, sprites, defaults, submitting, onCancel
                         rules={[{ required: true }]}
                         style={{ flex: 1 }}
                     >
-                        <Input placeholder="qwen2.5:7b" />
+                        <Input placeholder={MODEL_PLACEHOLDER[selectedProvider]} />
                     </Form.Item>
                     <Form.Item name="api_key" label={t('town.form.apiKey')} style={{ flex: 1 }}>
                         <Input.Password

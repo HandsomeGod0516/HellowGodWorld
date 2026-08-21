@@ -26,7 +26,7 @@
 後端啟動後就維持一個 20 Hz 的世界循環，10 Hz 把畫面狀態推給瀏覽器。沒有「下一步」按鈕 —— 小人會走動是因為它自己決定要走。
 
 **每個居民自己一套模型設定**
-每個 AI 居民都帶著自己的接口類型、API 網址、模型名稱、API Key、隨機度，以及多久思考一次。同一座小鎮裡可以一個指向本機 `http://localhost:11434`，另一個指向遠端的 OpenAI 相容服務。
+每個 AI 居民都帶著自己的接口類型、API 網址、模型名稱、API Key、隨機度，以及多久思考一次。同一座小鎮裡可以一個指向本機 `http://localhost:11434`，另一個指向遠端的 OpenAI 相容服務，再一個直接貼 Anthropic 的 API Key 讓 Claude 上場。
 
 **加入前先測連線**
 新增居民時會先探測端點、確認模型存在，再發一次極短對話。網址打錯或模型沒拉下來，會當場在表單裡報錯，而不是等到執行時才靜默失敗。
@@ -59,7 +59,7 @@
 | [uv](https://docs.astral.sh/uv/) | 後端依賴管理 |
 | Node.js | 22 或更新 |
 | `screen` | macOS/Linux 需要（背景執行服務） |
-| 模型 | 本機跑 [Ollama](https://ollama.com) 最省事；任何 OpenAI 相容端點也可以 |
+| 模型 | 本機跑 [Ollama](https://ollama.com) 最省事；任何 OpenAI 相容端點，或 Anthropic（Claude）也可以 |
 
 macOS 一次裝好：
 
@@ -144,6 +144,8 @@ ollama pull qwen2.5:7b
 
 居民會出現在那個房間，幾秒內開始自己走動。面板會顯示它要去哪；「小鎮動態」會記錄所有人說過的話。
 
+想讓某個居民用 Claude 而不是本機模型：**接口類型**選 `Anthropic (Claude)`，**API 地址**留預設的 `https://api.anthropic.com/v1`，**API Key** 貼你的 Anthropic key（`sk-ant-...`），**模型**填實際的模型 ID（例如 `claude-3-5-haiku-20241022`），一樣點測試連接確認能通。OpenAI 或其他 OpenAI 相容服務同理，接口類型選 `OpenAI 相容`即可。
+
 想在同一座小鎮放第二個腦子？再新增一個居民，填不同的 API 地址或模型。它們跑在各自獨立的循環上，走到同一個房間時會互相搭話。
 
 ### 6. 自己走進去
@@ -187,7 +189,7 @@ chmod +x scripts/god.sh
 首次啟動會從 `.env.example` 產生。裡面沒有必填項 —— 這些值只是用來預填「新增居民」表單。
 
 ```dotenv
-GOD_LLM_PROVIDER=ollama                  # ollama 或 openai
+GOD_LLM_PROVIDER=ollama                  # ollama、openai 或 anthropic
 GOD_LLM_API_BASE=http://localhost:11434
 GOD_LLM_MODEL=
 GOD_LLM_API_KEY=

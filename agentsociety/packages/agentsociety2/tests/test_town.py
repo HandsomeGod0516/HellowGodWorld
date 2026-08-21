@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 from collections import deque
 
 import httpx
@@ -20,7 +21,7 @@ from agentsociety2.town.map_layout import (
     walkable_tiles,
 )
 from agentsociety2.town.pathfind import astar, nearest_walkable
-from agentsociety2.town.world import WorldEngine
+from agentsociety2.town.world import GATHER_SPREAD_RADIUS_TILES, WorldEngine
 
 
 # ---------- 地圖 ----------
@@ -180,7 +181,11 @@ def test_goto_builds_a_path_and_arrival_clears_it():
         if not actor.moving and not actor.path:
             break
 
-    assert actor.tile() == next(r["anchor"] for r in ROOMS if r["id"] == "cafe")
+    # 目的地是錨點附近隨機一格（避免一群人擠在同一點），而不是錨點本身。
+    anchor = next(r["anchor"] for r in ROOMS if r["id"] == "cafe")
+    tile = actor.tile()
+    assert math.hypot(tile[0] - anchor[0], tile[1] - anchor[1]) <= GATHER_SPREAD_RADIUS_TILES
+    assert tile in world.walkable
     assert actor.target_room is None
 
 

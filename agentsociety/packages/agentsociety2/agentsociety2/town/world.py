@@ -47,7 +47,7 @@ TILES_PER_SECOND = 3.6
 NEARBY_RADIUS_TILES = 8.0
 EVENT_HISTORY = 200
 FOOD_EAT_RADIUS_TILES = 1.5
-OCCUPANCY_RADIUS_TILES = 0.6  # 两个角色中心距离小于这个就算撞上了，不能互相穿过
+GATHER_SPREAD_RADIUS_TILES = 2.5  # 去某個地點集合時，目的地在這個範圍內隨機選一格，別都擠同一點
 HP_DECAY_PER_SECOND = MAX_HP / 480.0  # 一直不吃東西，8 分鐘餓到 0
 HP_REGEN_PER_SECOND = MAX_HP / 12.0  # 在食物旁邊，12 秒內吃滿
 
@@ -72,9 +72,8 @@ class WorldEngine:
 
     def __init__(self) -> None:
         self.map = build_world_map()
-        # 食物本身是个实体，占掉一格，走不进去；靠它最近的一格空地才是真正能站的位置。
+        # 食物本身是個實體，佔掉一格，走不進去。
         self.walkable = walkable_tiles() - {FOOD_SPOT}
-        self.food_approach = nearest_walkable(FOOD_SPOT, self.walkable)
         self.actors: dict[str, TownActor] = {}
         self.configs: dict[str, TownAgentConfig] = {}
         self.events: deque[dict[str, Any]] = deque(maxlen=EVENT_HISTORY)
@@ -130,7 +129,7 @@ class WorldEngine:
     # ---------- 移動 ----------
 
     def food_status(self, actor: TownActor) -> dict[str, Any]:
-        """食物的位置不是天生就知道的：只有走到附近（跟看到「附近的人」一个视野）才会发现。"""
+        """食物的位置不是天生就知道的：只有走到附近（跟看到「附近的人」一個視野）才會發現。"""
         distance = math.hypot(actor.x - FOOD_SPOT[0], actor.y - FOOD_SPOT[1])
         return {
             "distance": round(distance, 1),
@@ -165,13 +164,18 @@ class WorldEngine:
         self._advance_path(actor, distance)
 
     def _tile_occupied(self, mover: TownActor, x: float, y: float) -> bool:
-        """粗略的人物碰撞：中心距离太近就算撞到，谁也别想穿过谁。"""
-        for other in self.actors.values():
-            if other.id == mover.id:
-                continue
-            if math.hypot(other.x - x, other.y - y) < OCCUPANCY_RADIUS_TILES:
-                return True
-        return False
+        """粗略的人物碰撞：擋的是「走進別人那一格」，不是連續距離。
+        用連續距離判斷會卡死——好幾個人疊在同一點時，誰都動不了：
+        因為每 tick 只挪一點點，新位置離「還沒動的其他人」永遠不到半格。
+        改成看格子：只要新位置跟自己目前那格是同一格，就不算闖入，怎麼挪都行；
+        真的要跨進新的一格時，才檢查那格有沒有被別人（別的格子）佔住。
+        """
+        target_tile = (round(x), round(y))
+        if target_tile == mover.tile():
+            return False
+        return any(
+            other.id != mover.id and other.tile() == target_tile for other in self.actors.values()
+        )
 
     def _advance_free(self, actor: TownActor, direction: Facing, distance: float) -> None:
         dx, dy = _FACING_VECTORS[direction]
@@ -211,7 +215,8 @@ class WorldEngine:
         actor.moving = True
         if remaining <= distance or remaining < 1e-6:
             if self._tile_occupied(actor, float(target_x), float(target_y)):
-                return  # 下一格站着别人，先等一下，下一 tick 再看看让开了没
+                self._reroute_around(actor, (target_x, target_y))
+                return  # 這一 tick 先不挪，繞開的新路徑下一 tick 才開始走
             actor.x, actor.y = float(target_x), float(target_y)
             actor.path_index += 1
             return
@@ -219,8 +224,21 @@ class WorldEngine:
         new_x = actor.x + dx / remaining * step
         new_y = actor.y + dy / remaining * step
         if self._tile_occupied(actor, new_x, new_y):
+            self._reroute_around(actor, (round(new_x), round(new_y)))
             return
         actor.x, actor.y = new_x, new_y
+
+    def _reroute_around(self, actor: TownActor, blocked_tile: tuple[int, int]) -> bool:
+        """撞到人擋路：把那一格暫時當牆重新找路，繞過去；真的繞不開就先等著。"""
+        if not actor.path:
+            return False
+        destination = actor.path[-1]
+        detour = astar(actor.tile(), destination, self.walkable - {blocked_tile})
+        if not detour:
+            return False
+        actor.path = detour
+        actor.path_index = 0
+        return True
 
     # ---------- 世界查詢 ----------
 
@@ -240,18 +258,26 @@ class WorldEngine:
 
     # ---------- 動作 ----------
 
+    def _pick_nearby_walkable(self, x: float, y: float, radius: float) -> tuple[int, int]:
+        """在某個點附近隨機挑一格能走的地方，讓一群人各自散開，不會全部擠去同一格。"""
+        candidates = [
+            tile for tile in self.walkable if math.hypot(tile[0] - x, tile[1] - y) <= radius
+        ]
+        return random.choice(candidates) if candidates else nearest_walkable((x, y), self.walkable)
+
     def goto(self, actor_id: str, room_id: str) -> bool:
         actor = self.actors.get(actor_id)
         if actor is None:
             return False
         if room_id == "food":
-            # 没走近过、没被发现的食物不能直接导航过去——那等于把坐标告诉它。
+            # 沒走近過、沒被發現的食物不能直接導航過去——那等於把座標告訴它。
             if not self.food_status(actor)["discovered"]:
                 return False
-            target = self.food_approach
+            target = self._pick_nearby_walkable(FOOD_SPOT[0], FOOD_SPOT[1], FOOD_EAT_RADIUS_TILES)
         else:
-            target = room_anchor(room_id)
-        actor.input_dir = None  # goto 跟自由走动互斥，谁后决策谁生效
+            anchor = room_anchor(room_id)
+            target = self._pick_nearby_walkable(anchor[0], anchor[1], GATHER_SPREAD_RADIUS_TILES)
+        actor.input_dir = None  # goto 跟自由走動互斥，誰後決策誰生效
         path = astar(actor.tile(), target, self.walkable)
         if not path:
             return False

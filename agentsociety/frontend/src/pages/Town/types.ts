@@ -54,7 +54,7 @@ export type TownEvent = {
     room_id?: string;
 };
 
-export type Provider = 'ollama' | 'openai';
+export type Provider = 'ollama' | 'openai' | 'anthropic';
 
 export type LLMEndpoint = {
     provider: Provider;

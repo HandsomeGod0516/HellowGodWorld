@@ -1,6 +1,6 @@
 """按 Agent 獨立配置的 LLM 客戶端。
 
-刻意不走 ``agentsociety2.config.get_llm_router``：那是程序級單例 Router，
+刻意不走 ``agentsociety2.config.get_llm_router``：那是程式級單例 Router，
 並且強制校驗全域性 API key，無法讓每個小人各自指向不同的 ollama / OpenAI 相容端點。
 這裡直接用 httpx 打 HTTP，配置隨 Agent 走，可隨時增刪。
 """
@@ -14,18 +14,22 @@ from typing import Any, Literal
 import httpx
 from pydantic import BaseModel, Field
 
-Provider = Literal["ollama", "openai"]
+Provider = Literal["ollama", "openai", "anthropic"]
 
 DEFAULT_TIMEOUT_SECONDS = 60.0
 PROBE_TIMEOUT_SECONDS = 10.0
 PROBE_MAX_TOKENS = 8
+ANTHROPIC_VERSION = "2023-06-01"
+ANTHROPIC_DEFAULT_MAX_TOKENS = 512
 
 
 class LLMEndpoint(BaseModel):
     """一個小人的模型端點配置。"""
 
     provider: Provider = "ollama"
-    base_url: str = Field("http://localhost:11434", description="ollama 根地址或 OpenAI 相容的 /v1 地址")
+    base_url: str = Field(
+        "http://localhost:11434", description="ollama 根地址、OpenAI 相容的 /v1 地址，或 Anthropic 的 /v1 地址"
+    )
     model: str = Field(..., min_length=1)
     api_key: str | None = None
     temperature: float = Field(0.8, ge=0.0, le=2.0)
@@ -43,6 +47,12 @@ class EndpointTestResult(BaseModel):
 
 
 def _headers(endpoint: LLMEndpoint) -> dict[str, str]:
+    if endpoint.provider == "anthropic":
+        # Anthropic 用自己的一套：x-api-key + anthropic-version，不是 Bearer token。
+        headers = {"Content-Type": "application/json", "anthropic-version": ANTHROPIC_VERSION}
+        if endpoint.api_key:
+            headers["x-api-key"] = endpoint.api_key
+        return headers
     headers = {"Content-Type": "application/json"}
     if endpoint.api_key:
         headers["Authorization"] = f"Bearer {endpoint.api_key}"
@@ -91,6 +101,32 @@ async def chat(
             response.raise_for_status()
             data = response.json()
             return str(data.get("message", {}).get("content", "")).strip()
+
+        if endpoint.provider == "anthropic":
+            # Anthropic 的 Messages API 不接受 messages 裡有 role=system，
+            # 系統提示要單獨拉出來放進頂層的 system 欄位；max_tokens 是必填。
+            system_parts = [str(m["content"]) for m in messages if m.get("role") == "system"]
+            chat_messages = [m for m in messages if m.get("role") != "system"]
+            anthropic_payload: dict[str, Any] = {
+                "model": endpoint.model,
+                "max_tokens": max_tokens or ANTHROPIC_DEFAULT_MAX_TOKENS,
+                "messages": chat_messages,
+                "temperature": endpoint.temperature,
+            }
+            if system_parts:
+                anthropic_payload["system"] = "\n\n".join(system_parts)
+            response = await http.post(
+                f"{endpoint.normalized_base()}/messages",
+                json=anthropic_payload,
+                headers=_headers(endpoint),
+                timeout=timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+            blocks = data.get("content") or []
+            return "".join(
+                str(block.get("text", "")) for block in blocks if block.get("type") == "text"
+            ).strip()
 
         payload = {
             "model": endpoint.model,

@@ -58,7 +58,7 @@ HEARD_MEMORY = 8
 DECISION_TIMEOUT_SECONDS = 90.0
 STARTUP_JITTER_SECONDS = (0.5, 3.0)
 MAX_HP = 100.0
-DEFAULT_BEHAVIOR_HINT = "按人物設定自然地生活：去有意思的地方、和附近的人搭話；要不要吃東西、什麼時候去，自己判斷。"
+DEFAULT_BEHAVIOR_HINT = "按人物設定自然地生活：去有意思的地方、和附近的人搭話；要不要吃東西、什麼時候去，自己判斷，血量沒了會死"
 
 
 class TownAgentConfig(BaseModel):
@@ -176,7 +176,7 @@ def apply_decision(world: "WorldEngine", actor: TownActor, decision: dict[str, A
     reason = str(decision.get("reason") or "").strip()
 
     if action != "move":
-        # 上一轮如果是 move，这一轮不是就先停下来，goto/say/idle 不该带着自由走动的惯性。
+        # 上一輪如果是 move，這一輪不是就先停下來，goto/say/idle 不該帶著自由走動的慣性。
         world.set_input(actor.id, None)
 
     if action == "goto":

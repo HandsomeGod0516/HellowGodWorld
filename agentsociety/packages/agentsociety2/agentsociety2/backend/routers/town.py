@@ -107,12 +107,19 @@ async def get_rooms() -> list[dict[str, Any]]:
     ]
 
 
+_DEFAULT_BASE_URLS = {
+    "ollama": "http://localhost:11434",
+    "openai": "https://api.openai.com/v1",
+    "anthropic": "https://api.anthropic.com/v1",
+}
+
+
 @router.get("/defaults", response_model=TownDefaults)
 async def get_defaults() -> TownDefaults:
     provider = (os.getenv("GOD_LLM_PROVIDER") or "ollama").strip().lower()
-    if provider not in {"ollama", "openai"}:
+    if provider not in _DEFAULT_BASE_URLS:
         provider = "ollama"
-    default_base = "http://localhost:11434" if provider == "ollama" else "https://api.openai.com/v1"
+    default_base = _DEFAULT_BASE_URLS[provider]
     return TownDefaults(
         provider=provider,
         base_url=(os.getenv("GOD_LLM_API_BASE") or default_base).strip(),

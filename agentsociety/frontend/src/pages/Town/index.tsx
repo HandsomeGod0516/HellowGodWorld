@@ -299,7 +299,9 @@ const TownPage = () => {
 
     const sendChat = () => {
         const text = chatText.trim();
+        // 沒打字就按 Enter／送出：直接收起輸入框還給遊戲，不要讓玩家卡在打字狀態走不動。
         if (!text || !socket.humanId) {
+            chatInputRef.current?.blur();
             return;
         }
         socket.send({ type: 'say', text });
